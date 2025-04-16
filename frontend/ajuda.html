@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <title>Ajuda - Ouviescrevi</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+    header {
+      background-color: #333;
+      padding: 15px 30px;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.5em;
+    }
+    nav a {
+      color: white;
+      text-decoration: none;
+      margin-left: 20px;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+    main {
+      max-width: 800px;
+      margin: auto;
+      padding: 40px;
+    }
+    h1, h2 {
+      color: #111;
+    }
+    .faq {
+      margin-top: 30px;
+    }
+    .faq h2 {
+      margin-bottom: 10px;
+      font-size: 1.3em;
+    }
+    .faq p {
+      margin-bottom: 20px;
+    }
+    .contact {
+      margin-top: 40px;
+      background: #f0f0f0;
+      padding: 20px;
+      border-radius: 8px;
+    }
+    .back-button {
+      margin-top: 40px;
+      background-color: #eee;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 1em;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Ouviescrevi</h1>
+    <nav>
+      <a href="index.html">Início</a>
+      <a href="ajuda.html">Ajuda</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Ajuda e Suporte</h1>
+    <p>Bem-vindo à página de ajuda do <strong>Ouviescrevi</strong>. Aqui encontras respostas às perguntas mais frequentes:</p>
+
+    <div class="faq">
+      <h2>1. O que é o Ouviescrevi?</h2>
+      <p>É uma ferramenta automática que converte ficheiros de áudio e vídeo em texto usando inteligência artificial (IA).</p>
+
+      <h2>2. Que formatos de ficheiros são suportados?</h2>
+      <p>Atualmente suportamos .mp3, .mp4, .wav, .m4a, entre outros formatos comuns.</p>
+
+      <h2>3. É necessário criar conta?</h2>
+      <p>Não. O Ouviescrevi está disponível gratuitamente e sem necessidade de registo.</p>
+
+      <h2>4. A transcrição é 100% precisa?</h2>
+      <p>A precisão depende da qualidade do áudio e da clareza da fala. Utilizamos o modelo Whisper da OpenAI para garantir alta qualidade.</p>
+
+      <h2>5. Os meus ficheiros são guardados?</h2>
+      <p>Não. Todos os ficheiros são temporários e eliminados automaticamente após a transcrição.</p>
+    </div>
+
+    <div class="contact">
+      <h2>📩 Contacto de Suporte</h2>
+      <p>Se precisares de ajuda adicional, envia um email para: <strong>suporte@ouviescrevi.pt</strong></p>
+    </div>
+
+    <button class="back-button" onclick="window.location.href='index.html'">← Voltar ao Início</button>
+  </main>
+
+</body>
+</html>
