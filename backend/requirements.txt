@@ -1,4 +1,7 @@
 fastapi
 uvicorn
-moviepy
-imageio-ffmpeg
+moviepy==1.0.3
+imageio==2.31.1
+imageio-ffmpeg==0.4.8
+openai
+python-multipart
