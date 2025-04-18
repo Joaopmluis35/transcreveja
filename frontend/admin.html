@@ -35,6 +35,7 @@
       box-shadow: 0 5px 15px rgba(0,0,0,0.1);
       margin-top: 20px;
       max-width: 500px;
+      width: 100%;
     }
     input, button {
       margin: 10px 0;
@@ -46,84 +47,219 @@
     #output textarea {
       width: 100%;
       height: 200px;
+      margin-top: 10px;
+      padding: 10px;
+    }
+    .btn-group button {
+      margin: 5px 5px 0 0;
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Admin Ouviescrevi</h1>
-  </header>
 
-  <main>
-    <form id="loginForm">
-      <h2>Login de administrador</h2>
-      <input type="email" id="email" placeholder="Email" required>
-      <input type="password" id="password" placeholder="Password" required>
-      <button type="submit">Entrar</button>
+<header>
+  <h1>Admin Ouviescrevi</h1>
+</header>
+
+<main>
+  <form id="loginForm">
+    <h2>Login de administrador</h2>
+    <input type="email" id="email" placeholder="Email" required>
+    <input type="password" id="password" placeholder="Password" required>
+    <button type="submit">Entrar</button>
+  </form>
+
+  <div id="adminContent" class="hidden">
+    <p>Transcrição automática com IA (Whisper)</p>
+    <form id="uploadForm">
+      <input type="file" id="fileInput" accept="audio/*,video/*" required>
+      <button type="submit">Transcrever</button>
+      <button type="button" onclick="startRecording()">🎤 Gravar Áudio</button>
+      <p id="recordingStatus"></p>
     </form>
 
-    <div id="adminContent" class="hidden">
-      <p>Transcrição automática com IA (Whisper)</p>
-      <form id="uploadForm">
-        <input type="file" id="fileInput" accept="audio/*,video/*" required>
-        <button type="submit">Transcrever</button>
-        <button type="button" onclick="startRecording()">🎤 Gravar Áudio</button>
-        <p id="recordingStatus"></p>
-      </form>
-
-      <div id="loading" class="hidden">
-        <p>🔄 A processar transcrição...</p>
-        <div style="background:#ddd; border-radius:8px; width:100%; height:20px;">
-          <div id="progressBar" style="height:100%; width:0%; background:#4caf50; border-radius:8px;"></div>
-        </div>
-      </div>
-
-      <div id="output" class="hidden">
-        <h3>Transcrição:</h3>
-        <textarea id="transcriptionText" readonly></textarea>
-        <div class="btn-group">
-          <button onclick="exportText('txt')">Exportar TXT</button>
-        </div>
+    <div id="loading" class="hidden">
+      <p>🔄 A processar transcrição...</p>
+      <div style="background:#ddd; border-radius:8px; width:100%; height:20px;">
+        <div id="progressBar" style="height:100%; width:0%; background:#4caf50; border-radius:8px;"></div>
       </div>
     </div>
-  </main>
 
-  <script>
-    const loginForm = document.getElementById("loginForm");
-    const adminContent = document.getElementById("adminContent");
+    <div id="output" class="hidden">
+      <h3>Transcrição:</h3>
+      <textarea id="transcriptionText" readonly></textarea>
+      <div class="btn-group">
+        <button onclick="exportText('pdf')">Exportar PDF</button>
+        <button onclick="exportText('docx')">Exportar DOCX</button>
+        <button onclick="exportText('txt')">Exportar TXT</button>
+        <button onclick="exportText('srt')">Exportar SRT</button>
+        <button onclick="exportText('json')">Exportar JSON</button>
+      </div>
+    </div>
+  </div>
+</main>
 
-    loginForm.addEventListener("submit", function(e) {
-      e.preventDefault();
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  const loginForm = document.getElementById("loginForm");
+  const adminContent = document.getElementById("adminContent");
 
-      if (email === "admin@admin.pt" && password === "qwerty123") {
-        loginForm.style.display = "none";
-        adminContent.classList.remove("hidden");
-      } else {
-        alert("Credenciais inválidas!");
+  loginForm.addEventListener("submit", function(e) {
+    e.preventDefault();
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    if (email === "admin@admin.pt" && password === "qwerty123") {
+      loginForm.style.display = "none";
+      adminContent.classList.remove("hidden");
+    } else {
+      alert("Credenciais inválidas!");
+    }
+  });
+
+  const form = document.getElementById("uploadForm");
+  const loading = document.getElementById("loading");
+  const progressBar = document.getElementById("progressBar");
+  const output = document.getElementById("output");
+  const transcriptionText = document.getElementById("transcriptionText");
+  let progressInterval;
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const file = document.getElementById("fileInput").files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    output.classList.add("hidden");
+    transcriptionText.value = "";
+    loading.classList.remove("hidden");
+    progressBar.style.width = "0%";
+
+    let progress = 0;
+    progressInterval = setInterval(() => {
+      if (progress < 90) {
+        progress += Math.random() * 5;
+        progressBar.style.width = progress + "%";
       }
-    });
+    }, 200);
 
-    const form = document.getElementById("uploadForm");
-    const loading = document.getElementById("loading");
-    const progressBar = document.getElementById("progressBar");
-    const output = document.getElementById("output");
-    const transcriptionText = document.getElementById("transcriptionText");
-    let progressInterval;
+    try {
+      const res = await fetch("https://api.ouviescrevi.pt/transcribe", {
+        method: "POST",
+        body: formData
+      });
+      const data = await res.json();
+      clearInterval(progressInterval);
+      progressBar.style.width = "100%";
+      transcriptionText.value = data.formatted || data.transcription || "⚠️ Erro ao transcrever.";
+      output.classList.remove("hidden");
+    } catch (err) {
+      transcriptionText.value = "⚠️ Erro ao transcrever.";
+      output.classList.remove("hidden");
+    } finally {
+      loading.classList.add("hidden");
+      progressBar.style.width = "0%";
+    }
+  });
 
-    form?.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const file = document.getElementById("fileInput").files[0];
-      if (!file) return;
+  function exportText(type) {
+    const text = transcriptionText.value;
 
+    if (type === 'pdf') {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const textLines = doc.splitTextToSize(text, 180);
+      let y = 20;
+      for (let i = 0; i < textLines.length; i++) {
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
+        }
+        doc.text(textLines[i], 15, y);
+        y += 8;
+      }
+      doc.save("transcricao.pdf");
+    }
+    else if (type === 'docx') {
+      const blob = new Blob([text], { type: 'application/msword;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = "transcricao.doc";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+    else if (type === 'txt') {
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = "transcricao.txt";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+    else if (type === 'json') {
+      const json = JSON.stringify({ transcription: text }, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = "transcricao.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+    else if (type === 'srt') {
+      const lines = text.split('\n');
+      let srt = '', count = 1;
+      for (let line of lines) {
+        const match = line.match(/^\[(\d{2}):(\d{2})\] (.+)$/);
+        if (match) {
+          const [_, min, sec, content] = match;
+          const start = `00:${min}:${sec},000`;
+          const end = `00:${min}:${String(parseInt(sec) + 2).padStart(2, '0')},000`;
+          srt += `${count}\n${start} --> ${end}\n${content}\n\n`;
+          count++;
+        }
+      }
+      const blob = new Blob([srt], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = "transcricao.srt";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  }
+
+  let mediaRecorder;
+  let audioChunks = [];
+
+  async function startRecording() {
+    const status = document.getElementById("recordingStatus");
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+      mediaRecorder.stop();
+      status.textContent = "🕐 A processar o áudio...";
+      return;
+    }
+
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+
+    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+
+    mediaRecorder.onstop = async () => {
+      const blob = new Blob(audioChunks, { type: 'audio/webm' });
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", blob, "gravacao.webm");
 
       output.classList.add("hidden");
       transcriptionText.value = "";
       loading.classList.remove("hidden");
       progressBar.style.width = "0%";
+      status.textContent = "🔄 A enviar para transcrição...";
 
       let progress = 0;
       progressInterval = setInterval(() => {
@@ -141,90 +277,25 @@
         const data = await res.json();
         clearInterval(progressInterval);
         progressBar.style.width = "100%";
-        transcriptionText.value = data.formatted || data.transcription || "\u26a0\ufe0f Erro ao transcrever.";
+        transcriptionText.value = data.formatted || data.transcription || "⚠️ Erro ao transcrever.";
         output.classList.remove("hidden");
+        status.textContent = "";
       } catch (err) {
-        transcriptionText.value = "\u26a0\ufe0f Erro ao transcrever.";
+        transcriptionText.value = "⚠️ Erro ao transcrever.";
         output.classList.remove("hidden");
-      } finally {
+        status.textContent = "❌ Erro ao gravar.";
+      }
+
+      setTimeout(() => {
         loading.classList.add("hidden");
         progressBar.style.width = "0%";
-      }
-    });
+      }, 500);
+    };
 
-    function exportText(type) {
-      const text = transcriptionText.value;
-      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = "transcricao." + type;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
+    mediaRecorder.start();
+    status.textContent = "🎙️ A gravar... clique novamente para terminar.";
+  }
+</script>
 
-    let mediaRecorder;
-    let audioChunks = [];
-
-    async function startRecording() {
-      const status = document.getElementById("recordingStatus");
-      if (mediaRecorder && mediaRecorder.state === "recording") {
-        mediaRecorder.stop();
-        status.textContent = "\u23f1\ufe0f A processar o áudio...";
-        return;
-      }
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorder = new MediaRecorder(stream);
-      audioChunks = [];
-
-      mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-      mediaRecorder.onstop = async () => {
-        const blob = new Blob(audioChunks, { type: 'audio/webm' });
-        const formData = new FormData();
-        formData.append("file", blob, "gravacao.webm");
-
-        output.classList.add("hidden");
-        transcriptionText.value = "";
-        loading.classList.remove("hidden");
-        progressBar.style.width = "0%";
-        status.textContent = "\uD83D\uDD04 A enviar para transcrição...";
-
-        let progress = 0;
-        progressInterval = setInterval(() => {
-          if (progress < 90) {
-            progress += Math.random() * 5;
-            progressBar.style.width = progress + "%";
-          }
-        }, 200);
-
-        try {
-          const res = await fetch("https://api.ouviescrevi.pt/transcribe", {
-            method: "POST",
-            body: formData
-          });
-          const data = await res.json();
-
-          clearInterval(progressInterval);
-          progressBar.style.width = "100%";
-
-          transcriptionText.value = data.formatted || data.transcription || "\u26a0\ufe0f Erro ao transcrever.";
-          output.classList.remove("hidden");
-          status.textContent = "";
-        } catch (err) {
-          transcriptionText.value = "\u26a0\ufe0f Erro ao transcrever.";
-          output.classList.remove("hidden");
-          status.textContent = "\u274c Erro ao gravar.";
-        }
-
-        setTimeout(() => {
-          loading.classList.add("hidden");
-          progressBar.style.width = "0%";
-        }, 500);
-      };
-
-      mediaRecorder.start();
-      status.textContent = "\ud83c\udfa4 A gravar... clique novamente para terminar.";
-    }
-  </script>
 </body>
 </html>
