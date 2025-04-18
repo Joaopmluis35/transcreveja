@@ -99,6 +99,10 @@
       <input type="file" id="fileInput" name="file" accept="audio/*,video/*" required>
       <br>
       <button type="submit">Transcrever</button>
+	  <button type="button" onclick="startRecording()">🎤 Gravar Áudio</button>
+		<p id="recordingStatus" style="margin-top:10px; font-weight:bold; color:#333;"></p>
+
+
     </form>
 
     <div id="loading" style="display:none;">
@@ -266,6 +270,75 @@ else if (type === 'json') {
 
 
   }
+  let mediaRecorder;
+let audioChunks = [];
+
+async function startRecording() {
+  const status = document.getElementById("recordingStatus");
+
+  // Se já estiver a gravar, pára e envia
+  if (mediaRecorder && mediaRecorder.state === "recording") {
+    mediaRecorder.stop();
+    status.textContent = "🕐 A processar o áudio...";
+    return;
+  }
+
+  // Começar nova gravação
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  mediaRecorder = new MediaRecorder(stream);
+  audioChunks = [];
+
+  mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+
+  mediaRecorder.onstop = async () => {
+    const blob = new Blob(audioChunks, { type: 'audio/webm' });
+    const formData = new FormData();
+    formData.append("file", blob, "gravacao.webm");
+
+    // Mostrar loading
+    output.style.display = "none";
+    transcriptionText.value = "";
+    loading.style.display = "block";
+    progressBar.style.width = "0%";
+    status.textContent = "🔄 A enviar para transcrição...";
+
+    let progress = 0;
+    progressInterval = setInterval(() => {
+      if (progress < 90) {
+        progress += Math.random() * 5;
+        progressBar.style.width = progress + "%";
+      }
+    }, 200);
+
+    try {
+      const res = await fetch("https://api.ouviescrevi.pt/transcribe", {
+        method: "POST",
+        body: formData
+      });
+      const data = await res.json();
+
+      clearInterval(progressInterval);
+      progressBar.style.width = "100%";
+
+      transcriptionText.value = data.formatted || data.transcription || "⚠️ Erro ao transcrever.";
+      output.style.display = "block";
+      status.textContent = "";
+    } catch (err) {
+      transcriptionText.value = "⚠️ Erro ao transcrever.";
+      output.style.display = "block";
+      status.textContent = "❌ Erro ao gravar.";
+    }
+
+    setTimeout(() => {
+      loading.style.display = "none";
+      progressBar.style.width = "0%";
+    }, 500);
+  };
+
+  mediaRecorder.start();
+  status.textContent = "🎙️ A gravar... clique novamente para terminar.";
+}
+
 </script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
