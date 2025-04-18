@@ -15,7 +15,8 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
   output.innerHTML = 'A transcrever...';
 
   try {
-    const response = await fetch('http://localhost:8000/transcribe', {
+    const response = await fetch('https://api.ouviescrevi.pt/transcribe', {
+
       method: 'POST',
       body: formData
     });
