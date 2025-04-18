@@ -2,7 +2,7 @@ from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 import tempfile
 import os
-from moviepy.editor import AudioFileClip
+import subprocess
 import openai
 from datetime import datetime
 
@@ -42,8 +42,17 @@ async def transcribe(file: UploadFile = File(...)):
     audio_path = tmp_path + ".wav"
 
     try:
-        clip = AudioFileClip(tmp_path)
-        clip.write_audiofile(audio_path, codec="pcm_s16le")
+        # Usa ffmpeg diretamente (melhor suporte para formatos como webm, mp4 etc.)
+        command = [
+            "ffmpeg",
+            "-i", tmp_path,
+            "-ar", "16000",  # amostragem
+            "-ac", "1",      # mono
+            "-c:a", "pcm_s16le",  # formato WAV compatível
+            audio_path,
+            "-y"
+        ]
+        subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
     except Exception as e:
         print(f"❌ Erro ao converter áudio ({file.filename}): {e}")
         return {"error": f"Erro ao converter áudio: {str(e)}"}
