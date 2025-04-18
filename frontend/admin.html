@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin | Ouviescrevi</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f2f2f2;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #333;
+      padding: 15px 30px;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.5em;
+    }
+    main {
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      font-size: 1em;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    #adminPanel {
+      display: none;
+      text-align: center;
+      margin-top: 30px;
+    }
+    .logout-btn {
+      background-color: #f44336;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Admin Ouviescrevi</h1>
+</header>
+
+<main>
+  <div class="card" id="loginCard">
+    <h2>Login de administrador</h2>
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Entrar</button>
+  </div>
+
+  <div class="card" id="adminPanel">
+    <h2>Bem-vindo, Admin!</h2>
+    <p>Acesso às funcionalidades administrativas.</p>
+    <button onclick="verTranscricoes()">📂 Ver transcrições</button>
+    <button class="logout-btn" onclick="logout()">Sair</button>
+  </div>
+</main>
+
+<script>
+  function login() {
+    const email = document.getElementById("email").value;
+    const pass = document.getElementById("password").value;
+
+    if (email === "admin@ouviescrevi.pt" && pass === "1234") {
+      document.getElementById("loginCard").style.display = "none";
+      document.getElementById("adminPanel").style.display = "block";
+    } else {
+      alert("Credenciais inválidas.");
+    }
+  }
+
+  function logout() {
+    document.getElementById("adminPanel").style.display = "none";
+    document.getElementById("loginCard").style.display = "block";
+  }
+
+  function verTranscricoes() {
+    alert("🗂️ Esta funcionalidade estará disponível em breve!");
+  }
+</script>
+
+</body>
+</html>
