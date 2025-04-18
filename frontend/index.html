@@ -93,57 +93,25 @@
     </nav>
   </header>
 
-  <main>
-    <p>Transcrição automática com IA (Whisper)</p>
-    <form id="uploadForm">
-      <input type="file" id="fileInput" name="file" accept="audio/*,video/*" required>
-      <br>
-      <button type="submit">Transcrever</button>
-	  <button type="button" onclick="startRecording()">🎤 Gravar Áudio</button>
-		<p id="recordingStatus" style="margin-top:10px; font-weight:bold; color:#333;"></p>
+<main>
+  <section style="margin-top:60px; text-align:center; max-width:700px;">
+    <h2>📢 Funcionalidades em breve</h2>
+    <p style="font-size:1.1em;">
+      Estamos a trabalhar para trazer ainda mais ferramentas para facilitar a tua transcrição.<br>
+      Em breve poderás contar com:
+    </p>
+    <ul style="text-align:left; margin-top:10px; font-size:1em;">
+      <li>🔍 Pesquisa inteligente dentro da transcrição</li>
+      <li>🗣️ Tradução automática para outros idiomas</li>
+      <li>📅 Histórico das tuas transcrições</li>
+      <li>📂 Envio de ficheiros maiores</li>
+    </ul>
+    <p style="margin-top:15px; font-style:italic; color:#555;">
+      Fica atento — estamos só a começar!
+    </p>
+  </section>
+</main>
 
-
-    </form>
-
-    <div id="loading" style="display:none;">
-  <p>🔄 A processar transcrição...</p>
-  <div id="progressContainer" style="background:#ddd; border-radius:8px; width:100%; height:20px;">
-    <div id="progressBar" style="height:100%; width:0%; background:#4caf50; border-radius:8px;"></div>
-  </div>
-</div>
-
-
-    <div id="output" style="display:none;">
-      <h3>Transcrição:</h3>
-      <textarea id="transcriptionText" readonly></textarea>
-      <div class="btn-group">
-        <button onclick="exportText('pdf')">Exportar PDF</button>
-        <button onclick="exportText('docx')">Exportar DOCX</button>
-		<button onclick="exportText('txt')">Exportar TXT</button>
-		<button onclick="exportText('srt')">Exportar SRT</button>
-<button onclick="exportText('json')">Exportar JSON</button>
-
-      </div>
-      <button class="back-button" onclick="window.location.href='index.html'">Voltar ao Início</button>
-    </div>
-	<section style="margin-top:60px; text-align:center; max-width:700px;">
-  <h2>📢 Funcionalidades em breve</h2>
-  <p style="font-size:1.1em;">
-    Estamos a trabalhar para trazer ainda mais ferramentas para facilitar a tua transcrição.
-    Em breve poderás contar com:
-  </p>
-  <ul style="text-align:left; margin-top:10px; font-size:1em;">
-    <li>🔍 Pesquisa inteligente dentro da transcrição</li>
-    <li>🗣️ Tradução automática para outros idiomas</li>
-    <li>📅 Histórico das tuas transcrições</li>
-    <li>📂 Envio de ficheiros maiores</li>
-  </ul>
-  <p style="margin-top:15px; font-style:italic; color:#555;">
-    Fica atento — estamos só a começar!
-  </p>
-</section>
-
-  </main>
 
   <script>
   const form = document.getElementById("uploadForm");
