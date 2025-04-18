@@ -5,9 +5,10 @@ import os
 from moviepy.editor import AudioFileClip
 import openai
 
+print("API KEY DO AMBIENTE:", os.getenv("OPENAI_API_KEY"))  # Só para testar no Render!
+
 app = FastAPI()
 
-# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -15,8 +16,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Cliente OpenAI
-client = openai.OpenAI(api_key="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")
+client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+
 
 def format_segments(segments):
     def format_time(seconds):
