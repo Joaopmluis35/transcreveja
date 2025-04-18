@@ -4,6 +4,7 @@ import tempfile
 import os
 from moviepy.editor import AudioFileClip
 import openai
+from datetime import datetime
 
 print("API KEY DO AMBIENTE:", os.getenv("OPENAI_API_KEY"))  # Só para testar no Render!
 
@@ -18,22 +19,22 @@ app.add_middleware(
 
 client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-
-
 def format_segments(segments):
     def format_time(seconds):
         m, s = divmod(int(seconds), 60)
         return f"[{m:02d}:{s:02d}]"
-
+    
     formatted_text = ""
     for s in segments:
         timestamp = format_time(s.start)
         formatted_text += f"{timestamp} {s.text.strip()}\n\n"
     return formatted_text.strip()
 
-
+# ✅ Versão final com logging incluído
 @app.post("/transcribe")
 async def transcribe(file: UploadFile = File(...)):
+    print(f"[{datetime.now()}] Utilizador fez upload: {file.filename}")
+
     with tempfile.NamedTemporaryFile(delete=False) as tmp:
         contents = await file.read()
         tmp.write(contents)
@@ -60,7 +61,6 @@ async def transcribe(file: UploadFile = File(...)):
     os.remove(tmp_path)
     os.remove(audio_path)
 
-    # Transcrição formatada com timestamps
     formatted = format_segments(transcript.segments)
 
     return {
