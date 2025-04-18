@@ -62,14 +62,15 @@
 </header>
 
 <main>
-  <form id="loginForm">
+  <form id="loginForm" class="hidden">
     <h2>Login de administrador</h2>
-    <input type="email" id="email" placeholder="Email" required>
-    <input type="password" id="password" placeholder="Password" required>
+    <input type="password" id="password" placeholder="Palavra-chave" required>
     <button type="submit">Entrar</button>
   </form>
 
   <div id="adminContent" class="hidden">
+  <button onclick="logout()" style="align-self: flex-end; margin-bottom: 10px;">Sair</button>
+
     <p>Transcrição automática com IA (Whisper)</p>
     <form id="uploadForm">
       <input type="file" id="fileInput" accept="audio/*,video/*" required>
@@ -98,22 +99,29 @@
     </div>
   </div>
 </main>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
   const loginForm = document.getElementById("loginForm");
   const adminContent = document.getElementById("adminContent");
 
+  // Mostrar admin se já está autenticado
+  if (localStorage.getItem("loggedIn") === "true") {
+    loginForm.classList.add("hidden");
+    adminContent.classList.remove("hidden");
+  } else {
+    loginForm.classList.remove("hidden");
+  }
+
   loginForm.addEventListener("submit", function(e) {
     e.preventDefault();
-    const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
 
-    if (email === "admin@admin.pt" && password === "qwerty123") {
-      loginForm.style.display = "none";
+    if (password === "admin") {
+      localStorage.setItem("loggedIn", "true");
+      loginForm.classList.add("hidden");
       adminContent.classList.remove("hidden");
     } else {
-      alert("Credenciais inválidas!");
+      alert("Palavra-chave incorreta!");
     }
   });
 
@@ -295,6 +303,11 @@
     mediaRecorder.start();
     status.textContent = "🎙️ A gravar... clique novamente para terminar.";
   }
+  function logout() {
+  localStorage.removeItem("loggedIn");
+  location.reload();
+}
+
 </script>
 
 </body>
