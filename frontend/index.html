@@ -141,9 +141,50 @@
     </div>
   </section>
 
-  <footer>
-    © 2025 Ouviescrevi · Todos os direitos reservados
-  </footer>
+
+<footer>
+  © 2025 Ouviescrevi · Todos os direitos reservados<br>
+  📧 <a href="mailto:ouviescrevi@gmail.com" style="color: #eee;">ouviescrevi@gmail.com</a>
+</footer>
+
+<!-- Formulário de sugestões -->
+<section class="features" style="margin-top: 60px;">
+  <h2>💡 Tens sugestões para o Ouviescrevi?</h2>
+  <p style="font-size: 1.1em;">Queremos muito ouvir-te! Partilha ideias ou melhorias para tornar a experiência ainda melhor:</p>
+  <form onsubmit="sendSuggestion(event)" style="max-width: 600px; margin: 20px auto;">
+    <textarea id="sugestaoTexto" rows="4" style="width: 100%; padding: 10px;" placeholder="Escreve aqui a tua sugestão..."></textarea><br>
+    <button type="submit" class="btn-main">Enviar sugestão</button>
+    <p id="sugestaoStatus" style="margin-top: 10px; color: #333;"></p>
+  </form>
+</section>
+
+<!-- Scripts existentes + novo script para envio -->
+<script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+// ... todas as funções convertWord(), convertPDFtoText(), etc. permanecem ...
+
+// 📨 Função para enviar sugestões via mailto:
+function sendSuggestion(e) {
+  e.preventDefault();
+  const texto = document.getElementById("sugestaoTexto").value.trim();
+  const status = document.getElementById("sugestaoStatus");
+
+  if (!texto) {
+    status.textContent = "⚠️ Por favor, escreve a tua sugestão.";
+    return;
+  }
+
+  const email = "ouviescrevi@gmail.com";
+  const subject = encodeURIComponent("Sugestão para o Ouviescrevi");
+  const body = encodeURIComponent(texto);
+
+  window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+  status.textContent = "✅ A abrir o teu programa de email...";
+  document.getElementById("sugestaoTexto").value = "";
+}
+</script>
 
   <!-- Scripts -->
   <script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
