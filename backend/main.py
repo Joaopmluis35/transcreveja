@@ -108,3 +108,42 @@ async def summarize(req: SummarizeRequest, request: Request):
     except Exception as e:
         print("❌ Erro ao gerar resumo:", e)
         return { "error": str(e) }
+
+from fastapi import HTTPException  # certifica-te que está importado
+
+@app.post("/translate")
+async def translate_text(request: Request):
+    data = await request.json()
+    text = data.get("text")
+    language = data.get("language")
+    token = data.get("token")
+
+    if token != "ouviescrevi2025@resumo":
+        raise HTTPException(status_code=403, detail="Token inválido.")
+
+    # ✅ Lista de idiomas suportados (em minúsculas)
+    idiomas_suportados = ["inglês", "espanhol", "francês", "alemão", "italiano", "português"]
+
+    if language.lower() not in idiomas_suportados:
+        return { "error": f"Idioma não suportado: {language}" }
+
+    # ✅ Prompt para tradução
+    prompt = f"Traduz o seguinte texto para {language}:\n\n{text}"
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                { "role": "system", "content": f"Traduz o texto para {language}." },
+                { "role": "user", "content": text }
+            ],
+            temperature=0.3
+        )
+
+        translated = response.choices[0].message.content.strip()
+        return { "translation": translated }
+
+    except Exception as e:
+        print("❌ Erro ao traduzir:", e)
+        return { "error": str(e) }
+

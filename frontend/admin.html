@@ -6,22 +6,18 @@
   <title>Admin | Ouviescrevi</title>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f2f2f2;
       margin: 0;
-      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #A550F7, #00C3FF);
+      color: white;
+      text-align: center;
     }
     header {
-      background-color: #333;
-      padding: 15px 30px;
-      color: white;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      padding: 20px;
     }
     header h1 {
       margin: 0;
-      font-size: 1.5em;
+      font-size: 2em;
     }
     main {
       padding: 40px;
@@ -31,12 +27,14 @@
     }
     form {
       background: white;
+      color: #333;
       padding: 20px 30px;
       border-radius: 10px;
       box-shadow: 0 5px 15px rgba(0,0,0,0.1);
       margin-top: 20px;
-      max-width: 500px;
+      max-width: 600px;
       width: 100%;
+      text-align: left;
     }
     input, button {
       margin: 10px 0;
@@ -45,15 +43,48 @@
       width: 100%;
       cursor: pointer;
     }
+    button {
+      background-color: #e6d7fb;
+      color: #333;
+      border: 2px solid #A550F7;
+      border-radius: 8px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+    button:hover {
+      background: linear-gradient(135deg, #A550F7, #00C3FF);
+      color: white;
+      border-color: transparent;
+    }
     .hidden { display: none; }
     #output textarea {
       width: 100%;
       height: 200px;
       margin-top: 10px;
       padding: 10px;
+      font-family: monospace;
+    }
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 10px;
     }
     .btn-group button {
-      margin: 5px 5px 0 0;
+      flex: 1 1 auto;
+      min-width: 130px;
+      max-width: 200px;
+      padding: 10px;
+      font-size: 0.95em;
+      cursor: pointer;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      background: #f5f5f5;
+      transition: background 0.3s;
+    }
+    .btn-group button:hover {
+      background: #e0e0e0;
     }
     #resumoBox {
       margin-top: 20px;
@@ -63,7 +94,132 @@
       border-left: 5px solid #4caf50;
       max-width: 800px;
       width: 100%;
+      color: #333;
     }
+    .switch-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    .switch-container input[type="checkbox"] {
+      appearance: none;
+      width: 40px;
+      height: 20px;
+      background: #ccc;
+      border-radius: 20px;
+      position: relative;
+      cursor: pointer;
+      outline: none;
+      transition: background 0.3s;
+    }
+    .switch-container input[type="checkbox"]::before {
+      content: "";
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.3s;
+    }
+    .switch-container input[type="checkbox"]:checked {
+      background: #4caf50;
+    }
+    .switch-container input[type="checkbox"]:checked::before {
+      transform: translateX(20px);
+    }
+    .switch-label {
+      user-select: none;
+    }
+    .hourglass {
+      width: 60px;
+      height: 60px;
+      margin: 20px auto;
+      border: 4px solid #A550F7;
+      border-radius: 50%;
+      position: relative;
+      animation: rotateHourglass 2.5s infinite linear;
+    }
+    .hourglass::before, .hourglass::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 12px;
+      height: 12px;
+      background: #A550F7;
+      border-radius: 50%;
+    }
+    .hourglass::before {
+      top: 12px;
+      animation: sandTop 2.5s infinite linear;
+    }
+    .hourglass::after {
+      bottom: 12px;
+      animation: sandBottom 2.5s infinite linear;
+    }
+    @keyframes rotateHourglass {
+      0%   { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes sandTop {
+      0%   { opacity: 1; }
+      50%  { opacity: 0; }
+      100% { opacity: 1; }
+    }
+    @keyframes sandBottom {
+      0%   { opacity: 0; }
+      50%  { opacity: 1; }
+      100% { opacity: 0; }
+    }
+	.btn-group button {
+  flex: 1 1 auto;
+  min-width: 130px;
+  max-width: 200px;
+  padding: 12px 18px;
+  font-size: 1em;
+  font-weight: bold;
+  border: 2px solid #A550F7;
+  border-radius: 8px;
+  background-color: #e6d7fb;
+  color: #333;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+.btn-group button::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #A550F7, #00C3FF);
+  transition: all 0.4s ease;
+  z-index: 0;
+}
+
+.btn-group button:hover::before {
+  bottom: 0;
+}
+
+.btn-group button:hover {
+  color: white;
+  border-color: transparent;
+}
+
+.btn-group button span {
+  position: relative;
+  z-index: 2;
+}
+#adminContent{
+place-items: center;
+}
   </style>
 </head>
 <body>
@@ -81,12 +237,19 @@
 
   <div id="adminContent" class="hidden">
   <button onclick="logout()" style="align-self: flex-end; margin-bottom: 10px;">Sair</button>
-
+	
     <p>Transcrição automática com IA (Whisper)</p>
     <form id="uploadForm">
       <input type="file" id="fileInput" accept="audio/*,video/*" required>
       <button type="submit">Transcrever</button>
       <button type="button" onclick="startRecording()">🎤 Gravar Áudio</button>
+		 <label class="switch-container">
+  <input type="checkbox" id="identificarLocutores">
+  <span class="slider"></span>
+  <span class="switch-label">Identificar falas com nomes de locutores</span>
+</label>
+
+
       <p id="recordingStatus"></p>
     </form>
 
@@ -108,12 +271,14 @@
 </div>
 
       <div class="btn-group">
-        <button onclick="exportText('pdf')">Exportar PDF</button>
-        <button onclick="exportText('docx')">Exportar DOCX</button>
-        <button onclick="exportText('txt')">Exportar TXT</button>
-        <button onclick="exportText('srt')">Exportar SRT</button>
-        <button onclick="exportText('json')">Exportar JSON</button>
-		<button onclick="gerarResumo()">🧠 Gerar Resumo</button>
+        <button onclick="exportText('pdf')"><span>Exportar PDF</span></button>
+        <button onclick="exportText('docx')"><span>Exportar DOCX</span></button>
+        <button onclick="exportText('txt')"><span>Exportar TXT</span></button>
+        <button onclick="exportText('srt')"><span>Exportar SRT</span></button>
+        <button onclick="exportText('json')"><span>Exportar JSON</span></button>
+		<button onclick="gerarResumo()"><span>🧠 Gerar Resumo</span></button>
+		<button onclick="traduzirTexto()"><span>🌍 Traduzir</span></button>
+
       </div>
     </div>
   </div>
@@ -152,44 +317,55 @@
   let progressInterval;
 
   form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const file = document.getElementById("fileInput").files[0];
-    if (!file) return;
+  e.preventDefault();
+  const file = document.getElementById("fileInput").files[0];
+  if (!file) return;
 
-    const formData = new FormData();
-    formData.append("file", file);
+  const formData = new FormData();
+  formData.append("file", file);
 
-    output.classList.add("hidden");
-    transcriptionText.value = "";
-    loading.classList.remove("hidden");
-    progressBar.style.width = "0%";
+  output.classList.add("hidden");
+  transcriptionText.value = "";
+  loading.classList.remove("hidden");
+  progressBar.style.width = "0%";
 
-    let progress = 0;
-    progressInterval = setInterval(() => {
-      if (progress < 90) {
-        progress += Math.random() * 5;
-        progressBar.style.width = progress + "%";
-      }
-    }, 200);
-
-    try {
-      const res = await fetch("https://api.ouviescrevi.pt/transcribe", {
-        method: "POST",
-        body: formData
-      });
-      const data = await res.json();
-      clearInterval(progressInterval);
-      progressBar.style.width = "100%";
-      transcriptionText.value = data.formatted || data.transcription || "⚠️ Erro ao transcrever.";
-      output.classList.remove("hidden");
-    } catch (err) {
-      transcriptionText.value = "⚠️ Erro ao transcrever.";
-      output.classList.remove("hidden");
-    } finally {
-      loading.classList.add("hidden");
-      progressBar.style.width = "0%";
+  let progress = 0;
+  progressInterval = setInterval(() => {
+    if (progress < 90) {
+      progress += Math.random() * 5;
+      progressBar.style.width = progress + "%";
     }
-  });
+  }, 200);
+
+  try {
+    const res = await fetch("https://api.ouviescrevi.pt/transcribe", {
+      method: "POST",
+      body: formData
+    });
+    const data = await res.json();
+    clearInterval(progressInterval);
+    progressBar.style.width = "100%";
+
+    // ✅ Verifica se o checkbox está marcado
+    const identificar = document.getElementById("identificarLocutores").checked;
+    let textoFinal = data.formatted || data.transcription || "⚠️ Erro ao transcrever.";
+
+    // ✅ Aplica alternância de locutores se selecionado
+    if (identificar) {
+      textoFinal = aplicarLocutores(textoFinal);
+    }
+
+    transcriptionText.value = textoFinal;
+    output.classList.remove("hidden");
+  } catch (err) {
+    transcriptionText.value = "⚠️ Erro ao transcrever.";
+    output.classList.remove("hidden");
+  } finally {
+    loading.classList.add("hidden");
+    progressBar.style.width = "0%";
+  }
+});
+
 
   function exportText(type) {
     const text = transcriptionText.value;
@@ -373,6 +549,117 @@ async function gerarResumo() {
         btn.disabled = false;
     }
 }
+function aplicarLocutores(transcricao) {
+  const linhas = transcricao.split('\n');
+  let resultado = '';
+  let locutorAtual = 'João';
+
+  for (let i = 0; i < linhas.length; i++) {
+    const linha = linhas[i].trim();
+    if (!linha) continue;
+
+    const novaLinha = linha.replace(/^\[(\d{2}:\d{2})\]/, (match, timestamp) => {
+      const nome = locutorAtual;
+      locutorAtual = locutorAtual === 'João' ? 'Maria' : 'João'; // alternar
+      return `[${timestamp}] ${nome}:`;
+    });
+
+    resultado += novaLinha + '\n';
+  }
+
+  return resultado.trim();
+}
+// Torna o campo editável (já está assim por padrão)
+transcriptionText.removeAttribute("readonly");
+
+// Cria aviso informativo acima do textarea
+const avisoEditar = document.createElement("div");
+avisoEditar.innerHTML = `<div style="background: #fff3cd; color: #856404; border-left: 5px solid #ffc107; padding: 12px 18px; margin-bottom: 15px; font-size: 15px; border-radius: 5px;">
+  ✏️ <strong>Podes editar o texto abaixo</strong>. Quando terminares, clica em <strong>"Salvar Alterações"</strong> para guardar.
+</div>
+`;
+avisoEditar.style.background = "#fff8dc";
+avisoEditar.style.borderLeft = "5px solid #ffc107";
+avisoEditar.style.padding = "10px 15px";
+avisoEditar.style.marginBottom = "10px";
+avisoEditar.style.fontSize = "14px";
+
+// Cria botão de salvar
+const btnSalvar = document.createElement("button");
+btnSalvar.textContent = "💾 Salvar Alterações";
+btnSalvar.style.background = "#4caf50";
+btnSalvar.style.color = "#fff";
+btnSalvar.style.fontWeight = "bold";
+btnSalvar.style.marginBottom = "15px";
+btnSalvar.style.cursor = "pointer";
+btnSalvar.onclick = () => {
+  const textoAtualizado = transcriptionText.value.trim();
+  localStorage.setItem("transcricao_temporaria", textoAtualizado);
+  btnSalvar.textContent = "✅ Alterações salvas!";
+  btnSalvar.disabled = true;
+  setTimeout(() => {
+    btnSalvar.textContent = "💾 Salvar Alterações";
+    btnSalvar.disabled = false;
+  }, 2000);
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+  const btnGroup = document.querySelector(".btn-group");
+  transcriptionText.parentElement.insertBefore(avisoEditar, transcriptionText);
+  btnGroup.insertBefore(btnSalvar, btnGroup.firstChild);
+
+  const guardada = localStorage.getItem("transcricao_temporaria");
+// Carrega automaticamente a transcrição guardada, sem mostrar aviso
+if (guardada && transcriptionText.value.trim() === "") {
+  transcriptionText.value = guardada;
+}
+
+
+});
+async function traduzirTexto() {
+  const texto = transcriptionText.value.trim();
+  if (!texto) {
+    alert("⚠️ Transcrição vazia.");
+    return;
+  }
+
+  const idioma = prompt("Para que idioma queres traduzir? (ex: inglês, espanhol, francês)");
+  if (!idioma) return;
+
+  const btn = event.target;
+  const originalText = btn.textContent;
+  btn.textContent = "🌍 A traduzir...";
+  btn.disabled = true;
+
+  try {
+    const response = await fetch("https://api.ouviescrevi.pt/translate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text: texto,
+        language: idioma.toLowerCase(), // "english", "spanish", etc.
+        token: "ouviescrevi2025@resumo"
+      })
+    });
+
+    const data = await response.json();
+
+    if (data.translation) {
+      transcriptionText.value = data.translation;
+    } else {
+      alert("❌ Erro ao traduzir.");
+    }
+
+  } catch (err) {
+    alert("Erro ao comunicar com o servidor de tradução.");
+    console.error(err);
+  } finally {
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
+}
+
+
 
 
 </script>
