@@ -1,340 +1,97 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-	
-
   <meta charset="UTF-8">
-  <meta name="google-site-verification" content="zkv7XRS6_wyqyWt8pyXcE0vwnrVqdQ7l0vXWyKhATk0" />
-	<title>Ouviescrevi – Transcrição automática com IA</title>
-	<meta name="description" content="Transcreve áudios e vídeos em segundos com IA. Grátis, rápido e prático. Lança já o teu Ouviescrevi!">
-	<meta name="robots" content="index, follow">
-<link rel="icon" href="/logos/ouviescreviicon.png" type="image/png">
- 
+  <title>Ouviescrevi – Transcrição automática com IA</title>
+  <meta name="description" content="Transcreve áudios e vídeos em segundos com IA. Grátis, rápido e prático.">
+  <meta name="robots" content="index, follow">
+  <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png">
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f9f9f9;
       margin: 0;
-      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #A550F7, #00C3FF);
+      color: white;
+      text-align: center;
     }
     header {
-      background-color: #333;
-      padding: 15px 30px;
-      color: white;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    header h1 {
-      margin: 0;
-      font-size: 1.5em;
-    }
-    nav a {
-      color: white;
-      text-decoration: none;
-      margin-left: 20px;
-    }
-    nav a:hover {
-      text-decoration: underline;
-    }
-    main {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 40px;
-    }
-    form {
-      background: white;
-      padding: 20px 30px;
-      border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-      margin-top: 20px;
-    }
-    input[type="file"], button {
-      margin: 10px 0;
-      padding: 10px;
-      font-size: 1em;
-    }
-    #loading {
-      display: none;
-      margin-top: 20px;
-      font-weight: bold;
-      color: #555;
-    }
-    #output {
-      margin-top: 30px;
-      max-width: 800px;
-      background: #fff;
       padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 5px 10px rgba(0,0,0,0.05);
     }
-    textarea {
-      width: 100%;
-      height: 200px;
-      margin-top: 10px;
-      padding: 10px;
-      font-size: 1em;
+    header img {
+      height: 80px;
+      margin-bottom: 10px;
     }
-    .btn-group button {
-      margin: 5px;
+    h1 {
+      font-size: 2.5em;
+      margin: 10px 0;
     }
-    .back-button {
-      margin-top: 20px;
-      background-color: #eee;
+    p.sub {
+      font-size: 1.2em;
+      margin-top: 0;
+    }
+    .btn-main {
+      margin-top: 30px;
+      background-color: white;
+      color: #333;
+      font-weight: bold;
+      padding: 15px 30px;
       border: none;
-      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 1.1em;
       cursor: pointer;
-      font-size: 1em;
-      border-radius: 5px;
+      transition: 0.3s;
+    }
+    .btn-main:hover {
+      background-color: #f1f1f1;
+    }
+    .features {
+      background: white;
+      color: #333;
+      margin-top: 60px;
+      padding: 40px 20px;
+      border-radius: 30px 30px 0 0;
+    }
+    .features h2 {
+      margin-top: 0;
+    }
+    .features ul {
+      list-style: none;
+      padding: 0;
+      font-size: 1.1em;
+      line-height: 2em;
+    }
+    footer {
+      margin-top: 60px;
+      padding: 20px;
+      font-size: 0.9em;
+      color: #eee;
     }
   </style>
 </head>
 <body>
 
   <header>
-    <img src="/logos/ouviescrevimainlogo.png" alt="Ouviescrevi" style="height: 40px;">
-
-    <nav>
-      <a href="index.html">Início</a>
-      <a href="ajuda.html">Ajuda</a>
-    </nav>
+    <img src="/logos/ouviescrevimainlogo.png" alt="Ouviescrevi">
+    <h1>Transcreve com IA</h1>
+    <p class="sub">Rápido, grátis e em português</p>
+    <button class="btn-main" onclick="window.location.href='admin.html'">Começar Agora</button>
   </header>
 
-<main>
-  <section style="margin-top:60px; text-align:center; max-width:700px;">
-    <h2>📢 Funcionalidades em breve</h2>
-    <p style="font-size:1.1em;">
-      Estamos a trabalhar para trazer ainda mais ferramentas para facilitar a tua transcrição.<br>
-      Em breve poderás contar com:
-    </p>
-    <ul style="text-align:left; margin-top:10px; font-size:1em;">
-      <li>🔍 Pesquisa inteligente dentro da transcrição</li>
+  <section class="features">
+    <h2>🔧 Funcionalidades em breve</h2>
+    <ul>
+      <li>🔍 Pesquisa inteligente nas transcrições</li>
       <li>🗣️ Tradução automática para outros idiomas</li>
-      <li>📅 Histórico das tuas transcrições</li>
+      <li>📅 Histórico de transcrições por utilizador</li>
       <li>📂 Envio de ficheiros maiores</li>
+      <li>🧠 Sumarização e análise com IA</li>
     </ul>
-    <p style="margin-top:15px; font-style:italic; color:#555;">
-      Fica atento — estamos só a começar!
-    </p>
+    <p style="margin-top: 20px; font-style: italic;">Fica atento – estamos só a começar!</p>
   </section>
-</main>
 
-
-  <script>
-  const form = document.getElementById("uploadForm");
-  const loading = document.getElementById("loading");
-  const progressBar = document.getElementById("progressBar");
-  const output = document.getElementById("output");
-  const transcriptionText = document.getElementById("transcriptionText");
-
-  let progressInterval;
-
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const file = document.getElementById("fileInput").files[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    output.style.display = "none";
-    transcriptionText.value = "";
-    loading.style.display = "block";
-    progressBar.style.width = "0%";
-
-    // Animação de progresso simulado
-    let progress = 0;
-    progressInterval = setInterval(() => {
-      if (progress < 90) {
-        progress += Math.random() * 5;
-        progressBar.style.width = progress + "%";
-      }
-    }, 200);
-
-    try {
-      const res = await fetch("https://api.ouviescrevi.pt/transcribe", {
-
-        method: "POST",
-        body: formData
-      });
-
-      const data = await res.json();
-
-      clearInterval(progressInterval);
-      progressBar.style.width = "100%";
-
-      transcriptionText.value = data.formatted || data.transcription || "⚠️ Erro ao transcrever.";
-      output.style.display = "block";
-
-      setTimeout(() => {
-        loading.style.display = "none";
-        progressBar.style.width = "0%";
-      }, 500);
-
-    } catch (err) {
-      clearInterval(progressInterval);
-      progressBar.style.width = "100%";
-      transcriptionText.value = "⚠️ Erro ao transcrever.";
-      output.style.display = "block";
-      loading.style.display = "none";
-    }
-  });
-
-   async function exportText(type) {
-    const text = document.getElementById("transcriptionText").value;
-
-    if (type === 'pdf') {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  const textLines = doc.splitTextToSize(text, 180); // largura do texto
-
-  let y = 20;
-  for (let i = 0; i < textLines.length; i++) {
-    if (y > 270) { // limite inferior da página
-      doc.addPage();
-      y = 20;
-    }
-    doc.text(textLines[i], 15, y);
-    y += 8;
-  }
-
-  doc.save("transcricao.pdf");
-}
-
-
-    else if (type === 'docx') {
-      const blob = new Blob([text], {
-        type: 'application/msword;charset=utf-8'
-      });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = "transcricao.doc";
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-	else if (type === 'txt') {
-  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = "transcricao.txt";
-  a.click();
-  URL.revokeObjectURL(url);
-}
-else if (type === 'srt') {
-  const lines = text.split('\n');
-  let srt = '';
-  let count = 1;
-
-  for (let line of lines) {
-    const match = line.match(/^\[(\d{2}):(\d{2})\] (.+)$/);
-    if (match) {
-      const min = match[1];
-      const sec = match[2];
-      const content = match[3];
-      const start = `00:${min}:${sec},000`;
-      const endSec = String(parseInt(sec) + 2).padStart(2, '0');
-      const end = `00:${min}:${endSec},000`;
-      srt += `${count}\n${start} --> ${end}\n${content}\n\n`;
-      count++;
-    }
-  }
-
-  const blob = new Blob([srt], { type: 'text/plain' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = "transcricao.srt";
-  a.click();
-  URL.revokeObjectURL(url);
-}
-else if (type === 'json') {
-  const json = JSON.stringify({ transcription: text }, null, 2);
-  const blob = new Blob([json], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = "transcricao.json";
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-
-  }
-  let mediaRecorder;
-let audioChunks = [];
-
-async function startRecording() {
-  const status = document.getElementById("recordingStatus");
-
-  // Se já estiver a gravar, pára e envia
-  if (mediaRecorder && mediaRecorder.state === "recording") {
-    mediaRecorder.stop();
-    status.textContent = "🕐 A processar o áudio...";
-    return;
-  }
-
-  // Começar nova gravação
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  mediaRecorder = new MediaRecorder(stream);
-  audioChunks = [];
-
-  mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-
-  mediaRecorder.onstop = async () => {
-    const blob = new Blob(audioChunks, { type: 'audio/webm' });
-    const formData = new FormData();
-    formData.append("file", blob, "gravacao.webm");
-
-    // Mostrar loading
-    output.style.display = "none";
-    transcriptionText.value = "";
-    loading.style.display = "block";
-    progressBar.style.width = "0%";
-    status.textContent = "🔄 A enviar para transcrição...";
-
-    let progress = 0;
-    progressInterval = setInterval(() => {
-      if (progress < 90) {
-        progress += Math.random() * 5;
-        progressBar.style.width = progress + "%";
-      }
-    }, 200);
-
-    try {
-      const res = await fetch("https://api.ouviescrevi.pt/transcribe", {
-        method: "POST",
-        body: formData
-      });
-      const data = await res.json();
-
-      clearInterval(progressInterval);
-      progressBar.style.width = "100%";
-
-      transcriptionText.value = data.formatted || data.transcription || "⚠️ Erro ao transcrever.";
-      output.style.display = "block";
-      status.textContent = "";
-    } catch (err) {
-      transcriptionText.value = "⚠️ Erro ao transcrever.";
-      output.style.display = "block";
-      status.textContent = "❌ Erro ao gravar.";
-    }
-
-    setTimeout(() => {
-      loading.style.display = "none";
-      progressBar.style.width = "0%";
-    }, 500);
-  };
-
-  mediaRecorder.start();
-  status.textContent = "🎙️ A gravar... clique novamente para terminar.";
-}
-
-</script>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <footer>
+    © 2025 Ouviescrevi · Todos os direitos reservados
+  </footer>
 
 </body>
 </html>
