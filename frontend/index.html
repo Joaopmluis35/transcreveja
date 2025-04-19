@@ -133,6 +133,54 @@
       margin-top: 20px;
       color: #333;
     }
+	.hourglass {
+  width: 30px;
+  height: 30px;
+  margin: 0 auto 20px;
+  border: 2px solid white;
+  border-radius: 50%;
+  position: relative;
+  animation: rotateHourglass 2s infinite linear;
+}
+
+.hourglass::before, .hourglass::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 6px;
+  background: white;
+  border-radius: 50%;
+}
+
+.hourglass::before {
+  top: 8px;
+  animation: sandTop 2s infinite linear;
+}
+
+.hourglass::after {
+  bottom: 8px;
+  animation: sandBottom 2s infinite linear;
+}
+
+@keyframes rotateHourglass {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes sandTop {
+  0%   { opacity: 1; }
+  50%  { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes sandBottom {
+  0%   { opacity: 0; }
+  50%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
   </style>
   <script type="application/ld+json">
 {
@@ -163,6 +211,8 @@
 
 
   <section class="features">
+  <div class="hourglass"></div>
+
     <h2>🔧 Funcionalidades em breve</h2>
     <ul>
       <li>🔍 Pesquisa inteligente nas transcrições</li>
