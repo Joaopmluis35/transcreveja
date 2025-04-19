@@ -193,9 +193,7 @@
 </section>
 
 
-<!-- Scripts existentes + novo script para envio -->
-<script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 
 <script>
 // ... todas as funções convertWord(), convertPDFtoText(), etc. permanecem ...
@@ -243,7 +241,8 @@ function sendSuggestion(e) {
       area.innerHTML = `
         <input type="file" id="pdfInput" accept=".pdf">
         <br>
-        <button onclick="convertPDFtoText()" class="btn-main">Extrair Texto</button>
+        <button onclick="convertPDFtoText()" class="btn-main"><span>Extrair Texto</span></button>
+
         <p id="wordStatus"></p>
       `;
     }
@@ -252,7 +251,7 @@ function sendSuggestion(e) {
       area.innerHTML = `
         <input type="file" id="imgInput" accept="image/png, image/jpeg">
         <br>
-        <button onclick="convertImageToPDF()" class="btn-main">Converter Imagem</button>
+        <button onclick="convertImageToPDF()" class="btn-main"><span>Converter Imagem</span></button>
         <p id="wordStatus"></p>
       `;
     }
@@ -261,7 +260,7 @@ function sendSuggestion(e) {
       area.innerHTML = `
         <input type="file" id="pdf2wordInput" accept=".pdf">
         <br>
-        <button onclick="convertPDFtoWord()" class="btn-main">Converter para Word</button>
+        <button onclick="convertPDFtoWord()" class="btn-main"><span>Converter para Word</span></button>
         <p id="wordStatus"></p>
       `;
     }
