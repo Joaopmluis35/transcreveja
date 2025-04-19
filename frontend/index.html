@@ -19,6 +19,18 @@
       color: white;
       text-align: center;
     }
+	#popupObrigado {
+  transition: opacity 0.3s ease;
+}
+#popupObrigado.show {
+  display: flex;
+  opacity: 1;
+}
+#popupObrigado:not(.show) {
+  display: none;
+  opacity: 0;
+}
+
     header {
       padding: 20px;
     }
@@ -184,12 +196,13 @@
 <section class="converter">
   <h2>💡 Tens uma sugestão?</h2>
   <p>Envia-nos ideias de melhoria, novas funcionalidades ou feedback!</p>
-  <form action="https://formsubmit.co/ouviescrevi@gmail.com" method="POST">
-    <input type="hidden" name="_captcha" value="false">
-    <input type="text" name="nome" placeholder="O teu nome (opcional)" style="padding:10px; width:90%; max-width:400px;"><br><br>
-    <textarea name="mensagem" placeholder="A tua sugestão..." required style="padding:10px; width:90%; max-width:400px; height:120px;"></textarea><br><br>
-    <button type="submit" class="btn-main"><span>Enviar sugestão</span></button>
-  </form>
+  <form id="formSugestao">
+  <input type="hidden" name="_captcha" value="false">
+  <input type="text" name="nome" placeholder="O teu nome (opcional)" style="padding:10px; width:90%; max-width:400px;"><br><br>
+  <textarea name="mensagem" placeholder="A tua sugestão..." required style="padding:10px; width:90%; max-width:400px; height:120px;"></textarea><br><br>
+  <button type="submit" class="btn-main"><span>Enviar sugestão</span></button>
+</form>
+
 </section>
 
 
@@ -407,6 +420,36 @@ function sendSuggestion(e) {
     const status = document.getElementById("wordStatus");
     status.textContent = "🚧 Esta funcionalidade estará disponível em breve!";
   }
+</script>
+<div id="popupObrigado" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; justify-content:center; align-items:center;">
+  <div style="background:white; color:#333; padding:30px; border-radius:20px; max-width:400px; text-align:center;">
+    <h2 style="color:#A550F7;">✅ Obrigado pela tua sugestão!</h2>
+    <p>Recebemos com sucesso. Vamos analisar em breve.</p>
+    <button onclick="document.getElementById('popupObrigado').classList.remove('show')"  class="btn-main" style="margin-top:15px;"><span>Fechar</span></button>
+  </div>
+</div>
+<script>
+document.getElementById("formSugestao").addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  const form = e.target;
+  const formData = new FormData(form);
+
+  fetch("https://formsubmit.co/ouviescrevi@gmail.com", {
+    method: "POST",
+    body: formData
+  })
+  .then(response => {
+    if (response.ok) {
+      form.reset();
+      document.getElementById("popupObrigado").classList.add("show");
+
+    } else {
+      alert("Erro ao enviar. Tenta novamente.");
+    }
+  })
+  .catch(() => alert("Erro na ligação. Verifica tua internet."));
+});
 </script>
 
 </body>
