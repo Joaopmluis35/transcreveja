@@ -134,13 +134,13 @@
       color: #333;
     }
 	.hourglass {
-  width: 30px;
-  height: 30px;
-  margin: 0 auto 20px;
-  border: 2px solid white;
+  width: 60px;        /* antes era 30px */
+  height: 60px;
+  margin: 0 auto 30px;
+  border: 4px solid #A550F7; /* mais grosso e com cor visível */
   border-radius: 50%;
   position: relative;
-  animation: rotateHourglass 2s infinite linear;
+  animation: rotateHourglass 2.5s infinite linear;
 }
 
 .hourglass::before, .hourglass::after {
@@ -148,21 +148,20 @@
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  width: 6px;
-  height: 6px;
-  background: #A550F7; /* antes era white */
+  width: 12px;         /* antes era 6px */
+  height: 12px;
+  background: #A550F7;
   border-radius: 50%;
 }
 
-
 .hourglass::before {
-  top: 8px;
-  animation: sandTop 2s infinite linear;
+  top: 12px;
+  animation: sandTop 2.5s infinite linear;
 }
 
 .hourglass::after {
-  bottom: 8px;
-  animation: sandBottom 2s infinite linear;
+  bottom: 12px;
+  animation: sandBottom 2.5s infinite linear;
 }
 
 @keyframes rotateHourglass {
