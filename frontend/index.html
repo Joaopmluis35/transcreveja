@@ -68,6 +68,62 @@
     }
   </style>
 </head>
+<script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
+  async function convertWord() {
+    const input = document.getElementById("wordInput");
+    const status = document.getElementById("wordStatus");
+
+    if (!input.files.length) {
+      status.textContent = "Por favor, seleciona um ficheiro .docx.";
+      return;
+    }
+
+    const file = input.files[0];
+    if (!file.name.endsWith(".docx")) {
+      status.textContent = "Apenas ficheiros .docx são suportados neste momento.";
+      return;
+    }
+
+    status.textContent = "📥 A processar ficheiro...";
+
+    const reader = new FileReader();
+    reader.onload = async function(event) {
+      const arrayBuffer = event.target.result;
+
+      try {
+        const result = await mammoth.convertToHtml({ arrayBuffer });
+        const html = result.value;
+
+        const doc = new jspdf.jsPDF();
+        doc.setFont("helvetica", "normal");
+        const text = html.replace(/<[^>]+>/g, ""); // Remove tags HTML
+        const lines = doc.splitTextToSize(text, 180);
+        let y = 20;
+
+        for (let line of lines) {
+          if (y > 270) {
+            doc.addPage();
+            y = 20;
+          }
+          doc.text(line, 15, y);
+          y += 8;
+        }
+
+        doc.save("ficheiro_convertido.pdf");
+        status.textContent = "✅ Conversão concluída com sucesso!";
+      } catch (e) {
+        console.error(e);
+        status.textContent = "⚠️ Ocorreu um erro ao converter o ficheiro.";
+      }
+    };
+
+    reader.readAsArrayBuffer(file);
+  }
+</script>
+
 <body>
 
   <header>
@@ -88,6 +144,18 @@
     </ul>
     <p style="margin-top: 20px; font-style: italic;">Fica atento – estamos só a começar!</p>
   </section>
+<section style="margin-top: 60px;">
+  <h2>📄 Experimenta Já – Conversor Word para PDF</h2>
+  <p style="color: #444; font-size: 1.1em; max-width: 700px; margin: auto;">
+    Testa gratuitamente uma das nossas ferramentas! Converte documentos do Word (.docx) para PDF em segundos, diretamente no navegador – sem precisar instalar nada.
+  </p>
+  
+  <input type="file" id="wordInput" accept=".doc,.docx" style="margin-top: 20px; padding: 10px;">
+  <br>
+  <button onclick="convertWord()" class="btn-main" style="margin-top: 20px;">Converter e Descarregar PDF</button>
+  <p id="wordStatus" style="margin-top: 20px; color: #333;"></p>
+</section>
+
 
   <footer>
     © 2025 Ouviescrevi · Todos os direitos reservados
