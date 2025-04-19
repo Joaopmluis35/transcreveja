@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+~<!DOCTYPE html>
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
-  <title>Ouviescrevi – Transcrição automática com IA</title>
-  <meta name="description" content="Transcreve áudios e vídeos em segundos com IA. Grátis, rápido e prático.">
+  <title>Ouviescrevi – Conversor Inteligente</title>
+  <meta name="description" content="Converte ficheiros com IA. Word para PDF, imagens para PDF, e muito mais!">
   <meta name="robots" content="index, follow">
   <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png">
   <style>
@@ -30,14 +30,13 @@
       margin-top: 0;
     }
     .btn-main {
-      margin-top: 30px;
       background-color: white;
       color: #333;
       font-weight: bold;
-      padding: 15px 30px;
+      padding: 12px 25px;
       border: none;
-      border-radius: 10px;
-      font-size: 1.1em;
+      border-radius: 8px;
+      font-size: 1em;
       cursor: pointer;
       transition: 0.3s;
     }
@@ -66,17 +65,31 @@
       font-size: 0.9em;
       color: #eee;
     }
+    .converter {
+      background: white;
+      color: #333;
+      margin: 60px auto;
+      max-width: 700px;
+      padding: 40px;
+      border-radius: 20px;
+    }
+    select, input[type="file"] {
+      padding: 10px;
+      margin-top: 20px;
+      font-size: 1em;
+    }
+    #status {
+      margin-top: 20px;
+      color: #333;
+    }
   </style>
 </head>
-
-
 <body>
 
   <header>
     <img src="/logos/ouviescrevimainlogo.png" alt="Ouviescrevi">
-    <h1>Transcreve com IA</h1>
-    <p class="sub">Rápido, grátis e em português</p>
-  
+    <h1>Ouviescrevi – Conversões Inteligentes</h1>
+    <p class="sub">Experimenta gratuitamente as ferramentas de conversão</p>
   </header>
 
   <section class="features">
@@ -90,76 +103,100 @@
     </ul>
     <p style="margin-top: 20px; font-style: italic;">Fica atento – estamos só a começar!</p>
   </section>
-<section style="margin-top: 60px;">
-  <h2>📄 Experimenta Já – Conversor Word para PDF</h2>
-  <p style="color: #444; font-size: 1.1em; max-width: 700px; margin: auto;">
-    Testa gratuitamente uma das nossas ferramentas! Converte documentos do Word (.docx) para PDF em segundos, diretamente no navegador – sem precisar instalar nada.
-  </p>
-  
-  <input type="file" id="wordInput" accept=".doc,.docx" style="margin-top: 20px; padding: 10px;">
-  <br>
-  <button onclick="convertWord()" class="btn-main" style="margin-top: 20px;">Converter e Descarregar PDF</button>
-  <p id="wordStatus" style="margin-top: 20px; color: #333;"></p>
-</section>
 
+  <section class="converter">
+    <h2>📁 Conversor de Ficheiros</h2>
+    <p>Escolhe o tipo de conversão que queres fazer:</p>
+    <select id="conversionType" onchange="updateInput()">
+      <option value="word2pdf">Word (.docx) → PDF</option>
+      <!-- Mais opções podem ser adicionadas -->
+    </select>
+
+    <div id="uploadArea">
+      <input type="file" id="wordInput" accept=".doc,.docx">
+      <br>
+      <button onclick="convertWord()" class="btn-main">Converter e Descarregar</button>
+      <p id="wordStatus"></p>
+    </div>
+  </section>
 
   <footer>
     © 2025 Ouviescrevi · Todos os direitos reservados
   </footer>
-<script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-<script>
-  async function convertWord() {
-    const input = document.getElementById("wordInput");
-    const status = document.getElementById("wordStatus");
+  <!-- Scripts -->
+  <script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-    if (!input.files.length) {
-      status.textContent = "Por favor, seleciona um ficheiro .docx.";
-      return;
-    }
+  <script>
+    function updateInput() {
+      const type = document.getElementById("conversionType").value;
+      const area = document.getElementById("uploadArea");
+      const status = document.getElementById("wordStatus");
 
-    const file = input.files[0];
-    if (!file.name.endsWith(".docx")) {
-      status.textContent = "Apenas ficheiros .docx são suportados neste momento.";
-      return;
-    }
+      status.textContent = "";
 
-    status.textContent = "📥 A processar ficheiro...";
-
-    const reader = new FileReader();
-    reader.onload = async function(event) {
-      const arrayBuffer = event.target.result;
-
-      try {
-        const result = await mammoth.convertToHtml({ arrayBuffer });
-        const html = result.value;
-
-        const doc = new jspdf.jsPDF();
-        doc.setFont("helvetica", "normal");
-        const text = html.replace(/<[^>]+>/g, ""); // Remove tags HTML
-        const lines = doc.splitTextToSize(text, 180);
-        let y = 20;
-
-        for (let line of lines) {
-          if (y > 270) {
-            doc.addPage();
-            y = 20;
-          }
-          doc.text(line, 15, y);
-          y += 8;
-        }
-
-        doc.save("ficheiro_convertido.pdf");
-        status.textContent = "✅ Conversão concluída com sucesso!";
-      } catch (e) {
-        console.error(e);
-        status.textContent = "⚠️ Ocorreu um erro ao converter o ficheiro.";
+      if (type === "word2pdf") {
+        area.innerHTML = `
+          <input type="file" id="wordInput" accept=".doc,.docx">
+          <br>
+          <button onclick="convertWord()" class="btn-main">Converter e Descarregar</button>
+          <p id="wordStatus"></p>
+        `;
       }
-    };
 
-    reader.readAsArrayBuffer(file);
-  }
-</script>
+      // Aqui no futuro: PDF → Texto, Imagem → PDF, etc.
+    }
+
+    async function convertWord() {
+      const input = document.getElementById("wordInput");
+      const status = document.getElementById("wordStatus");
+
+      if (!input.files.length) {
+        status.textContent = "Por favor, seleciona um ficheiro .docx.";
+        return;
+      }
+
+      const file = input.files[0];
+      if (!file.name.endsWith(".docx")) {
+        status.textContent = "Apenas ficheiros .docx são suportados neste momento.";
+        return;
+      }
+
+      status.textContent = "📥 A processar ficheiro...";
+
+      const reader = new FileReader();
+      reader.onload = async function(event) {
+        const arrayBuffer = event.target.result;
+
+        try {
+          const result = await mammoth.convertToHtml({ arrayBuffer });
+          const html = result.value;
+
+          const doc = new jspdf.jsPDF();
+          const text = html.replace(/<[^>]+>/g, "");
+          const lines = doc.splitTextToSize(text, 180);
+          let y = 20;
+
+          for (let line of lines) {
+            if (y > 270) {
+              doc.addPage();
+              y = 20;
+            }
+            doc.text(line, 15, y);
+            y += 8;
+          }
+
+          doc.save("ficheiro_convertido.pdf");
+          status.textContent = "✅ Conversão concluída com sucesso!";
+        } catch (e) {
+          console.error(e);
+          status.textContent = "⚠️ Ocorreu um erro ao converter o ficheiro.";
+        }
+      };
+
+      reader.readAsArrayBuffer(file);
+    }
+  </script>
 </body>
 </html>
