@@ -38,11 +38,11 @@
   position: relative;
   overflow: hidden;
   display: inline-block;
-  background-color: #e6d7fb; /* roxo claro visível */
+  background-color: #e6d7fb; /* cor visível desde início */
   color: #333;
   font-weight: bold;
   padding: 12px 25px;
-  border: 2px solid #A550F7; /* borda roxa */
+  border: 2px solid #A550F7;
   border-radius: 8px;
   font-size: 1em;
   cursor: pointer;
@@ -62,6 +62,11 @@
   z-index: 0;
 }
 
+.btn-main span {
+  position: relative;
+  z-index: 2; /* garante que o texto está por cima da animação */
+}
+
 .btn-main:hover::before {
   bottom: 0;
 }
@@ -74,6 +79,7 @@
 .btn-main:focus {
   outline: none;
 }
+
 
     .features {
       background: white;
@@ -182,7 +188,7 @@
     <input type="hidden" name="_captcha" value="false">
     <input type="text" name="nome" placeholder="O teu nome (opcional)" style="padding:10px; width:90%; max-width:400px;"><br><br>
     <textarea name="mensagem" placeholder="A tua sugestão..." required style="padding:10px; width:90%; max-width:400px; height:120px;"></textarea><br><br>
-    <button type="submit" class="btn-main">Enviar sugestão</button>
+    <button type="submit" class="btn-main"><span>Enviar sugestão</span></button>
   </form>
 </section>
 
@@ -228,7 +234,7 @@ function sendSuggestion(e) {
       area.innerHTML = `
         <input type="file" id="wordInput" accept=".doc,.docx">
         <br>
-        <button onclick="convertWord()" class="btn-main">Converter e Descarregar</button>
+        <button onclick="convertWord()" class="btn-main"><span>Converter e Descarregar</span></button>
         <p id="wordStatus"></p>
       `;
     }
