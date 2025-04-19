@@ -87,7 +87,7 @@ class SummarizeRequest(BaseModel):
 
 @app.post("/summarize")
 async def summarize(req: SummarizeRequest, request: Request):
-    if req.token != os.getenv("ADMIN_TOKEN", "admin123"):
+    if req.token != os.getenv("ADMIN_TOKEN", "ouviescrevi2025@resumo"):
         return {"error": "Token inválido ou ausente."}
 
     prompt = f"Resume de forma clara e concisa a seguinte transcrição:\n\n{req.text}"
