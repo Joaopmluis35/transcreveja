@@ -90,6 +90,11 @@
     <div id="output" class="hidden">
       <h3>Transcrição:</h3>
       <textarea id="transcriptionText" readonly></textarea>
+	  <div id="resumoBox" class="hidden">
+  <h3>📌 Resumo:</h3>
+  <div id="resumoTexto" style="background:#f0f0f0; padding:15px; border-radius:8px; white-space:pre-wrap;"></div>
+</div>
+
       <div class="btn-group">
         <button onclick="exportText('pdf')">Exportar PDF</button>
         <button onclick="exportText('docx')">Exportar DOCX</button>
@@ -325,25 +330,26 @@ async function gerarResumo() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         text: text,
-        token: "ouviescrevi2025@resumo" // substitui aqui pelo valor real do token
+        token: "TEU_TOKEN_AQUI"
       })
     });
 
     const data = await res.json();
-    if (data.summary) {
-      transcriptionText.value += `\n\n---\n📌 RESUMO:\n${data.summary}`;
-    } else {
-      alert("❌ Erro: " + (data.error || "Resumo não gerado."));
-    }
+    const resumo = data.summary || "❌ Erro ao gerar resumo.";
+
+    // Mostra resumo numa área separada
+    document.getElementById("resumoTexto").textContent = resumo;
+    document.getElementById("resumoBox").classList.remove("hidden");
 
   } catch (err) {
-    alert("Erro ao comunicar com a API.");
+    alert("Erro ao gerar resumo.");
     console.error(err);
   } finally {
     btn.textContent = originalText;
     btn.disabled = false;
   }
 }
+
 
 
 </script>
