@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png">
   <title>Admin | Ouviescrevi</title>
-  <style>
+ <style>
     body {
       font-family: 'Segoe UI', sans-serif;
       background: #f2f2f2;
@@ -80,7 +80,7 @@
   </form>
 
   <div id="adminContent" class="hidden">
-    <button onclick="logout()" style="align-self: flex-end; margin-bottom: 10px;">Sair</button>
+  <button onclick="logout()" style="align-self: flex-end; margin-bottom: 10px;">Sair</button>
 
     <p>Transcrição automática com IA (Whisper)</p>
     <form id="uploadForm">
@@ -98,20 +98,16 @@
     </div>
 
     <div id="output" class="hidden">
-      <h3>📝 Transcrição:</h3>
+      <h3>Transcrição:</h3>
       <textarea id="transcriptionText" readonly></textarea>
-      <div id="resumoBox" class="hidden">
-        <h3>📌 Resumo:</h3>
-        <div id="resumoTexto" style="background:#f0f0f0; padding:15px; border-radius:8px; white-space:pre-wrap;"></div>
-      </div>
-
-      <div class="btn-group hidden">
+      <div class="btn-group">
         <button onclick="exportText('pdf')">Exportar PDF</button>
         <button onclick="exportText('docx')">Exportar DOCX</button>
         <button onclick="exportText('txt')">Exportar TXT</button>
         <button onclick="exportText('srt')">Exportar SRT</button>
         <button onclick="exportText('json')">Exportar JSON</button>
-        <button onclick="gerarResumo()">🧠 Gerar Resumo</button>
+		<button onclick="gerarResumo()">🧠 Gerar Resumo</button>
+
       </div>
     </div>
   </div>
@@ -120,12 +116,8 @@
 <script>
   const loginForm = document.getElementById("loginForm");
   const adminContent = document.getElementById("adminContent");
-  const output = document.getElementById("output");
-  const transcriptionText = document.getElementById("transcriptionText");
-  const resumoBox = document.getElementById("resumoBox");
-  const resumoTexto = document.getElementById("resumoTexto");
-  const btnGroup = document.querySelector(".btn-group");
 
+  // Mostrar admin se já está autenticado
   if (localStorage.getItem("loggedIn") === "true") {
     loginForm.classList.add("hidden");
     adminContent.classList.remove("hidden");
@@ -136,6 +128,7 @@
   loginForm.addEventListener("submit", function(e) {
     e.preventDefault();
     const password = document.getElementById("password").value;
+
     if (password === "admin") {
       localStorage.setItem("loggedIn", "true");
       loginForm.classList.add("hidden");
@@ -148,20 +141,20 @@
   const form = document.getElementById("uploadForm");
   const loading = document.getElementById("loading");
   const progressBar = document.getElementById("progressBar");
+  const output = document.getElementById("output");
+  const transcriptionText = document.getElementById("transcriptionText");
   let progressInterval;
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const file = document.getElementById("fileInput").files[0];
     if (!file) return;
+
     const formData = new FormData();
     formData.append("file", file);
 
     output.classList.add("hidden");
-    resumoBox.classList.add("hidden");
-    resumoTexto.textContent = "";
     transcriptionText.value = "";
-    btnGroup.classList.add("hidden");
     loading.classList.remove("hidden");
     progressBar.style.width = "0%";
 
@@ -183,7 +176,6 @@
       progressBar.style.width = "100%";
       transcriptionText.value = data.formatted || data.transcription || "⚠️ Erro ao transcrever.";
       output.classList.remove("hidden");
-      btnGroup.classList.remove("hidden");
     } catch (err) {
       transcriptionText.value = "⚠️ Erro ao transcrever.";
       output.classList.remove("hidden");
@@ -193,12 +185,142 @@
     }
   });
 
-  function logout() {
-    localStorage.removeItem("loggedIn");
-    location.reload();
+  function exportText(type) {
+    const text = transcriptionText.value;
+
+    if (type === 'pdf') {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const textLines = doc.splitTextToSize(text, 180);
+      let y = 20;
+      for (let i = 0; i < textLines.length; i++) {
+        if (y > 270) {
+          doc.addPage();
+          y = 20;
+        }
+        doc.text(textLines[i], 15, y);
+        y += 8;
+      }
+      doc.save("transcricao.pdf");
+    }
+    else if (type === 'docx') {
+      const blob = new Blob([text], { type: 'application/msword;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = "transcricao.doc";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+    else if (type === 'txt') {
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = "transcricao.txt";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+    else if (type === 'json') {
+      const json = JSON.stringify({ transcription: text }, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = "transcricao.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+    else if (type === 'srt') {
+      const lines = text.split('\n');
+      let srt = '', count = 1;
+      for (let line of lines) {
+        const match = line.match(/^\[(\d{2}):(\d{2})\] (.+)$/);
+        if (match) {
+          const [_, min, sec, content] = match;
+          const start = `00:${min}:${sec},000`;
+          const end = `00:${min}:${String(parseInt(sec) + 2).padStart(2, '0')},000`;
+          srt += `${count}\n${start} --> ${end}\n${content}\n\n`;
+          count++;
+        }
+      }
+      const blob = new Blob([srt], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = "transcricao.srt";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
   }
 
-  async function gerarResumo() {
+  let mediaRecorder;
+  let audioChunks = [];
+
+  async function startRecording() {
+    const status = document.getElementById("recordingStatus");
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+      mediaRecorder.stop();
+      status.textContent = "🕐 A processar o áudio...";
+      return;
+    }
+
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+
+    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+
+    mediaRecorder.onstop = async () => {
+      const blob = new Blob(audioChunks, { type: 'audio/webm' });
+      const formData = new FormData();
+      formData.append("file", blob, "gravacao.webm");
+
+      output.classList.add("hidden");
+      transcriptionText.value = "";
+      loading.classList.remove("hidden");
+      progressBar.style.width = "0%";
+      status.textContent = "🔄 A enviar para transcrição...";
+
+      let progress = 0;
+      progressInterval = setInterval(() => {
+        if (progress < 90) {
+          progress += Math.random() * 5;
+          progressBar.style.width = progress + "%";
+        }
+      }, 200);
+
+      try {
+        const res = await fetch("https://api.ouviescrevi.pt/transcribe", {
+          method: "POST",
+          body: formData
+        });
+        const data = await res.json();
+        clearInterval(progressInterval);
+        progressBar.style.width = "100%";
+        transcriptionText.value = data.formatted || data.transcription || "⚠️ Erro ao transcrever.";
+        output.classList.remove("hidden");
+        status.textContent = "";
+      } catch (err) {
+        transcriptionText.value = "⚠️ Erro ao transcrever.";
+        output.classList.remove("hidden");
+        status.textContent = "❌ Erro ao gravar.";
+      }
+
+      setTimeout(() => {
+        loading.classList.add("hidden");
+        progressBar.style.width = "0%";
+      }, 500);
+    };
+
+    mediaRecorder.start();
+    status.textContent = "🎙️ A gravar... clique novamente para terminar.";
+  }
+  function logout() {
+  localStorage.removeItem("loggedIn");
+  location.reload();
+}
+async function gerarResumo() {
     const text = transcriptionText.value.trim();
     if (!text) return alert("⚠️ Transcrição vazia.");
     const btn = event.target;
@@ -226,6 +348,9 @@
       btn.disabled = false;
     }
   }
+
+
 </script>
+
 </body>
 </html>
