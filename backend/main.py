@@ -78,3 +78,33 @@ async def transcribe(file: UploadFile = File(...)):
         "transcription": transcript.text,
         "formatted": formatted
     }
+from pydantic import BaseModel
+from fastapi import Request
+
+class SummarizeRequest(BaseModel):
+    text: str
+    token: str = ""
+
+@app.post("/summarize")
+async def summarize(req: SummarizeRequest, request: Request):
+    if req.token != os.getenv("ADMIN_TOKEN", "admin123"):
+        return {"error": "Token inválido ou ausente."}
+
+    prompt = f"Resume de forma clara e concisa a seguinte transcrição:\n\n{req.text}"
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                { "role": "system", "content": "És um assistente que resume transcrições de áudio." },
+                { "role": "user", "content": prompt }
+            ],
+            temperature=0.5,
+            max_tokens=400
+        )
+        summary = response.choices[0].message.content.strip()
+        return { "summary": summary }
+
+    except Exception as e:
+        print("❌ Erro ao gerar resumo:", e)
+        return { "error": str(e) }
