@@ -148,15 +148,17 @@
 </footer>
 
 <!-- Formulário de sugestões -->
-<section class="features" style="margin-top: 60px;">
-  <h2>💡 Tens sugestões para o Ouviescrevi?</h2>
-  <p style="font-size: 1.1em;">Queremos muito ouvir-te! Partilha ideias ou melhorias para tornar a experiência ainda melhor:</p>
-  <form onsubmit="sendSuggestion(event)" style="max-width: 600px; margin: 20px auto;">
-    <textarea id="sugestaoTexto" rows="4" style="width: 100%; padding: 10px;" placeholder="Escreve aqui a tua sugestão..."></textarea><br>
+<section class="converter">
+  <h2>💡 Tens uma sugestão?</h2>
+  <p>Envia-nos ideias de melhoria, novas funcionalidades ou feedback!</p>
+  <form action="https://formsubmit.co/ouviescrevi@gmail.com" method="POST">
+    <input type="hidden" name="_captcha" value="false">
+    <input type="text" name="nome" placeholder="O teu nome (opcional)" style="padding:10px; width:90%; max-width:400px;"><br><br>
+    <textarea name="mensagem" placeholder="A tua sugestão..." required style="padding:10px; width:90%; max-width:400px; height:120px;"></textarea><br><br>
     <button type="submit" class="btn-main">Enviar sugestão</button>
-    <p id="sugestaoStatus" style="margin-top: 10px; color: #333;"></p>
   </form>
 </section>
+
 
 <!-- Scripts existentes + novo script para envio -->
 <script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
