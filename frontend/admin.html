@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png">
   <title>Admin | Ouviescrevi</title>
- <style>
+  <style>
     body {
       font-family: 'Segoe UI', sans-serif;
       background: #f2f2f2;
@@ -100,6 +100,13 @@
     <div id="output" class="hidden">
       <h3>Transcrição:</h3>
       <textarea id="transcriptionText" readonly></textarea>
+	
+
+<div id="resumoBox" class="hidden">
+  <h3>📌 Resumo:</h3>
+  <div id="resumoTexto" style="background:#f0f0f0; padding:15px; border-radius:8px; white-space:pre-wrap;"></div>
+</div>
+
       <div class="btn-group">
         <button onclick="exportText('pdf')">Exportar PDF</button>
         <button onclick="exportText('docx')">Exportar DOCX</button>
@@ -107,7 +114,6 @@
         <button onclick="exportText('srt')">Exportar SRT</button>
         <button onclick="exportText('json')">Exportar JSON</button>
 		<button onclick="gerarResumo()">🧠 Gerar Resumo</button>
-
       </div>
     </div>
   </div>
@@ -322,32 +328,51 @@
 }
 async function gerarResumo() {
     const text = transcriptionText.value.trim();
-    if (!text) return alert("⚠️ Transcrição vazia.");
+    if (!text) {
+        alert("⚠️ Transcrição vazia.");
+        return;
+    }
+
     const btn = event.target;
     const originalText = btn.textContent;
     btn.textContent = "🧠 A gerar resumo...";
     btn.disabled = true;
 
+    const resumoTexto = document.getElementById("resumoTexto");
+    const resumoBox = document.getElementById("resumoBox");
+
+    console.log("📤 A enviar texto para resumo:", text.slice(0, 200) + "...");
+    
     try {
-      const res = await fetch("https://api.ouviescrevi.pt/summarize", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text: text,
-          token: "ouviescrevi2025@resumo"
-        })
-      });
-      const data = await res.json();
-      resumoTexto.textContent = data.summary || "❌ Erro ao gerar resumo.";
-      resumoBox.classList.remove("hidden");
+        const res = await fetch("https://api.ouviescrevi.pt/summarize", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                text: text,
+                token: "ouviescrevi2025@resumo"
+            })
+        });
+
+        const data = await res.json();
+        console.log("📥 Resposta da API:", data);
+
+        if (data.summary) {
+            resumoTexto.textContent = data.summary;
+        } else if (data.error) {
+            resumoTexto.textContent = "❌ Erro ao gerar resumo: " + data.error;
+        } else {
+            resumoTexto.textContent = "❌ Erro inesperado na resposta.";
+        }
+
+        resumoBox.classList.remove("hidden");
     } catch (err) {
-      alert("Erro ao gerar resumo.");
-      console.error(err);
+        alert("Erro ao gerar resumo.");
+        console.error("❌ Exceção ao tentar gerar resumo:", err);
     } finally {
-      btn.textContent = originalText;
-      btn.disabled = false;
+        btn.textContent = originalText;
+        btn.disabled = false;
     }
-  }
+}
 
 
 </script>
