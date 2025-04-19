@@ -12,6 +12,14 @@
       color: white;
       text-align: center;
     }
+	#modalTraducao {
+  display: none !important;
+}
+#modalTraducao.show {
+  display: flex !important;
+}
+
+
     header {
       padding: 20px;
     }
@@ -220,6 +228,12 @@
 #adminContent{
 place-items: center;
 }
+#modalTraducao button:hover {
+  background: linear-gradient(135deg, #A550F7, #00C3FF);
+  color: white;
+  border-color: transparent;
+}
+
   </style>
 </head>
 <body>
@@ -263,11 +277,29 @@ place-items: center;
     <div id="output" class="hidden">
       <h3>Transcrição:</h3>
       <textarea id="transcriptionText" readonly></textarea>
-	
+	<p id="traducaoStatus" class="hidden" style="
+  background: #fff3cd;
+  color: #856404;
+  border-left: 5px solid #ffc107;
+  padding: 12px 18px;
+  margin: 15px 0;
+  border-radius: 5px;
+  font-weight: bold;
+">
+  🌍 A traduzir... por favor aguarde
+</p>
+<div id="traducaoProgressWrapper" class="hidden" style="background:#ddd; border-radius:8px; width:100%; height:20px; margin-top:10px;">
+  <div id="traducaoProgressBar" style="height:100%; width:0%; background:#A550F7; border-radius:8px;"></div>
+</div>
+
 
 <div id="resumoBox" class="hidden">
   <h3>📌 Resumo:</h3>
   <div id="resumoTexto" style="background:#f0f0f0; padding:15px; border-radius:8px; white-space:pre-wrap;"></div>
+</div>
+<div id="traducaoBox" class="hidden">
+  <h3>🌍 Tradução:</h3>
+ <div id="traducaoTexto" style="background:#f0f0f0; color:#222; padding:15px; border-radius:8px; white-space:pre-wrap;"></div>
 </div>
 
       <div class="btn-group">
@@ -277,11 +309,37 @@ place-items: center;
         <button onclick="exportText('srt')"><span>Exportar SRT</span></button>
         <button onclick="exportText('json')"><span>Exportar JSON</span></button>
 		<button onclick="gerarResumo()"><span>🧠 Gerar Resumo</span></button>
-		<button onclick="traduzirTexto()"><span>🌍 Traduzir</span></button>
+		<button onclick="abrirModalTraducao()"><span>🌍 Traduzir</span></button>
+
 
       </div>
     </div>
   </div>
+  
+  <!-- Modal de tradução -->
+<div id="modalTraducao" class="hidden" style="
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: center;
+  z-index: 9999;
+">
+  <div style="
+    background: white; padding: 20px; border-radius: 10px;
+    text-align: center; max-width: 400px; color: #333;
+  ">
+    <h3 style="margin-bottom: 10px;">🌍 Seleciona o idioma de destino:</h3>
+    <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+      <button onclick="traduzirTextoComIdioma(event, 'inglês')">Inglês</button>
+      <button onclick="traduzirTextoComIdioma(event, 'espanhol')">Espanhol</button>
+
+      <button onclick="traduzirTextoComIdioma(event, 'francês')">Francês</button>
+<button onclick="traduzirTextoComIdioma(event, 'alemão')">Alemão</button>
+<button onclick="traduzirTextoComIdioma(event, 'italiano')">Italiano</button>
+
+      <button onclick="fecharModalTraducao()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 </main>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
@@ -604,6 +662,8 @@ btnSalvar.onclick = () => {
 };
 
 document.addEventListener("DOMContentLoaded", () => {
+ // Oculta o modal de tradução no arranque, por garantia
+  document.getElementById("modalTraducao").classList.add("hidden");
   const btnGroup = document.querySelector(".btn-group");
   transcriptionText.parentElement.insertBefore(avisoEditar, transcriptionText);
   btnGroup.insertBefore(btnSalvar, btnGroup.firstChild);
@@ -616,18 +676,46 @@ if (guardada && transcriptionText.value.trim() === "") {
 
 
 });
-async function traduzirTexto() {
+function abrirModalTraducao() {
+  const modal = document.getElementById("modalTraducao");
+  modal.classList.add("show");
+}
+
+function fecharModalTraducao() {
+  const modal = document.getElementById("modalTraducao");
+  modal.classList.remove("show");
+  
+}
+
+
+async function traduzirTextoComIdioma(event, idioma) {
+  fecharModalTraducao();
+
   const texto = transcriptionText.value.trim();
   if (!texto) {
     alert("⚠️ Transcrição vazia.");
     return;
   }
 
-  const idioma = prompt("Para que idioma queres traduzir? (ex: inglês, espanhol, francês)");
-  if (!idioma) return;
+  const status = document.getElementById("traducaoStatus");
+  const progressBar = document.getElementById("traducaoProgressBar");
+  const progressWrapper = document.getElementById("traducaoProgressWrapper");
+
+  // Mostrar loading visual
+  status.classList.remove("hidden");
+  progressWrapper.classList.remove("hidden");
+  progressBar.style.width = "0%";
+
+  let progress = 0;
+  const interval = setInterval(() => {
+    if (progress < 90) {
+      progress += Math.random() * 5;
+      progressBar.style.width = `${progress}%`;
+    }
+  }, 200);
 
   const btn = event.target;
-  const originalText = btn.textContent;
+  const originalText = btn.textContent || "🌍 Traduzir";
   btn.textContent = "🌍 A traduzir...";
   btn.disabled = true;
 
@@ -637,15 +725,20 @@ async function traduzirTexto() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         text: texto,
-        language: idioma.toLowerCase(), // "english", "spanish", etc.
+        language: idioma,
         token: "ouviescrevi2025@resumo"
       })
     });
 
     const data = await response.json();
 
+    clearInterval(interval);
+    progressBar.style.width = "100%";
+
     if (data.translation) {
       transcriptionText.value = data.translation;
+      document.getElementById("traducaoTexto").textContent = data.translation;
+      document.getElementById("traducaoBox").classList.remove("hidden");
     } else {
       alert("❌ Erro ao traduzir.");
     }
@@ -654,10 +747,26 @@ async function traduzirTexto() {
     alert("Erro ao comunicar com o servidor de tradução.");
     console.error(err);
   } finally {
+    setTimeout(() => {
+      status.classList.add("hidden");
+      progressWrapper.classList.add("hidden");
+      progressBar.style.width = "0%";
+    }, 500);
+
     btn.textContent = originalText;
     btn.disabled = false;
   }
 }
+
+
+
+document.getElementById("modalTraducao").addEventListener("click", function(e) {
+  if (e.target.id === "modalTraducao") {
+    fecharModalTraducao();
+  }
+});
+
+
 
 
 
