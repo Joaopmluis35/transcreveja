@@ -318,6 +318,31 @@ place-items: center;
   font-size: 14px;
   font-style: italic;
 }
+.botao-salvar span {
+  position: relative;
+  z-index: 2;
+}
+#transcriptionText {
+  width: 100%;
+  min-height: 200px;
+  padding: 15px;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 1rem;
+  color: #333;
+  background: #fdfdfd;
+  border: 2px solid #A550F7;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  resize: vertical; /* permite ao utilizador ajustar a altura */
+  line-height: 1.6;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+#transcriptionText:focus {
+  outline: none;
+  border-color: #00C3FF;
+  box-shadow: 0 0 0 4px rgba(0,195,255,0.15);
+}
 
   </style>
 </head>
@@ -411,6 +436,9 @@ place-items: center;
   <h3>🌍 Tradução:</h3>
  <div id="traducaoTexto" style="background:#f0f0f0; color:#222; padding:15px; border-radius:8px; white-space:pre-wrap;"></div>
 </div>
+<div id="classificacaoBox" class="hidden" style="margin-top:20px; background:#f0f0f0; padding:15px; border-left: 5px solid #007bff; border-radius:8px; color:#222;">
+  <strong>🎯 Tipo de Conteúdo:</strong> <span id="classificacaoResultado"></span>
+</div>
 
       <div class="btn-group">
         <button onclick="exportText('pdf')"><span>Exportar PDF</span></button>
@@ -420,6 +448,7 @@ place-items: center;
         <button onclick="exportText('json')"><span>Exportar JSON</span></button>
 		<button onclick="gerarResumo()"><span>🧠 Gerar Resumo</span></button>
 		<button onclick="abrirModalTraducao()"><span>🌍 Traduzir</span></button>
+<button onclick="classificarConteudo()"><span>🔍 Identificar Tipo</span></button>
 
 
       </div>
@@ -829,7 +858,8 @@ avisoEditar.style.fontSize = "14px";
 
 // Cria botão de salvar
 const btnSalvar = document.createElement("button");
-btnSalvar.textContent = "💾 Salvar Alterações";
+btnSalvar.innerHTML = '<span>💾 Salvar Alterações</span>';
+
 btnSalvar.style.background = "#4caf50";
 btnSalvar.style.color = "#fff";
 btnSalvar.style.fontWeight = "bold";
@@ -955,6 +985,43 @@ document.getElementById("modalTraducao").addEventListener("click", function(e) {
 });
 
 
+async function classificarConteudo() {
+  const texto = transcriptionText.value?.trim() || transcriptionText.innerText?.trim();
+  if (!texto) {
+    alert("⚠️ Transcrição vazia.");
+    return;
+  }
+
+  const btn = event.target;
+  const original = btn.textContent;
+  btn.textContent = "🔍 A identificar...";
+  btn.disabled = true;
+
+  try {
+    const res = await fetch("https://api.ouviescrevi.pt/classify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text: texto,
+        token: "ouviescrevi2025@resumo"
+      })
+    });
+
+    const data = await res.json();
+    if (data.type) {
+      document.getElementById("classificacaoResultado").textContent = data.type;
+      document.getElementById("classificacaoBox").classList.remove("hidden");
+    } else {
+      alert("❌ Erro: " + (data.error || "Resposta inválida"));
+    }
+  } catch (err) {
+    console.error(err);
+    alert("❌ Ocorreu um erro ao identificar.");
+  } finally {
+    btn.textContent = original;
+    btn.disabled = false;
+  }
+}
 
 document.addEventListener("DOMContentLoaded", () => {
   const dropZone = document.getElementById("dropZone");
@@ -990,6 +1057,7 @@ document.addEventListener("DOMContentLoaded", () => {
       fileNameDisplay.textContent = "Nenhum ficheiro selecionado";
     }
   });
+
 });
 
 

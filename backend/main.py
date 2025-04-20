@@ -147,3 +147,42 @@ async def translate_text(request: Request):
         print("❌ Erro ao traduzir:", e)
         return { "error": str(e) }
 
+from fastapi import FastAPI, Request
+from pydantic import BaseModel
+from openai import OpenAI
+import os
+
+app = FastAPI()
+
+# Modelo da requisição
+class ClassifyRequest(BaseModel):
+    text: str
+    token: str
+
+@app.post("/classify")
+async def classify_content(request: ClassifyRequest):
+    if request.token != "ouviescrevi2025@resumo":
+        return {"error": "Token inválido"}
+
+    prompt = (
+        "Classifica o tipo de conteúdo abaixo como uma das seguintes opções:\n"
+        "- Entrevista\n- Aula\n- Podcast\n- Reunião\n- Apresentação\n- Testemunho\n- Conversa informal\n\n"
+        f"Texto:\n{request.text}\n\n"
+        "Responde só com o tipo mais provável."
+    )
+
+    try:
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.5,
+            max_tokens=20
+        )
+
+        tipo = response.choices[0].message.content.strip()
+        return {"type": tipo}
+
+    except Exception as e:
+        return {"error": str(e)}
