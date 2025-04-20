@@ -273,6 +273,24 @@ place-items: center;
         <div id="progressBar" style="height:100%; width:0%; background:#4caf50; border-radius:8px;"></div>
       </div>
     </div>
+<p id="transcricaoStatus" class="hidden" style="
+  background: #fff3cd;
+  color: #856404;
+  border-left: 5px solid #ffc107;
+  padding: 12px 18px;
+  margin: 15px 0;
+  border-radius: 5px;
+  font-weight: bold;
+  transition: opacity 0.5s ease;
+  opacity: 1;
+">
+  🔄 A preparar...
+</p>
+
+
+<div id="transcricaoProgressWrapper" class="hidden" style="background:#ddd; border-radius:8px; width:100%; height:20px; margin-top: 10px;">
+  <div id="progressBar" style="height:100%; width:0%; background:#4caf50; border-radius:8px; transition: width 0.4s ease;"></div>
+</div>
 
     <div id="output" class="hidden">
       <h3>Transcrição:</h3>
@@ -382,47 +400,77 @@ place-items: center;
   const formData = new FormData();
   formData.append("file", file);
 
-  output.classList.add("hidden");
-  transcriptionText.value = "";
-  loading.classList.remove("hidden");
+  const status = document.getElementById("transcricaoStatus");
+  const progressWrapper = document.getElementById("transcricaoProgressWrapper");
+  const progressBar = document.getElementById("progressBar");
+
+  // Reset
+  document.getElementById("output").classList.add("hidden");
+  document.getElementById("transcriptionText").value = "";
+  document.getElementById("loading").classList.remove("hidden");
+  status.classList.remove("hidden");
+  progressWrapper.classList.remove("hidden");
+  status.textContent = "🔄 A iniciar a transcrição com carinho...";
   progressBar.style.width = "0%";
 
   let progress = 0;
-  progressInterval = setInterval(() => {
+  let interval = setInterval(() => {
     if (progress < 90) {
       progress += Math.random() * 5;
-      progressBar.style.width = progress + "%";
+      progressBar.style.width = `${progress}%`;
     }
   }, 200);
 
-  try {
-    const res = await fetch("https://api.ouviescrevi.pt/transcribe", {
-      method: "POST",
-      body: formData
-    });
-    const data = await res.json();
-    clearInterval(progressInterval);
-    progressBar.style.width = "100%";
+  let tentativa = 1;
+  let sucesso = false;
+  let data = {};
 
-    // ✅ Verifica se o checkbox está marcado
-    const identificar = document.getElementById("identificarLocutores").checked;
-    let textoFinal = data.formatted || data.transcription || "⚠️ Erro ao transcrever.";
+  while (tentativa <= 2 && !sucesso) {
+    try {
+      if (tentativa === 2) {
+        status.textContent = "😓 Está difícil... mas estamos a tentar novamente com toda a força!";
+      }
 
-    // ✅ Aplica alternância de locutores se selecionado
-    if (identificar) {
-      textoFinal = aplicarLocutores(textoFinal);
+      const res = await fetch("https://api.ouviescrevi.pt/transcribe", {
+        method: "POST",
+        body: formData
+      });
+
+      data = await res.json();
+      sucesso = true;
+    } catch (err) {
+      tentativa++;
+      if (tentativa > 2) {
+        console.error("❌ Falha total:", err);
+      }
     }
-
-    transcriptionText.value = textoFinal;
-    output.classList.remove("hidden");
-  } catch (err) {
-    transcriptionText.value = "⚠️ Erro ao transcrever.";
-    output.classList.remove("hidden");
-  } finally {
-    loading.classList.add("hidden");
-    progressBar.style.width = "0%";
   }
+
+  clearInterval(interval);
+  progressBar.style.width = "100%";
+
+  if (sucesso && (data.formatted || data.transcription)) {
+    const identificar = document.getElementById("identificarLocutores").checked;
+    let textoFinal = data.formatted || data.transcription;
+    if (identificar) textoFinal = aplicarLocutores(textoFinal);
+
+    document.getElementById("transcriptionText").value = textoFinal;
+    document.getElementById("output").classList.remove("hidden");
+    status.textContent = "✅ Transcrição concluída com sucesso!";
+  } else {
+    document.getElementById("transcriptionText").value = "❌ Erro ao transcrever. Tenta novamente mais tarde.";
+    document.getElementById("output").classList.remove("hidden");
+    status.textContent = "⚠️ Não conseguimos transcrever desta vez.";
+  }
+
+  setTimeout(() => {
+    document.getElementById("loading").classList.add("hidden");
+    status.classList.add("hidden");
+    progressWrapper.classList.add("hidden");
+    progressBar.style.width = "0%";
+  }, 1200);
 });
+
 
 
   function exportText(type) {
@@ -703,6 +751,7 @@ async function traduzirTextoComIdioma(event, idioma) {
 
   // Mostrar loading visual
   status.classList.remove("hidden");
+  status.textContent = "🌍 A traduzir... por favor aguarda";
   progressWrapper.classList.remove("hidden");
   progressBar.style.width = "0%";
 
@@ -739,24 +788,26 @@ async function traduzirTextoComIdioma(event, idioma) {
       transcriptionText.value = data.translation;
       document.getElementById("traducaoTexto").textContent = data.translation;
       document.getElementById("traducaoBox").classList.remove("hidden");
+      status.textContent = "✅ Tradução concluída com sucesso!";
     } else {
-      alert("❌ Erro ao traduzir.");
+      status.textContent = "❌ Erro: Tradução não recebida.";
     }
 
   } catch (err) {
-    alert("Erro ao comunicar com o servidor de tradução.");
     console.error(err);
+    status.textContent = "❌ Oops! Tivemos um problema ao comunicar com a IA.";
   } finally {
     setTimeout(() => {
       status.classList.add("hidden");
       progressWrapper.classList.add("hidden");
       progressBar.style.width = "0%";
-    }, 500);
+    }, 1200);
 
     btn.textContent = originalText;
     btn.disabled = false;
   }
 }
+
 
 
 
