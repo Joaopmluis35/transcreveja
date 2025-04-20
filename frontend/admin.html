@@ -233,7 +233,22 @@ place-items: center;
   color: white;
   border-color: transparent;
 }
-
+#btnRetry {
+  background: #ffc107;
+  color: #333;
+  border: none;
+  padding: 10px 20px;
+  margin-top: 15px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 1em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+#btnRetry:hover {
+  background: #ff9800;
+  color: white;
+}
   </style>
 </head>
 <body>
@@ -288,13 +303,14 @@ place-items: center;
 </p>
 
 
-<div id="transcricaoProgressWrapper" class="hidden" style="background:#ddd; border-radius:8px; width:100%; height:20px; margin-top: 10px;">
-  <div id="progressBar" style="height:100%; width:0%; background:#4caf50; border-radius:8px; transition: width 0.4s ease;"></div>
-</div>
+
 
     <div id="output" class="hidden">
       <h3>Transcrição:</h3>
       <textarea id="transcriptionText" readonly></textarea>
+	  <button id="btnRetry" class="hidden" onclick="form.dispatchEvent(new Event('submit'))">🔁 Tentar novamente</button>
+
+
 	<p id="traducaoStatus" class="hidden" style="
   background: #fff3cd;
   color: #856404;
@@ -391,8 +407,38 @@ place-items: center;
   const output = document.getElementById("output");
   const transcriptionText = document.getElementById("transcriptionText");
   let progressInterval;
+const statusFrases = [
+  "🧩 A montar o quebra-cabeças da tua gravação...",
+  "🧠 A preparar os neurónios para ouvir o ficheiro...",
+  "📡 A sintonizar as ondas do áudio...",
+  "🎧 A escutar com atenção... já começámos a transcrever!",
+  "💬 A traduzir som em texto com alma..."
+];
 
-  form.addEventListener("submit", async (e) => {
+let statusInterval;
+
+function iniciarFrasesAnimadas(statusElement) {
+  let i = 0;
+  statusElement.textContent = statusFrases[i];
+  statusElement.classList.remove("hidden");
+  statusElement.style.opacity = 1;
+
+  statusInterval = setInterval(() => {
+    statusElement.style.opacity = 0;
+    setTimeout(() => {
+      i = (i + 1) % statusFrases.length;
+      statusElement.textContent = statusFrases[i];
+      statusElement.style.opacity = 1;
+    }, 400);
+  }, 2800);
+}
+
+function pararFrasesAnimadas(statusElement) {
+  clearInterval(statusInterval);
+  statusElement.style.opacity = 1;
+}
+
+ form.addEventListener("submit", async (e) => {
   e.preventDefault();
   const file = document.getElementById("fileInput").files[0];
   if (!file) return;
@@ -401,23 +447,24 @@ place-items: center;
   formData.append("file", file);
 
   const status = document.getElementById("transcricaoStatus");
-  const progressWrapper = document.getElementById("transcricaoProgressWrapper");
   const progressBar = document.getElementById("progressBar");
 
-  // Reset
+  // Reset UI
   document.getElementById("output").classList.add("hidden");
   document.getElementById("transcriptionText").value = "";
   document.getElementById("loading").classList.remove("hidden");
   status.classList.remove("hidden");
-  progressWrapper.classList.remove("hidden");
-  status.textContent = "🔄 A iniciar a transcrição com carinho...";
   progressBar.style.width = "0%";
 
+  // Iniciar animação de frases
+  iniciarFrasesAnimadas(status);
+
+  // Animação progressiva da barra
   let progress = 0;
   let interval = setInterval(() => {
     if (progress < 90) {
       progress += Math.random() * 5;
-      progressBar.style.width = `${progress}%`;
+      progressBar.style.width = `${progress.toFixed(1)}%`;
     }
   }, 200);
 
@@ -428,6 +475,7 @@ place-items: center;
   while (tentativa <= 2 && !sucesso) {
     try {
       if (tentativa === 2) {
+        pararFrasesAnimadas(status);
         status.textContent = "😓 Está difícil... mas estamos a tentar novamente com toda a força!";
       }
 
@@ -448,6 +496,7 @@ place-items: center;
 
   clearInterval(interval);
   progressBar.style.width = "100%";
+  pararFrasesAnimadas(status);
 
   if (sucesso && (data.formatted || data.transcription)) {
     const identificar = document.getElementById("identificarLocutores").checked;
@@ -463,13 +512,25 @@ place-items: center;
     status.textContent = "⚠️ Não conseguimos transcrever desta vez.";
   }
 
-  setTimeout(() => {
-    document.getElementById("loading").classList.add("hidden");
-    status.classList.add("hidden");
-    progressWrapper.classList.add("hidden");
-    progressBar.style.width = "0%";
-  }, 1200);
+ setTimeout(() => {
+  document.getElementById("loading").classList.add("hidden");
+  status.classList.add("hidden");
+  progressBar.style.width = "0%";
+
+  // Mostrar ou esconder o botão "Tentar novamente"
+  if (!sucesso) {
+    ultimaTentativaFalhada = true;
+    document.getElementById("btnRetry").classList.remove("hidden");
+  } else {
+    ultimaTentativaFalhada = false;
+    document.getElementById("btnRetry").classList.add("hidden");
+  }
+
+}, 1200);
+
 });
+
+
 
 
 
@@ -752,7 +813,7 @@ async function traduzirTextoComIdioma(event, idioma) {
   // Mostrar loading visual
   status.classList.remove("hidden");
   status.textContent = "🌍 A traduzir... por favor aguarda";
-  progressWrapper.classList.remove("hidden");
+  //progressWrapper.classList.remove("hidden");
   progressBar.style.width = "0%";
 
   let progress = 0;
