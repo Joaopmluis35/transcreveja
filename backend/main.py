@@ -152,7 +152,7 @@ from pydantic import BaseModel
 from openai import OpenAI
 import os
 
-app = FastAPI()
+
 
 # Modelo da requisição
 class ClassifyRequest(BaseModel):

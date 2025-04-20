@@ -409,7 +409,8 @@ place-items: center;
     <div id="output" class="hidden">
       <h3>Transcrição:</h3>
       <textarea id="transcriptionText" readonly></textarea>
-	  <button id="btnRetry" class="hidden" onclick="form.dispatchEvent(new Event('submit'))">🔁 Tentar novamente</button>
+	  <button id="btnRetry" onclick="tentarNovamente()"><span>🔁 Tentar novamente</span></button>
+
 
 
 	<p id="traducaoStatus" class="hidden" style="
@@ -436,9 +437,6 @@ place-items: center;
   <h3>🌍 Tradução:</h3>
  <div id="traducaoTexto" style="background:#f0f0f0; color:#222; padding:15px; border-radius:8px; white-space:pre-wrap;"></div>
 </div>
-<div id="classificacaoBox" class="hidden" style="margin-top:20px; background:#f0f0f0; padding:15px; border-left: 5px solid #007bff; border-radius:8px; color:#222;">
-  <strong>🎯 Tipo de Conteúdo:</strong> <span id="classificacaoResultado"></span>
-</div>
 
       <div class="btn-group">
         <button onclick="exportText('pdf')"><span>Exportar PDF</span></button>
@@ -448,7 +446,6 @@ place-items: center;
         <button onclick="exportText('json')"><span>Exportar JSON</span></button>
 		<button onclick="gerarResumo()"><span>🧠 Gerar Resumo</span></button>
 		<button onclick="abrirModalTraducao()"><span>🌍 Traduzir</span></button>
-<button onclick="classificarConteudo()"><span>🔍 Identificar Tipo</span></button>
 
 
       </div>
@@ -985,43 +982,6 @@ document.getElementById("modalTraducao").addEventListener("click", function(e) {
 });
 
 
-async function classificarConteudo() {
-  const texto = transcriptionText.value?.trim() || transcriptionText.innerText?.trim();
-  if (!texto) {
-    alert("⚠️ Transcrição vazia.");
-    return;
-  }
-
-  const btn = event.target;
-  const original = btn.textContent;
-  btn.textContent = "🔍 A identificar...";
-  btn.disabled = true;
-
-  try {
-    const res = await fetch("https://api.ouviescrevi.pt/classify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        text: texto,
-        token: "ouviescrevi2025@resumo"
-      })
-    });
-
-    const data = await res.json();
-    if (data.type) {
-      document.getElementById("classificacaoResultado").textContent = data.type;
-      document.getElementById("classificacaoBox").classList.remove("hidden");
-    } else {
-      alert("❌ Erro: " + (data.error || "Resposta inválida"));
-    }
-  } catch (err) {
-    console.error(err);
-    alert("❌ Ocorreu um erro ao identificar.");
-  } finally {
-    btn.textContent = original;
-    btn.disabled = false;
-  }
-}
 
 document.addEventListener("DOMContentLoaded", () => {
   const dropZone = document.getElementById("dropZone");
@@ -1060,6 +1020,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
 });
 
+
+function tentarNovamente() {
+  const form = document.getElementById("uploadForm");
+
+  if (!form) {
+    console.error("❌ Formulário não encontrado!");
+    return;
+  }
+
+  const file = document.getElementById("fileInput").files[0];
+  if (!file) {
+    alert("⚠️ Nenhum ficheiro selecionado. Por favor, seleciona um ficheiro antes de tentar novamente.");
+    return;
+  }
+
+  // Submeter manualmente
+  console.log("🔁 A tentar novamente a transcrição...");
+  form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+}
 
 
 </script>
