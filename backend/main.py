@@ -200,3 +200,27 @@ async def classify_content(request: ClassifyRequest):
 
     except Exception as e:
         return {"error": str(e)}
+
+
+@app.post("/correct")
+async def correct_text(req: Request):
+    data = await req.json()
+    text = data.get("text", "")
+    token = data.get("token")
+
+    if token != "ouviescrevi2025@resumo":
+        return {"error": "Token inválido"}
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "Corrige ortografia e gramática do texto. Mantém o conteúdo original."},
+                {"role": "user", "content": text}
+            ]
+        )
+        corrected = response.choices[0].message.content
+        return {"corrected": corrected.strip()}
+    except Exception as e:
+        print("❌ Erro ao corrigir:", e)
+        return {"error": str(e)}

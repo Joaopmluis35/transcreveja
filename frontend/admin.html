@@ -593,6 +593,7 @@ place-items: center;
 
 		<button onclick="gerarResumo()"><span>🧠 Gerar Resumo</span></button>
 		<button onclick="gerarMinuta()"><span>📩 Gerar Minuta</span></button>
+<button onclick="corrigirTextoIA()"><span>📝 Corrigir Texto</span></button>
 
 		<button onclick="abrirModalTraducao()"><span>🌍 Traduzir</span></button>
 		<button onclick="classificarConteudo()"><span>📚 Classificar Tipo</span></button>
@@ -1255,6 +1256,46 @@ async function classificarConteudo() {
     console.error("❌ Erro ao classificar:", err);
     classificacaoTexto.textContent = "❌ Falha ao comunicar com a API.";
     classificacaoBox.classList.remove("hidden");
+  } finally {
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
+}
+async function corrigirTextoIA() {
+  const text = transcriptionText.value.trim();
+  if (!text) {
+    alert("⚠️ Transcrição vazia.");
+    return;
+  }
+
+  const btn = event.target;
+  const originalText = btn.textContent;
+  btn.textContent = "📝 A corrigir...";
+  btn.disabled = true;
+
+  try {
+    const res = await fetch("https://api.ouviescrevi.pt/correct", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text: text,
+        token: "ouviescrevi2025@resumo"
+      })
+    });
+
+    const data = await res.json();
+    if (data.corrected) {
+      transcriptionText.value = data.corrected;
+      alert("✅ Texto corrigido com sucesso!");
+    } else if (data.error) {
+      alert("❌ Erro: " + data.error);
+    } else {
+      alert("❌ Erro inesperado na correção.");
+    }
+
+  } catch (err) {
+    console.error("❌ Erro ao corrigir:", err);
+    alert("❌ Falha ao comunicar com a API.");
   } finally {
     btn.textContent = originalText;
     btn.disabled = false;
