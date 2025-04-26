@@ -7,8 +7,9 @@ import subprocess
 import openai
 from datetime import datetime
 
-print("\u2705 API DO OUVIESCREVI INICIADA")
-print("\ud83d\udd11 Chave carregada:", bool(os.getenv("OPENAI_API_KEY")))
+print("✅ API DO OUVIESCREVI INICIADA")
+print("🔑 Chave carregada:", bool(os.getenv("OPENAI_API_KEY")))
+
 
 app = FastAPI()
 
@@ -50,7 +51,8 @@ def split_audio(input_path, output_dir, segment_duration=SEGMENT_DURATION):
 
 @app.post("/transcribe")
 async def transcribe(file: UploadFile = File(...)):
-    print(f"\ud83d\udcc5 [{datetime.now()}] Upload recebido: {file.filename}")
+    print(f"[{datetime.now()}] Upload recebido: {file.filename}")
+
 
     contents = await file.read()
 
