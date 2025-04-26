@@ -1,13 +1,14 @@
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 import tempfile
 import os
 import subprocess
 import openai
 from datetime import datetime
 
-print("✅ API DO OUVIESCREVI INICIADA")
-print("🔑 Chave carregada:", bool(os.getenv("OPENAI_API_KEY")))
+print("\u2705 API DO OUVIESCREVI INICIADA")
+print("\ud83d\udd11 Chave carregada:", bool(os.getenv("OPENAI_API_KEY")))
 
 app = FastAPI()
 
@@ -20,6 +21,9 @@ app.add_middleware(
 
 client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+MAX_FILE_SIZE_MB = 25
+SEGMENT_DURATION = 600  # segundos (10 minutos)
+
 def format_segments(segments):
     def format_time(seconds):
         m, s = divmod(int(seconds), 60)
@@ -30,65 +34,79 @@ def format_segments(segments):
         formatted_text += f"{timestamp} {s.text.strip()}\n\n"
     return formatted_text.strip()
 
+def split_audio(input_path, output_dir, segment_duration=SEGMENT_DURATION):
+    os.makedirs(output_dir, exist_ok=True)
+    command = [
+        "ffmpeg",
+        "-i", input_path,
+        "-f", "segment",
+        "-segment_time", str(segment_duration),
+        "-c", "copy",
+        os.path.join(output_dir, "segment_%03d.wav"),
+        "-y"
+    ]
+    subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+    return sorted([os.path.join(output_dir, f) for f in os.listdir(output_dir) if f.endswith(".wav")])
+
 @app.post("/transcribe")
 async def transcribe(file: UploadFile = File(...)):
-    print(f"📥 [{datetime.now()}] Upload recebido: {file.filename}")
+    print(f"\ud83d\udcc5 [{datetime.now()}] Upload recebido: {file.filename}")
+
+    contents = await file.read()
+
+    if len(contents) > MAX_FILE_SIZE_MB * 1024 * 1024:
+        return {"error": f"Ficheiro demasiado grande. Limite: {MAX_FILE_SIZE_MB}MB"}
 
     with tempfile.NamedTemporaryFile(delete=False) as tmp:
-        contents = await file.read()
         tmp.write(contents)
         tmp_path = tmp.name
 
     audio_path = tmp_path + ".wav"
 
     try:
-        # Usa ffmpeg diretamente (melhor suporte para formatos como webm, mp4 etc.)
-        command = [
-            "ffmpeg",
-            "-i", tmp_path,
-            "-ar", "16000",  # amostragem
-            "-ac", "1",      # mono
-            "-c:a", "pcm_s16le",  # formato WAV compatível
-            audio_path,
-            "-y"
-        ]
-        subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        subprocess.run([
+            "ffmpeg", "-i", tmp_path,
+            "-ar", "16000", "-ac", "1",
+            "-c:a", "pcm_s16le", audio_path, "-y"
+        ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
     except Exception as e:
-        print(f"❌ Erro ao converter áudio ({file.filename}): {e}")
         return {"error": f"Erro ao converter áudio: {str(e)}"}
 
+    split_dir = tempfile.mkdtemp()
     try:
-        with open(audio_path, "rb") as audio_file:
-            transcript = client.audio.transcriptions.create(
-                model="whisper-1",
-                file=audio_file,
-                response_format="verbose_json"
-            )
+        parts = split_audio(audio_path, split_dir)
+        full_text, formatted_text = "", ""
+
+        for part in parts:
+            with open(part, "rb") as audio:
+                result = client.audio.transcriptions.create(
+                    model="whisper-1",
+                    file=audio,
+                    response_format="verbose_json"
+                )
+            full_text += result.text + "\n"
+            formatted_text += format_segments(result.segments) + "\n\n"
+
+        return {
+            "transcription": full_text.strip(),
+            "formatted": formatted_text.strip()
+        }
     except Exception as e:
-        print(f"❌ Erro ao transcrever áudio ({file.filename}): {e}")
-        return {"error": f"Erro ao transcrever: {str(e)}"}
-
-    os.remove(tmp_path)
-    os.remove(audio_path)
-
-    print(f"✅ [{datetime.now()}] Transcrição concluída com sucesso: {file.filename}")
-
-    formatted = format_segments(transcript.segments)
-    return {
-        "transcription": transcript.text,
-        "formatted": formatted
-    }
-from pydantic import BaseModel
-from fastapi import Request
+        return {"error": f"Erro ao processar ficheiro: {str(e)}"}
+    finally:
+        os.remove(tmp_path)
+        os.remove(audio_path)
+        for f in os.listdir(split_dir):
+            os.remove(os.path.join(split_dir, f))
+        os.rmdir(split_dir)
 
 class SummarizeRequest(BaseModel):
     text: str
     token: str = ""
     mode: str = "normal"
 
-
 @app.post("/summarize")
-async def summarize(req: SummarizeRequest, request: Request):
+async def summarize(req: SummarizeRequest):
     if req.token != os.getenv("ADMIN_TOKEN", "ouviescrevi2025@resumo"):
         return {"error": "Token inválido ou ausente."}
 
@@ -96,10 +114,7 @@ async def summarize(req: SummarizeRequest, request: Request):
         prompt = (
             "A partir da seguinte transcrição de uma reunião ou conversa, gera uma minuta clara e organizada "
             "em formato de tópicos. Inclui:\n"
-            "- Tópicos discutidos\n"
-            "- Decisões tomadas\n"
-            "- Responsáveis (se mencionados)\n"
-            "- Ações a realizar\n\n"
+            "- Tópicos discutidos\n- Decisões tomadas\n- Responsáveis (se mencionados)\n- Ações a realizar\n\n"
             f"Transcrição:\n{req.text}"
         )
     else:
@@ -109,21 +124,15 @@ async def summarize(req: SummarizeRequest, request: Request):
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                { "role": "system", "content": "És um assistente que resume transcrições de áudio." },
-                { "role": "user", "content": prompt }
+                {"role": "system", "content": "És um assistente que resume transcrições de áudio."},
+                {"role": "user", "content": prompt}
             ],
             temperature=0.5,
             max_tokens=400
         )
-        summary = response.choices[0].message.content.strip()
-        return { "summary": summary }
-
+        return {"summary": response.choices[0].message.content.strip()}
     except Exception as e:
-        print("❌ Erro ao gerar resumo:", e)
-        return { "error": str(e) }
-
-
-from fastapi import HTTPException  # certifica-te que está importado
+        return {"error": str(e)}
 
 @app.post("/translate")
 async def translate_text(request: Request):
@@ -135,40 +144,23 @@ async def translate_text(request: Request):
     if token != "ouviescrevi2025@resumo":
         raise HTTPException(status_code=403, detail="Token inválido.")
 
-    # ✅ Lista de idiomas suportados (em minúsculas)
     idiomas_suportados = ["inglês", "espanhol", "francês", "alemão", "italiano", "português"]
-
     if language.lower() not in idiomas_suportados:
-        return { "error": f"Idioma não suportado: {language}" }
-
-    # ✅ Prompt para tradução
-    prompt = f"Traduz o seguinte texto para {language}:\n\n{text}"
+        return {"error": f"Idioma não suportado: {language}"}
 
     try:
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                { "role": "system", "content": f"Traduz o texto para {language}." },
-                { "role": "user", "content": text }
+                {"role": "system", "content": f"Traduz o texto para {language}."},
+                {"role": "user", "content": text}
             ],
             temperature=0.3
         )
-
-        translated = response.choices[0].message.content.strip()
-        return { "translation": translated }
-
+        return {"translation": response.choices[0].message.content.strip()}
     except Exception as e:
-        print("❌ Erro ao traduzir:", e)
-        return { "error": str(e) }
+        return {"error": str(e)}
 
-from fastapi import FastAPI, Request
-from pydantic import BaseModel
-from openai import OpenAI
-import os
-
-
-
-# Modelo da requisição
 class ClassifyRequest(BaseModel):
     text: str
     token: str
@@ -181,26 +173,19 @@ async def classify_content(request: ClassifyRequest):
     prompt = (
         "Classifica o tipo de conteúdo abaixo como uma das seguintes opções:\n"
         "- Entrevista\n- Aula\n- Podcast\n- Reunião\n- Apresentação\n- Testemunho\n- Conversa informal\n\n"
-        f"Texto:\n{request.text}\n\n"
-        "Responde só com o tipo mais provável."
+        f"Texto:\n{request.text}\n\nResponde só com o tipo mais provável."
     )
 
     try:
-        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
         response = client.chat.completions.create(
             model="gpt-4",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.5,
             max_tokens=20
         )
-
-        tipo = response.choices[0].message.content.strip()
-        return {"type": tipo}
-
+        return {"type": response.choices[0].message.content.strip()}
     except Exception as e:
         return {"error": str(e)}
-
 
 @app.post("/correct")
 async def correct_text(req: Request):
@@ -219,8 +204,37 @@ async def correct_text(req: Request):
                 {"role": "user", "content": text}
             ]
         )
-        corrected = response.choices[0].message.content
-        return {"corrected": corrected.strip()}
+        return {"corrected": response.choices[0].message.content.strip()}
     except Exception as e:
-        print("❌ Erro ao corrigir:", e)
+        return {"error": str(e)}
+
+
+class EmailRequest(BaseModel):
+    text: str
+    token: str
+    tone: str = "formal"  # "formal" ou "informal"
+
+@app.post("/generate-email")
+async def generate_email(req: EmailRequest):
+    if req.token != "ouviescrevi2025@resumo":
+        return {"error": "Token inválido."}
+
+    prompt = (
+        f"Escreve um email em tom {req.tone}, com base na seguinte transcrição de conversa ou reunião:\n\n"
+        f"{req.text}\n\n"
+        f"O email deve ser claro, coeso e conter os pontos essenciais discutidos, podendo incluir agradecimentos ou ações a seguir, se apropriado."
+    )
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "És um assistente que transforma transcrições em emails bem escritos."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=500
+        )
+        return {"email": response.choices[0].message.content.strip()}
+    except Exception as e:
         return {"error": str(e)}

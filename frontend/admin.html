@@ -588,6 +588,8 @@ place-items: center;
     <button onclick="exportText('txt')"><span>📃 Exportar TXT</span></button>
     <button onclick="exportText('srt')"><span>🎞️ Exportar SRT</span></button>
     <button onclick="exportText('json')"><span>🔢 Exportar JSON</span></button>
+
+
   </div>
 </div>
 
@@ -597,6 +599,7 @@ place-items: center;
 
 		<button onclick="abrirModalTraducao()"><span>🌍 Traduzir</span></button>
 		<button onclick="classificarConteudo()"><span>📚 Classificar Tipo</span></button>
+<button onclick="gerarEmailIA()"><span>📧 Gerar Email</span></button>
 
 
       </div>
@@ -1343,6 +1346,40 @@ async function gerarMinuta() {
     minutaBox.classList.remove("hidden");
   } finally {
     btn.textContent = originalText;
+    btn.disabled = false;
+  }
+}
+async function gerarEmailIA() {
+  const text = transcriptionText.value.trim();
+  if (!text) return alert("⚠️ Transcrição vazia.");
+
+  const tone = confirm("Usar tom informal?") ? "informal" : "formal";
+
+  const btn = event.target;
+  const original = btn.textContent;
+  btn.textContent = "📧 A gerar email...";
+  btn.disabled = true;
+
+  try {
+    const res = await fetch("https://api.ouviescrevi.pt/generate-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text: text,
+        token: "ouviescrevi2025@resumo",
+        tone: tone
+      })
+    });
+    const data = await res.json();
+    if (data.email) {
+      alert("📨 Email gerado com sucesso!\n\n" + data.email);
+    } else {
+      alert("❌ Erro ao gerar email: " + data.error);
+    }
+  } catch (err) {
+    alert("❌ Falha ao comunicar com a IA.");
+  } finally {
+    btn.textContent = original;
     btn.disabled = false;
   }
 }
