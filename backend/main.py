@@ -212,24 +212,24 @@ async def correct_text(req: Request):
 class EmailRequest(BaseModel):
     text: str
     token: str
-    tone: str = "formal"  # "formal" ou "informal"
+    tone: str = "formal"
 
 @app.post("/generate-email")
 async def generate_email(req: EmailRequest):
-    if req.token != "ouviescrevi2025@resumo":
-        return {"error": "Token inválido."}
+    if req.token != os.getenv("ADMIN_TOKEN", "ouviescrevi2025@resumo"):
+        return {"error": "Token inválido"}
 
     prompt = (
-        f"Escreve um email em tom {req.tone}, com base na seguinte transcrição de conversa ou reunião:\n\n"
+        f"Gera um email em tom {req.tone} a partir da seguinte transcrição ou resumo de uma reunião:\n\n"
         f"{req.text}\n\n"
-        f"O email deve ser claro, coeso e conter os pontos essenciais discutidos, podendo incluir agradecimentos ou ações a seguir, se apropriado."
+        "O email deve ser claro, direto e adequado para enviar após a reunião."
     )
 
     try:
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "És um assistente que transforma transcrições em emails bem escritos."},
+                {"role": "system", "content": "És um assistente que escreve e-mails profissionais a partir de resumos ou transcrições."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7,
