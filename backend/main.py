@@ -6,10 +6,10 @@ import os
 import subprocess
 import openai
 from datetime import datetime
+import uuid
 
-print("✅ API DO OUVIESCREVI INICIADA")
-print("🔑 Chave carregada:", bool(os.getenv("OPENAI_API_KEY")))
-
+print("\u2705 API DO OUVIESCREVI INICIADA")
+print("\ud83d\udd11 Chave carregada:", bool(os.getenv("OPENAI_API_KEY")))
 
 app = FastAPI()
 
@@ -42,26 +42,28 @@ def split_audio(input_path, output_dir, segment_duration=SEGMENT_DURATION):
         "-i", input_path,
         "-f", "segment",
         "-segment_time", str(segment_duration),
-        "-c", "copy",
+        "-ar", "16000",
+        "-ac", "1",
+        "-acodec", "pcm_s16le",  # garante áudio limpo
         os.path.join(output_dir, "segment_%03d.wav"),
         "-y"
     ]
     subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
     return sorted([os.path.join(output_dir, f) for f in os.listdir(output_dir) if f.endswith(".wav")])
 
+
 @app.post("/transcribe")
 async def transcribe(file: UploadFile = File(...)):
     print(f"[{datetime.now()}] Upload recebido: {file.filename}")
-
 
     contents = await file.read()
 
     if len(contents) > MAX_FILE_SIZE_MB * 1024 * 1024:
         return {"error": f"Ficheiro demasiado grande. Limite: {MAX_FILE_SIZE_MB}MB"}
 
-    with tempfile.NamedTemporaryFile(delete=False) as tmp:
+    tmp_path = os.path.join(tempfile.gettempdir(), f"input_{uuid.uuid4()}")
+    with open(tmp_path, "wb") as tmp:
         tmp.write(contents)
-        tmp_path = tmp.name
 
     audio_path = tmp_path + ".wav"
 
@@ -96,11 +98,17 @@ async def transcribe(file: UploadFile = File(...)):
     except Exception as e:
         return {"error": f"Erro ao processar ficheiro: {str(e)}"}
     finally:
-        os.remove(tmp_path)
-        os.remove(audio_path)
+        for path in [tmp_path, audio_path]:
+            try:
+                os.remove(path)
+            except: pass
         for f in os.listdir(split_dir):
-            os.remove(os.path.join(split_dir, f))
-        os.rmdir(split_dir)
+            try:
+                os.remove(os.path.join(split_dir, f))
+            except: pass
+        try:
+            os.rmdir(split_dir)
+        except: pass
 
 class SummarizeRequest(BaseModel):
     text: str
