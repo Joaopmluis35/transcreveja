@@ -92,19 +92,18 @@ async def summarize(req: SummarizeRequest, request: Request):
     if req.token != os.getenv("ADMIN_TOKEN", "ouviescrevi2025@resumo"):
         return {"error": "Token inválido ou ausente."}
 
-   if req.mode == "minuta":
-    prompt = (
-        "A partir da seguinte transcrição de uma reunião ou conversa, gera uma minuta clara e organizada "
-        "em formato de tópicos. Inclui:\n"
-        "- Tópicos discutidos\n"
-        "- Decisões tomadas\n"
-        "- Responsáveis (se mencionados)\n"
-        "- Ações a realizar\n\n"
-        f"Transcrição:\n{req.text}"
-    )
-else:
-    prompt = f"Resume de forma clara e concisa a seguinte transcrição:\n\n{req.text}"
-
+    if req.mode == "minuta":
+        prompt = (
+            "A partir da seguinte transcrição de uma reunião ou conversa, gera uma minuta clara e organizada "
+            "em formato de tópicos. Inclui:\n"
+            "- Tópicos discutidos\n"
+            "- Decisões tomadas\n"
+            "- Responsáveis (se mencionados)\n"
+            "- Ações a realizar\n\n"
+            f"Transcrição:\n{req.text}"
+        )
+    else:
+        prompt = f"Resume de forma clara e concisa a seguinte transcrição:\n\n{req.text}"
 
     try:
         response = client.chat.completions.create(
@@ -122,6 +121,7 @@ else:
     except Exception as e:
         print("❌ Erro ao gerar resumo:", e)
         return { "error": str(e) }
+
 
 from fastapi import HTTPException  # certifica-te que está importado
 
