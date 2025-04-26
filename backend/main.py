@@ -84,13 +84,27 @@ from fastapi import Request
 class SummarizeRequest(BaseModel):
     text: str
     token: str = ""
+    mode: str = "normal"
+
 
 @app.post("/summarize")
 async def summarize(req: SummarizeRequest, request: Request):
     if req.token != os.getenv("ADMIN_TOKEN", "ouviescrevi2025@resumo"):
         return {"error": "Token inválido ou ausente."}
 
+   if req.mode == "minuta":
+    prompt = (
+        "A partir da seguinte transcrição de uma reunião ou conversa, gera uma minuta clara e organizada "
+        "em formato de tópicos. Inclui:\n"
+        "- Tópicos discutidos\n"
+        "- Decisões tomadas\n"
+        "- Responsáveis (se mencionados)\n"
+        "- Ações a realizar\n\n"
+        f"Transcrição:\n{req.text}"
+    )
+else:
     prompt = f"Resume de forma clara e concisa a seguinte transcrição:\n\n{req.text}"
+
 
     try:
         response = client.chat.completions.create(

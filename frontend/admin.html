@@ -6,12 +6,16 @@
   <title>Admin | Ouviescrevi</title>
   <style>
     body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #A550F7, #00C3FF);
-      color: white;
-      text-align: center;
-    }
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #A550F7, #00C3FF);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: 100% 100%;
+  color: white;
+  text-align: center;
+}
+
 	#modalTraducao {
   display: none !important;
 }
@@ -343,12 +347,136 @@ place-items: center;
   border-color: #00C3FF;
   box-shadow: 0 0 0 4px rgba(0,195,255,0.15);
 }
+#nichoMenu {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px 10px 10px;
+ 
+  position: sticky;
+  top: 0;
+  z-index: 999;
+}
+
+#nichoMenu button {
+  position: relative;
+  overflow: hidden;
+  background-color: #e6d7fb;
+  color: #333;
+  border: 2px solid #A550F7;
+  border-radius: 50px;
+  padding: 10px 20px;
+  font-weight: bold;
+  font-size: 0.95em;
+  cursor: pointer;
+  transition: color 0.3s ease, border-color 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  flex: 0 0 auto;
+  white-space: nowrap;
+  width: max-content;
+  z-index: 1; /* ✅ Isto é importante */
+}
+
+#nichoMenu button::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -100%; /* fora de vista inicialmente */
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #A550F7, #00C3FF);
+  transition: bottom 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+  z-index: 0;
+}
+
+#nichoMenu button:hover::before {
+  bottom: 0; /* desliza para cima */
+}
+
+
+#nichoMenu button span {
+  position: relative;
+  z-index: 2; /* ✅ Garante que o texto aparece acima do gradiente */
+}
+
+#nichoMenu button:hover {
+	
+  color: white;
+  border-color: white;
+}
+.dropdown-export {
+  position: relative;
+  display: inline-block;
+}
+
+#exportBtn {
+  background-color: #e6d7fb;
+  color: #333;
+  border: 2px solid #A550F7;
+  border-radius: 8px;
+  padding: 15px 20px;
+  font-weight: bold;
+  font-size: 0.95em;
+  cursor: pointer;
+}
+
+#exportBtn:hover {
+  background: linear-gradient(135deg, #A550F7, #00C3FF);
+  color: white;
+  border-color: transparent;
+}
+
+.dropdown-content {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  background-color: white;
+  min-width: 180px;
+  box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+  z-index: 1;
+  border-radius: 8px;
+  top: 110%;
+  left: 0;
+  padding: 5px 0;
+}
+
+.dropdown-content button {
+  background: none;
+  border: none;
+  padding: 10px 20px;
+  text-align: left;
+  font-size: 0.95em;
+  color: #333;
+  cursor: pointer;
+  width: 100%;
+}
+
+.dropdown-content button:hover {
+  background-color: #f0f0f0;
+}
+
+.hidden {
+  display: none;
+}
+
+
 
   </style>
 </head>
 <body>
 
 <header>
+<nav id="nichoMenu">
+  <button onclick="irParaNicho('professores')"><span>🎓 Professores</span></button>
+  <button onclick="irParaNicho('reunioes')"><span>🗣️ Reuniões</span></button>
+  <button onclick="irParaNicho('jornalistas')"><span>📰 Jornalistas</span></button>
+  <button onclick="irParaNicho('podcasts')"><span>🎙️ Podcasts</span></button>
+  <button onclick="irParaNicho('testemunhos')"><span>🧑‍⚖️ Testemunhos</span></button>
+  <button onclick="irParaNicho('aulas')"><span>🎥 Aulas</span></button>
+</nav>
+
+
   <h1>Admin Ouviescrevi</h1>
 </header>
 
@@ -373,6 +501,9 @@ place-items: center;
 
       <button type="submit">Transcrever</button>
       <button type="button" onclick="startRecording()">🎤 Gravar Áudio</button>
+	  <button type="button" id="btnStopRecording" class="hidden" style="background:#ff4c4c; color:white; font-weight:bold; margin-bottom:10px;">🛑 Parar Gravação</button>
+<p id="timerGravacao" style="font-weight:bold; margin-top: 10px; display:none;">⏱️ 00:00</p>
+
 		 <label class="switch-container">
   <input type="checkbox" id="identificarLocutores">
   <span class="slider"></span>
@@ -433,19 +564,38 @@ place-items: center;
   <h3>📌 Resumo:</h3>
   <div id="resumoTexto" style="background:#f0f0f0; padding:15px; border-radius:8px; white-space:pre-wrap;"></div>
 </div>
+<div id="minutaBox" class="hidden">
+  <h3>📩 Minuta da Reunião:</h3>
+  <div id="minutaTexto" style="background:#f0f0f0; color:#222; padding:15px; border-radius:8px; white-space:pre-wrap;"></div>
+</div>
+
 <div id="traducaoBox" class="hidden">
   <h3>🌍 Tradução:</h3>
  <div id="traducaoTexto" style="background:#f0f0f0; color:#222; padding:15px; border-radius:8px; white-space:pre-wrap;"></div>
+
+
+</div>
+ <div id="classificacaoBox" class="hidden">
+  <h3>📚 Tipo de Conteúdo:</h3>
+  <div id="classificacaoTexto" style="background:#f0f0f0; color:#222; padding:10px; border-radius:8px; white-space:pre-wrap;"></div>
+</div>
+      <div class="btn-group">
+        <div class="dropdown-export">
+  <button id="exportBtn"><span>📁 Exportar ▼</span></button>
+  <div class="dropdown-content hidden" id="exportOptions">
+    <button onclick="exportText('pdf')"><span>📄 Exportar PDF</span></button>
+    <button onclick="exportText('docx')"><span>📝 Exportar DOCX</span></button>
+    <button onclick="exportText('txt')"><span>📃 Exportar TXT</span></button>
+    <button onclick="exportText('srt')"><span>🎞️ Exportar SRT</span></button>
+    <button onclick="exportText('json')"><span>🔢 Exportar JSON</span></button>
+  </div>
 </div>
 
-      <div class="btn-group">
-        <button onclick="exportText('pdf')"><span>Exportar PDF</span></button>
-        <button onclick="exportText('docx')"><span>Exportar DOCX</span></button>
-        <button onclick="exportText('txt')"><span>Exportar TXT</span></button>
-        <button onclick="exportText('srt')"><span>Exportar SRT</span></button>
-        <button onclick="exportText('json')"><span>Exportar JSON</span></button>
 		<button onclick="gerarResumo()"><span>🧠 Gerar Resumo</span></button>
+		<button onclick="gerarMinuta()"><span>📩 Gerar Minuta</span></button>
+
 		<button onclick="abrirModalTraducao()"><span>🌍 Traduzir</span></button>
+		<button onclick="classificarConteudo()"><span>📚 Classificar Tipo</span></button>
 
 
       </div>
@@ -708,65 +858,85 @@ function pararFrasesAnimadas(statusElement) {
   let mediaRecorder;
   let audioChunks = [];
 
-  async function startRecording() {
-    const status = document.getElementById("recordingStatus");
-    if (mediaRecorder && mediaRecorder.state === "recording") {
-      mediaRecorder.stop();
-      status.textContent = "🕐 A processar o áudio...";
-      return;
+ let timerInterval;
+
+async function startRecording() {
+  const status = document.getElementById("recordingStatus");
+  const startBtn = document.querySelector("button[onclick='startRecording()']");
+  const stopBtn = document.getElementById("btnStopRecording");
+  const transcribeBtn = document.querySelector("#uploadForm button[type='submit']");
+  const timer = document.getElementById("timerGravacao");
+
+  if (mediaRecorder && mediaRecorder.state === "recording") return;
+
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  mediaRecorder = new MediaRecorder(stream);
+  audioChunks = [];
+
+  mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+
+  mediaRecorder.onstop = async () => {
+    clearInterval(timerInterval);
+    timer.style.display = "none";
+    timer.textContent = "⏱️ 00:00";
+
+    stopBtn.classList.add("hidden");
+    startBtn.disabled = false;
+    transcribeBtn.disabled = false;
+
+    startBtn.style.opacity = 1;
+    transcribeBtn.style.opacity = 1;
+
+    const blob = new Blob(audioChunks, { type: 'audio/webm' });
+    const formData = new FormData();
+    formData.append("file", blob, "gravacao.webm");
+
+    status.textContent = "🕐 A processar o áudio...";
+    document.getElementById("loading").classList.remove("hidden");
+
+    try {
+      const res = await fetch("https://api.ouviescrevi.pt/transcribe", {
+        method: "POST",
+        body: formData
+      });
+      const data = await res.json();
+
+      document.getElementById("transcriptionText").value = data.formatted || data.transcription || "⚠️ Erro ao transcrever.";
+      document.getElementById("output").classList.remove("hidden");
+      status.textContent = "✅ Transcrição concluída!";
+    } catch (err) {
+      status.textContent = "❌ Erro ao processar áudio.";
     }
 
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    mediaRecorder = new MediaRecorder(stream);
-    audioChunks = [];
+    document.getElementById("loading").classList.add("hidden");
+  };
 
-    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+  // Mostrar timer e iniciar contagem
+  timer.style.display = "block";
+  let segundos = 0;
+  timerInterval = setInterval(() => {
+    segundos++;
+    const min = String(Math.floor(segundos / 60)).padStart(2, '0');
+    const sec = String(segundos % 60).padStart(2, '0');
+    timer.textContent = `⏱️ ${min}:${sec}`;
+  }, 1000);
 
-    mediaRecorder.onstop = async () => {
-      const blob = new Blob(audioChunks, { type: 'audio/webm' });
-      const formData = new FormData();
-      formData.append("file", blob, "gravacao.webm");
+  mediaRecorder.start();
+  status.textContent = "🎙️ A gravar... clique em 'Parar Gravação' para terminar.";
+  stopBtn.classList.remove("hidden");
+  startBtn.disabled = true;
+  transcribeBtn.disabled = true;
 
-      output.classList.add("hidden");
-      transcriptionText.value = "";
-      loading.classList.remove("hidden");
-      progressBar.style.width = "0%";
-      status.textContent = "🔄 A enviar para transcrição...";
-
-      let progress = 0;
-      progressInterval = setInterval(() => {
-        if (progress < 90) {
-          progress += Math.random() * 5;
-          progressBar.style.width = progress + "%";
-        }
-      }, 200);
-
-      try {
-        const res = await fetch("https://api.ouviescrevi.pt/transcribe", {
-          method: "POST",
-          body: formData
-        });
-        const data = await res.json();
-        clearInterval(progressInterval);
-        progressBar.style.width = "100%";
-        transcriptionText.value = data.formatted || data.transcription || "⚠️ Erro ao transcrever.";
-        output.classList.remove("hidden");
-        status.textContent = "";
-      } catch (err) {
-        transcriptionText.value = "⚠️ Erro ao transcrever.";
-        output.classList.remove("hidden");
-        status.textContent = "❌ Erro ao gravar.";
-      }
-
-      setTimeout(() => {
-        loading.classList.add("hidden");
-        progressBar.style.width = "0%";
-      }, 500);
-    };
-
-    mediaRecorder.start();
-    status.textContent = "🎙️ A gravar... clique novamente para terminar.";
+  startBtn.style.opacity = 0.5;
+  transcribeBtn.style.opacity = 0.5;
+}
+document.getElementById("btnStopRecording").addEventListener("click", () => {
+  if (mediaRecorder && mediaRecorder.state === "recording") {
+    mediaRecorder.stop();
   }
+});
+
+
   function logout() {
   localStorage.removeItem("loggedIn");
   location.reload();
@@ -1020,6 +1190,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
 });
 
+document.getElementById("btnStopRecording").addEventListener("click", () => {
+  if (mediaRecorder && mediaRecorder.state === "recording") {
+    mediaRecorder.stop();
+  }
+});
 
 function tentarNovamente() {
   const form = document.getElementById("uploadForm");
@@ -1040,8 +1215,125 @@ function tentarNovamente() {
   form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
 }
 
+async function classificarConteudo() {
+  const text = transcriptionText.value.trim();
+  if (!text) {
+    alert("⚠️ Transcrição vazia.");
+    return;
+  }
+
+  const btn = event.target;
+  const originalText = btn.textContent;
+  btn.textContent = "📚 A classificar...";
+  btn.disabled = true;
+
+  const classificacaoTexto = document.getElementById("classificacaoTexto");
+  const classificacaoBox = document.getElementById("classificacaoBox");
+
+  try {
+    const res = await fetch("https://api.ouviescrevi.pt/classify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text: text,
+        token: "ouviescrevi2025@resumo"
+      })
+    });
+
+    const data = await res.json();
+    if (data.type) {
+      classificacaoTexto.textContent = `🔎 ${data.type}`;
+    } else if (data.error) {
+      classificacaoTexto.textContent = `❌ Erro: ${data.error}`;
+    } else {
+      classificacaoTexto.textContent = `❌ Erro inesperado.`;
+    }
+
+    classificacaoBox.classList.remove("hidden");
+
+  } catch (err) {
+    console.error("❌ Erro ao classificar:", err);
+    classificacaoTexto.textContent = "❌ Falha ao comunicar com a API.";
+    classificacaoBox.classList.remove("hidden");
+  } finally {
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
+}
+
+async function gerarMinuta() {
+  const text = transcriptionText.value.trim();
+  if (!text) {
+    alert("⚠️ Transcrição vazia.");
+    return;
+  }
+
+  const btn = event.target;
+  const originalText = btn.textContent;
+  btn.textContent = "📩 A gerar minuta...";
+  btn.disabled = true;
+
+  const minutaTexto = document.getElementById("minutaTexto");
+  const minutaBox = document.getElementById("minutaBox");
+
+  try {
+    const res = await fetch("https://api.ouviescrevi.pt/summarize", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text: text,
+        mode: "minuta", // <- chave importante!
+        token: "ouviescrevi2025@resumo"
+      })
+    });
+
+    const data = await res.json();
+    if (data.summary) {
+      minutaTexto.textContent = data.summary;
+      minutaBox.classList.remove("hidden");
+    } else {
+      minutaTexto.textContent = "❌ Erro ao gerar minuta.";
+      minutaBox.classList.remove("hidden");
+    }
+
+  } catch (err) {
+    console.error("❌ Erro ao gerar minuta:", err);
+    minutaTexto.textContent = "❌ Erro inesperado ao comunicar com a API.";
+    minutaBox.classList.remove("hidden");
+  } finally {
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
+}
+
+function irParaNicho(nicho) {
+  window.location.href = `${nicho}.html`;
+}
+document.getElementById("exportBtn").addEventListener("click", () => {
+  const options = document.getElementById("exportOptions");
+  options.classList.toggle("hidden");
+});
+
+window.addEventListener("click", (e) => {
+  if (!e.target.closest(".dropdown-export")) {
+    document.getElementById("exportOptions").classList.add("hidden");
+  }
+});
 
 </script>
+<footer style="
+  background: linear-gradient(135deg, #A550F7, #00C3FF);
+  color: white;
+  text-align: center;
+  padding: 20px;
+  font-size: 0.9em;
+  border-top: 2px solid rgba(255,255,255,0.2);
+  border-radius: 30px 30px 0 0;
+  margin-top: 40px;
+">
+  <p>🧠 Ouviescrevi &copy; 2025 — Transcrição e IA feitas com 💜 em Portugal.</p>
+  <p style="font-size: 0.8em; margin-top: 5px;">Privado · Seguro · Automatizado</p>
+</footer>
 
 </body>
 </html>

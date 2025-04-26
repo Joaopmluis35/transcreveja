@@ -477,10 +477,47 @@ function sendSuggestion(e) {
   }
 
   // ⚠️ PDF → Word (a definir mais tarde)
-  function convertPDFtoWord() {
-    const status = document.getElementById("wordStatus");
-    status.textContent = "🚧 Esta funcionalidade estará disponível em breve!";
+ async function convertPDFtoWord() {
+  const input = document.getElementById("pdf2wordInput");
+  const status = document.getElementById("wordStatus");
+
+  if (!input.files.length) {
+    status.textContent = "Por favor, seleciona um ficheiro .pdf.";
+    return;
   }
+
+  status.textContent = "📥 A processar ficheiro...";
+
+  const file = input.files[0];
+  const reader = new FileReader();
+
+  reader.onload = function () {
+    const typedarray = new Uint8Array(reader.result);
+
+    pdfjsLib.getDocument({ data: typedarray }).promise.then(async function (pdf) {
+      let textContent = "";
+
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        const strings = content.items.map(item => item.str).join(" ");
+        textContent += strings + "\n\n";
+      }
+
+      const blob = new Blob([textContent], { type: 'application/msword;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = "ficheiro_convertido.doc";
+      a.click();
+      URL.revokeObjectURL(url);
+      status.textContent = "✅ Conversão básica concluída!";
+    });
+  };
+
+  reader.readAsArrayBuffer(file);
+}
+
 </script>
 <div id="popupObrigado" style="position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; justify-content:center; align-items:center;">
 
