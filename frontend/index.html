@@ -219,10 +219,13 @@
 
 
 
-<footer>
-  © 2025 Ouviescrevi · Todos os direitos reservados<br>
-  📧 <a href="mailto:ouviescrevi@gmail.com" style="color: #eee;">ouviescrevi@gmail.com</a>
-</footer>
+<div id="footer"></div>
+<script>
+  fetch("footer.html")
+    .then(res => res.text())
+    .then(html => document.getElementById("footer").innerHTML = html);
+</script>
+
 
 
 

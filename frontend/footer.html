@@ -1,0 +1,132 @@
+<footer id="rodapeOuviescrevi">
+  <div class="rodape-container">
+    <div class="esquerda">
+      <img src="/logos/ouviescreviicon.png" alt="Ouviescrevi">
+      <div>
+        <p>© 2025 Ouviescrevi · 💜 Portugal</p>
+        <a href="mailto:ouviescrevi@gmail.com">📧 ouviescrevi@gmail.com</a>
+      </div>
+    </div>
+
+    <div class="direita">
+      <button onclick="partilharSite()">📤 Partilhar</button>
+      <a href="https://ouviescrevi.pt" target="_blank">🔗 ouviescrevi.pt</a>
+    </div>
+  </div>
+</footer>
+
+<style>
+  #rodapeOuviescrevi {
+    background: linear-gradient(135deg, #A550F7, #00C3FF);
+    padding: 20px;
+    color: white;
+    font-size: 0.9em;
+    border-top: 2px solid rgba(255,255,255,0.2);
+  }
+
+  .rodape-container {
+    max-width: 1000px;
+    margin: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+
+  .esquerda {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .esquerda img {
+    height: 36px;
+  }
+
+  .esquerda p, .esquerda a {
+    margin: 0;
+    color: white;
+    text-decoration: none;
+    font-size: 0.9em;
+  }
+
+  .esquerda a:hover {
+    text-decoration: underline;
+  }
+
+  .direita {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .direita button {
+    background: white;
+    color: #A550F7;
+    border: none;
+    border-radius: 50px;
+    padding: 8px 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+
+  .direita button:hover {
+    background: #ffe6fb;
+  }
+
+  .direita a {
+    color: white;
+    text-decoration: underline;
+    font-size: 0.9em;
+  }
+
+  @media (max-width: 600px) {
+    .rodape-container {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .esquerda {
+      justify-content: center;
+    }
+
+    .direita {
+      flex-direction: column;
+    }
+  }
+</style>
+<script>
+  function partilharSite() {
+    const shareData = {
+      title: "Ouviescrevi – Transcreve com IA",
+      text: "Descobre o Ouviescrevi.pt — transcreve, resume e traduz ficheiros com IA.",
+      url: "https://ouviescrevi.pt"
+    };
+
+    if (navigator.share) {
+      navigator.share(shareData).catch(err => console.error("Erro ao partilhar:", err));
+    } else {
+      const fallbackBox = document.createElement("div");
+      fallbackBox.innerHTML = `
+        <div style="position:fixed; inset:0; background:rgba(0,0,0,0.6); display:flex; justify-content:center; align-items:center; z-index:9999;">
+          <div style="background:white; padding:25px 30px; border-radius:15px; max-width:400px; text-align:center;">
+            <h3 style="margin-top:0; color:#A550F7;">📤 Partilha este link</h3>
+            <input type="text" value="${shareData.url}" id="linkPartilha" style="width:100%; padding:10px; font-size:1em; border:2px solid #A550F7; border-radius:8px;" readonly>
+            <button onclick="copiarLink()" style="margin-top:10px; padding:10px 20px; border:none; background:#A550F7; color:white; border-radius:6px; font-weight:bold;">Copiar Link</button>
+            <br><br>
+            <button onclick="this.closest('div').parentNode.remove()" style="background:transparent; border:none; color:#666; text-decoration:underline; cursor:pointer;">Fechar</button>
+          </div>
+        </div>`;
+      document.body.appendChild(fallbackBox);
+    }
+  }
+
+  function copiarLink() {
+    const input = document.getElementById("linkPartilha");
+    input.select();
+    document.execCommand("copy");
+    alert("🔗 Link copiado com sucesso!");
+  }
+</script>
