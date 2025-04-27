@@ -6,15 +6,21 @@
     <div class="hourglass" style="margin-bottom:0px;"></div>
   </div>
   <nav id="nichoMenu">
-    <button onclick="irParaNicho('index')">🏠 Início</button>
-    <button onclick="irParaNicho('resumo')">Resumo PDF</button>
-    <button onclick="irParaNicho('conversor')">Conversor</button>
-    <button onclick="irParaNicho('ajuda')">Ajuda</button>
-    <button onclick="irParaNicho('sugestoes')">Sugestões</button>
+    <button onclick="irParaNicho('index')"><span>🏠 Início</span></button>
+    <button onclick="irParaNicho('resumo')"><span>Resumo PDF</span></button>
+    <button onclick="irParaNicho('conversor')"><span>Conversor</span></button>
+    <button onclick="irParaNicho('ajuda')"><span>Ajuda</span></button>
+    <button onclick="irParaNicho('sugestoes')"><span>Sugestões</span></button>
   </nav>
 </header>
 
 <style>
+nav#nichoMenu button:hover span {
+  color: white;
+  position: relative;
+  z-index: 2;
+}
+
   #topoOuviescrevi {
     background: linear-gradient(135deg, #A550F7, #00C3FF);
     color: white;
