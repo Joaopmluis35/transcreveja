@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📌 Resumo Inteligente</title>
+  <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #4e54c8, #00c6ff);
+      color: white;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+
+    nav#nichoMenu {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      padding: 20px 10px 10px;
+      background: rgba(0,0,0,0.05);
+    }
+
+    nav#nichoMenu button {
+      background-color: #e6d7fb;
+      color: #333;
+      border: 2px solid #A550F7;
+      border-radius: 50px;
+      padding: 10px 20px;
+      font-weight: bold;
+      font-size: 0.95em;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    nav#nichoMenu button:hover {
+      background: linear-gradient(135deg, #A550F7, #00C3FF);
+      color: white;
+      border-color: transparent;
+    }
+
+    h1 {
+      font-size: 2em;
+      margin-top: 10px;
+    }
+
+    .container {
+      background: white;
+      color: #333;
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 800px;
+      margin: 30px auto;
+    }
+
+    textarea {
+      width: 100%;
+      height: 200px;
+      border: 2px solid #a550f7;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 1em;
+      resize: vertical;
+    }
+
+    select, button {
+      padding: 10px;
+      font-size: 1em;
+      margin-top: 10px;
+      border-radius: 6px;
+      border: 2px solid #a550f7;
+    }
+
+    button {
+      background: #e6d7fb;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      background: linear-gradient(135deg, #a550f7, #00c3ff);
+      color: white;
+    }
+
+    #dropZone {
+      border: 2px dashed #a550f7;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      background: #f9f9f9;
+      color: #555;
+      cursor: pointer;
+    }
+
+    #dropZone:hover {
+      background: #f0f0ff;
+    }
+
+    #resultado {
+      margin-top: 30px;
+      background: #f4f4f4;
+      border-left: 5px solid #00c3ff;
+      padding: 20px;
+      white-space: pre-wrap;
+      border-radius: 10px;
+    }
+
+    footer {
+      background: linear-gradient(135deg, #A550F7, #00C3FF);
+      color: white;
+      text-align: center;
+      padding: 20px;
+      font-size: 0.9em;
+      border-top: 2px solid rgba(255,255,255,0.2);
+      border-radius: 30px 30px 0 0;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+
+<nav id="nichoMenu">
+  <button onclick="irParaNicho('index')">🏠 Início</button>
+  <button onclick="irParaNicho('admin')">🧠 Admin</button>
+  <button onclick="irParaNicho('professores')">🎓 Professores</button>
+  <button onclick="irParaNicho('reunioes')">🗣️ Reuniões</button>
+  <button onclick="irParaNicho('jornalistas')">📰 Jornalistas</button>
+  <button onclick="irParaNicho('podcasts')">🎙️ Podcasts</button>
+  <button onclick="irParaNicho('testemunhos')">🧑‍⚖️ Testemunhos</button>
+  <button onclick="irParaNicho('aulas')">🎥 Aulas</button>
+</nav>
+
+<h1>📌 Resumo Inteligente</h1>
+<p>Cola aqui o teu texto ou transcrição e escolhe o estilo de resumo</p>
+
+<div class="container">
+  <div id="dropZone" onclick="document.getElementById('pdfInput').click()">
+    📂 Arrasta um PDF aqui ou clica para escolher
+    <input type="file" id="pdfInput" accept="application/pdf" style="display: none">
+  </div>
+
+  <textarea id="texto"></textarea>
+
+  <p>Escolhe o estilo de resumo:</p>
+  <select id="modo">
+    <option value="normal">Clássico e direto</option>
+    <option value="minuta">Minuta de reunião (em tópicos)</option>
+    <option value="informal">Resumo simples / informal</option>
+    <option value="email">Formato email</option>
+  </select>
+
+  <br>
+  <button onclick="gerarResumo()">🔍 Gerar Resumo</button>
+
+  <div id="resultado"></div>
+</div>
+
+<footer>
+  <p>🧠 Ouviescrevi &copy; 2025 — Resumos e IA feitos com 💜 em Portugal.</p>
+  <p style="font-size: 0.8em; margin-top: 5px;">Privado · Seguro · Automatizado</p>
+</footer>
+
+<script>
+  function irParaNicho(pagina) {
+    window.location.href = pagina + ".html";
+  }
+
+  const dropZone = document.getElementById("dropZone");
+  const pdfInput = document.getElementById("pdfInput");
+  const textarea = document.getElementById("texto");
+
+  dropZone.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    dropZone.style.background = "#eee";
+  });
+
+  dropZone.addEventListener("dragleave", () => {
+    dropZone.style.background = "#f9f9f9";
+  });
+
+  dropZone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    dropZone.style.background = "#f9f9f9";
+    if (e.dataTransfer.files.length > 0) {
+      pdfInput.files = e.dataTransfer.files;
+      extrairTextoPDF(e.dataTransfer.files[0]);
+    }
+  });
+
+  pdfInput.addEventListener("change", () => {
+    if (pdfInput.files.length > 0) {
+      extrairTextoPDF(pdfInput.files[0]);
+    }
+  });
+
+  function extrairTextoPDF(file) {
+    const reader = new FileReader();
+    reader.onload = function () {
+      const typedarray = new Uint8Array(reader.result);
+      pdfjsLib.getDocument({ data: typedarray }).promise.then(function (pdf) {
+        let textoFinal = "";
+        let total = pdf.numPages;
+        let processadas = 0;
+
+        for (let i = 1; i <= total; i++) {
+          pdf.getPage(i).then(function (page) {
+            page.getTextContent().then(function (content) {
+              const strings = content.items.map(item => item.str).join(" ");
+              textoFinal += strings + "\n\n";
+              processadas++;
+              if (processadas === total) {
+                textarea.value = textoFinal.trim();
+              }
+            });
+          });
+        }
+      });
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  async function gerarResumo() {
+    const text = textarea.value.trim();
+    if (!text) return alert("Texto vazio");
+
+    const modo = document.getElementById("modo").value;
+    const btn = event.target;
+    const original = btn.textContent;
+    btn.textContent = "🔍 A gerar...";
+    btn.disabled = true;
+
+    try {
+      const res = await fetch("https://api.ouviescrevi.pt/summarize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: text,
+          mode: modo,
+          token: "ouviescrevi2025@resumo"
+        })
+      });
+      const data = await res.json();
+      document.getElementById("resultado").textContent = data.summary || data.error || "Erro inesperado";
+    } catch (err) {
+      alert("Erro ao gerar resumo");
+      console.error(err);
+    } finally {
+      btn.textContent = original;
+      btn.disabled = false;
+    }
+  }
+</script>
+</body>
+</html>

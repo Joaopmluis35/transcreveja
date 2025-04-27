@@ -474,6 +474,7 @@ place-items: center;
   <button onclick="irParaNicho('podcasts')"><span>🎙️ Podcasts</span></button>
   <button onclick="irParaNicho('testemunhos')"><span>🧑‍⚖️ Testemunhos</span></button>
   <button onclick="irParaNicho('aulas')"><span>🎥 Aulas</span></button>
+   <button onclick="irParaResumo()"><span>📌 Resumo Inteligente</span></button> <!-- NOVO -->
 </nav>
 
 
@@ -648,7 +649,7 @@ place-items: center;
     e.preventDefault();
     const password = document.getElementById("password").value;
 
-    if (password === "admin") {
+    if (password === "admin123.") {
       localStorage.setItem("loggedIn", "true");
       loginForm.classList.add("hidden");
       adminContent.classList.remove("hidden");
@@ -1386,6 +1387,9 @@ async function gerarEmailIA() {
 
 function irParaNicho(nicho) {
   window.location.href = `${nicho}.html`;
+}
+function irParaResumo() {
+  window.location.href = "resumo.html"; // ou o nome real do ficheiro/resumo.html
 }
 document.getElementById("exportBtn").addEventListener("click", () => {
   const options = document.getElementById("exportOptions");
