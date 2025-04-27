@@ -6,6 +6,8 @@
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin | Ouviescrevi</title>
   <style>
+
+
     body {
   margin: 0;
   font-family: 'Segoe UI', sans-serif;
@@ -462,11 +464,59 @@ place-items: center;
 .hidden {
   display: none;
 }
-@media only screen and (max-width: 430px) {
-.hourglass {
-    width: 100%!important;
-    height: 35px!important;
+  .btn-group button:active::before {
+  bottom: 0;
 }
+
+.btn-group button:active span {
+  position: relative;
+  z-index: 3;
+}
+.btn-group button span {
+  position: relative !important;
+  z-index: 3 !important;
+  display: inline-block;
+}
+@media only screen and (max-width: 430px) {
+ .hourglass {
+    width: 30px !important;
+    height: 30px !important;
+    margin: 0 !important;
+    border: 4px solid #A550F7;
+    border-radius: 50%;
+    position: relative;
+    animation: rotateHourglass 2.5s infinite linear;
+    flex-shrink: 0;
+  }
+
+  .logo-area {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px;
+    flex-wrap: nowrap;
+  }
+
+  .logo-area img {
+    max-height: 30px;
+    height: auto;
+    width: auto;
+  }
+
+  .logo-area h1 {
+    font-size: 1.1em;
+    margin: 0;
+  }
+
+  #burgerBtn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: white;
+    cursor: pointer;
+    padding: 0;
+  }
 }
   </style>
 </head>
@@ -922,7 +972,8 @@ async function gerarResumo() {
 
     const btn = event.target;
     const originalText = btn.textContent;
-    btn.textContent = "🧠 A gerar resumo...";
+   btn.querySelector("span").textContent = "🧠 A gerar resumo...";
+
     btn.disabled = true;
 
     const resumoTexto = document.getElementById("resumoTexto");
@@ -1007,13 +1058,16 @@ btnSalvar.style.cursor = "pointer";
 btnSalvar.onclick = () => {
   const textoAtualizado = transcriptionText.value.trim();
   localStorage.setItem("transcricao_temporaria", textoAtualizado);
-  btnSalvar.textContent = "✅ Alterações salvas!";
+
+  btnSalvar.innerHTML = '<span>✅ Alterações salvas!</span>';
   btnSalvar.disabled = true;
+
   setTimeout(() => {
-    btnSalvar.textContent = "💾 Salvar Alterações";
+    btnSalvar.innerHTML = '<span>💾 Salvar Alterações</span>';
     btnSalvar.disabled = false;
   }, 2000);
 };
+
 
 document.addEventListener("DOMContentLoaded", () => {
  // Oculta o modal de tradução no arranque, por garantia
@@ -1239,9 +1293,10 @@ async function corrigirTextoIA() {
     return;
   }
 
-  const btn = event.target;
-  const originalText = btn.textContent;
-  btn.textContent = "📝 A corrigir...";
+ const btn = event.target.closest("button");
+const span = btn.querySelector("span");
+const originalText = span.textContent;
+span.textContent = "📝 A corrigir...";
   btn.disabled = true;
 
   try {
