@@ -1,26 +1,24 @@
-<!-- header.html -->
 <header id="topoOuviescrevi">
   <div class="logo-area">
     <img src="/logos/ouviescrevimainlogo.png" alt="Ouviescrevi" />
     <h1>Ouviescrevi</h1>
     <div class="hourglass" style="margin-bottom:0px;"></div>
+    <button id="burgerBtn" onclick="toggleMenu()">
+  <span id="burgerIcon">☰</span>
+</button>
+
   </div>
+
   <nav id="nichoMenu">
     <button onclick="irParaNicho('index')"><span>🏠 Início</span></button>
     <button onclick="irParaNicho('resumo')"><span>Resumo PDF</span></button>
-    <button onclick="irParaNicho('conversor')"><span>Conversor</span></button>
+    <button onclick="irParaNicho('conversor')"><span>Conversor Grátis</span></button>
     <button onclick="irParaNicho('ajuda')"><span>Ajuda</span></button>
     <button onclick="irParaNicho('sugestoes')"><span>Sugestões</span></button>
   </nav>
 </header>
 
 <style>
-nav#nichoMenu button:hover span {
-  color: white;
-  position: relative;
-  z-index: 2;
-}
-
   #topoOuviescrevi {
     background: linear-gradient(135deg, #A550F7, #00C3FF);
     color: white;
@@ -29,12 +27,14 @@ nav#nichoMenu button:hover span {
     align-items: center;
     flex-wrap: wrap;
     padding: 15px 30px;
+    position: relative;
   }
 
   .logo-area {
     display: flex;
     align-items: center;
     gap: 15px;
+    flex-grow: 1;
   }
 
   .logo-area img {
@@ -44,6 +44,16 @@ nav#nichoMenu button:hover span {
   .logo-area h1 {
     margin: 0;
     font-size: 1.4em;
+  }
+
+  #burgerBtn {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 2em;
+    color: white;
+    cursor: pointer;
+    margin-left: auto;
   }
 
   nav#nichoMenu {
@@ -90,16 +100,9 @@ nav#nichoMenu button:hover span {
     border-color: white;
   }
 
-  @media (max-width: 700px) {
-    #topoOuviescrevi {
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-    }
-
-    nav#nichoMenu {
-      justify-content: center;
-    }
+  nav#nichoMenu button span {
+    position: relative;
+    z-index: 2;
   }
 
   /* 🔄 Ampulheta animada */
@@ -150,10 +153,59 @@ nav#nichoMenu button:hover span {
     50% { opacity: 1; }
     100% { opacity: 0; }
   }
+
+  /* 📱 MOBILE (até 430px) */
+  @media (max-width: 430px) {
+    #burgerBtn {
+      display: block;
+    }
+
+    nav#nichoMenu {
+      display: none;
+      flex-direction: column;
+      align-items: stretch;
+      width: 100%;
+      margin-top: 15px;
+    }
+
+    nav#nichoMenu.show {
+      display: flex;
+    }
+
+    nav#nichoMenu button {
+      width: 100%;
+      font-size: 1em;
+    }
+
+    #topoOuviescrevi {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .logo-area {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
 </style>
 
 <script>
-  function irParaNicho(pagina) {
+  window.irParaNicho = function(pagina) {
     window.location.href = pagina + ".html";
   }
+
+  window.toggleMenu = function() {
+    const menu = document.getElementById("nichoMenu");
+    const icon = document.getElementById("burgerIcon");
+
+    menu.classList.toggle("show");
+
+    if (menu.classList.contains("show")) {
+      icon.textContent = "✕";
+    } else {
+      icon.textContent = "☰";
+    }
+  }
 </script>
+
+
