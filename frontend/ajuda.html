@@ -36,9 +36,7 @@
       margin: auto;
       padding: 40px;
     }
-    h1, h2 {
-      color: #111;
-    }
+   
     .faq {
       margin-top: 30px;
     }
@@ -68,13 +66,7 @@
 </head>
 <body>
 
-  <header>
-    <h1>Ouviescrevi</h1>
-    <nav>
-      <a href="index.html">Início</a>
-      <a href="ajuda.html">Ajuda</a>
-    </nav>
-  </header>
+  <div id="header"></div>
 
   <main>
     <h1>Ajuda e Suporte</h1>
@@ -104,6 +96,28 @@
 
     <button class="back-button" onclick="window.location.href='index.html'">← Voltar ao Início</button>
   </main>
+<!-- No final do <body> -->
+<script>
+  fetch("header.html")
+    .then(response => response.text())
+    .then(html => {
+      const headerDiv = document.getElementById("header");
+      headerDiv.innerHTML = html;
 
+      const tempDiv = document.createElement("div");
+      tempDiv.innerHTML = html;
+
+      tempDiv.querySelectorAll("script").forEach(oldScript => {
+        const newScript = document.createElement("script");
+        if (oldScript.src) newScript.src = oldScript.src;
+        else newScript.textContent = oldScript.textContent;
+        document.body.appendChild(newScript);
+      });
+
+      tempDiv.querySelectorAll("style").forEach(style => {
+        document.head.appendChild(style.cloneNode(true));
+      });
+    });
+</script>
 </body>
 </html>

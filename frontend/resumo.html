@@ -16,32 +16,7 @@
       text-align: center;
     }
 
-    nav#nichoMenu {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 12px;
-      padding: 20px 10px 10px;
-      background: rgba(0,0,0,0.05);
-    }
-
-    nav#nichoMenu button {
-      background-color: #e6d7fb;
-      color: #333;
-      border: 2px solid #A550F7;
-      border-radius: 50px;
-      padding: 10px 20px;
-      font-weight: bold;
-      font-size: 0.95em;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    nav#nichoMenu button:hover {
-      background: linear-gradient(135deg, #A550F7, #00C3FF);
-      color: white;
-      border-color: transparent;
-    }
+   
 
     h1 {
       font-size: 2em;
@@ -124,17 +99,8 @@
 </head>
 <body>
 
-<nav id="nichoMenu">
-  <button onclick="irParaNicho('index')">🏠 Início</button>
-  <button onclick="irParaNicho('admin')">🧠 Admin</button>
-  <button onclick="irParaNicho('professores')">🎓 Professores</button>
-  <button onclick="irParaNicho('reunioes')">🗣️ Reuniões</button>
-  <button onclick="irParaNicho('jornalistas')">📰 Jornalistas</button>
-  <button onclick="irParaNicho('podcasts')">🎙️ Podcasts</button>
-  <button onclick="irParaNicho('testemunhos')">🧑‍⚖️ Testemunhos</button>
-  <button onclick="irParaNicho('aulas')">🎥 Aulas</button>
-</nav>
-
+ <div id="header"></div>
+ 
 <h1>📌 Resumo Inteligente</h1>
 <p>Cola aqui o teu texto ou transcrição e escolhe o estilo de resumo</p>
 
@@ -254,6 +220,29 @@
       btn.disabled = false;
     }
   }
+</script>
+<!-- No final do <body> -->
+<script>
+  fetch("header.html")
+    .then(response => response.text())
+    .then(html => {
+      const headerDiv = document.getElementById("header");
+      headerDiv.innerHTML = html;
+
+      const tempDiv = document.createElement("div");
+      tempDiv.innerHTML = html;
+
+      tempDiv.querySelectorAll("script").forEach(oldScript => {
+        const newScript = document.createElement("script");
+        if (oldScript.src) newScript.src = oldScript.src;
+        else newScript.textContent = oldScript.textContent;
+        document.body.appendChild(newScript);
+      });
+
+      tempDiv.querySelectorAll("style").forEach(style => {
+        document.head.appendChild(style.cloneNode(true));
+      });
+    });
 </script>
 </body>
 </html>

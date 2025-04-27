@@ -1,0 +1,153 @@
+<!-- header.html -->
+<header id="topoOuviescrevi">
+  <div class="logo-area">
+    <img src="/logos/ouviescrevimainlogo.png" alt="Ouviescrevi" />
+    <h1>Ouviescrevi</h1>
+    <div class="hourglass" style="margin-bottom:0px;"></div>
+  </div>
+  <nav id="nichoMenu">
+    <button onclick="irParaNicho('index')">🏠 Início</button>
+    <button onclick="irParaNicho('resumo')">Resumo PDF</button>
+    <button onclick="irParaNicho('conversor')">Conversor</button>
+    <button onclick="irParaNicho('ajuda')">Ajuda</button>
+    <button onclick="irParaNicho('sugestoes')">Sugestões</button>
+  </nav>
+</header>
+
+<style>
+  #topoOuviescrevi {
+    background: linear-gradient(135deg, #A550F7, #00C3FF);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 15px 30px;
+  }
+
+  .logo-area {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .logo-area img {
+    height: 45px;
+  }
+
+  .logo-area h1 {
+    margin: 0;
+    font-size: 1.4em;
+  }
+
+  nav#nichoMenu {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 10px;
+  }
+
+  nav#nichoMenu button {
+    position: relative;
+    overflow: hidden;
+    background-color: #e6d7fb;
+    color: #333;
+    border: 2px solid #A550F7;
+    border-radius: 50px;
+    padding: 10px 18px;
+    font-weight: bold;
+    font-size: 0.95em;
+    cursor: pointer;
+    transition: color 0.3s ease, border-color 0.3s ease;
+    z-index: 1;
+  }
+
+  nav#nichoMenu button::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #A550F7, #00C3FF);
+    transition: bottom 0.4s ease;
+    z-index: 0;
+  }
+
+  nav#nichoMenu button:hover::before {
+    bottom: 0;
+  }
+
+  nav#nichoMenu button:hover {
+    color: white;
+    border-color: white;
+  }
+
+  @media (max-width: 700px) {
+    #topoOuviescrevi {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    nav#nichoMenu {
+      justify-content: center;
+    }
+  }
+
+  /* 🔄 Ampulheta animada */
+  .hourglass {
+    width: 32px;
+    height: 32px;
+    border: 3px solid white;
+    border-radius: 50%;
+    position: relative;
+    animation: rotateHourglass 2.5s infinite linear;
+  }
+
+  .hourglass::before,
+  .hourglass::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 8px;
+    height: 8px;
+    background: white;
+    border-radius: 50%;
+  }
+
+  .hourglass::before {
+    top: 7px;
+    animation: sandTop 2.5s infinite linear;
+  }
+
+  .hourglass::after {
+    bottom: 7px;
+    animation: sandBottom 2.5s infinite linear;
+  }
+
+  @keyframes rotateHourglass {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  @keyframes sandTop {
+    0% { opacity: 1; }
+    50% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+
+  @keyframes sandBottom {
+    0% { opacity: 0; }
+    50% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+</style>
+
+<script>
+  function irParaNicho(pagina) {
+    window.location.href = pagina + ".html";
+  }
+</script>
