@@ -587,6 +587,19 @@ place-items: center;
     <div id="output" class="hidden">
       <h3>Transcrição:</h3>
       <textarea id="transcriptionText" readonly></textarea>
+	  <div style="text-align: right; margin-top: 5px;">
+		  <button onclick="copiarTranscricao()" style="
+			background: #e6d7fb;
+			border: 2px solid #A550F7;
+			border-radius: 6px;
+			padding: 5px 12px;
+			font-size: 0.9em;
+			cursor: pointer;
+			color: #333;
+			font-weight: bold;
+		  ">📋 Copiar Tudo</button>
+		</div>
+
 	  <button id="btnRetry" onclick="tentarNovamente()"><span>🔁 Tentar novamente</span></button>
 
 
@@ -1455,6 +1468,16 @@ window.addEventListener("click", (e) => {
     document.getElementById("exportOptions").classList.add("hidden");
   }
 });
+function copiarTranscricao() {
+  const textarea = document.getElementById("transcriptionText");
+  textarea.select();
+  document.execCommand("copy");
+
+  // Feedback visual
+  const btn = event.target;
+  btn.textContent = "✅ Copiado!";
+  setTimeout(() => btn.textContent = "📋 Copiar Tudo", 2000);
+}
 
 </script>
 
