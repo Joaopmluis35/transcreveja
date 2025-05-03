@@ -158,11 +158,22 @@ async def translate_text(request: Request):
     if language.lower() not in idiomas_suportados:
         return {"error": f"Idioma não suportado: {language}"}
 
+    # Mapeamento dos nomes em português para o nome em inglês (esperado pela OpenAI)
+    idioma_map = {
+        "inglês": "English",
+        "espanhol": "Spanish",
+        "francês": "French",
+        "alemão": "German",
+        "italiano": "Italian",
+        "português": "Portuguese"
+    }
+    language_en = idioma_map.get(language.lower(), language)
+
     try:
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": f"Traduz o texto para {language}."},
+                {"role": "system", "content": f"Traduz o texto para {language_en}."},
                 {"role": "user", "content": text}
             ],
             temperature=0.3
@@ -170,6 +181,7 @@ async def translate_text(request: Request):
         return {"translation": response.choices[0].message.content.strip()}
     except Exception as e:
         return {"error": str(e)}
+
 
 class ClassifyRequest(BaseModel):
     text: str

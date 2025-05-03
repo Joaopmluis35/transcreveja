@@ -653,7 +653,9 @@ place-items: center;
   </div>
 </div>
 
-		<button onclick="gerarResumo()"><span>🧠 Gerar Resumo</span></button>
+		<button id="btnGerarResumo"><span>🧠 Gerar Resumo</span></button>
+
+
 		<button onclick="gerarMinuta()"><span>📩 Gerar Minuta</span></button>
 <button onclick="corrigirTextoIA()"><span>📝 Corrigir Texto</span></button>
 
@@ -678,9 +680,9 @@ place-items: center;
   ">
     <h3 style="margin-bottom: 10px;">🌍 Seleciona o idioma de destino:</h3>
     <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+	<button onclick="traduzirTextoComIdioma(event, 'português')">Português</button>
       <button onclick="traduzirTextoComIdioma(event, 'inglês')">Inglês</button>
       <button onclick="traduzirTextoComIdioma(event, 'espanhol')">Espanhol</button>
-
       <button onclick="traduzirTextoComIdioma(event, 'francês')">Francês</button>
 <button onclick="traduzirTextoComIdioma(event, 'alemão')">Alemão</button>
 <button onclick="traduzirTextoComIdioma(event, 'italiano')">Italiano</button>
@@ -759,7 +761,7 @@ function pararFrasesAnimadas(statusElement) {
   statusElement.style.opacity = 1;
 }
 
- form.addEventListener("submit", async (e) => {
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
   const file = document.getElementById("fileInput").files[0];
   if (!file) return;
@@ -770,6 +772,14 @@ function pararFrasesAnimadas(statusElement) {
   const status = document.getElementById("transcricaoStatus");
   const progressBar = document.getElementById("progressBar");
 
+  // ❌ Desativar botões durante a transcrição
+  const btnTranscrever = form.querySelector('button[type="submit"]');
+  const btnGravar = form.querySelector('button[onclick="startRecording()"]');
+  btnTranscrever.disabled = true;
+  btnGravar.disabled = true;
+  btnTranscrever.style.opacity = 0.5;
+  btnGravar.style.opacity = 0.5;
+
   // Reset UI
   document.getElementById("output").classList.add("hidden");
   document.getElementById("transcriptionText").value = "";
@@ -777,10 +787,8 @@ function pararFrasesAnimadas(statusElement) {
   status.classList.remove("hidden");
   progressBar.style.width = "0%";
 
-  // Iniciar animação de frases
   iniciarFrasesAnimadas(status);
 
-  // Animação progressiva da barra
   let progress = 0;
   let interval = setInterval(() => {
     if (progress < 90) {
@@ -833,22 +841,26 @@ function pararFrasesAnimadas(statusElement) {
     status.textContent = "⚠️ Não conseguimos transcrever desta vez.";
   }
 
- setTimeout(() => {
-  document.getElementById("loading").classList.add("hidden");
-  status.classList.add("hidden");
-  progressBar.style.width = "0%";
+  setTimeout(() => {
+    document.getElementById("loading").classList.add("hidden");
+    status.classList.add("hidden");
+    progressBar.style.width = "0%";
 
-  // Mostrar ou esconder o botão "Tentar novamente"
-  if (!sucesso) {
-    ultimaTentativaFalhada = true;
-    document.getElementById("btnRetry").classList.remove("hidden");
-  } else {
-    ultimaTentativaFalhada = false;
-    document.getElementById("btnRetry").classList.add("hidden");
-  }
+    if (!sucesso) {
+      ultimaTentativaFalhada = true;
+      document.getElementById("btnRetry").classList.remove("hidden");
+    } else {
+      ultimaTentativaFalhada = false;
+      document.getElementById("btnRetry").classList.add("hidden");
+    }
 
-}, 1200);
+    // ✅ Reativar botões após a transcrição
+    btnTranscrever.disabled = false;
+    btnGravar.disabled = false;
+    btnTranscrever.style.opacity = 1;
+    btnGravar.style.opacity = 1;
 
+  }, 1200);
 });
 
 
@@ -1008,14 +1020,15 @@ document.getElementById("btnStopRecording").addEventListener("click", () => {
 
  
  
-async function gerarResumo() {
+async function gerarResumo(event) {
     const text = transcriptionText.value.trim();
     if (!text) {
         alert("⚠️ Transcrição vazia.");
         return;
     }
 
-    const btn = event.target;
+   const btn = event?.target || document.querySelector("button[onclick*='gerarResumo']");
+
     const originalText = btn.textContent;
    btn.querySelector("span").textContent = "🧠 A gerar resumo...";
 
@@ -1115,6 +1128,7 @@ btnSalvar.onclick = () => {
 
 
 document.addEventListener("DOMContentLoaded", () => {
+
  // Oculta o modal de tradução no arranque, por garantia
   document.getElementById("modalTraducao").classList.add("hidden");
   const btnGroup = document.querySelector(".btn-group");
@@ -1127,7 +1141,8 @@ if (guardada && transcriptionText.value.trim() === "") {
   transcriptionText.value = guardada;
 }
 
-
+ // ✅ ADICIONA AQUI
+  document.getElementById("btnGerarResumo").addEventListener("click", gerarResumo);
 });
 function abrirModalTraducao() {
   const modal = document.getElementById("modalTraducao");
@@ -1478,6 +1493,9 @@ function copiarTranscricao() {
   btn.textContent = "✅ Copiado!";
   setTimeout(() => btn.textContent = "📋 Copiar Tudo", 2000);
 }
+window.addEventListener("error", function(e) {
+  console.error("Erro global:", e.message, e);
+});
 
 </script>
 
