@@ -547,6 +547,8 @@ place-items: center;
 
       <button type="submit">Transcrever</button>
       <button type="button" onclick="startRecording()">🎤 Gravar Áudio</button>
+	  <button type="button" onclick="limparTudo()" style="background:#ffffff; border:2px solid #A550F7; color:#A550F7; font-weight:bold; margin-bottom:10px;">🧹 Limpar Tudo</button>
+
 	  <button type="button" id="btnStopRecording" class="hidden" style="background:#ff4c4c; color:white; font-weight:bold; margin-bottom:10px;">🛑 Parar Gravação</button>
 <p id="timerGravacao" style="font-weight:bold; margin-top: 10px; display:none;">⏱️ 00:00</p>
 
@@ -1019,26 +1021,25 @@ document.getElementById("btnStopRecording").addEventListener("click", () => {
 
 
  
- 
-async function gerarResumo(event) {
+ async function gerarResumo(event) {
     const text = transcriptionText.value.trim();
     if (!text) {
         alert("⚠️ Transcrição vazia.");
         return;
     }
 
-   const btn = event?.target || document.querySelector("button[onclick*='gerarResumo']");
+    const btn = event?.target?.closest("button") || document.querySelector("#btnGerarResumo");
+    const span = btn.querySelector("span");
+    const originalText = span ? span.textContent : btn.textContent;
 
-    const originalText = btn.textContent;
-   btn.querySelector("span").textContent = "🧠 A gerar resumo...";
+    if (span) span.textContent = "🧠 A gerar resumo...";
+    else btn.textContent = "🧠 A gerar resumo...";
 
     btn.disabled = true;
 
     const resumoTexto = document.getElementById("resumoTexto");
     const resumoBox = document.getElementById("resumoBox");
 
-    console.log("📤 A enviar texto para resumo:", text.slice(0, 200) + "...");
-    
     try {
         const res = await fetch("https://api.ouviescrevi.pt/summarize", {
             method: "POST",
@@ -1050,7 +1051,6 @@ async function gerarResumo(event) {
         });
 
         const data = await res.json();
-        console.log("📥 Resposta da API:", data);
 
         if (data.summary) {
             resumoTexto.textContent = data.summary;
@@ -1062,13 +1062,15 @@ async function gerarResumo(event) {
 
         resumoBox.classList.remove("hidden");
     } catch (err) {
-        alert("Erro ao gerar resumo.");
-        console.error("❌ Exceção ao tentar gerar resumo:", err);
+        alert("❌ Erro ao gerar resumo.");
+        console.error(err);
     } finally {
-        btn.textContent = originalText;
+        if (span) span.textContent = originalText;
+        else btn.textContent = originalText;
         btn.disabled = false;
     }
 }
+
 function aplicarLocutores(transcricao) {
   const linhas = transcricao.split('\n');
   let resultado = '';
@@ -1496,6 +1498,49 @@ function copiarTranscricao() {
 window.addEventListener("error", function(e) {
   console.error("Erro global:", e.message, e);
 });
+function limparTudo() {
+  // Limpa o ficheiro
+  const fileInput = document.getElementById("fileInput");
+  fileInput.value = "";
+  document.getElementById("fileName").textContent = "Nenhum ficheiro selecionado";
+
+  // Limpa o texto da transcrição e oculta outputs
+  document.getElementById("transcriptionText").value = "";
+  document.getElementById("output").classList.add("hidden");
+
+  // Limpa caixas extra
+  document.getElementById("resumoTexto").textContent = "";
+  document.getElementById("traducaoTexto").textContent = "";
+  document.getElementById("minutaTexto").textContent = "";
+  document.getElementById("classificacaoTexto").textContent = "";
+
+  document.getElementById("resumoBox").classList.add("hidden");
+  document.getElementById("traducaoBox").classList.add("hidden");
+  document.getElementById("minutaBox").classList.add("hidden");
+  document.getElementById("classificacaoBox").classList.add("hidden");
+
+  // Oculta status e loading
+  document.getElementById("transcricaoStatus").classList.add("hidden");
+  document.getElementById("traducaoStatus").classList.add("hidden");
+  document.getElementById("traducaoProgressWrapper").classList.add("hidden");
+  document.getElementById("progressBar").style.width = "0%";
+  document.getElementById("traducaoProgressBar").style.width = "0%";
+  document.getElementById("loading").classList.add("hidden");
+
+  // Oculta botão retry
+  document.getElementById("btnRetry").classList.add("hidden");
+
+  // Limpa localStorage
+  localStorage.removeItem("transcricao_temporaria");
+
+  // Reset ao checkbox de locutores
+  document.getElementById("identificarLocutores").checked = false;
+
+  // Limpa status visual
+  document.getElementById("recordingStatus").textContent = "";
+  document.getElementById("timerGravacao").style.display = "none";
+  document.getElementById("timerGravacao").textContent = "⏱️ 00:00";
+}
 
 </script>
 
