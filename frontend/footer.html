@@ -8,14 +8,46 @@
       </div>
     </div>
 
-    <div class="direita">
-      <button onclick="partilharSite()">📤 Partilhar</button>
-      <a href="https://ouviescrevi.pt" target="_blank">🔗 ouviescrevi.pt</a>
-    </div>
+   <div class="direita">
+  <div class="social-icons">
+    <a href="https://api.whatsapp.com/send?text=Descobre%20o%20Ouviescrevi.pt%20https://ouviescrevi.pt" target="_blank" title="WhatsApp">
+      <img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" alt="WhatsApp">
+    </a>
+    <a href="https://www.facebook.com/sharer/sharer.php?u=https://ouviescrevi.pt" target="_blank" title="Facebook">
+      <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook">
+    </a>
+    <a href="https://t.me/share/url?url=https://ouviescrevi.pt" target="_blank" title="Telegram">
+      <img src="https://cdn-icons-png.flaticon.com/512/2111/2111646.png" alt="Telegram">
+    </a>
+    <a href="mailto:?subject=Ouviescrevi&body=Descobre%20o%20Ouviescrevi.pt%20https://ouviescrevi.pt" title="Email">
+      <img src="https://cdn-icons-png.flaticon.com/512/732/732200.png" alt="Email">
+    </a>
+  </div>
+  <a href="https://ouviescrevi.pt" target="_blank">🔗 ouviescrevi.pt</a>
+</div>
+
   </div>
 </footer>
 
 <style>
+ .direita {
+      flex-direction: column;
+    }
+	.social-icons a {
+  display: inline-block;
+  margin: 0 5px;
+  transition: transform 0.3s ease;
+}
+
+.social-icons img {
+  width: 28px!important;
+  height: 28px!important;
+  filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.3));
+}
+
+.social-icons a:hover {
+  transform: scale(1.2);
+}
   #rodapeOuviescrevi {
     background: linear-gradient(135deg, #A550F7, #00C3FF);
     padding: 20px;
@@ -92,62 +124,92 @@
       justify-content: center;
     }
 
-    .direita {
-      flex-direction: column;
-    }
+   
+
+
   }
 </style>
 <script>
-  function partilharSite() {
-    const shareData = {
-      title: "Ouviescrevi – Transcreve com IA",
-      text: "Descobre o Ouviescrevi.pt — transcreve, resume e traduz ficheiros com IA.",
-      url: "https://ouviescrevi.pt"
-    };
+function partilharSite() {
+  const url = "https://ouviescrevi.pt";
+  const texto = encodeURIComponent("Descobre o Ouviescrevi.pt — transcreve, resume e traduz ficheiros com IA.");
 
-    if (navigator.share) {
-      navigator.share(shareData)
-        .then(() => console.log("✅ Partilha bem-sucedida"))
-        .catch((err) => console.warn("❌ Erro ao partilhar:", err));
-    } else {
-      mostrarFallbackPartilha(shareData.url);
-    }
-  }
-
-  function mostrarFallbackPartilha(url) {
   if (document.getElementById("popupPartilha")) return;
 
-  const encodedURL = encodeURIComponent(url);
   const popup = document.createElement("div");
   popup.id = "popupPartilha";
   popup.innerHTML = `
     <div style="position:fixed; inset:0; background:rgba(0,0,0,0.6); display:flex; justify-content:center; align-items:center; z-index:9999;">
-      <div style="background:white; padding:25px 30px; border-radius:15px; max-width:400px; text-align:center;">
-        <h3 style="margin-top:0; color:#A550F7;">📤 Partilha este link</h3>
-        <input type="text" value="${url}" id="linkPartilha" style="width:100%; padding:10px; font-size:1em; border:2px solid #A550F7; border-radius:8px;" readonly>
-        <button onclick="copiarLink()" style="margin-top:10px; padding:10px 20px; border:none; background:#A550F7; color:white; border-radius:6px; font-weight:bold;">Copiar Link</button>
-        
-        <div style="margin-top: 15px;">
-          <a href="https://wa.me/?text=${encodedURL}" target="_blank" style="margin-right:10px;">📱 WhatsApp</a>
-          <a href="https://www.facebook.com/sharer/sharer.php?u=${encodedURL}" target="_blank" style="margin-right:10px;">📘 Facebook</a>
-          <a href="https://twitter.com/intent/tweet?url=${encodedURL}" target="_blank">🐦 Twitter</a>
-        </div>
+      <div style="background:white; padding:25px; border-radius:12px; max-width:380px; text-align:center;">
+        <h3 style="margin-top:0; color:#A550F7;">📤 Partilha este site</h3>
+        <div style="display:flex; justify-content:center; gap:15px; flex-wrap:wrap; margin-top:20px;">
 
+  <!-- WhatsApp -->
+  <a href="https://api.whatsapp.com/send?text=${texto}%20${url}" target="_blank" title="WhatsApp">
+    <img src="https://cdn.jsdelivr.net/npm/simple-icons/icons/whatsapp.svg" alt="WhatsApp" style="width:36px;">
+  </a>
+
+  <!-- Facebook -->
+  <a href="https://www.facebook.com/sharer/sharer.php?u=${url}" target="_blank" title="Facebook">
+    <img src="https://cdn.jsdelivr.net/npm/simple-icons/icons/facebook.svg" alt="Facebook" style="width:36px;">
+  </a>
+
+  <!-- Twitter (X) -->
+  <a href="https://twitter.com/intent/tweet?text=${texto}%20${url}" target="_blank" title="Twitter">
+    <img src="https://cdn.jsdelivr.net/npm/simple-icons/icons/twitter.svg" alt="Twitter" style="width:36px;">
+  </a>
+
+  <!-- Telegram -->
+  <a href="https://t.me/share/url?url=${url}&text=${texto}" target="_blank" title="Telegram">
+    <img src="https://cdn.jsdelivr.net/npm/simple-icons/icons/telegram.svg" alt="Telegram" style="width:36px;">
+  </a>
+
+  <!-- Email -->
+  <a href="mailto:?subject=Ouviescrevi&body=${texto}%20${url}" title="Email">
+    <img src="https://cdn.jsdelivr.net/npm/simple-icons/icons/gmail.svg" alt="Email" style="width:36px;">
+  </a>
+
+  <!-- LinkedIn -->
+  <a href="https://www.linkedin.com/sharing/share-offsite/?url=${url}" target="_blank" title="LinkedIn">
+    <img src="https://cdn.jsdelivr.net/npm/simple-icons/icons/linkedin.svg" alt="LinkedIn" style="width:36px;">
+  </a>
+
+  <!-- Pinterest -->
+  <a href="https://pinterest.com/pin/create/button/?url=${url}&description=${texto}" target="_blank" title="Pinterest">
+    <img src="https://cdn.jsdelivr.net/npm/simple-icons/icons/pinterest.svg" alt="Pinterest" style="width:36px;">
+  </a>
+
+  <!-- Reddit -->
+  <a href="https://www.reddit.com/submit?url=${url}&title=${texto}" target="_blank" title="Reddit">
+    <img src="https://cdn.jsdelivr.net/npm/simple-icons/icons/reddit.svg" alt="Reddit" style="width:36px;">
+  </a>
+
+  <!-- Messenger (abre só se tiver app instalada) -->
+  <a href="fb-messenger://share/?link=${url}" target="_blank" title="Messenger">
+    <img src="https://cdn.jsdelivr.net/npm/simple-icons/icons/facebookmessenger.svg" alt="Messenger" style="width:36px;">
+  </a>
+ <a href="https://www.linkedin.com/sharing/share-offsite/?url=https://ouviescrevi.pt" target="_blank" title="LinkedIn">
+    <img src="https://cdn.jsdelivr.net/npm/simple-icons/icons/linkedin.svg" alt="LinkedIn" style="width:28px; height:28px;">
+  </a>
+</div>
+
+
+        <button onclick="copiarLink()" style="margin-top:20px; padding:10px 20px; border:none; background:#A550F7; color:white; border-radius:6px; font-weight:bold;">📋 Copiar Link</button>
         <br><br>
-        <button onclick="document.getElementById('popupPartilha').remove()" style="background:transparent; border:none; color:#666; text-decoration:underline; cursor:pointer;">Fechar</button>
+        <button onclick="document.getElementById('popupPartilha').remove()" style="background:none; border:none; color:#555; text-decoration:underline; cursor:pointer;">Fechar</button>
       </div>
     </div>
   `;
   document.body.appendChild(popup);
 }
 
-
-  function copiarLink() {
-    const input = document.getElementById("linkPartilha");
-    input.select();
-    input.setSelectionRange(0, 99999);
-    document.execCommand("copy");
-    alert("🔗 Link copiado com sucesso!");
-  }
+function copiarLink() {
+  const temp = document.createElement("input");
+  temp.value = "https://ouviescrevi.pt";
+  document.body.appendChild(temp);
+  temp.select();
+  document.execCommand("copy");
+  document.body.removeChild(temp);
+  alert("🔗 Link copiado com sucesso!");
+}
 </script>
-
