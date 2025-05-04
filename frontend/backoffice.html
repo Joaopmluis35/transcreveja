@@ -93,7 +93,7 @@
 
   // Carrega estado atual da API
   function carregarEstado() {
-    fetch("/api/status?t=" + Date.now())
+    fetch("https://api.ouviescrevi.pt/api/status?t=" + Date.now())
       .then(res => res.json())
       .then(data => {
         toggle.checked = data.manutencao === true;
@@ -111,11 +111,12 @@
     const ativo = toggle.checked;
     console.log("[⚙️] A enviar atualização de estado para:", ativo);
 
-    fetch('/api/status', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ manutencao: ativo })
-    })
+    fetch("https://api.ouviescrevi.pt/api/status", {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ manutencao: ativo })
+})
+
     .then(res => res.json())
     .then(data => {
       console.log("[✅] Estado atualizado com sucesso:", data);
