@@ -1,5 +1,5 @@
 <script>
-fetch("/api/status")
+fetch("https://api.ouviescrevi.pt/api/status")
   .then(res => res.json())
   .then(data => {
     if (data.manutencao === true) {
@@ -9,7 +9,8 @@ fetch("/api/status")
           <p>Estamos a melhorar a plataforma. Por favor volta mais tarde.</p>
         </div>`;
     }
-  });
+  })
+  .catch(err => console.error("Erro ao verificar status:", err));
 </script>
 
 
