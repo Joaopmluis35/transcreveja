@@ -64,10 +64,7 @@
   </form>
 </section>
 
-<footer>
-  <p>🧠 Ouviescrevi &copy; 2025 — Resumos e IA feitos com 💜 em Portugal.</p>
-  <p style="font-size: 0.8em;">Privado · Seguro · Automatizado</p>
-</footer>
+
 
 <script>
 document.getElementById("formSugestao").addEventListener("submit", function(e) {
@@ -115,6 +112,11 @@ document.getElementById("formSugestao").addEventListener("submit", function(e) {
       });
     });
 </script>
-
+<div id="footer"></div>
+<script>
+  fetch("footer.html")
+    .then(res => res.text())
+    .then(html => document.getElementById("footer").innerHTML = html);
+</script>
 </body>
 </html>

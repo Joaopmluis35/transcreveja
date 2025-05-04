@@ -57,6 +57,10 @@
 
   <p id="statusTexto"></p>
 
+
+	<button onclick="carregarLogs()">📊 Ver Estatísticas</button>
+<div id="tabelaLogs" style="margin-top: 20px;"></div>
+
   <button onclick="logout()">Sair</button>
 </div>
 
@@ -160,6 +164,22 @@
     localStorage.removeItem("adminAutorizado");
     location.reload();
   }
+  
+  function carregarLogs() {
+  fetch('/api/logs?t=' + Date.now())
+    .then(res => res.json())
+    .then(data => {
+      let html = `<table border="1" style="margin:auto; border-collapse: collapse; width:100%; max-width:500px;">
+        <tr><th>Ficheiro</th><th>Data</th></tr>`;
+      data.reverse().forEach(item => {
+        html += `<tr><td>${item.ficheiro}</td><td>${new Date(item.data).toLocaleString()}</td></tr>`;
+      });
+      html += `</table>`;
+      document.getElementById("tabelaLogs").innerHTML = html;
+    })
+    .catch(err => alert("Erro ao carregar logs"));
+}
+
 </script>
 
 </body>

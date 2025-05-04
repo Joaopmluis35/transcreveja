@@ -25,5 +25,11 @@
 <body>
   <h1>🧑‍⚖️ Testemunhos</h1>
   <p>Ideal para transcrever testemunhos jurídicos, audiências e declarações. Garante precisão, confidencialidade e registo textual para processos legais ou administrativos.</p>
+  <div id="footer"></div>
+<script>
+  fetch("footer.html")
+    .then(res => res.text())
+    .then(html => document.getElementById("footer").innerHTML = html);
+</script>
 </body>
 </html>

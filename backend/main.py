@@ -286,3 +286,38 @@ async def update_status(request: Request):
         return {"message": "Estado atualizado com sucesso", "manutencao": manutencao}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao atualizar status: {e}")
+
+
+import json
+
+LOG_FILE = "log_transcricoes.json"
+
+def registar_transcricao(nome_ficheiro):
+    log = {
+        "ficheiro": nome_ficheiro,
+        "data": datetime.now().isoformat()
+    }
+    try:
+        if os.path.exists(LOG_FILE):
+            with open(LOG_FILE, "r") as f:
+                historico = json.load(f)
+        else:
+            historico = []
+        historico.append(log)
+        with open(LOG_FILE, "w") as f:
+            json.dump(historico, f, indent=2)
+    except Exception as e:
+        print("Erro ao registar transcrição:", e)
+        
+ 
+ registar_transcricao(file.filename)
+
+@app.get("/api/logs")
+async def listar_logs():
+    try:
+        if os.path.exists(LOG_FILE):
+            with open(LOG_FILE, "r") as f:
+                return json.load(f)
+        return []
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao ler logs: {e}")

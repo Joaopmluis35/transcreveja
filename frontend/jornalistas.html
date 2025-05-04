@@ -25,5 +25,11 @@
 <body>
   <h1>📰 Jornalistas</h1>
   <p>Transcreve entrevistas, conferências de imprensa ou reportagens com precisão e rapidez. Facilita a produção de conteúdos e permite focar no que realmente importa: contar histórias.</p>
+  <div id="footer"></div>
+<script>
+  fetch("footer.html")
+    .then(res => res.text())
+    .then(html => document.getElementById("footer").innerHTML = html);
+</script>
 </body>
 </html>

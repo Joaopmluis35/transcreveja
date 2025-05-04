@@ -25,5 +25,11 @@
 <body>
   <h1>🗣️ Reuniões</h1>
   <p>Grava e transcreve automaticamente reuniões presenciais ou online. Garante que nenhuma decisão, ideia ou compromisso é esquecido. Ideal para equipas, empresas e freelancers.</p>
+  <div id="footer"></div>
+<script>
+  fetch("footer.html")
+    .then(res => res.text())
+    .then(html => document.getElementById("footer").innerHTML = html);
+</script>
 </body>
 </html>

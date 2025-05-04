@@ -25,5 +25,11 @@
 <body>
   <h1>🎙️ Podcasts</h1>
   <p>Converte episódios de podcast em texto com um clique. Melhora o SEO, partilha transcrições com o público e reutiliza os conteúdos em newsletters, artigos ou redes sociais.</p>
+  <div id="footer"></div>
+<script>
+  fetch("footer.html")
+    .then(res => res.text())
+    .then(html => document.getElementById("footer").innerHTML = html);
+</script>
 </body>
 </html>

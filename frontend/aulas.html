@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt">
 <head>
@@ -25,5 +26,11 @@
 <body>
   <h1>🎥 Aulas</h1>
   <p>Transforma vídeos de aulas em texto claro, bem formatado e pronto a partilhar. Útil para estudantes, professores, tutores e plataformas educativas.</p>
+  <div id="footer"></div>
+<script>
+  fetch("footer.html")
+    .then(res => res.text())
+    .then(html => document.getElementById("footer").innerHTML = html);
+</script>
 </body>
 </html>
