@@ -30,6 +30,11 @@
       justify-content: space-between;
       margin-top: 20px;
     }
+    #statusTexto {
+      margin-top: 15px;
+      font-weight: bold;
+      font-size: 0.95em;
+    }
   </style>
 </head>
 <body>
@@ -50,6 +55,8 @@
     <input type="checkbox" id="manutencaoToggle">
   </label>
 
+  <p id="statusTexto"></p>
+
   <button onclick="logout()">Sair</button>
 </div>
 
@@ -57,8 +64,9 @@
   const form = document.getElementById("loginForm");
   const painel = document.getElementById("painel");
   const toggle = document.getElementById("manutencaoToggle");
+  const statusTexto = document.getElementById("statusTexto");
 
-  // Verifica se já está autenticado
+  // Verifica se está autenticado
   if (localStorage.getItem("adminAutorizado") === "true") {
     form.style.display = "none";
     painel.style.display = "block";
@@ -78,29 +86,75 @@
     }
   });
 
-  // Carregar estado da API
+  function atualizarTextoEstado(ativo) {
+    statusTexto.textContent = ativo ? "🔴 Em manutenção" : "🟢 Online";
+    statusTexto.style.color = ativo ? "#C62828" : "#2E7D32";
+  }
+
+  // Carrega estado atual da API
   function carregarEstado() {
-    fetch("/api/status")
+    fetch("/api/status?t=" + Date.now())
       .then(res => res.json())
       .then(data => {
         toggle.checked = data.manutencao === true;
+        atualizarTextoEstado(data.manutencao);
+        console.log("[🟢] Estado atual carregado:", data.manutencao);
       })
-      .catch(() => alert("Erro ao carregar estado de manutenção"));
+      .catch((err) => {
+        console.error("[❌] Erro ao carregar estado:", err);
+        alert("Erro ao carregar estado de manutenção");
+      });
   }
 
-  // Alterar modo manutenção via API
+  // Ao mudar o estado do toggle
   toggle.addEventListener("change", () => {
     const ativo = toggle.checked;
+    console.log("[⚙️] A enviar atualização de estado para:", ativo);
+
     fetch('/api/status', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ manutencao: ativo })
     })
-    .then(() => alert("Estado alterado com sucesso"))
-    .catch(() => alert("Erro ao alterar estado"));
+    .then(res => res.json())
+    .then(data => {
+      console.log("[✅] Estado atualizado com sucesso:", data);
+      atualizarTextoEstado(data.manutencao);
+      mostrarToast("Estado atualizado com sucesso!");
+    })
+    .catch(err => {
+      console.error("[❌] Erro ao atualizar estado:", err);
+      alert("Erro ao alterar estado de manutenção.");
+      toggle.checked = !ativo; // Reverte visualmente
+    });
   });
 
-  // Logout
+  // Toast visual
+  function mostrarToast(msg) {
+    const toast = document.createElement("div");
+    toast.textContent = msg;
+    toast.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #4CAF50;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      z-index: 9999;
+      font-size: 0.9em;
+      opacity: 1;
+      transition: opacity 0.5s ease;
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = 0;
+      setTimeout(() => document.body.removeChild(toast), 500);
+    }, 2500);
+  }
+
   function logout() {
     localStorage.removeItem("adminAutorizado");
     location.reload();
