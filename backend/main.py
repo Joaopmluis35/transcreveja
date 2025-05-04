@@ -8,8 +8,9 @@ import openai
 from datetime import datetime
 import uuid
 
-print("\u2705 API DO OUVIESCREVI INICIADA")
-print("\ud83d\udd11 Chave carregada:", bool(os.getenv("OPENAI_API_KEY")))
+print("API DO OUVIESCREVI INICIADA")
+print("Chave carregada:", bool(os.getenv("OPENAI_API_KEY")))
+
 
 app = FastAPI()
 
