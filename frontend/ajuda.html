@@ -1,17 +1,59 @@
+<style>
+  body.manutencao {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #A550F7, #00C3FF);
+    color: white;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .manutencao-container {
+    text-align: center;
+    max-width: 500px;
+    padding: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+  }
+
+  .manutencao-container h2 {
+    font-size: 1.8em;
+    margin-bottom: 10px;
+  }
+
+  .manutencao-container p {
+    font-size: 1.1em;
+    margin: 0;
+  }
+
+  .manutencao-emoji {
+    font-size: 3em;
+    margin-bottom: 20px;
+  }
+</style>
+
 <script>
 fetch("https://api.ouviescrevi.pt/api/status")
   .then(res => res.json())
   .then(data => {
     if (data.manutencao === true) {
+      document.body.classList.add("manutencao");
       document.body.innerHTML = `
-        <div style="padding: 50px; text-align: center; font-family: sans-serif;">
-          <h2>🛑 Ouviescrevi está em manutenção</h2>
-          <p>Estamos a melhorar a plataforma. Por favor volta mais tarde.</p>
+        <div class="manutencao-container">
+          <div class="manutencao-emoji">🚧</div>
+          <h2>Ouviescrevi está em manutenção</h2>
+          <p>Estamos a melhorar a plataforma.<br>Volta mais tarde para uma experiência ainda melhor!</p>
         </div>`;
     }
   })
   .catch(err => console.error("Erro ao verificar status:", err));
 </script>
+
 
 
 <!DOCTYPE html>
