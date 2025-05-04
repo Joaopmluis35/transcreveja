@@ -625,17 +625,25 @@ place-items: center;
 <div id="resumoBox" class="hidden">
   <h3>📌 Resumo:</h3>
   <div id="resumoTexto" style="background:#f0f0f0; padding:15px; border-radius:8px; white-space:pre-wrap;"></div>
+  <div style="text-align: right; margin-top: 5px;">
+  <button onclick="copiarTextoBox('resumoTexto', this)" style="background: #e6d7fb; border: 2px solid #A550F7; border-radius: 6px; padding: 5px 12px; font-size: 0.9em; cursor: pointer; color: #333; font-weight: bold;">📋 Copiar Tudo</button>
+</div>
 </div>
 <div id="minutaBox" class="hidden">
   <h3>📩 Minuta da Reunião:</h3>
   <div id="minutaTexto" style="background:#f0f0f0; color:#222; padding:15px; border-radius:8px; white-space:pre-wrap;"></div>
+  <div style="text-align: right; margin-top: 5px;">
+  <button onclick="copiarTextoBox('minutaTexto', this)" style="background: #e6d7fb; border: 2px solid #A550F7; border-radius: 6px; padding: 5px 12px; font-size: 0.9em; cursor: pointer; color: #333; font-weight: bold;">📋 Copiar Tudo</button>
+</div>
 </div>
 
 <div id="traducaoBox" class="hidden">
   <h3>🌍 Tradução:</h3>
  <div id="traducaoTexto" style="background:#f0f0f0; color:#222; padding:15px; border-radius:8px; white-space:pre-wrap;"></div>
 
-
+<div style="text-align: right; margin-top: 5px;">
+  <button onclick="copiarTextoBox('traducaoTexto', this)" style="background: #e6d7fb; border: 2px solid #A550F7; border-radius: 6px; padding: 5px 12px; font-size: 0.9em; cursor: pointer; color: #333; font-weight: bold;">📋 Copiar Tudo</button>
+</div>
 </div>
  <div id="classificacaoBox" class="hidden">
   <h3>📚 Tipo de Conteúdo:</h3>
@@ -1069,6 +1077,7 @@ document.getElementById("btnStopRecording").addEventListener("click", () => {
         else btn.textContent = originalText;
         btn.disabled = false;
     }
+	scrollSeInvisivel("resumoBox");
 }
 
 function aplicarLocutores(transcricao) {
@@ -1228,6 +1237,7 @@ async function traduzirTextoComIdioma(event, idioma) {
     btn.textContent = originalText;
     btn.disabled = false;
   }
+  scrollSeInvisivel("traducaoBox");
 }
 
 
@@ -1433,6 +1443,7 @@ async function gerarMinuta() {
     btn.textContent = originalText;
     btn.disabled = false;
   }
+  scrollSeInvisivel("minutaBox");
 }
 async function gerarEmailIA() {
   const text = transcriptionText.value.trim();
@@ -1540,6 +1551,21 @@ function limparTudo() {
   document.getElementById("recordingStatus").textContent = "";
   document.getElementById("timerGravacao").style.display = "none";
   document.getElementById("timerGravacao").textContent = "⏱️ 00:00";
+}
+function scrollSeInvisivel(id) {
+  const el = document.getElementById(id);
+  if (el && !el.classList.contains("hidden")) {
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+}
+function copiarTextoBox(idTexto, botao) {
+  const texto = document.getElementById(idTexto).textContent.trim();
+  if (!texto) return;
+
+  navigator.clipboard.writeText(texto).then(() => {
+    botao.textContent = "✅ Copiado!";
+    setTimeout(() => botao.textContent = "📋 Copiar Tudo", 2000);
+  });
 }
 
 </script>
