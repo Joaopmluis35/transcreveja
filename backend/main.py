@@ -260,3 +260,28 @@ async def generate_email(req: EmailRequest):
         return {"email": response.choices[0].message.content.strip()}
     except Exception as e:
         return {"error": str(e)}
+import json
+
+STATUS_FILE = "status.json"
+
+@app.get("/api/status")
+async def get_status():
+    try:
+        with open(STATUS_FILE, "r") as f:
+            return json.load(f)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao ler status: {e}")
+
+@app.post("/api/status")
+async def update_status(request: Request):
+    try:
+        data = await request.json()
+        manutencao = data.get("manutencao", False)
+
+        # Grava no ficheiro status.json
+        with open(STATUS_FILE, "w") as f:
+            json.dump({"manutencao": manutencao}, f)
+
+        return {"message": "Estado atualizado com sucesso", "manutencao": manutencao}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erro ao atualizar status: {e}")

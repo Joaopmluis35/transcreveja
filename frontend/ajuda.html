@@ -1,3 +1,18 @@
+<script>
+fetch("/api/status")
+  .then(res => res.json())
+  .then(data => {
+    if (data.manutencao === true) {
+      document.body.innerHTML = `
+        <div style="padding: 50px; text-align: center; font-family: sans-serif;">
+          <h2>🛑 Ouviescrevi está em manutenção</h2>
+          <p>Estamos a melhorar a plataforma. Por favor volta mais tarde.</p>
+        </div>`;
+    }
+  });
+</script>
+
+
 <!DOCTYPE html>
 <html lang="pt">
 <head>

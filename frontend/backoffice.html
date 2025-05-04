@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <title>Backoffice | Ouviescrevi</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f5f5f5;
+      padding: 40px;
+      text-align: center;
+    }
+    form, .painel {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 400px;
+      margin: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    button, input[type="password"] {
+      padding: 10px;
+      font-size: 1em;
+      margin-top: 10px;
+      width: 100%;
+    }
+    label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Backoffice Ouviescrevi</h2>
+
+<form id="loginForm">
+  <p>Acesso restrito</p>
+  <input type="password" id="password" placeholder="Palavra-chave">
+  <button type="submit">Entrar</button>
+</form>
+
+<div class="painel" id="painel" style="display:none">
+  <p>Bem-vindo, admin.</p>
+
+  <label>
+    🛑 Modo Manutenção:
+    <input type="checkbox" id="manutencaoToggle">
+  </label>
+
+  <button onclick="logout()">Sair</button>
+</div>
+
+<script>
+  const form = document.getElementById("loginForm");
+  const painel = document.getElementById("painel");
+  const toggle = document.getElementById("manutencaoToggle");
+
+  // Verifica se já está autenticado
+  if (localStorage.getItem("adminAutorizado") === "true") {
+    form.style.display = "none";
+    painel.style.display = "block";
+    carregarEstado();
+  }
+
+  // Login
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+    if (document.getElementById("password").value === "admin123.") {
+      localStorage.setItem("adminAutorizado", "true");
+      form.style.display = "none";
+      painel.style.display = "block";
+      carregarEstado();
+    } else {
+      alert("Palavra-chave incorreta.");
+    }
+  });
+
+  // Carregar estado da API
+  function carregarEstado() {
+    fetch("/api/status")
+      .then(res => res.json())
+      .then(data => {
+        toggle.checked = data.manutencao === true;
+      })
+      .catch(() => alert("Erro ao carregar estado de manutenção"));
+  }
+
+  // Alterar modo manutenção via API
+  toggle.addEventListener("change", () => {
+    const ativo = toggle.checked;
+    fetch('/api/status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ manutencao: ativo })
+    })
+    .then(() => alert("Estado alterado com sucesso"))
+    .catch(() => alert("Erro ao alterar estado"));
+  });
+
+  // Logout
+  function logout() {
+    localStorage.removeItem("adminAutorizado");
+    location.reload();
+  }
+</script>
+
+</body>
+</html>
