@@ -323,7 +323,7 @@ from fastapi import Request
 transcricoes_registro = []
 
 @app.post("/registar-transcricao")
-def registar_transcricao_api(req: Request):
+def registar_transcricao_route(req: Request):
     transcricoes_registro.append(datetime.now())
     return {"ok": True}
 
@@ -336,10 +336,12 @@ def contar_transcricoes_hoje():
 @app.get("/api/logs")
 def get_logs():
     try:
-        if os.path.exists(LOG_FILE):
-            with open(LOG_FILE, "r") as f:
-                return json.load(f)
-        else:
-            return []
+        if not os.path.exists(LOG_FILE):
+            with open(LOG_FILE, "w") as f:
+                json.dump([], f)
+
+        with open(LOG_FILE, "r") as f:
+            return json.load(f)
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao ler logs: {e}")
