@@ -49,6 +49,7 @@
 
 <div class="painel" id="painel" style="display:none">
   <p>Bem-vindo, admin.</p>
+	<p id="contadorHoje">🔄 A carregar transcrições de hoje...</p>
 
   <label>
     🛑 Modo Manutenção:
@@ -97,18 +98,22 @@
 
   // Carrega estado atual da API
   function carregarEstado() {
-    fetch("https://api.ouviescrevi.pt/api/status?t=" + Date.now())
-      .then(res => res.json())
-      .then(data => {
-        toggle.checked = data.manutencao === true;
-        atualizarTextoEstado(data.manutencao);
-        console.log("[🟢] Estado atual carregado:", data.manutencao);
-      })
-      .catch((err) => {
-        console.error("[❌] Erro ao carregar estado:", err);
-        alert("Erro ao carregar estado de manutenção");
-      });
-  }
+  fetch("https://api.ouviescrevi.pt/api/status?t=" + Date.now())
+    .then(res => res.json())
+    .then(data => {
+      toggle.checked = data.manutencao === true;
+      atualizarTextoEstado(data.manutencao);
+      carregarContadorHoje(); // primeira contagem imediata
+      setInterval(carregarContadorHoje, 60000); // atualiza a cada 60s
+
+      console.log("[🟢] Estado atual carregado:", data.manutencao);
+    })
+    .catch((err) => {
+      console.error("[❌] Erro ao carregar estado:", err);
+      alert("Erro ao carregar estado de manutenção");
+    });
+}
+
 
   // Ao mudar o estado do toggle
   toggle.addEventListener("change", () => {
@@ -178,6 +183,19 @@
       document.getElementById("tabelaLogs").innerHTML = html;
     })
     .catch(err => alert("Erro ao carregar logs"));
+}
+function carregarContadorHoje() {
+  fetch("https://api.ouviescrevi.pt/transcricoes-hoje?t=" + Date.now())
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById("contadorHoje").textContent =
+        `📈 Transcrições hoje: ${data.total}`;
+    })
+    .catch(err => {
+      console.error("Erro ao carregar contador de hoje", err);
+      document.getElementById("contadorHoje").textContent =
+        "❌ Erro ao carregar total de hoje.";
+    });
 }
 
 </script>
