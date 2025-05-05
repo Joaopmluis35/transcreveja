@@ -13,7 +13,8 @@ print("Chave carregada:", bool(os.getenv("OPENAI_API_KEY")))
 
 
 app = FastAPI()
-
+# Armazena datas de transcrições na memória
+transcricoes_hoje = []
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -91,6 +92,10 @@ async def transcribe(file: UploadFile = File(...)):
                 )
             full_text += result.text + "\n"
             formatted_text += format_segments(result.segments) + "\n\n"
+        transcricoes_registro.append(datetime.now())
+        registar_transcricao(file.filename)
+
+
 
         return {
             "transcription": full_text.strip(),
@@ -310,14 +315,31 @@ def registar_transcricao(nome_ficheiro):
         print("Erro ao registar transcrição:", e)
         
  
- registar_transcricao(file.filename)
+ 
+from datetime import datetime, date
+from fastapi import Request
 
+# Simulador simples (substitui por base de dados real se tiveres)
+transcricoes_registro = []
+
+@app.post("/registar-transcricao")
+def registar_transcricao_api(req: Request):
+    transcricoes_registro.append(datetime.now())
+    return {"ok": True}
+
+
+@app.get("/transcricoes-hoje")
+def contar_transcricoes_hoje():
+    hoje = date.today()
+    total = sum(1 for d in transcricoes_registro if d.date() == hoje)
+    return {"total": total}
 @app.get("/api/logs")
-async def listar_logs():
+def get_logs():
     try:
         if os.path.exists(LOG_FILE):
             with open(LOG_FILE, "r") as f:
                 return json.load(f)
-        return []
+        else:
+            return []
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao ler logs: {e}")
