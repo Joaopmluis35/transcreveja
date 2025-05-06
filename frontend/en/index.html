@@ -1,13 +1,12 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png">
-   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ouviescrevi – Conversor Inteligente</title>
-  <meta name="description" content="Converte ficheiros com IA. Word para PDF, imagens para PDF, e muito mais!">
-  <meta name="keywords" content="converter Word para PDF, PDF para texto, imagem para PDF, conversor de ficheiros online, transcrição de áudio, transcrição automática, Ouviescrevi">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ouviescrevi – Smart Converter</title>
+  <meta name="description" content="Convert files with AI. Word to PDF, images to PDF, and much more!">
+  <meta name="keywords" content="convert Word to PDF, PDF to text, image to PDF, online file converter, audio transcription, automatic transcription, Ouviescrevi">
   <meta name="robots" content="index, follow">
   <style>
 
@@ -529,202 +528,149 @@ place-items: center;
 <div id="header"></div>
 
 <main>
- 
 
   <div id="adminContent" >
 
-	
-<p><strong>🧠 Ouviescrevi</strong> é o teu assistente com IA para <br> <strong>transcrever</strong> 🎙️, <strong>traduzir</strong> 🌍, <strong>resumir</strong> 📌 e <strong>converter ficheiros</strong> 📄 <br> — tudo num clique. Simples, rápido e gratuito.</p>
-
+<p><strong>🧠 Ouviescrevi</strong> is your AI assistant to <br> <strong>transcribe</strong> 🎙️, <strong>translate</strong> 🌍, <strong>summarise</strong> 📌 and <strong>convert files</strong> 📄 <br> — all in one click. Simple, fast and free.</p>
 
     <form id="uploadForm">
-	
+
       <div id="dropZone">
-  <p>📁 <strong>Arrasta o ficheiro aqui</strong> ou clica para escolher</p>
+  <p>📁 <strong>Drag your file here</strong> or click to choose</p>
   <input type="file" id="fileInput" accept="audio/*,video/*" required>
-  <span id="fileName">Nenhum ficheiro selecionado</span>
+  <span id="fileName">No file selected</span>
 </div>
 
-      <button type="submit">Transcrever</button>
-      <button type="button" onclick="startRecording()">🎤 Gravar Áudio</button>
-	  <button type="button" onclick="limparTudo()" style="background:#ffffff; border:2px solid #A550F7; color:#A550F7; font-weight:bold; margin-bottom:10px;">🧹 Limpar Tudo</button>
+      <button type="submit">Transcribe</button>
+      <button type="button" onclick="startRecording()">🎤 Record Audio</button>
+	  <button type="button" onclick="limparTudo()" style="background:#ffffff; border:2px solid #A550F7; color:#A550F7; font-weight:bold; margin-bottom:10px;">🧹 Clear All</button>
 
-	  <button type="button" id="btnStopRecording" class="hidden" style="background:#ff4c4c; color:white; font-weight:bold; margin-bottom:10px;">🛑 Parar Gravação</button>
+	  <button type="button" id="btnStopRecording" class="hidden" style="background:#ff4c4c; color:white; font-weight:bold; margin-bottom:10px;">🛑 Stop Recording</button>
 <p id="timerGravacao" style="font-weight:bold; margin-top: 10px; display:none;">⏱️ 00:00</p>
 
-		 <label class="switch-container">
+	 <label class="switch-container">
   <input type="checkbox" id="identificarLocutores">
   <span class="slider"></span>
-  <span class="switch-label">Identificar falas com nomes de locutores</span>
+  <span class="switch-label">Identify speakers by name</span>
 </label>
-
 
       <p id="recordingStatus"></p>
     </form>
 
-
     <div id="loading" class="hidden">
-      <p>🔄 A processar transcrição...</p>
+      <p>🔄 Processing transcription...</p>
       <div style="background:#ddd; border-radius:8px; width:100%; height:20px;">
         <div id="progressBar" style="height:100%; width:0%; background:#4caf50; border-radius:8px;"></div>
       </div>
     </div>
-<p id="transcricaoStatus" class="hidden" style="
-  background: #fff3cd;
-  color: #856404;
-  border-left: 5px solid #ffc107;
-  padding: 12px 18px;
-  margin: 15px 0;
-  border-radius: 5px;
-  font-weight: bold;
-  transition: opacity 0.5s ease;
-  opacity: 1;
-">
-  🔄 A preparar...
+<p id="transcricaoStatus" class="hidden" style="background: #fff3cd; color: #856404; border-left: 5px solid #ffc107; padding: 12px 18px; margin: 15px 0; border-radius: 5px; font-weight: bold; transition: opacity 0.5s ease; opacity: 1;">
+  🔄 Preparing...
 </p>
 
-
-
-
     <div id="output" class="hidden">
-      <h3>Transcrição:</h3>
+      <h3>Transcription:</h3>
       <textarea id="transcriptionText" readonly></textarea>
 	  <div style="text-align: right; margin-top: 5px;">
-		  <button onclick="copiarTranscricao()" style="
-			background: #e6d7fb;
-			border: 2px solid #A550F7;
-			border-radius: 6px;
-			padding: 5px 12px;
-			font-size: 0.9em;
-			cursor: pointer;
-			color: #333;
-			font-weight: bold;
-		  ">📋 Copiar Tudo</button>
+		  <button onclick="copiarTranscricao()" style="background: #e6d7fb; border: 2px solid #A550F7; border-radius: 6px; padding: 5px 12px; font-size: 0.9em; cursor: pointer; color: #333; font-weight: bold;">📋 Copy All</button>
 		</div>
 
-	  <button id="btnRetry" onclick="tentarNovamente()"><span>🔁 Tentar novamente</span></button>
+	  <button id="btnRetry" onclick="tentarNovamente()"><span>🔁 Try Again</span></button>
 
-
-
-	<p id="traducaoStatus" class="hidden" style="
-  background: #fff3cd;
-  color: #856404;
-  border-left: 5px solid #ffc107;
-  padding: 12px 18px;
-  margin: 15px 0;
-  border-radius: 5px;
-  font-weight: bold;
-">
-  🌍 A traduzir... por favor aguarde
+	<p id="traducaoStatus" class="hidden" style="background: #fff3cd; color: #856404; border-left: 5px solid #ffc107; padding: 12px 18px; margin: 15px 0; border-radius: 5px; font-weight: bold;">
+  🌍 Translating... please wait
 </p>
 <div id="traducaoProgressWrapper" class="hidden" style="background:#ddd; border-radius:8px; width:100%; height:20px; margin-top:10px;">
   <div id="traducaoProgressBar" style="height:100%; width:0%; background:#A550F7; border-radius:8px;"></div>
 </div>
 
-
 <div id="resumoBox" class="hidden">
-  <h3>📌 Resumo:</h3>
+  <h3>📌 Summary:</h3>
   <div id="resumoTexto" style="background:#f0f0f0; padding:15px; border-radius:8px; white-space:pre-wrap;"></div>
   <div style="text-align: right; margin-top: 5px;">
-  <button onclick="copiarTextoBox('resumoTexto', this)" style="background: #e6d7fb; border: 2px solid #A550F7; border-radius: 6px; padding: 5px 12px; font-size: 0.9em; cursor: pointer; color: #333; font-weight: bold;">📋 Copiar Tudo</button>
+  <button onclick="copiarTextoBox('resumoTexto', this)" style="background: #e6d7fb; border: 2px solid #A550F7; border-radius: 6px; padding: 5px 12px; font-size: 0.9em; cursor: pointer; color: #333; font-weight: bold;">📋 Copy All</button>
 </div>
 </div>
 <div id="minutaBox" class="hidden">
-  <h3>📩 Minuta da Reunião:</h3>
+  <h3>📩 Meeting Minutes:</h3>
   <div id="minutaTexto" style="background:#f0f0f0; color:#222; padding:15px; border-radius:8px; white-space:pre-wrap;"></div>
   <div style="text-align: right; margin-top: 5px;">
-  <button onclick="copiarTextoBox('minutaTexto', this)" style="background: #e6d7fb; border: 2px solid #A550F7; border-radius: 6px; padding: 5px 12px; font-size: 0.9em; cursor: pointer; color: #333; font-weight: bold;">📋 Copiar Tudo</button>
+  <button onclick="copiarTextoBox('minutaTexto', this)" style="background: #e6d7fb; border: 2px solid #A550F7; border-radius: 6px; padding: 5px 12px; font-size: 0.9em; cursor: pointer; color: #333; font-weight: bold;">📋 Copy All</button>
 </div>
 </div>
 
 <div id="traducaoBox" class="hidden">
-  <h3>🌍 Tradução:</h3>
+  <h3>🌍 Translation:</h3>
  <div id="traducaoTexto" style="background:#f0f0f0; color:#222; padding:15px; border-radius:8px; white-space:pre-wrap;"></div>
-
 <div style="text-align: right; margin-top: 5px;">
-  <button onclick="copiarTextoBox('traducaoTexto', this)" style="background: #e6d7fb; border: 2px solid #A550F7; border-radius: 6px; padding: 5px 12px; font-size: 0.9em; cursor: pointer; color: #333; font-weight: bold;">📋 Copiar Tudo</button>
+  <button onclick="copiarTextoBox('traducaoTexto', this)" style="background: #e6d7fb; border: 2px solid #A550F7; border-radius: 6px; padding: 5px 12px; font-size: 0.9em; cursor: pointer; color: #333; font-weight: bold;">📋 Copy All</button>
 </div>
 </div>
  <div id="classificacaoBox" class="hidden">
-  <h3>📚 Tipo de Conteúdo:</h3>
+  <h3>📚 Content Type:</h3>
   <div id="classificacaoTexto" style="background:#f0f0f0; color:#222; padding:10px; border-radius:8px; white-space:pre-wrap;"></div>
 </div>
       <div class="btn-group">
         <div class="dropdown-export">
-  <button id="exportBtn"><span>📁 Exportar ▼</span></button>
+  <button id="exportBtn" aria-label="Export options"><span>📁 Export ▼</span></button>
   <div class="dropdown-content hidden" id="exportOptions">
-    <button onclick="exportText('pdf')"><span>📄 Exportar PDF</span></button>
-    <button onclick="exportText('docx')"><span>📝 Exportar DOCX</span></button>
-    <button onclick="exportText('txt')"><span>📃 Exportar TXT</span></button>
-    <button onclick="exportText('srt')"><span>🎞️ Exportar SRT</span></button>
-    <button onclick="exportText('json')"><span>🔢 Exportar JSON</span></button>
-
-
+    <button onclick="exportText('pdf')"><span>📄 Export PDF</span></button>
+    <button onclick="exportText('docx')"><span>📝 Export DOCX</span></button>
+    <button onclick="exportText('txt')"><span>📃 Export TXT</span></button>
+    <button onclick="exportText('srt')"><span>🎞️ Export SRT</span></button>
+    <button onclick="exportText('json')"><span>🔢 Export JSON</span></button>
   </div>
 </div>
 
-		<button id="btnGerarResumo"><span>🧠 Gerar Resumo</span></button>
-
-
-		<button onclick="gerarMinuta()"><span>📩 Gerar Minuta</span></button>
-<button onclick="corrigirTextoIA()"><span>📝 Corrigir Texto</span></button>
-
-		<button onclick="abrirModalTraducao()"><span>🌍 Traduzir</span></button>
-		<button onclick="classificarConteudo()"><span>📚 Classificar Tipo</span></button>
-<button onclick="gerarEmailIA()"><span>📧 Gerar Email</span></button>
-
-
+		<button id="btnGerarResumo" ><span>🧠 Generate Summary</span></button>
+		<button onclick="gerarMinuta()"><span>📩 Generate Minutes</span></button>
+<button onclick="corrigirTextoIA()"><span>📝 Correct Text</span></button>
+		<button onclick="abrirModalTraducao()"><span>🌍 Translate</span></button>
+		<button onclick="classificarConteudo()"><span>📚 Classify Content</span></button>
+<button onclick="gerarEmailIA()"><span>📧 Generate Email</span></button>
       </div>
     </div>
   </div>
-  
-  <!-- Modal de tradução -->
-<div id="modalTraducao" class="hidden" style="
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: center;
-  z-index: 9999;
-">
-  <div style="
-    background: white; padding: 20px; border-radius: 10px;
-    text-align: center; max-width: 400px; color: #333;
-  ">
-    <h3 style="margin-bottom: 10px;">🌍 Seleciona o idioma de destino:</h3>
-    <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
-	<button onclick="traduzirTextoComIdioma(event, 'português')">Português</button>
-      <button onclick="traduzirTextoComIdioma(event, 'inglês')">Inglês</button>
-      <button onclick="traduzirTextoComIdioma(event, 'espanhol')">Espanhol</button>
-      <button onclick="traduzirTextoComIdioma(event, 'francês')">Francês</button>
-<button onclick="traduzirTextoComIdioma(event, 'alemão')">Alemão</button>
-<button onclick="traduzirTextoComIdioma(event, 'italiano')">Italiano</button>
 
-      <button onclick="fecharModalTraducao()">Cancelar</button>
+<!-- Translation Modal -->
+<div id="modalTraducao" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: center; z-index: 9999;">
+  <div style="background: white; padding: 20px; border-radius: 10px; text-align: center; max-width: 400px; color: #333;">
+    <h3 style="margin-bottom: 10px;">🌍 Select target language:</h3>
+    <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+	<button onclick="traduzirTextoComIdioma(event, 'portuguese')">Portuguese</button>
+      <button onclick="traduzirTextoComIdioma(event, 'english')">English</button>
+      <button onclick="traduzirTextoComIdioma(event, 'spanish')">Spanish</button>
+      <button onclick="traduzirTextoComIdioma(event, 'french')">French</button>
+<button onclick="traduzirTextoComIdioma(event, 'german')">German</button>
+<button onclick="traduzirTextoComIdioma(event, 'italian')">Italian</button>
+      <button onclick="fecharModalTraducao()">Cancel</button>
     </div>
   </div>
 </div>
+
 <section id="apresentacaoSEO" style="max-width: 800px; margin: 40px auto; background: white; padding: 20px; border-radius: 12px; color: #333; font-size: 1.1em; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-  <h2 style="color: #A550F7;">🧠 O que é o Ouviescrevi?</h2>
+  <h2 style="color: #A550F7;">🧠 What is Ouviescrevi?</h2>
   <p>
-    Ouviescrevi é uma ferramenta online que utiliza Inteligência Artificial (IA) para <strong>transcrever áudio e vídeo automaticamente</strong>, gerar <strong>resumos inteligentes</strong>, <strong>traduzir</strong> textos, <strong>corrigir erros</strong> e até <strong>converter ficheiros como Word para PDF</strong>, imagem para texto, e muito mais.
+    Ouviescrevi is an online tool that uses Artificial Intelligence (AI) to <strong>automatically transcribe audio and video</strong>, generate <strong>smart summaries</strong>, <strong>translate</strong> texts, <strong>correct mistakes</strong>, and even <strong>convert files like Word to PDF</strong>, image to text, and much more.
   </p>
   <p>
-    Ideal para <strong>professores</strong>, <strong>jornalistas</strong>, <strong>estudantes</strong>, <strong>empresas</strong> e qualquer pessoa que precise transformar voz em texto de forma rápida e gratuita.
+    Ideal for <strong>teachers</strong>, <strong>journalists</strong>, <strong>students</strong>, <strong>companies</strong> and anyone who needs to turn voice into text quickly and for free.
   </p>
   <p>
-    Não precisas instalar nada. Basta arrastar um ficheiro, gravar a tua voz ou colar o texto — e deixas o resto connosco. 🚀
+    You don't need to install anything. Just drag a file, record your voice or paste the text — and we'll do the rest. 🚀
   </p>
  <div style="margin-top: 15px; text-align: left; display: inline-block;">
-  <p><strong>Funcionalidades principais:</strong></p>
+  <p><strong>Main features:</strong></p>
   <div style="line-height: 1.8;">
-    <p>🎙️ Transcrição de áudio/vídeo (com Whisper AI)</p>
-    <p>🧠 Resumo automático de texto e PDFs</p>
-    <p>🌍 Tradução para vários idiomas</p>
-    <p>📚 Classificação automática do tipo de conteúdo</p>
-    <p>📁 Conversor de Word, PDF, Imagens, etc.</p>
+    <p>🎙️ Audio/video transcription (with Whisper AI)</p>
+    <p>🧠 Automatic text and PDF summarisation</p>
+    <p>🌍 Translation into multiple languages</p>
+    <p>📚 Automatic content classification</p>
+    <p>📁 Converter for Word, PDF, Images, etc.</p>
   </div>
 </div>
 
   <p>
-    Começa agora gratuitamente. Simples, seguro e feito em Portugal 🇵🇹
+    Get started now for free. Simple, secure and made in Portugal 🇵🇹
   </p>
 </section>
 </main>
@@ -739,29 +685,29 @@ place-items: center;
   const progressBar = document.getElementById("progressBar");
   const output = document.getElementById("output");
   const transcriptionText = document.getElementById("transcriptionText");
-  let progressInterval;
-const statusFrases = [
-  "🧩 A montar o quebra-cabeças da tua gravação...",
-  "🧠 A preparar os neurónios para ouvir o ficheiro...",
-  "📡 A sintonizar as ondas do áudio...",
-  "🎧 A escutar com atenção... já começámos a transcrever!",
-  "💬 A traduzir som em texto com alma...",
-  "🔍 A caçar cada sílaba... nada escapa aos nossos ouvidos!",
-  "🧾 A transformar conversa fiada em texto afinado...",
-  "📚 A passar o áudio a limpo, como um bom aluno no fim da aula!",
-  "🕵️‍♂️ A investigar sotaques como um detetive linguístico!",
-  "🍿 A ouvir com atenção de cinema – mas sem pipocas!",
-  "📼 A rebobinar palavras perdidas no tempo...",
-  "⏳ A captar cada segundo como se fosse ouro!",
-  "🛠️ A afinar os ouvidos com ferramentas de IA!",
-  "🎙️ A dar voz ao silêncio... e texto à conversa!",
-  "💡 A iluminar ideias escondidas nas entrelinhas do áudio...",
-  "🌀 A navegar entre ecos e suspiros!",
-  "📖 A escrever a história por detrás da tua gravação...",
-  "🚀 A lançar a transcrição para o espaço da compreensão!",
-  "⚙️ A decifrar sons com engenharia de palavras!",
-  "🎭 A distinguir cada personagem nesta peça sonora!"
+ const statusFrases = [
+  "🧩 Piecing together your recording...",
+  "🧠 Getting the neurons ready to listen to your file...",
+  "📡 Tuning into the audio waves...",
+  "🎧 Listening closely... transcription has started!",
+  "💬 Turning sound into soulful text...",
+  "🔍 Hunting down every syllable... nothing escapes our ears!",
+  "🧾 Turning chit-chat into polished text...",
+  "📚 Tidying up the audio like a top student after class!",
+  "🕵️‍♂️ Investigating accents like a linguistic detective!",
+  "🍿 Listening like it’s a cinema night – just no popcorn!",
+  "📼 Rewinding words lost in time...",
+  "⏳ Capturing every second like it’s gold!",
+  "🛠️ Tuning our ears with AI tools!",
+  "🎙️ Giving voice to silence... and text to conversation!",
+  "💡 Highlighting hidden ideas between the lines...",
+  "🌀 Navigating through echoes and whispers!",
+  "📖 Writing the story behind your recording...",
+  "🚀 Launching the transcription into the space of understanding!",
+  "⚙️ Decoding sound with word engineering!",
+  "🎭 Identifying each character in this audio play!"
 ];
+
 
 
 let statusInterval;
@@ -831,7 +777,8 @@ form.addEventListener("submit", async (e) => {
     try {
       if (tentativa === 2) {
         pararFrasesAnimadas(status);
-        status.textContent = "😓 Está difícil... mas estamos a tentar novamente com toda a força!";
+        status.textContent = "😓 It's proving tricky... but we're giving it another go with full force!";
+
       }
 
       const res = await fetch("https://api.ouviescrevi.pt/transcribe", {
@@ -844,7 +791,8 @@ form.addEventListener("submit", async (e) => {
     } catch (err) {
       tentativa++;
       if (tentativa > 2) {
-        console.error("❌ Falha total:", err);
+        console.error("❌ Complete failure:", err);
+
       }
     }
   }
@@ -860,11 +808,11 @@ form.addEventListener("submit", async (e) => {
 
     document.getElementById("transcriptionText").value = textoFinal;
     document.getElementById("output").classList.remove("hidden");
-    status.textContent = "✅ Transcrição concluída com sucesso!";
+   status.textContent = "✅ Transcription completed successfully!";
   } else {
     document.getElementById("transcriptionText").value = "❌ Erro ao transcrever. Tenta novamente mais tarde.";
     document.getElementById("output").classList.remove("hidden");
-    status.textContent = "⚠️ Não conseguimos transcrever desta vez.";
+   status.textContent = "⚠️ We couldn't transcribe it this time.";
   }
 
   setTimeout(() => {
@@ -998,7 +946,7 @@ async function startRecording() {
     const formData = new FormData();
     formData.append("file", blob, "gravacao.webm");
 
-    status.textContent = "🕐 A processar o áudio...";
+    status.textContent = "🕐 Processing audio...";
     document.getElementById("loading").classList.remove("hidden");
 
     try {
@@ -1008,11 +956,11 @@ async function startRecording() {
       });
       const data = await res.json();
 
-      document.getElementById("transcriptionText").value = data.formatted || data.transcription || "⚠️ Erro ao transcrever.";
+      document.getElementById("transcriptionText").value = data.formatted || data.transcription || "⚠️ Error transcribing.";
       document.getElementById("output").classList.remove("hidden");
-      status.textContent = "✅ Transcrição concluída!";
+      status.textContent = "✅ Transcription completed!";
     } catch (err) {
-      status.textContent = "❌ Erro ao processar áudio.";
+      status.textContent = "❌ Error processing audio.";
     }
 
     document.getElementById("loading").classList.add("hidden");
@@ -1029,7 +977,7 @@ async function startRecording() {
   }, 1000);
 
   mediaRecorder.start();
-  status.textContent = "🎙️ A gravar... clique em 'Parar Gravação' para terminar.";
+  status.textContent = "🎙️ Recording... click 'Stop Recording' to finish.";
   stopBtn.classList.remove("hidden");
   startBtn.disabled = true;
   transcribeBtn.disabled = true;
@@ -1048,7 +996,8 @@ document.getElementById("btnStopRecording").addEventListener("click", () => {
  async function gerarResumo(event) {
     const text = transcriptionText.value.trim();
     if (!text) {
-        alert("⚠️ Transcrição vazia.");
+        alert("⚠️ Empty transcription.");
+
         return;
     }
 
@@ -1056,8 +1005,9 @@ document.getElementById("btnStopRecording").addEventListener("click", () => {
     const span = btn.querySelector("span");
     const originalText = span ? span.textContent : btn.textContent;
 
-    if (span) span.textContent = "🧠 A gerar resumo...";
-    else btn.textContent = "🧠 A gerar resumo...";
+    if (span) span.textContent = "🧠 Generating summary...";
+	else btn.textContent = "🧠 Generating summary...";
+
 
     btn.disabled = true;
 
@@ -1078,15 +1028,17 @@ document.getElementById("btnStopRecording").addEventListener("click", () => {
 
         if (data.summary) {
             resumoTexto.textContent = data.summary;
-        } else if (data.error) {
-            resumoTexto.textContent = "❌ Erro ao gerar resumo: " + data.error;
-        } else {
-            resumoTexto.textContent = "❌ Erro inesperado na resposta.";
-        }
+       } else if (data.error) {
+			resumoTexto.textContent = "❌ Error generating summary: " + data.error;
+		} else {
+			resumoTexto.textContent = "❌ Unexpected error in response.";
+		}
+
 
         resumoBox.classList.remove("hidden");
     } catch (err) {
-        alert("❌ Erro ao gerar resumo.");
+        alert("❌ Error generating summary.");
+
         console.error(err);
     } finally {
         if (span) span.textContent = originalText;
@@ -1099,7 +1051,7 @@ document.getElementById("btnStopRecording").addEventListener("click", () => {
 function aplicarLocutores(transcricao) {
   const linhas = transcricao.split('\n');
   let resultado = '';
-  let locutorAtual = 'João';
+  let locutorAtual = 'John';
 
   for (let i = 0; i < linhas.length; i++) {
     const linha = linhas[i].trim();
@@ -1107,7 +1059,7 @@ function aplicarLocutores(transcricao) {
 
     const novaLinha = linha.replace(/^\[(\d{2}:\d{2})\]/, (match, timestamp) => {
       const nome = locutorAtual;
-      locutorAtual = locutorAtual === 'João' ? 'Maria' : 'João'; // alternar
+      locutorAtual = locutorAtual === 'John' ? 'Mary' : 'John'; // alternar
       return `[${timestamp}] ${nome}:`;
     });
 
@@ -1122,8 +1074,9 @@ transcriptionText.removeAttribute("readonly");
 // Cria aviso informativo acima do textarea
 const avisoEditar = document.createElement("div");
 avisoEditar.innerHTML = `<div style="background: #fff3cd; color: #856404; border-left: 5px solid #ffc107; padding: 12px 18px; margin-bottom: 15px; font-size: 15px; border-radius: 5px;">
-  ✏️ <strong>Podes editar o texto abaixo</strong>. Quando terminares, clica em <strong>"Salvar Alterações"</strong> para guardar.
+  ✏️ <strong>You can edit the text below</strong>. When you're done, click <strong>"Save Changes"</strong> to store it.
 </div>
+
 `;
 avisoEditar.style.background = "#fff8dc";
 avisoEditar.style.borderLeft = "5px solid #ffc107";
@@ -1133,7 +1086,7 @@ avisoEditar.style.fontSize = "14px";
 
 // Cria botão de salvar
 const btnSalvar = document.createElement("button");
-btnSalvar.innerHTML = '<span>💾 Salvar Alterações</span>';
+btnSalvar.innerHTML = '<span>💾 Save Changes</span>';
 
 btnSalvar.style.background = "#4caf50";
 btnSalvar.style.color = "#fff";
@@ -1144,14 +1097,15 @@ btnSalvar.onclick = () => {
   const textoAtualizado = transcriptionText.value.trim();
   localStorage.setItem("transcricao_temporaria", textoAtualizado);
 
-  btnSalvar.innerHTML = '<span>✅ Alterações salvas!</span>';
+  btnSalvar.innerHTML = '<span>✅ Changes saved!</span>';
   btnSalvar.disabled = true;
 
   setTimeout(() => {
-    btnSalvar.innerHTML = '<span>💾 Salvar Alterações</span>';
+    btnSalvar.innerHTML = '<span>💾 Save Changes</span>';
     btnSalvar.disabled = false;
   }, 2000);
 };
+
 
 
 document.addEventListener("DOMContentLoaded", () => {

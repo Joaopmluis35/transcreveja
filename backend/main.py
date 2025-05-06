@@ -120,27 +120,40 @@ class SummarizeRequest(BaseModel):
     text: str
     token: str = ""
     mode: str = "normal"
+    lang: str = "pt"  # novo campo com valor padrão
+
 
 @app.post("/summarize")
 async def summarize(req: SummarizeRequest):
     if req.token != os.getenv("ADMIN_TOKEN", "ouviescrevi2025@resumo"):
         return {"error": "Token inválido ou ausente."}
 
-    if req.mode == "minuta":
-        prompt = (
-            "A partir da seguinte transcrição de uma reunião ou conversa, gera uma minuta clara e organizada "
-            "em formato de tópicos. Inclui:\n"
-            "- Tópicos discutidos\n- Decisões tomadas\n- Responsáveis (se mencionados)\n- Ações a realizar\n\n"
-            f"Transcrição:\n{req.text}"
-        )
+    if req.lang == "en":
+        if req.mode == "minuta":
+            prompt = (
+                "Based on the following meeting or conversation transcript, generate a clear and organized minutes "
+                "in bullet point format. Include:\n"
+                "- Topics discussed\n- Decisions made\n- Responsible persons (if mentioned)\n- Action items\n\n"
+                f"Transcript:\n{req.text}"
+            )
+        else:
+            prompt = f"Summarize the following transcript in a clear and concise way:\n\n{req.text}"
     else:
-        prompt = f"Resume de forma clara e concisa a seguinte transcrição:\n\n{req.text}"
+        if req.mode == "minuta":
+            prompt = (
+                "A partir da seguinte transcrição de uma reunião ou conversa, gera uma minuta clara e organizada "
+                "em formato de tópicos. Inclui:\n"
+                "- Tópicos discutidos\n- Decisões tomadas\n- Responsáveis (se mencionados)\n- Ações a realizar\n\n"
+                f"Transcrição:\n{req.text}"
+            )
+        else:
+            prompt = f"Resume de forma clara e concisa a seguinte transcrição:\n\n{req.text}"
 
     try:
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "És um assistente que resume transcrições de áudio."},
+                {"role": "system", "content": "You are an assistant that summarizes transcripts." if req.lang == "en" else "És um assistente que resume transcrições de áudio."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.5,

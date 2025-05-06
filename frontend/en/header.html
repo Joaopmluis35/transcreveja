@@ -6,7 +6,7 @@
 
     <div class="language-selector">
       <button onclick="toggleLanguageMenu()" id="langBtn">
-        <img src="/icons/pt.png" alt="PT" />
+        <img src="/icons/en.png" alt="EN" />
       </button>
       <div id="langDropdown" class="lang-menu">
         <button onclick="setLanguage('pt')"><img src="/icons/pt.png" alt="Português" /></button>
@@ -20,13 +20,14 @@
   </div>
 
   <nav id="nichoMenu">
-    <button onclick="irParaNicho('index')"><span data-i18n="inicio">🏠 Início</span></button>
-    <button onclick="irParaNicho('resumo')"><span data-i18n="resumo">Resumo PDF</span></button>
-    <button onclick="irParaNicho('conversor')"><span data-i18n="conversor">Conversor Grátis</span></button>
-    <button onclick="irParaNicho('ajuda')"><span data-i18n="ajuda">Ajuda</span></button>
-    <button onclick="irParaNicho('sugestoes')"><span data-i18n="sugestoes">Sugestões</span></button>
+    <button onclick="irParaNicho('index')"><span>🏠 Home</span></button>
+    <button onclick="irParaNicho('resumo')"><span>PDF Summary</span></button>
+    <button onclick="irParaNicho('conversor')"><span>Free Converter</span></button>
+    <button onclick="irParaNicho('ajuda')"><span>Help</span></button>
+    <button onclick="irParaNicho('sugestoes')"><span>Suggestions</span></button>
   </nav>
 </header>
+
 
 <style>
   #topoOuviescrevi {
@@ -264,7 +265,6 @@
   window.toggleMenu = function() {
     const menu = document.getElementById("nichoMenu");
     const icon = document.getElementById("burgerIcon");
-
     menu.classList.toggle("show");
     icon.textContent = menu.classList.contains("show") ? "✕" : "☰";
   };
@@ -275,22 +275,14 @@
   };
 
   window.setLanguage = function (lang) {
-  localStorage.setItem("lang", lang);
-  
-  const currentPath = window.location.pathname;
-  const isInEN = currentPath.startsWith("/en");
+    localStorage.setItem("lang", lang);
+    if (lang === "en") {
+      window.location.href = "/en/index.html";
+    } else {
+      window.location.href = "/index.html";
+    }
+  };
 
-  if (lang === "en" && !isInEN) {
-    window.location.href = "/en/index.html";
-  } else if (lang === "pt" && isInEN) {
-    window.location.href = "/index.html";
-  } else {
-    location.reload();
-  }
-};
-
-
-  // Fecha o menu de idioma ao clicar fora
   window.addEventListener("click", function (e) {
     const btn = document.getElementById("langBtn");
     const dropdown = document.getElementById("langDropdown");
@@ -299,11 +291,10 @@
     }
   });
 
-  // Aplica a bandeira atual
-  window.addEventListener("DOMContentLoaded", () => {
-    const lang = localStorage.getItem("lang") || "pt";
-    const langBtn = document.getElementById("langBtn");
-    langBtn.innerHTML = `<img src="/icons/${lang}.png" alt="${lang}" />`;
-  });
-</script>
+ window.addEventListener("DOMContentLoaded", () => {
+  const lang = localStorage.getItem("lang") || "en";
+  const langBtn = document.getElementById("langBtn");
+  langBtn.innerHTML = `<img src="/icons/${lang}.png" alt="${lang}" />`;
+});
 
+</script>

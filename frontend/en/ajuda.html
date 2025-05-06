@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Need help? Find quick answers on how to use Ouviescrevi to transcribe and convert files with AI.">
+  <meta name="keywords" content="Ouviescrevi help, how to use Ouviescrevi, transcription questions, AI transcription FAQ">
+  <meta name="robots" content="index, follow">
+  <title>Help - Ouviescrevi</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+    header {
+      background: linear-gradient(135deg, #A550F7, #00C3FF);
+      padding: 15px 30px;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.5em;
+    }
+    nav a {
+      color: white;
+      text-decoration: none;
+      margin-left: 20px;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+    main {
+      max-width: 800px;
+      margin: auto;
+      padding: 40px;
+    }
+    .faq {
+      margin-top: 30px;
+    }
+    .faq h2 {
+      margin-bottom: 10px;
+      font-size: 1.3em;
+    }
+    .faq p {
+      margin-bottom: 20px;
+    }
+    .contact {
+      margin-top: 40px;
+      background: #f0f0f0;
+      padding: 20px;
+      border-radius: 8px;
+    }
+    .back-button {
+      margin-top: 40px;
+      background-color: #e6d7fb;
+      border: 2px solid #A550F7;
+      padding: 12px 18px;
+      cursor: pointer;
+      font-size: 1em;
+      border-radius: 8px;
+      font-weight: bold;
+      color: #333;
+      transition: all 0.3s ease;
+    }
+    .back-button:hover {
+      background: linear-gradient(135deg, #A550F7, #00C3FF);
+      color: white;
+      border-color: transparent;
+    }
+  </style>
+  <style>
+    body.maintenance {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #A550F7, #00C3FF);
+      color: white;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .maintenance-container {
+      text-align: center;
+      max-width: 500px;
+      padding: 40px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(10px);
+    }
+    .maintenance-container h2 {
+      font-size: 1.8em;
+      margin-bottom: 10px;
+    }
+    .maintenance-container p {
+      font-size: 1.1em;
+      margin: 0;
+    }
+    .maintenance-emoji {
+      font-size: 3em;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="header"></div>
+
+  <main>
+    <h1>Help & Support</h1>
+    <p>Welcome to the <strong>Ouviescrevi</strong> help page. Here are the most frequently asked questions:</p>
+
+    <div class="faq">
+      <h2>1. What is Ouviescrevi?</h2>
+      <p>It's an automated tool that converts audio and video files into text using artificial intelligence (AI).</p>
+
+      <h2>2. Which file formats are supported?</h2>
+      <p>We currently support .mp3, .mp4, .wav, .m4a, and other common formats.</p>
+
+      <h2>3. Do I need to create an account?</h2>
+      <p>No. Ouviescrevi is free to use and does not require registration.</p>
+
+      <h2>4. Is the transcription 100% accurate?</h2>
+      <p>Accuracy depends on audio quality and clarity of speech. We use OpenAI's Whisper model to ensure high-quality results.</p>
+
+      <h2>5. Are my files stored?</h2>
+      <p>No. All files are temporary and automatically deleted after transcription.</p>
+    </div>
+
+    <div class="contact">
+      <h2>📩 Support Contact</h2>
+      <p>If you need more help, email us at: <strong>ouviescrevi@gmail.com</strong></p>
+    </div>
+
+    <button class="back-button" onclick="window.location.href='index.html'">← Back to Home</button>
+  </main>
+
+  <script>
+    fetch("https://api.ouviescrevi.pt/api/status")
+      .then(res => res.json())
+      .then(data => {
+        if (data.manutencao === true) {
+          document.body.classList.add("maintenance");
+          document.body.innerHTML = `
+            <div class="maintenance-container">
+              <div class="maintenance-emoji">🚧</div>
+              <h2>Ouviescrevi is under maintenance</h2>
+              <p>We’re working to improve the platform.<br>Come back later for an even better experience!</p>
+            </div>`;
+        }
+      })
+      .catch(err => console.error("Error checking status:", err));
+  </script>
+
+  <div id="footer"></div>
+  <script>
+    fetch("header.html")
+      .then(response => response.text())
+      .then(html => {
+        const headerDiv = document.getElementById("header");
+        headerDiv.innerHTML = html;
+
+        const tempDiv = document.createElement("div");
+        tempDiv.innerHTML = html;
+
+        tempDiv.querySelectorAll("script").forEach(oldScript => {
+          const newScript = document.createElement("script");
+          if (oldScript.src) newScript.src = oldScript.src;
+          else newScript.textContent = oldScript.textContent;
+          document.body.appendChild(newScript);
+        });
+
+        tempDiv.querySelectorAll("style").forEach(style => {
+          document.head.appendChild(style.cloneNode(true));
+        });
+      });
+
+    fetch("footer.html")
+      .then(res => res.text())
+      .then(html => document.getElementById("footer").innerHTML = html);
+  </script>
+</body>
+</html>

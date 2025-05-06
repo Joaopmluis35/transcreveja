@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Generate smart summaries with AI from audio, video or text transcripts. Ideal for studying and work.">
+  <meta name="keywords" content="automatic summary generator, AI summary, summarize files, Ouviescrevi summary">
+  <meta name="robots" content="index, follow">
+  <title>📌 Smart Summary</title>
+  <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #4e54c8, #00c6ff);
+      color: white;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2em;
+      margin-top: 10px;
+    }
+
+    .container {
+      background: white;
+      color: #333;
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 800px;
+      margin: 30px auto;
+    }
+
+    textarea {
+      width: 100%;
+      height: 200px;
+      border: 2px solid #a550f7;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 1em;
+      resize: vertical;
+    }
+
+    select, button {
+      padding: 10px;
+      font-size: 1em;
+      margin-top: 10px;
+      border-radius: 6px;
+      border: 2px solid #a550f7;
+    }
+
+    button {
+      background: #e6d7fb;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      background: linear-gradient(135deg, #a550f7, #00c3ff);
+      color: white;
+    }
+
+    #dropZone {
+      border: 2px dashed #a550f7;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      background: #f9f9f9;
+      color: #555;
+      cursor: pointer;
+    }
+
+    #dropZone:hover {
+      background: #f0f0ff;
+    }
+
+    #resultado {
+      margin-top: 30px;
+      background: #f4f4f4;
+      border-left: 5px solid #00c3ff;
+      padding: 20px;
+      white-space: pre-wrap;
+      border-radius: 10px;
+    }
+
+    footer {
+      background: linear-gradient(135deg, #A550F7, #00C3FF);
+      color: white;
+      text-align: center;
+      padding: 20px;
+      font-size: 0.9em;
+      border-top: 2px solid rgba(255,255,255,0.2);
+      border-radius: 30px 30px 0 0;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="header"></div>
+
+<h1>📌 Smart Summary</h1>
+<p>Paste your text or transcript below and choose your summary style</p>
+
+<div class="container">
+  <div id="dropZone" onclick="document.getElementById('pdfInput').click()">
+    📂 Drag a PDF here or click to upload
+    <input type="file" id="pdfInput" accept="application/pdf" style="display: none">
+  </div>
+
+  <textarea id="texto"></textarea>
+
+  <p>Select summary style:</p>
+  <select id="modo">
+    <option value="normal">Classic and direct</option>
+    <option value="minuta">Meeting minutes (bullet points)</option>
+    <option value="informal">Simple / informal</option>
+    <option value="email">Email format</option>
+  </select>
+
+  <br>
+  <button onclick="gerarResumo()">🔍 Generate Summary</button>
+
+  <div id="resultado"></div>
+</div>
+
+<section id="apresentacaoResumoSEO" style="max-width: 800px; margin: 40px auto; background: white; padding: 20px; border-radius: 12px; color: #333; font-size: 1.1em; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+  <h2 style="color: #A550F7;">📌 Smart Summary Generator</h2>
+  <p>
+    The <strong>automatic summary</strong> tool from <strong>Ouviescrevi</strong> allows you to turn long texts or PDFs into clear and fast summaries. Just paste the content or upload a file — our AI does the rest.
+  </p>
+  <p>
+    Ideal for <strong>students</strong> studying efficiently, <strong>teachers</strong> preparing content, and <strong>professionals</strong> extracting key points from documents quickly.
+  </p>
+  <p>
+    The AI identifies the main ideas and generates shorter versions of your content, with options like simple, formal, bullet point style or even an email format.
+  </p>
+
+  <div style="margin-top: 15px; text-align: left; display: inline-block;">
+    <p><strong>Available features:</strong></p>
+    <div style="line-height: 1.8;">
+      <p>📄 Summarize pasted or uploaded text (Word, PDF, etc.)</p>
+      <p>🧠 Summary styles: simple, formal, bullet points, email</p>
+      <p>🌍 Translate content before or after summarizing</p>
+      <p>🔁 Automatic correction before summarizing</p>
+      <p>📥 Export to multiple formats: PDF, DOCX, TXT</p>
+    </div>
+  </div>
+
+  <p>
+    All online, free and made with ❤️ in Portugal 🇵🇹
+  </p>
+</section>
+
+<script>
+  const dropZone = document.getElementById("dropZone");
+  const pdfInput = document.getElementById("pdfInput");
+  const textarea = document.getElementById("texto");
+
+  dropZone.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    dropZone.style.background = "#eee";
+  });
+
+  dropZone.addEventListener("dragleave", () => {
+    dropZone.style.background = "#f9f9f9";
+  });
+
+  dropZone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    dropZone.style.background = "#f9f9f9";
+    if (e.dataTransfer.files.length > 0) {
+      pdfInput.files = e.dataTransfer.files;
+      extrairTextoPDF(e.dataTransfer.files[0]);
+    }
+  });
+
+  pdfInput.addEventListener("change", () => {
+    if (pdfInput.files.length > 0) {
+      extrairTextoPDF(pdfInput.files[0]);
+    }
+  });
+
+  function extrairTextoPDF(file) {
+    const reader = new FileReader();
+    reader.onload = function () {
+      const typedarray = new Uint8Array(reader.result);
+      pdfjsLib.getDocument({ data: typedarray }).promise.then(function (pdf) {
+        let textoFinal = "";
+        let total = pdf.numPages;
+        let processadas = 0;
+
+        for (let i = 1; i <= total; i++) {
+          pdf.getPage(i).then(function (page) {
+            page.getTextContent().then(function (content) {
+              const strings = content.items.map(item => item.str).join(" ");
+              textoFinal += strings + "\n\n";
+              processadas++;
+              if (processadas === total) {
+                textarea.value = textoFinal.trim();
+              }
+            });
+          });
+        }
+      });
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  async function gerarResumo() {
+    const text = textarea.value.trim();
+    if (!text) return alert("Empty text");
+
+    const modo = document.getElementById("modo").value;
+    const btn = event.target;
+    const original = btn.textContent;
+    btn.textContent = "🔍 Generating...";
+    btn.disabled = true;
+
+    try {
+      const res = await fetch("https://api.ouviescrevi.pt/summarize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+		  text: text,
+		  mode: modo,
+		  lang: "en",  // ✅ Força o idioma de saída para inglês
+		  token: "ouviescrevi2025@resumo"
+		})
+
+      });
+      const data = await res.json();
+      document.getElementById("resultado").textContent = data.summary || data.error || "Unexpected error";
+    } catch (err) {
+      alert("Error generating summary");
+      console.error(err);
+    } finally {
+      btn.textContent = original;
+      btn.disabled = false;
+    }
+  }
+</script>
+
+<!-- Load header and footer -->
+<script>
+  fetch("header.html")
+    .then(response => response.text())
+    .then(html => {
+      const headerDiv = document.getElementById("header");
+      headerDiv.innerHTML = html;
+
+      const tempDiv = document.createElement("div");
+      tempDiv.innerHTML = html;
+
+      tempDiv.querySelectorAll("script").forEach(oldScript => {
+        const newScript = document.createElement("script");
+        if (oldScript.src) newScript.src = oldScript.src;
+        else newScript.textContent = oldScript.textContent;
+        document.body.appendChild(newScript);
+      });
+
+      tempDiv.querySelectorAll("style").forEach(style => {
+        document.head.appendChild(style.cloneNode(true));
+      });
+    });
+</script>
+<div id="footer"></div>
+<script>
+  fetch("footer.html")
+    .then(res => res.text())
+    .then(html => document.getElementById("footer").innerHTML = html);
+</script>
+</body>
+</html>
