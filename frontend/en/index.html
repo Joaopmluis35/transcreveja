@@ -624,7 +624,10 @@ place-items: center;
 		<button id="btnGerarResumo" ><span>🧠 Generate Summary</span></button>
 		<button onclick="gerarMinuta()"><span>📩 Generate Minutes</span></button>
 <button onclick="corrigirTextoIA()"><span>📝 Correct Text</span></button>
-		<button onclick="abrirModalTraducao()"><span>🌍 Translate</span></button>
+		<!--
+  <button onclick="abrirModalTraducao()"><span>🌍 Translate</span></button>
+-->
+
 		<button onclick="classificarConteudo()"><span>📚 Classify Content</span></button>
 <button onclick="gerarEmailIA()"><span>📧 Generate Email</span></button>
       </div>
@@ -1155,7 +1158,6 @@ async function traduzirTextoComIdioma(event, idioma) {
   // Mostrar loading visual
   status.classList.remove("hidden");
   status.textContent = "🌍 A traduzir... por favor aguarda";
-  //progressWrapper.classList.remove("hidden");
   progressBar.style.width = "0%";
 
   let progress = 0;
@@ -1177,7 +1179,7 @@ async function traduzirTextoComIdioma(event, idioma) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         text: texto,
-          lang: idioma, // ← Corrigido aqui
+        lang: idioma,
         token: "ouviescrevi2025@resumo"
       })
     });
@@ -1195,12 +1197,19 @@ async function traduzirTextoComIdioma(event, idioma) {
 
     } else {
       status.textContent = "❌ Error: Translation not received.";
-
     }
 
   } catch (err) {
     console.error(err);
-    status.textContent = "❌ Oops! Tivemos um problema ao comunicar com a IA.";
+    status.textContent = "❌ Oops! We had a problem communicating with the AI.";
+
+    // Atrasar a ocultação da mensagem de erro para garantir que o utilizador consiga vê-la
+    setTimeout(() => {
+      status.classList.add("hidden");
+      progressWrapper.classList.add("hidden");
+      progressBar.style.width = "0%";
+    }, 10000);  // 6 segundos de delay para o erro
+
   } finally {
     setTimeout(() => {
       status.classList.add("hidden");
@@ -1213,6 +1222,7 @@ async function traduzirTextoComIdioma(event, idioma) {
   }
   scrollSeInvisivel("traducaoBox");
 }
+
 
 
 
@@ -1425,13 +1435,13 @@ async function gerarMinuta() {
 }
 async function gerarEmailIA() {
   const text = transcriptionText.value.trim();
-  if (!text) return alert("⚠️ Transcrição vazia.");
+  if (!text) return alert("⚠️ Empty transcription.");
 
-  const tone = confirm("Usar tom informal?") ? "informal" : "formal";
+  const tone = confirm("Use informal tone?") ? "informal" : "formal";
 
   const btn = event.target;
   const original = btn.textContent;
-  btn.textContent = "📧 A gerar email...";
+  btn.textContent = "📧 Generating email...";
   btn.disabled = true;
 
   try {
@@ -1441,22 +1451,24 @@ async function gerarEmailIA() {
       body: JSON.stringify({
         text: text,
         token: "ouviescrevi2025@resumo",
-        tone: tone
+        tone: tone,
+        lang: "en" // ✅ idioma fixado para inglês nesta versão da página
       })
     });
     const data = await res.json();
     if (data.email) {
-      alert("📨 Email gerado com sucesso!\n\n" + data.email);
+      alert("📨 Email generated successfully!\n\n" + data.email);
     } else {
-      alert("❌ Erro ao gerar email: " + data.error);
+      alert("❌ Error generating email: " + data.error);
     }
   } catch (err) {
-    alert("❌ Falha ao comunicar com a IA.");
+    alert("❌ Failed to communicate with AI.");
   } finally {
     btn.textContent = original;
     btn.disabled = false;
   }
 }
+
 
 function irParaNicho(nicho) {
   window.location.href = `${nicho}.html`;
