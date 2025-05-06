@@ -1191,9 +1191,11 @@ async function traduzirTextoComIdioma(event, idioma) {
       transcriptionText.value = data.translation;
       document.getElementById("traducaoTexto").textContent = data.translation;
       document.getElementById("traducaoBox").classList.remove("hidden");
-      status.textContent = "✅ Tradução concluída com sucesso!";
+      status.textContent = `✅ Translation to ${idioma.charAt(0).toUpperCase() + idioma.slice(1)} completed!`;
+
     } else {
-      status.textContent = "❌ Erro: Tradução não recebida.";
+      status.textContent = "❌ Error: Translation not received.";
+
     }
 
   } catch (err) {
