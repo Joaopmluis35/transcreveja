@@ -1018,10 +1018,12 @@ document.getElementById("btnStopRecording").addEventListener("click", () => {
         const res = await fetch("https://api.ouviescrevi.pt/summarize", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                text: text,
-                token: "ouviescrevi2025@resumo"
-            })
+			   body: JSON.stringify({
+					text: text,
+					token: "ouviescrevi2025@resumo",
+					lang: "en"
+				})
+
         });
 
         const data = await res.json();
@@ -1175,7 +1177,7 @@ async function traduzirTextoComIdioma(event, idioma) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         text: texto,
-        language: idioma,
+          lang: idioma, // ← Corrigido aqui
         token: "ouviescrevi2025@resumo"
       })
     });
@@ -1300,13 +1302,15 @@ async function classificarConteudo() {
 
   try {
     const res = await fetch("https://api.ouviescrevi.pt/classify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        text: text,
-        token: "ouviescrevi2025@resumo"
-      })
-    });
+	  method: "POST",
+	  headers: { "Content-Type": "application/json" },
+	  body: JSON.stringify({
+		text: text,
+		token: "ouviescrevi2025@resumo",
+		lang: "en" // ← Adicionado para garantir resposta em inglês
+	  })
+	});
+
 
     const data = await res.json();
     if (data.type) {
@@ -1390,10 +1394,12 @@ async function gerarMinuta() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        text: text,
-        mode: "minuta", // <- chave importante!
-        token: "ouviescrevi2025@resumo"
-      })
+		  text: text,
+		  mode: "minuta",
+		  lang: "en", // <- ✅ Adicionado para gerar em inglês
+		  token: "ouviescrevi2025@resumo"
+		})
+
     });
 
     const data = await res.json();
