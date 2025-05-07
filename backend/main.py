@@ -7,7 +7,6 @@ import subprocess
 import openai
 from datetime import datetime
 import uuid
-from pydub.utils import mediainfo
 
 print("API DO OUVIESCREVI INICIADA")
 print("Chave carregada:", bool(os.getenv("OPENAI_API_KEY")))
@@ -54,92 +53,68 @@ def split_audio(input_path, output_dir, segment_duration=SEGMENT_DURATION):
     subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
     return sorted([os.path.join(output_dir, f) for f in os.listdir(output_dir) if f.endswith(".wav")])
 
-def transcricao_otimizada(contents, filename, client):
-    import shutil
-
-    tmp_id = str(uuid.uuid4())
-    tmp_dir = tempfile.mkdtemp()
-    input_path = os.path.join(tmp_dir, f"{tmp_id}_original")
-    wav_path = os.path.join(tmp_dir, f"{tmp_id}_converted.wav")
-    trimmed_path = os.path.join(tmp_dir, f"{tmp_id}_trimmed.wav")
-
-    try:
-        # Salvar o ficheiro temporário original
-        with open(input_path, "wb") as f:
-            f.write(contents)
-
-        # Convert to mono 16kHz WAV
-        subprocess.run([
-            "ffmpeg", "-i", input_path,
-            "-ar", "16000", "-ac", "1",
-            "-c:a", "pcm_s16le", wav_path, "-y"
-        ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-
-        # Remove silêncios do início/fim
-        subprocess.run([
-            "ffmpeg", "-i", wav_path,
-            "-af", "silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.3:"
-                   "stop_periods=1:stop_threshold=-45dB:stop_silence=0.5",
-            "-y", trimmed_path
-        ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-
-        # Verificar duração
-        info = mediainfo(trimmed_path)
-        dur = float(info.get("duration", 0))
-
-        full_text = ""
-        formatted_text = ""
-
-        # Se for longo, dividir
-        if dur > SEGMENT_DURATION:
-            split_dir = tempfile.mkdtemp()
-            parts = split_audio(trimmed_path, split_dir)
-            for part in parts:
-                with open(part, "rb") as audio:
-                    result = client.audio.transcriptions.create(
-                        model="whisper-1",
-                        file=audio,
-                        response_format="verbose_json"
-                    )
-                full_text += result.text + "\n"
-                formatted_text += format_segments(result.segments) + "\n\n"
-            shutil.rmtree(split_dir)
-        else:
-            with open(trimmed_path, "rb") as audio:
-                result = client.audio.transcriptions.create(
-                    model="whisper-1",
-                    file=audio,
-                    response_format="verbose_json"
-                )
-            full_text = result.text
-            formatted_text = format_segments(result.segments)
-
-        transcricoes_registro.append(datetime.now())
-        registar_transcricao(filename)
-
-        return {
-            "transcription": full_text.strip(),
-            "formatted": formatted_text.strip()
-        }
-
-    except Exception as e:
-        return {"error": f"Erro ao processar ficheiro: {str(e)}"}
-
-    finally:
-        shutil.rmtree(tmp_dir, ignore_errors=True)
-
 
 @app.post("/transcribe")
 async def transcribe(file: UploadFile = File(...)):
     print(f"[{datetime.now()}] Upload recebido: {file.filename}")
+
     contents = await file.read()
 
     if len(contents) > MAX_FILE_SIZE_MB * 1024 * 1024:
         return {"error": f"Ficheiro demasiado grande. Limite: {MAX_FILE_SIZE_MB}MB"}
 
-    resultado = transcricao_otimizada(contents, file.filename, client)
-    return resultado
+    tmp_path = os.path.join(tempfile.gettempdir(), f"input_{uuid.uuid4()}")
+    with open(tmp_path, "wb") as tmp:
+        tmp.write(contents)
 
+    audio_path = tmp_path + ".wav"
+
+    try:
+        subprocess.run([
+            "ffmpeg", "-i", tmp_path,
+            "-ar", "16000", "-ac", "1",
+            "-c:a", "pcm_s16le", audio_path, "-y"
+        ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+    except Exception as e:
+        return {"error": f"Erro ao converter áudio: {str(e)}"}
+
+    split_dir = tempfile.mkdtemp()
+    try:
+        parts = split_audio(audio_path, split_dir)
+        full_text, formatted_text = "", ""
+
+        for part in parts:
+            with open(part, "rb") as audio:
+                result = client.audio.transcriptions.create(
+                    model="whisper-1",
+                    file=audio,
+                    response_format="verbose_json"
+                )
+            full_text += result.text + "\n"
+            formatted_text += format_segments(result.segments) + "\n\n"
+        transcricoes_registro.append(datetime.now())
+        registar_transcricao(file.filename)
+
+
+
+        return {
+            "transcription": full_text.strip(),
+            "formatted": formatted_text.strip()
+        }
+    except Exception as e:
+        return {"error": f"Erro ao processar ficheiro: {str(e)}"}
+    finally:
+        for path in [tmp_path, audio_path]:
+            try:
+                os.remove(path)
+            except: pass
+        for f in os.listdir(split_dir):
+            try:
+                os.remove(os.path.join(split_dir, f))
+            except: pass
+        try:
+            os.rmdir(split_dir)
+        except: pass
 
 class SummarizeRequest(BaseModel):
     text: str
