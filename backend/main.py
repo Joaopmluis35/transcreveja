@@ -358,3 +358,43 @@ def get_logs():
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao ler logs: {e}")
+
+class QuestionRequest(BaseModel):
+    text: str
+    token: str
+    lang: str = "pt"
+    num_questions: int = 3
+
+@app.post("/generate-questions")
+async def generate_questions(req: QuestionRequest):
+    if req.token != os.getenv("ADMIN_TOKEN", "ouviescrevi2025@resumo"):
+        return {"error": "Token inválido"}
+
+    if req.lang == "en":
+        prompt = (
+            f"Generate {req.num_questions} multiple-choice questions based on the text below. For each question, provide:\n"
+            f"- The question itself\n- Four options (A to D)\n- The correct answer\n- A short explanation\n\n"
+            f"Text:\n{req.text}"
+        )
+        system_message = "You are an assistant that creates study questions based on provided content."
+    else:
+        prompt = (
+            f"Gera {req.num_questions} perguntas de escolha múltipla com base no texto abaixo. Para cada pergunta inclui:\n"
+            f"- A pergunta\n- Quatro opções (A a D)\n- A resposta correta\n- Uma breve explicação\n\n"
+            f"Texto:\n{req.text}"
+        )
+        system_message = "És um assistente que cria perguntas de estudo com base no conteúdo fornecido."
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7,
+            max_tokens=800
+        )
+        return {"questions": response.choices[0].message.content.strip()}
+    except Exception as e:
+        return {"error": str(e)}
