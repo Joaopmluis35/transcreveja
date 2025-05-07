@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Generate smart summaries with AI from audio, video or text transcripts. Ideal for studying and work.">
   <meta name="keywords" content="automatic summary generator, AI summary, summarize files, Ouviescrevi summary">
+  <meta name="description" content="Generate smart summaries with AI from audio, video or text transcripts — now supports PDF and Word files.">
+
   <meta name="robots" content="index, follow">
   <title>📌 Smart Summary</title>
   <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png">
@@ -107,8 +109,9 @@
 
 <div class="container">
   <div id="dropZone" onclick="document.getElementById('pdfInput').click()">
-    📂 Drag a PDF here or click to upload
-    <input type="file" id="pdfInput" accept="application/pdf" style="display: none">
+    📂 Drag a PDF or Word file here or click to upload
+    <input type="file" id="pdfInput" accept=".pdf,.docx" style="display: none">
+
   </div>
 
   <textarea id="texto"></textarea>
@@ -179,10 +182,18 @@
   });
 
   pdfInput.addEventListener("change", () => {
-    if (pdfInput.files.length > 0) {
-      extrairTextoPDF(pdfInput.files[0]);
+  const file = pdfInput.files[0];
+  if (file) {
+    if (file.name.endsWith(".pdf")) {
+      extrairTextoPDF(file);
+    } else if (file.name.endsWith(".docx")) {
+      extrairTextoDOCX(file);
+    } else {
+      alert("Unsupported format. Please use PDF or DOCX.");
     }
-  });
+  }
+});
+
 
   function extrairTextoPDF(file) {
     const reader = new FileReader();
@@ -209,6 +220,21 @@
     };
     reader.readAsArrayBuffer(file);
   }
+function extrairTextoDOCX(file) {
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    const arrayBuffer = reader.result;
+    mammoth.extractRawText({ arrayBuffer: arrayBuffer })
+      .then(function(result) {
+        document.getElementById("texto").value = result.value.trim();
+      })
+      .catch(function(err) {
+        alert("Error reading Word file");
+        console.error(err);
+      });
+  };
+  reader.readAsArrayBuffer(file);
+}
 
   async function gerarResumo() {
     const text = textarea.value.trim();
@@ -273,5 +299,7 @@
     .then(res => res.text())
     .then(html => document.getElementById("footer").innerHTML = html);
 </script>
+<script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
+
 </body>
 </html>

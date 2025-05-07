@@ -105,12 +105,15 @@
  <div id="header"></div>
  
 <h1>📌 Resumo Inteligente</h1>
-<p>Cola aqui o teu texto ou transcrição e escolhe o estilo de resumo</p>
+<p>Cola o teu texto, ou carrega um ficheiro PDF ou Word (.docx), e escolhe o estilo de resumo</p>
+
 
 <div class="container">
   <div id="dropZone" onclick="document.getElementById('pdfInput').click()">
-    📂 Arrasta um PDF aqui ou clica para escolher
-    <input type="file" id="pdfInput" accept="application/pdf" style="display: none">
+   📂 Arrasta um PDF ou Word (.docx) aqui ou clica para escolher
+
+    <input type="file" id="pdfInput" accept=".pdf,.docx" style="display: none">
+
   </div>
 
   <textarea id="texto"></textarea>
@@ -131,7 +134,8 @@
 <section id="apresentacaoResumoSEO" style="max-width: 800px; margin: 40px auto; background: white; padding: 20px; border-radius: 12px; color: #333; font-size: 1.1em; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
   <h2 style="color: #A550F7;">📌 Gerador de Resumos Inteligentes</h2>
   <p>
-    O <strong>resumo automático</strong> com IA do <strong>Ouviescrevi</strong> permite-te transformar textos longos ou PDFs em resumos simples, claros e rápidos. Basta colar o texto ou carregar um ficheiro, e a nossa Inteligência Artificial trata do resto.
+    O <strong>resumo automático</strong> com IA do <strong>Ouviescrevi</strong> permite-te transformar textos longos, PDFs ou ficheiros Word em resumos simples
+, claros e rápidos. Basta colar o texto ou carregar um ficheiro, e a nossa Inteligência Artificial trata do resto.
   </p>
   <p>
     Ideal para <strong>estudantes</strong> que querem estudar com mais eficiência, <strong>professores</strong> a preparar conteúdos, e <strong>profissionais</strong> que precisam de extrair rapidamente os pontos principais de documentos.
@@ -186,10 +190,17 @@
   });
 
   pdfInput.addEventListener("change", () => {
-    if (pdfInput.files.length > 0) {
-      extrairTextoPDF(pdfInput.files[0]);
+  const file = pdfInput.files[0];
+  if (file) {
+    if (file.name.endsWith(".pdf")) {
+      extrairTextoPDF(file);
+    } else if (file.name.endsWith(".docx")) {
+      extrairTextoDOCX(file);
+    } else {
+      alert("Formato não suportado. Usa PDF ou DOCX.");
     }
-  });
+  }
+});
 
   function extrairTextoPDF(file) {
     const reader = new FileReader();
@@ -216,6 +227,21 @@
     };
     reader.readAsArrayBuffer(file);
   }
+function extrairTextoDOCX(file) {
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    const arrayBuffer = reader.result;
+    mammoth.extractRawText({ arrayBuffer: arrayBuffer })
+      .then(function(result) {
+        document.getElementById("texto").value = result.value.trim();
+      })
+      .catch(function(err) {
+        alert("Erro ao ler o ficheiro Word");
+        console.error(err);
+      });
+  };
+  reader.readAsArrayBuffer(file);
+}
 
   async function gerarResumo() {
     const text = textarea.value.trim();
@@ -277,5 +303,7 @@
     .then(res => res.text())
     .then(html => document.getElementById("footer").innerHTML = html);
 </script>
+<script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
+
 </body>
 </html>
