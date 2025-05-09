@@ -4,3 +4,4 @@ __pycache__/
 *.pyc
 log_transcricoes.json
 status.json
+.env
