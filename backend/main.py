@@ -60,6 +60,9 @@ def split_audio(input_path, output_dir, segment_duration=SEGMENT_DURATION):
     ]
     subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
     return sorted([os.path.join(output_dir, f) for f in os.listdir(output_dir) if f.endswith(".wav")])
+@app.get("/debug")
+def debug():
+    return {"status": "OK", "versao": "1.0"}
 
 
 @app.post("/transcribe")
