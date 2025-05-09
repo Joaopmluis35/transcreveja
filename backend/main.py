@@ -405,3 +405,13 @@ async def generate_questions(req: QuestionRequest):
     except Exception as e:
         return {"error": str(e)}
 
+@app.get("/")
+def root():
+    routes = []
+    for route in app.routes:
+        routes.append({
+            "path": route.path,
+            "method": list(route.methods)[0] if route.methods else None,
+            "name": route.name
+        })
+    return {"routes": routes}
