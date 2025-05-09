@@ -1,20 +1,28 @@
 from fastapi import FastAPI, File, UploadFile, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from datetime import datetime, date
 import tempfile
 import os
 import subprocess
 import openai
-from datetime import datetime
 import uuid
+import sqlite3
+import json
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+
+from database import criar_base
+criar_base()
 
 print("API DO OUVIESCREVI INICIADA")
 print("Chave carregada:", bool(os.getenv("OPENAI_API_KEY")))
 
 
 app = FastAPI()
-# Armazena datas de transcrições na memória
-transcricoes_hoje = []
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -92,7 +100,7 @@ async def transcribe(file: UploadFile = File(...)):
                 )
             full_text += result.text + "\n"
             formatted_text += format_segments(result.segments) + "\n\n"
-        transcricoes_registro.append(datetime.now())
+
         registar_transcricao(file.filename)
 
 
@@ -279,53 +287,46 @@ async def generate_email(req: EmailRequest):
         return {"email": response.choices[0].message.content.strip()}
     except Exception as e:
         return {"error": str(e)}
-import json
 
-STATUS_FILE = "status.json"
 
 @app.get("/api/status")
-async def get_status():
-    try:
-        with open(STATUS_FILE, "r") as f:
-            return json.load(f)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro ao ler status: {e}")
+def get_status():
+    conn = sqlite3.connect("ouviescrevi.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT manutencao FROM status WHERE id = 1")
+    row = cursor.fetchone()
+    conn.close()
+    return {"manutencao": bool(row[0])}
 
 @app.post("/api/status")
 async def update_status(request: Request):
-    try:
-        data = await request.json()
-        manutencao = data.get("manutencao", False)
+    data = await request.json()
+    manutencao = bool(data.get("manutencao", False))
 
-        # Grava no ficheiro status.json
-        with open(STATUS_FILE, "w") as f:
-            json.dump({"manutencao": manutencao}, f)
+    conn = sqlite3.connect("ouviescrevi.db")
+    cursor = conn.cursor()
+    cursor.execute("UPDATE status SET manutencao = ? WHERE id = 1", (manutencao,))
+    conn.commit()
+    conn.close()
 
-        return {"message": "Estado atualizado com sucesso", "manutencao": manutencao}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro ao atualizar status: {e}")
+    return {"message": "Estado atualizado com sucesso", "manutencao": manutencao}
 
 
-import json
+
+
 
 LOG_FILE = "log_transcricoes.json"
 
 def registar_transcricao(nome_ficheiro):
-    log = {
-        "ficheiro": nome_ficheiro,
-        "data": datetime.now().isoformat()
-    }
-    try:
-        if os.path.exists(LOG_FILE):
-            with open(LOG_FILE, "r") as f:
-                historico = json.load(f)
-        else:
-            historico = []
-        historico.append(log)
-        with open(LOG_FILE, "w") as f:
-            json.dump(historico, f, indent=2)
-    except Exception as e:
-        print("Erro ao registar transcrição:", e)
+    conn = sqlite3.connect("ouviescrevi.db")
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO transcricoes (ficheiro, data) VALUES (?, ?)",
+        (nome_ficheiro, datetime.now().isoformat())
+    )
+    conn.commit()
+    conn.close()
+
         
  
  
@@ -333,31 +334,33 @@ from datetime import datetime, date
 from fastapi import Request
 
 # Simulador simples (substitui por base de dados real se tiveres)
-transcricoes_registro = []
+import sqlite3
 
-@app.post("/registar-transcricao")
-def registar_transcricao_route(req: Request):
-    transcricoes_registro.append(datetime.now())
-    return {"ok": True}
+
 
 
 @app.get("/transcricoes-hoje")
 def contar_transcricoes_hoje():
-    hoje = date.today()
-    total = sum(1 for d in transcricoes_registro if d.date() == hoje)
+    conn = sqlite3.connect("ouviescrevi.db")
+    cursor = conn.cursor()
+    hoje = date.today().isoformat()
+    cursor.execute("SELECT COUNT(*) FROM transcricoes WHERE DATE(data) = ?", (hoje,))
+    total = cursor.fetchone()[0]
+    conn.close()
     return {"total": total}
+
 @app.get("/api/logs")
 def get_logs():
     try:
-        if not os.path.exists(LOG_FILE):
-            with open(LOG_FILE, "w") as f:
-                json.dump([], f)
-
-        with open(LOG_FILE, "r") as f:
-            return json.load(f)
-
+        conn = sqlite3.connect("ouviescrevi.db")
+        cursor = conn.cursor()
+        cursor.execute("SELECT ficheiro, data FROM transcricoes ORDER BY data DESC")
+        rows = cursor.fetchall()
+        conn.close()
+        return [{"ficheiro": r[0], "data": r[1]} for r in rows]
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao ler logs: {e}")
+
 
 class QuestionRequest(BaseModel):
     text: str
@@ -398,3 +401,4 @@ async def generate_questions(req: QuestionRequest):
         return {"questions": response.choices[0].message.content.strip()}
     except Exception as e:
         return {"error": str(e)}
+

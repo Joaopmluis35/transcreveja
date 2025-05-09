@@ -1,0 +1,6 @@
+*.db
+.env
+__pycache__/
+*.pyc
+log_transcricoes.json
+status.json
