@@ -15,20 +15,28 @@ load_dotenv()
 import smtplib
 from email.message import EmailMessage
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()  # já tens isso no topo
+
 def enviar_email_assunto(mensagem: str, assunto: str = "Nova atividade no Ouviescrevi"):
     try:
         msg = EmailMessage()
         msg.set_content(mensagem)
         msg['Subject'] = assunto
-        msg['From'] = "notificacoes@ouviescrevi.pt"  # Exemplo. Pode ser qualquer remetente autorizado.
+        msg['From'] = "notificacoes@ouviescrevi.pt"
         msg['To'] = "ouviescrevi@gmail.com"
 
-        # Configura SMTP (exemplo com Gmail SMTP – precisas de um App Password se usares conta Gmail)
+        smtp_user = os.getenv("SMTP_USER")
+        smtp_password = os.getenv("SMTP_PASSWORD")
+
         with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
-            smtp.login("ouviescrevi@gmail.com", "JbejaL1989.")  # ← substitui aqui
+            smtp.login(smtp_user, smtp_password)
             smtp.send_message(msg)
     except Exception as e:
         print(f"[ERRO AO ENVIAR EMAIL] {str(e)}")
+
 
 
 from database import criar_base
@@ -446,3 +454,11 @@ def root():
             "name": route.name
         })
     return {"routes": routes}
+    
+@app.get("/test-email")
+def test_email():
+    try:
+        enviar_email_assunto("Teste de envio", "Teste SMTP Ouviescrevi")
+        return {"status": "Enviado com sucesso"}
+    except Exception as e:
+        return {"error": str(e)}
