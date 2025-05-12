@@ -12,6 +12,23 @@ import json
 import os
 from dotenv import load_dotenv
 load_dotenv()
+import smtplib
+from email.message import EmailMessage
+
+def enviar_email_assunto(mensagem: str, assunto: str = "Nova atividade no Ouviescrevi"):
+    try:
+        msg = EmailMessage()
+        msg.set_content(mensagem)
+        msg['Subject'] = assunto
+        msg['From'] = "notificacoes@ouviescrevi.pt"  # Exemplo. Pode ser qualquer remetente autorizado.
+        msg['To'] = "ouviescrevi@gmail.com"
+
+        # Configura SMTP (exemplo com Gmail SMTP – precisas de um App Password se usares conta Gmail)
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+            smtp.login("ouviescrevi@gmail.com", "JbejaL1989.")  # ← substitui aqui
+            smtp.send_message(msg)
+    except Exception as e:
+        print(f"[ERRO AO ENVIAR EMAIL] {str(e)}")
 
 
 from database import criar_base
@@ -105,6 +122,8 @@ async def transcribe(file: UploadFile = File(...)):
             formatted_text += format_segments(result.segments) + "\n\n"
 
         registar_transcricao(file.filename)
+        enviar_email_assunto(f"Nova transcrição recebida: {file.filename}", "Nova transcrição no Ouviescrevi")
+
 
 
 
@@ -170,6 +189,8 @@ async def summarize(req: SummarizeRequest):
             temperature=0.5,
             max_tokens=400
         )
+        enviar_email_assunto("Alguém gerou um resumo com IA", "Resumo criado no Ouviescrevi")
+
         return {"summary": response.choices[0].message.content.strip()}
     except Exception as e:
         return {"error": str(e)}
@@ -208,6 +229,8 @@ async def translate_text(request: Request):
             ],
             temperature=0.3
         )
+        enviar_email_assunto("Alguém traduziu um texto com IA", "Tradução realizada no Ouviescrevi")
+
         return {"translation": response.choices[0].message.content.strip()}
     except Exception as e:
         return {"error": str(e)}
@@ -235,6 +258,8 @@ async def classify_content(request: ClassifyRequest):
             temperature=0.5,
             max_tokens=20
         )
+        enviar_email_assunto("Alguém classificou um tipo de conteúdo com IA", "Classificação feita no Ouviescrevi")
+
         return {"type": response.choices[0].message.content.strip()}
     except Exception as e:
         return {"error": str(e)}
@@ -256,6 +281,8 @@ async def correct_text(req: Request):
                 {"role": "user", "content": text}
             ]
         )
+        enviar_email_assunto("Alguém corrigiu um texto com IA", "Texto corrigido no Ouviescrevi")
+
         return {"corrected": response.choices[0].message.content.strip()}
     except Exception as e:
         return {"error": str(e)}
@@ -287,6 +314,8 @@ async def generate_email(req: EmailRequest):
             temperature=0.7,
             max_tokens=500
         )
+        enviar_email_assunto("Alguém gerou um email com IA", "Email gerado no Ouviescrevi")
+
         return {"email": response.choices[0].message.content.strip()}
     except Exception as e:
         return {"error": str(e)}
@@ -401,6 +430,8 @@ async def generate_questions(req: QuestionRequest):
             temperature=0.7,
             max_tokens=800
         )
+        enviar_email_assunto("Alguém gerou perguntas de estudo com IA", "Perguntas geradas no Ouviescrevi")
+
         return {"questions": response.choices[0].message.content.strip()}
     except Exception as e:
         return {"error": str(e)}
