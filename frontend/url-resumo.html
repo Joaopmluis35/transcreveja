@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Gera resumos automáticos a partir de links de artigos online com IA.">
-  <meta name="keywords" content="resumo URL, resumo de artigo, resumo automático, IA, Ouviescrevi">
-  <meta name="robots" content="index, follow">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Gera resumos automáticos a partir de links de artigos online com IA." />
+  <meta name="keywords" content="resumo URL, resumo de artigo, resumo automático, IA, Ouviescrevi" />
+  <meta name="robots" content="index, follow" />
   <title>Resumo por URL - Ouviescrevi</title>
-  <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png">
+  <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png" />
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -67,6 +67,31 @@
       border-radius: 10px;
       color: #222;
     }
+
+    .progress-container {
+      margin-top: 20px;
+      background: #ddd;
+      border-radius: 20px;
+      height: 25px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(135deg, #a550f7, #00c3ff);
+      text-align: center;
+      line-height: 25px;
+      color: white;
+      font-weight: bold;
+      transition: width 0.3s ease;
+    }
+
+    .loading-phrase {
+      margin-top: 15px;
+      font-style: italic;
+      color: #555;
+    }
   </style>
 </head>
 <body>
@@ -77,28 +102,59 @@
   <p>Insere abaixo o link de um artigo ou página online para gerar um resumo automático com IA.</p>
 
   <div class="container">
-    <input type="text" id="urlInput" placeholder="https://exemplo.com/artigo">
+    <input type="text" id="urlInput" placeholder="https://exemplo.com/artigo" />
     <button onclick="resumirArtigoPorURL()">Gerar Resumo</button>
+
+    <div class="progress-container" id="progressContainer" style="display: none;">
+      <div class="progress-bar" id="progressBar">0%</div>
+    </div>
+    <div class="loading-phrase" id="loadingPhrase"></div>
+
     <pre id="resultado"></pre>
   </div>
 
   <script>
+    const frases = [
+      "🔍 A ler o artigo com atenção...",
+      "📚 A organizar as ideias principais...",
+      "🧠 A pensar como um humano...",
+      "✍️ A resumir com clareza...",
+      "📦 A preparar a resposta final..."
+    ];
+
     function resumirArtigoPorURL() {
       const url = document.getElementById("urlInput").value.trim();
       const output = document.getElementById("resultado");
+      const progressBar = document.getElementById("progressBar");
+      const progressContainer = document.getElementById("progressContainer");
+      const loadingPhrase = document.getElementById("loadingPhrase");
 
       if (!url) {
         alert("Por favor insere um link válido.");
         return;
       }
 
-      output.textContent = "⏳ A gerar resumo...";
+      output.textContent = "";
+      progressContainer.style.display = "block";
+      progressBar.style.width = "0%";
+      progressBar.textContent = "0%";
+
+      let percent = 0;
+      let fraseIndex = 0;
+
+      const interval = setInterval(() => {
+        if (percent >= 100) return clearInterval(interval);
+        percent += Math.floor(Math.random() * 5) + 1;
+        if (percent > 100) percent = 100;
+        progressBar.style.width = percent + "%";
+        progressBar.textContent = percent + "%";
+        loadingPhrase.textContent = frases[fraseIndex];
+        fraseIndex = (fraseIndex + 1) % frases.length;
+      }, 700);
 
       fetch("https://api.ouviescrevi.pt/summarize-url", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           url: url,
           token: "ouviescrevi2025@resumo"
@@ -106,9 +162,17 @@
       })
       .then(res => res.json())
       .then(data => {
+        clearInterval(interval);
+        progressBar.style.width = "100%";
+        progressBar.textContent = "100%";
+        loadingPhrase.textContent = "";
         output.textContent = data.summary || data.error || "❌ Ocorreu um erro inesperado.";
       })
       .catch(err => {
+        clearInterval(interval);
+        progressBar.style.width = "100%";
+        progressBar.textContent = "100%";
+        loadingPhrase.textContent = "";
         console.error(err);
         output.textContent = "❌ Erro ao contactar o servidor.";
       });
@@ -121,17 +185,14 @@
       .then(html => {
         const headerDiv = document.getElementById("header");
         headerDiv.innerHTML = html;
-
         const tempDiv = document.createElement("div");
         tempDiv.innerHTML = html;
-
         tempDiv.querySelectorAll("script").forEach(oldScript => {
           const newScript = document.createElement("script");
           if (oldScript.src) newScript.src = oldScript.src;
           else newScript.textContent = oldScript.textContent;
           document.body.appendChild(newScript);
         });
-
         tempDiv.querySelectorAll("style").forEach(style => {
           document.head.appendChild(style.cloneNode(true));
         });
@@ -144,5 +205,6 @@
       .then(res => res.text())
       .then(html => document.getElementById("footer").innerHTML = html);
   </script>
+
 </body>
 </html>

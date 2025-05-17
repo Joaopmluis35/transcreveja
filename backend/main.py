@@ -494,7 +494,6 @@ async def summarize_url(req: Request):
 
         # Divide o texto em blocos seguros (~3000 caracteres ≈ ~1000 tokens)
         chunks = textwrap.wrap(full_text, 3000)
-
         all_summaries = []
 
         for i, chunk in enumerate(chunks):
@@ -529,7 +528,12 @@ async def summarize_url(req: Request):
             all_summaries.append(f"🧩 Parte {i+1}:\n{summary}")
 
         final_summary = "\n\n".join(all_summaries)
+
+        # ✅ Enviar email de notificação
+        enviar_email_assunto(f"Resumo gerado por URL:\n{url}", "Resumo por URL no Ouviescrevi")
+
         return {"summary": final_summary}
 
     except Exception as e:
         return {"error": f"Erro ao processar URL: {str(e)}"}
+
