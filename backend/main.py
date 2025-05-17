@@ -467,6 +467,10 @@ def test_email():
 from bs4 import BeautifulSoup
 import requests
 
+from bs4 import BeautifulSoup
+import requests
+import textwrap
+
 @app.post("/summarize-url")
 async def summarize_url(req: Request):
     data = await req.json()
@@ -479,6 +483,7 @@ async def summarize_url(req: Request):
         return {"error": "Token inválido."}
 
     try:
+        # Extrai texto da página
         response = requests.get(url, timeout=10)
         soup = BeautifulSoup(response.content, "html.parser")
         paragraphs = soup.find_all('p')
@@ -487,20 +492,44 @@ async def summarize_url(req: Request):
         if not full_text:
             return {"error": "Não foi possível extrair conteúdo significativo da URL."}
 
-        prompt = f"Resume este artigo de forma clara e concisa:\n\n{full_text}"
-        if lang == "en":
-            prompt = f"Summarize this article clearly and concisely:\n\n{full_text}"
-        if mode == "minuta":
-            prompt = "Gera uma minuta organizada em tópicos:\n" + full_text
+        # Divide o texto em blocos seguros (~3000 caracteres ≈ ~1000 tokens)
+        chunks = textwrap.wrap(full_text, 3000)
 
-        result = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "És um assistente que resume artigos online."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.5
-        )
-        return {"summary": result.choices[0].message.content.strip()}
+        all_summaries = []
+
+        for i, chunk in enumerate(chunks):
+            if lang == "en":
+                if mode == "minuta":
+                    prompt = (
+                        "Generate bullet point meeting minutes from this article section:\n\n" + chunk
+                    )
+                else:
+                    prompt = f"Summarize this section clearly and concisely:\n\n{chunk}"
+                system_message = "You are an assistant that summarizes online articles."
+            else:
+                if mode == "minuta":
+                    prompt = (
+                        "Gera uma minuta em tópicos com base nesta parte do artigo:\n\n" + chunk
+                    )
+                else:
+                    prompt = f"Resume esta secção de forma clara e concisa:\n\n{chunk}"
+                system_message = "És um assistente que resume artigos online."
+
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": system_message},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.5,
+                max_tokens=800
+            )
+
+            summary = response.choices[0].message.content.strip()
+            all_summaries.append(f"🧩 Parte {i+1}:\n{summary}")
+
+        final_summary = "\n\n".join(all_summaries)
+        return {"summary": final_summary}
+
     except Exception as e:
         return {"error": f"Erro ao processar URL: {str(e)}"}
