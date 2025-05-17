@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Gera resumos automáticos a partir de links de artigos online com IA.">
+  <meta name="keywords" content="resumo URL, resumo de artigo, resumo automático, IA, Ouviescrevi">
+  <meta name="robots" content="index, follow">
+  <title>Resumo por URL - Ouviescrevi</title>
+  <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #4e54c8, #00c6ff);
+      color: white;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2em;
+      margin-top: 20px;
+    }
+
+    .container {
+      background: white;
+      color: #333;
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 800px;
+      margin: 30px auto;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      font-size: 1em;
+      border-radius: 8px;
+      border: 2px solid #a550f7;
+      margin-top: 10px;
+    }
+
+    button {
+      padding: 12px 20px;
+      background: #e6d7fb;
+      font-weight: bold;
+      border: 2px solid #a550f7;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      background: linear-gradient(135deg, #a550f7, #00c3ff);
+      color: white;
+      border-color: transparent;
+    }
+
+    #resultado {
+      margin-top: 30px;
+      background: #f4f4f4;
+      border-left: 5px solid #00c3ff;
+      padding: 20px;
+      white-space: pre-wrap;
+      border-radius: 10px;
+      color: #222;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="header"></div>
+
+  <h1>🔗 Resumo Inteligente por URL</h1>
+  <p>Insere abaixo o link de um artigo ou página online para gerar um resumo automático com IA.</p>
+
+  <div class="container">
+    <input type="text" id="urlInput" placeholder="https://exemplo.com/artigo">
+    <button onclick="resumirArtigoPorURL()">Gerar Resumo</button>
+    <pre id="resultado"></pre>
+  </div>
+
+  <script>
+    function resumirArtigoPorURL() {
+      const url = document.getElementById("urlInput").value.trim();
+      const output = document.getElementById("resultado");
+
+      if (!url) {
+        alert("Por favor insere um link válido.");
+        return;
+      }
+
+      output.textContent = "⏳ A gerar resumo...";
+
+      fetch("https://api.ouviescrevi.pt/summarize-url", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          url: url,
+          token: "ouviescrevi2025@resumo"
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        output.textContent = data.summary || data.error || "❌ Ocorreu um erro inesperado.";
+      })
+      .catch(err => {
+        console.error(err);
+        output.textContent = "❌ Erro ao contactar o servidor.";
+      });
+    }
+  </script>
+
+  <script>
+    fetch("header.html")
+      .then(response => response.text())
+      .then(html => {
+        const headerDiv = document.getElementById("header");
+        headerDiv.innerHTML = html;
+
+        const tempDiv = document.createElement("div");
+        tempDiv.innerHTML = html;
+
+        tempDiv.querySelectorAll("script").forEach(oldScript => {
+          const newScript = document.createElement("script");
+          if (oldScript.src) newScript.src = oldScript.src;
+          else newScript.textContent = oldScript.textContent;
+          document.body.appendChild(newScript);
+        });
+
+        tempDiv.querySelectorAll("style").forEach(style => {
+          document.head.appendChild(style.cloneNode(true));
+        });
+      });
+  </script>
+
+  <div id="footer"></div>
+  <script>
+    fetch("footer.html")
+      .then(res => res.text())
+      .then(html => document.getElementById("footer").innerHTML = html);
+  </script>
+</body>
+</html>

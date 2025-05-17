@@ -462,3 +462,45 @@ def test_email():
         return {"status": "Enviado com sucesso"}
     except Exception as e:
         return {"error": str(e)}
+
+
+from bs4 import BeautifulSoup
+import requests
+
+@app.post("/summarize-url")
+async def summarize_url(req: Request):
+    data = await req.json()
+    url = data.get("url")
+    token = data.get("token")
+    mode = data.get("mode", "normal")
+    lang = data.get("lang", "pt")
+
+    if token != os.getenv("ADMIN_TOKEN", "ouviescrevi2025@resumo"):
+        return {"error": "Token inválido."}
+
+    try:
+        response = requests.get(url, timeout=10)
+        soup = BeautifulSoup(response.content, "html.parser")
+        paragraphs = soup.find_all('p')
+        full_text = " ".join([p.get_text() for p in paragraphs if len(p.get_text()) > 40])
+
+        if not full_text:
+            return {"error": "Não foi possível extrair conteúdo significativo da URL."}
+
+        prompt = f"Resume este artigo de forma clara e concisa:\n\n{full_text}"
+        if lang == "en":
+            prompt = f"Summarize this article clearly and concisely:\n\n{full_text}"
+        if mode == "minuta":
+            prompt = "Gera uma minuta organizada em tópicos:\n" + full_text
+
+        result = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "És um assistente que resume artigos online."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.5
+        )
+        return {"summary": result.choices[0].message.content.strip()}
+    except Exception as e:
+        return {"error": f"Erro ao processar URL: {str(e)}"}
