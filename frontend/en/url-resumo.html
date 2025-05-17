@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="description" content="Generate automatic summaries from online article links using AI.">
   <meta name="keywords" content="url summary, article summary, AI summary, smart summary, Ouviescrevi">
   <meta name="robots" content="index, follow">
@@ -67,6 +67,28 @@
       border-radius: 10px;
       color: #222;
     }
+
+    #loadingBar {
+      width: 100%;
+      background: #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+      height: 20px;
+      margin-top: 20px;
+      display: none;
+    }
+
+    #loadingProgress {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(135deg, #a550f7, #00c3ff);
+      transition: width 0.2s ease;
+    }
+
+    #loadingPhrase {
+      font-style: italic;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -74,25 +96,71 @@
   <div id="header"></div>
 
   <h1>🔗 Smart Summary from URL</h1>
-  <p>Paste the link of an online article or page below to generate an automatic summary using AI.</p>
+  <p>Paste the link of an online article below to generate an automatic summary using AI.</p>
 
   <div class="container">
-    <input type="text" id="urlInput" placeholder="https://example.com/article">
+    <input type="text" id="urlInput" placeholder="https://example.com/article" />
     <button onclick="summarizeArticleFromURL()">Generate Summary</button>
+
+    <div id="loadingBar"><div id="loadingProgress"></div></div>
+    <div id="loadingPhrase"></div>
+
     <pre id="resultado"></pre>
   </div>
 
   <script>
+    const phrases = [
+      "🧠 Reading the article...",
+      "✍️ Summarizing important points...",
+      "📚 Organizing the content...",
+      "💡 Creating smart summary...",
+      "⏳ Please wait, it’s almost done..."
+    ];
+
+    function startLoadingAnimation() {
+      let index = 0;
+      const phraseDiv = document.getElementById("loadingPhrase");
+      const progressBar = document.getElementById("loadingProgress");
+      const bar = document.getElementById("loadingBar");
+
+      bar.style.display = "block";
+      progressBar.style.width = "0%";
+      phraseDiv.textContent = phrases[0];
+
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += Math.random() * 5;
+        if (progress > 100) progress = 100;
+        progressBar.style.width = progress + "%";
+
+        if (progress < 100) {
+          index = (index + 1) % phrases.length;
+          phraseDiv.textContent = phrases[index];
+        } else {
+          clearInterval(interval);
+        }
+      }, 1200);
+
+      return interval;
+    }
+
+    function stopLoadingAnimation(interval) {
+      clearInterval(interval);
+      document.getElementById("loadingBar").style.display = "none";
+      document.getElementById("loadingPhrase").textContent = "";
+    }
+
     function summarizeArticleFromURL() {
       const url = document.getElementById("urlInput").value.trim();
       const output = document.getElementById("resultado");
 
       if (!url) {
-        alert("Please enter a valid link.");
+        alert("Please enter a valid URL.");
         return;
       }
 
-      output.textContent = "⏳ Generating summary...";
+      output.textContent = "";
+      const loading = startLoadingAnimation();
 
       fetch("https://api.ouviescrevi.pt/summarize-url", {
         method: "POST",
@@ -107,9 +175,11 @@
       })
       .then(res => res.json())
       .then(data => {
+        stopLoadingAnimation(loading);
         output.textContent = data.summary || data.error || "❌ An unexpected error occurred.";
       })
       .catch(err => {
+        stopLoadingAnimation(loading);
         console.error(err);
         output.textContent = "❌ Failed to contact the server.";
       });
@@ -145,5 +215,6 @@
       .then(res => res.text())
       .then(html => document.getElementById("footer").innerHTML = html);
   </script>
+
 </body>
 </html>
