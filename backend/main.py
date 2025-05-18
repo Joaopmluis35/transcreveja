@@ -538,34 +538,40 @@ async def summarize_url(req: Request):
         return {"error": f"Erro ao processar URL: {str(e)}"}
 
 from fastapi import FastAPI, APIRouter
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from gtts import gTTS
 import requests
 import subprocess
 import os
 
-# Instância da aplicação FastAPI
+# Inicializar FastAPI
 app = FastAPI()
 
-# Roteador específico para esta funcionalidade
+# ✅ Middleware CORS configurado antes de qualquer rota
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # ou ["https://ouviescrevi.pt"] em produção
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Router
 router = APIRouter()
 
-# Modelo de entrada
 class VideoRequest(BaseModel):
     text: str
     image_url: str = "https://placehold.co/720x1280?text=Ouviescrevi"
     voice_lang: str = "pt"
 
-# Endpoint da API
 @router.post("/generate-video")
 async def generate_video(req: VideoRequest):
     try:
-        # 1. Gerar áudio
         tts = gTTS(text=req.text, lang=req.voice_lang)
         audio_path = "/tmp/audio.mp3"
         tts.save(audio_path)
 
-        # 2. Baixar imagem validada
         image_path = "/tmp/image.jpg"
         response = requests.get(req.image_url)
         if response.status_code == 200 and 'image' in response.headers.get("Content-Type", ""):
@@ -574,12 +580,10 @@ async def generate_video(req: VideoRequest):
         else:
             return {"success": False, "error": "Erro ao baixar a imagem."}
 
-        # 3. Criar vídeo com ffmpeg
         output_path = "/tmp/video.mp4"
         command = f"ffmpeg -loop 1 -i {image_path} -i {audio_path} -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -shortest -y {output_path}"
         subprocess.call(command, shell=True)
 
-        # 4. Retornar caminho estático esperado
         return {
             "success": True,
             "video_url": f"https://api.ouviescrevi.pt/static/{os.path.basename(output_path)}"
@@ -588,5 +592,10 @@ async def generate_video(req: VideoRequest):
     except Exception as e:
         return {"success": False, "error": str(e)}
 
-# ✅ Inclusão do router na aplicação principal
+# ✅ Registrar router no final
 app.include_router(router)
+
+
+@app.get("/rotas")
+def rotas():
+    return [route.path for route in app.routes]
