@@ -571,3 +571,7 @@ async def generate_video(req: VideoRequest):
 
     except Exception as e:
         return {"success": False, "error": str(e)}
+   
+   
+   
+app.include_router(router)
