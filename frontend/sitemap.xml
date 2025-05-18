@@ -1,76 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
-  <url>
-    <loc>https://ouviescrevi.pt/</loc>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-  </url>
+  <!-- Páginas principais -->
+  <url><loc>https://ouviescrevi.pt/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://ouviescrevi.pt/admin.html</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://ouviescrevi.pt/ajuda.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://ouviescrevi.pt/aulas.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://ouviescrevi.pt/backoffice.html</loc><changefreq>monthly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://ouviescrevi.pt/conversor.html</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://ouviescrevi.pt/index2.html</loc><changefreq>weekly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://ouviescrevi.pt/jornalistas.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://ouviescrevi.pt/perguntas.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://ouviescrevi.pt/podcasts.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://ouviescrevi.pt/professores.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://ouviescrevi.pt/resumo.html</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://ouviescrevi.pt/reunioes.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://ouviescrevi.pt/sugestoes.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://ouviescrevi.pt/testemunhos.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://ouviescrevi.pt/url-resumo.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
 
-  <url>
-    <loc>https://ouviescrevi.pt/admin.html</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <url>
-    <loc>https://ouviescrevi.pt/ajuda.html</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-
-  <url>
-    <loc>https://ouviescrevi.pt/aulas.html</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-
-  <url>
-    <loc>https://ouviescrevi.pt/conversor.html</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-
-  <url>
-    <loc>https://ouviescrevi.pt/jornalistas.html</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-
-  <url>
-    <loc>https://ouviescrevi.pt/podcasts.html</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-
-  <url>
-    <loc>https://ouviescrevi.pt/professores.html</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-
-  <url>
-    <loc>https://ouviescrevi.pt/resumo.html</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-
-  <url>
-    <loc>https://ouviescrevi.pt/reunioes.html</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-
-  <url>
-    <loc>https://ouviescrevi.pt/sugestoes.html</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
-
-  <url>
-    <loc>https://ouviescrevi.pt/testemunhos.html</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
+  <!-- Versões em inglês -->
+  <url><loc>https://ouviescrevi.pt/en/index.html</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://ouviescrevi.pt/en/ajuda.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://ouviescrevi.pt/en/conversor.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://ouviescrevi.pt/en/perguntas.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://ouviescrevi.pt/en/resumo.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://ouviescrevi.pt/en/sugestoes.html</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://ouviescrevi.pt/en/url-resumo.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
 
 </urlset>
