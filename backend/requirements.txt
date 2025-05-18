@@ -1,12 +1,14 @@
 fastapi
 uvicorn[standard]
-python-multipart
-openai
-moviepy==1.0.3
-imageio==2.31.1
-imageio-ffmpeg==0.4.8
 gunicorn
+python-multipart
 python-dotenv
+openai
 requests
 beautifulsoup4
 mammoth
+
+# Bibliotecas para vídeo com MoviePy
+moviepy==1.0.3
+imageio>=2.31.1
+imageio-ffmpeg>=0.4.8

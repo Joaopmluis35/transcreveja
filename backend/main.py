@@ -537,3 +537,37 @@ async def summarize_url(req: Request):
     except Exception as e:
         return {"error": f"Erro ao processar URL: {str(e)}"}
 
+import os
+import subprocess
+from fastapi import APIRouter
+from pydantic import BaseModel
+from gtts import gTTS
+
+router = APIRouter()
+
+class VideoRequest(BaseModel):
+    text: str
+    image_url: str = "https://placehold.co/720x1280?text=Ouviescrevi"
+    voice_lang: str = "pt"
+
+@router.post("/generate-video")
+async def generate_video(req: VideoRequest):
+    try:
+        # 1. Gerar áudio com gTTS (Google TTS)
+        tts = gTTS(text=req.text, lang=req.voice_lang)
+        audio_path = "/tmp/audio.mp3"
+        tts.save(audio_path)
+
+        # 2. Baixar imagem
+        image_path = "/tmp/image.jpg"
+        os.system(f"wget -q -O {image_path} '{req.image_url}'")
+
+        # 3. Criar vídeo com ffmpeg
+        output_path = "/tmp/video.mp4"
+        command = f"ffmpeg -loop 1 -i {image_path} -i {audio_path} -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -shortest -y {output_path}"
+        subprocess.call(command, shell=True)
+
+        return {"success": True, "video_path": output_path}
+
+    except Exception as e:
+        return {"success": False, "error": str(e)}
