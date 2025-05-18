@@ -537,20 +537,26 @@ async def summarize_url(req: Request):
     except Exception as e:
         return {"error": f"Erro ao processar URL: {str(e)}"}
 
-from fastapi import APIRouter
+from fastapi import FastAPI, APIRouter
 from pydantic import BaseModel
 from gtts import gTTS
 import requests
 import subprocess
 import os
 
+# Instância da aplicação FastAPI
+app = FastAPI()
+
+# Roteador específico para esta funcionalidade
 router = APIRouter()
 
+# Modelo de entrada
 class VideoRequest(BaseModel):
     text: str
     image_url: str = "https://placehold.co/720x1280?text=Ouviescrevi"
     voice_lang: str = "pt"
 
+# Endpoint da API
 @router.post("/generate-video")
 async def generate_video(req: VideoRequest):
     try:
@@ -568,11 +574,12 @@ async def generate_video(req: VideoRequest):
         else:
             return {"success": False, "error": "Erro ao baixar a imagem."}
 
-        # 3. Criar vídeo
+        # 3. Criar vídeo com ffmpeg
         output_path = "/tmp/video.mp4"
         command = f"ffmpeg -loop 1 -i {image_path} -i {audio_path} -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -shortest -y {output_path}"
         subprocess.call(command, shell=True)
 
+        # 4. Retornar caminho estático esperado
         return {
             "success": True,
             "video_url": f"https://api.ouviescrevi.pt/static/{os.path.basename(output_path)}"
@@ -581,5 +588,5 @@ async def generate_video(req: VideoRequest):
     except Exception as e:
         return {"success": False, "error": str(e)}
 
-
+# ✅ Inclusão do router na aplicação principal
 app.include_router(router)
