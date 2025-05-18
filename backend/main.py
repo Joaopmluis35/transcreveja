@@ -537,11 +537,12 @@ async def summarize_url(req: Request):
     except Exception as e:
         return {"error": f"Erro ao processar URL: {str(e)}"}
 
-import os
-import subprocess
 from fastapi import APIRouter
 from pydantic import BaseModel
 from gtts import gTTS
+import requests
+import subprocess
+import os
 
 router = APIRouter()
 
@@ -553,25 +554,29 @@ class VideoRequest(BaseModel):
 @router.post("/generate-video")
 async def generate_video(req: VideoRequest):
     try:
-        # 1. Gerar áudio com gTTS (Google TTS)
+        # 1. Gerar áudio
         tts = gTTS(text=req.text, lang=req.voice_lang)
         audio_path = "/tmp/audio.mp3"
         tts.save(audio_path)
 
-        # 2. Baixar imagem
+        # 2. Baixar imagem validada
         image_path = "/tmp/image.jpg"
-        os.system(f"wget -q -O {image_path} '{req.image_url}'")
+        response = requests.get(req.image_url)
+        if response.status_code == 200 and 'image' in response.headers.get("Content-Type", ""):
+            with open(image_path, "wb") as f:
+                f.write(response.content)
+        else:
+            return {"success": False, "error": "Erro ao baixar a imagem."}
 
-        # 3. Criar vídeo com ffmpeg
+        # 3. Criar vídeo
         output_path = "/tmp/video.mp4"
         command = f"ffmpeg -loop 1 -i {image_path} -i {audio_path} -c:v libx264 -tune stillimage -c:a aac -b:a 192k -pix_fmt yuv420p -shortest -y {output_path}"
         subprocess.call(command, shell=True)
 
-        return {"success": True, "video_path": output_path}
+        return {
+            "success": True,
+            "video_url": f"https://api.ouviescrevi.pt/static/{os.path.basename(output_path)}"
+        }
 
     except Exception as e:
         return {"success": False, "error": str(e)}
-   
-   
-   
-app.include_router(router)

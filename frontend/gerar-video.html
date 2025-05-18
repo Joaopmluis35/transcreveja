@@ -43,11 +43,32 @@
       border: 4px solid #fff;
       border-radius: 12px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      display: none;
     }
     #status {
       margin-top: 20px;
       font-weight: bold;
       font-size: 1.1em;
+    }
+    .progress-container {
+      margin-top: 20px;
+      width: 80%;
+      max-width: 500px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 20px;
+      overflow: hidden;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .progress-bar {
+      height: 20px;
+      background: #fff;
+      width: 0%;
+      transition: width 0.4s ease;
+      color: #000;
+      font-weight: bold;
+      text-align: center;
+      line-height: 20px;
     }
   </style>
 </head>
@@ -60,42 +81,85 @@
   <button onclick="gerarVideo()">🎬 Gerar Vídeo</button>
 
   <div id="status"></div>
-  <video id="videoPlayer" controls class="hidden"></video>
+  <div class="progress-container" id="progressContainer" style="display: none;">
+    <div class="progress-bar" id="progressBar">0%</div>
+  </div>
+  <video id="videoPlayer" controls></video>
 
   <script>
+    const frasesLoading = [
+      "🧠 A pensar nas palavras certas...",
+      "🎙️ A gravar a narração com IA...",
+      "🖼️ A processar imagem...",
+      "🎞️ A criar o vídeo final...",
+      "🚀 Quase pronto!"
+    ];
+
+    function simularProgresso(callback) {
+      const barra = document.getElementById("progressBar");
+      const container = document.getElementById("progressContainer");
+      container.style.display = "block";
+
+      let progresso = 0;
+      let i = 0;
+      const intervalo = setInterval(() => {
+        if (progresso < 95) {
+          progresso += Math.floor(Math.random() * 10) + 1;
+          if (progresso > 95) progresso = 95;
+          barra.style.width = progresso + "%";
+          barra.textContent = progresso + "%";
+          if (frasesLoading[i]) {
+            document.getElementById("status").textContent = frasesLoading[i];
+            i++;
+          }
+        } else {
+          clearInterval(intervalo);
+          callback(); // chama a função final para gerar o vídeo
+        }
+      }, 800);
+    }
+
     async function gerarVideo() {
       const texto = document.getElementById("texto").value.trim();
       const status = document.getElementById("status");
       const video = document.getElementById("videoPlayer");
+      const barra = document.getElementById("progressBar");
 
       if (!texto) {
         alert("⚠️ Por favor escreve um texto primeiro.");
         return;
       }
 
-      status.textContent = "⏳ A gerar vídeo com IA... por favor aguarda.";
-      video.classList.add("hidden");
+      // Reset
+      status.textContent = "⏳ A iniciar geração de vídeo...";
+      video.style.display = "none";
+      barra.style.width = "0%";
+      barra.textContent = "0%";
 
-      try {
-        const res = await fetch("https://api.ouviescrevi.pt/generate-video", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: texto })
-        });
+      simularProgresso(async () => {
+        try {
+          const res = await fetch("https://api.ouviescrevi.pt/generate-video", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: texto })
+          });
 
-        const data = await res.json();
-        if (data.video_url) {
-          video.src = data.video_url;
-          video.classList.remove("hidden");
-          status.textContent = "✅ Vídeo gerado com sucesso!";
-        } else {
-          status.textContent = "❌ Erro ao gerar o vídeo.";
+          const data = await res.json();
+          if (data.video_url) {
+            barra.style.width = "100%";
+            barra.textContent = "100%";
+            status.textContent = "✅ Vídeo gerado com sucesso!";
+            video.src = data.video_url;
+            video.style.display = "block";
+          } else {
+            status.textContent = "❌ Erro ao gerar o vídeo.";
+          }
+
+        } catch (err) {
+          console.error(err);
+          status.textContent = "❌ Erro ao comunicar com a API.";
         }
-
-      } catch (err) {
-        console.error(err);
-        status.textContent = "❌ Erro ao comunicar com a API.";
-      }
+      });
     }
   </script>
 
