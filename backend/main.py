@@ -449,12 +449,20 @@ async def generate_questions(req: QuestionRequest):
 def root():
     routes = []
     for route in app.routes:
-        routes.append({
+        route_info = {
             "path": route.path,
-            "method": list(route.methods)[0] if route.methods else None,
             "name": route.name
-        })
+        }
+
+        if hasattr(route, "methods"):
+            route_info["method"] = list(route.methods)[0] if route.methods else None
+        else:
+            route_info["method"] = None
+
+        routes.append(route_info)
+
     return {"routes": routes}
+
     
 @app.get("/test-email")
 def test_email():
