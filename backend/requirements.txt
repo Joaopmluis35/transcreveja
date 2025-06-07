@@ -7,9 +7,8 @@ openai
 requests
 beautifulsoup4
 mammoth
-
-# Bibliotecas para vídeo com MoviePy
 moviepy==1.0.3
 imageio>=2.31.1
 imageio-ffmpeg>=0.4.8
 gtts
+jinja2  # (opcional – se fores usar templates HTML no futuro)

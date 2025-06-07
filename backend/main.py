@@ -18,6 +18,17 @@ from fastapi import APIRouter
 
 import os
 from dotenv import load_dotenv
+import logging
+
+# Configurar logging para ficheiro local
+logging.basicConfig(
+    filename='ouviescrevi.log',
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
+
 
 load_dotenv()  # já tens isso no topo
 
