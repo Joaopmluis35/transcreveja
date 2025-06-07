@@ -537,25 +537,6 @@ async def summarize_url(req: Request):
     except Exception as e:
         return {"error": f"Erro ao processar URL: {str(e)}"}
 
-from fastapi import FastAPI, APIRouter
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from gtts import gTTS
-import requests
-import subprocess
-import os
-
-# Inicializar FastAPI
-app = FastAPI()
-
-# ✅ Middleware CORS configurado antes de qualquer rota
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # ou ["https://ouviescrevi.pt"] em produção
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 # Router
 router = APIRouter()
@@ -591,6 +572,9 @@ async def generate_video(req: VideoRequest):
 
     except Exception as e:
         return {"success": False, "error": str(e)}
+
+from fastapi.staticfiles import StaticFiles
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # ✅ Registrar router no final
 app.include_router(router)
