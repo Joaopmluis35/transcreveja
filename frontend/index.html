@@ -1078,7 +1078,8 @@ document.getElementById("btnStopRecording").addEventListener("click", () => {
 
         if (data.summary) {
             resumoTexto.textContent = data.summary;
-        } else if (data.error) {
+        } else if (!data || data.error || !data.text) {
+ {
             resumoTexto.textContent = "❌ Erro ao gerar resumo: " + data.error;
         } else {
             resumoTexto.textContent = "❌ Erro inesperado na resposta.";
@@ -1357,7 +1358,8 @@ async function classificarConteudo() {
     const data = await res.json();
     if (data.type) {
       classificacaoTexto.textContent = `🔎 ${data.type}`;
-    } else if (data.error) {
+    } else if (!data || data.error || !data.text) {
+ {
       classificacaoTexto.textContent = `❌ Erro: ${data.error}`;
     } else {
       classificacaoTexto.textContent = `❌ Erro inesperado.`;
@@ -1401,7 +1403,8 @@ span.textContent = "📝 A corrigir...";
     if (data.corrected) {
       transcriptionText.value = data.corrected;
       alert("✅ Texto corrigido com sucesso!");
-    } else if (data.error) {
+    } else if (!data || data.error || !data.text) {
+ {
       alert("❌ Erro: " + data.error);
     } else {
       alert("❌ Erro inesperado na correção.");
