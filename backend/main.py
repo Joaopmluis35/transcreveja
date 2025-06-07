@@ -14,21 +14,9 @@ from dotenv import load_dotenv
 load_dotenv()
 import smtplib
 from email.message import EmailMessage
-from fastapi import APIRouter
 
 import os
 from dotenv import load_dotenv
-import logging
-
-# Configurar logging para ficheiro local
-logging.basicConfig(
-    filename='ouviescrevi.log',
-    level=logging.INFO,
-    format='%(asctime)s [%(levelname)s] %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
-
-
 
 load_dotenv()  # já tens isso no topo
 
@@ -460,20 +448,12 @@ async def generate_questions(req: QuestionRequest):
 def root():
     routes = []
     for route in app.routes:
-        route_info = {
+        routes.append({
             "path": route.path,
+            "method": list(route.methods)[0] if route.methods else None,
             "name": route.name
-        }
-
-        if hasattr(route, "methods"):
-            route_info["method"] = list(route.methods)[0] if route.methods else None
-        else:
-            route_info["method"] = None
-
-        routes.append(route_info)
-
+        })
     return {"routes": routes}
-
     
 @app.get("/test-email")
 def test_email():
@@ -557,6 +537,25 @@ async def summarize_url(req: Request):
     except Exception as e:
         return {"error": f"Erro ao processar URL: {str(e)}"}
 
+from fastapi import FastAPI, APIRouter
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from gtts import gTTS
+import requests
+import subprocess
+import os
+
+# Inicializar FastAPI
+app = FastAPI()
+
+# ✅ Middleware CORS configurado antes de qualquer rota
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # ou ["https://ouviescrevi.pt"] em produção
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Router
 router = APIRouter()
@@ -592,9 +591,6 @@ async def generate_video(req: VideoRequest):
 
     except Exception as e:
         return {"success": False, "error": str(e)}
-
-from fastapi.staticfiles import StaticFiles
-app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # ✅ Registrar router no final
 app.include_router(router)
