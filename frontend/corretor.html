@@ -152,7 +152,7 @@
         fraseIndex = (fraseIndex + 1) % frases.length;
       }, 700);
 
-      fetch("https://api.ouviescrevi.pt/correct-text", {
+      fetch("https://api.ouviescrevi.pt/correct", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
