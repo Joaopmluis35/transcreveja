@@ -1,3 +1,4 @@
+# main.py
 from fastapi import FastAPI, File, UploadFile, Request, HTTPException, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -42,13 +43,24 @@ if not OPENAI_API_KEY:
 
 ADMIN_TOKEN = os.getenv("ADMIN_TOKEN")
 if not ADMIN_TOKEN:
-    # obrigamos a definir; evita fallback público
+    # torna explícito; evita fallback público em produção
     raise RuntimeError("Falta ADMIN_TOKEN no .env")
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
-MAX_FILE_SIZE_MB = 25
-SEGMENT_DURATION = 600  # 10 min
+# Descobrir ffmpeg (PATH → fallback imageio-ffmpeg)
+try:
+    from imageio_ffmpeg import get_ffmpeg_exe
+except Exception:
+    get_ffmpeg_exe = None
+
+FFMPEG = shutil.which("ffmpeg") or (get_ffmpeg_exe() if get_ffmpeg_exe else None)
+if not FFMPEG:
+    raise RuntimeError("ffmpeg não encontrado. Instala o binário do sistema ou mantém 'imageio-ffmpeg' no requirements.")
+
+# Parâmetros
+MAX_FILE_SIZE_MB = int(os.getenv("MAX_FILE_SIZE_MB", "300"))  # antes 25
+SEGMENT_DURATION = int(os.getenv("SEGMENT_DURATION", "600"))  # 10 min
 SUM_MODEL = os.getenv("SUM_MODEL", "gpt-4o-mini")
 CLS_MODEL = os.getenv("CLS_MODEL", "gpt-4o-mini")
 COR_MODEL = os.getenv("COR_MODEL", "gpt-4o-mini")
@@ -58,7 +70,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # ajusta para os teus domínios em produção
+    allow_origins=["*"],  # em prod restringe aos teus domínios
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -121,16 +133,15 @@ def format_segments(segments):
     for s in segments or []:
         start = _seg_get(s, "start", 0)
         text = _seg_get(s, "text", "").strip()
-        formatted.append(f"{format_time(start)} {text}")
+        if text:
+            formatted.append(f"{format_time(start)} {text}")
     return "\n\n".join(formatted).strip()
 
 def split_audio(input_path, output_dir, segment_duration=SEGMENT_DURATION):
     os.makedirs(output_dir, exist_ok=True)
     cmd = [
-        "ffmpeg",
-        "-nostdin",
-        "-hide_banner",
-        "-loglevel", "error",
+        FFMPEG,
+        "-nostdin", "-hide_banner", "-loglevel", "error",
         "-i", input_path,
         "-f", "segment",
         "-segment_time", str(segment_duration),
@@ -141,11 +152,12 @@ def split_audio(input_path, output_dir, segment_duration=SEGMENT_DURATION):
         "-y",
     ]
     subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-    return sorted(
+    segments = sorted(
         os.path.join(output_dir, f)
         for f in os.listdir(output_dir)
         if f.endswith(".wav")
     )
+    return segments
 
 def registar_transcricao(nome_ficheiro: str):
     conn = sqlite3.connect("ouviescrevi.db")
@@ -169,22 +181,30 @@ def debug():
 @app.post("/transcribe")
 async def transcribe(file: UploadFile = File(...)):
     logging.info("Upload recebido: %s", file.filename)
-    contents = await file.read()
 
-    if len(contents) > MAX_FILE_SIZE_MB * 1024 * 1024:
-        raise HTTPException(status_code=413, detail=f"Ficheiro > {MAX_FILE_SIZE_MB}MB")
-
-    # guardar original
+    # grava o upload em stream para tmp (evita carregar tudo em memória)
     orig_ext = os.path.splitext(file.filename or "")[1].lower() or ".bin"
     tmp_path = os.path.join(tempfile.gettempdir(), f"input_{uuid.uuid4()}{orig_ext}")
-    with open(tmp_path, "wb") as tmp:
-        tmp.write(contents)
+    try:
+        with open(tmp_path, "wb") as out:
+            await file.seek(0)
+            shutil.copyfileobj(file.file, out)
+    except Exception as e:
+        logging.exception("Falha ao gravar upload")
+        raise HTTPException(status_code=400, detail=f"Falha ao gravar ficheiro: {e}")
+
+    # limite de tamanho após gravar
+    size_mb = os.path.getsize(tmp_path) / (1024 * 1024)
+    if size_mb > MAX_FILE_SIZE_MB:
+        try: os.remove(tmp_path)
+        except: pass
+        raise HTTPException(status_code=413, detail=f"Ficheiro > {MAX_FILE_SIZE_MB}MB")
 
     # converter para wav 16k mono
     audio_path = os.path.join(tempfile.gettempdir(), f"audio_{uuid.uuid4()}.wav")
     try:
         conv = [
-            "ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error",
+            FFMPEG, "-nostdin", "-hide_banner", "-loglevel", "error",
             "-y", "-i", tmp_path, "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", audio_path
         ]
         subprocess.run(conv, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
@@ -198,6 +218,11 @@ async def transcribe(file: UploadFile = File(...)):
     split_dir = tempfile.mkdtemp(prefix="split_")
     try:
         parts = split_audio(audio_path, split_dir)
+
+        # fallback: se por algum motivo não criou segmentos, usa o WAV inteiro
+        if not parts:
+            parts = [audio_path]
+
         full_text, formatted_text = [], []
 
         for part in parts:
@@ -207,8 +232,10 @@ async def transcribe(file: UploadFile = File(...)):
                     file=audio,
                     response_format="verbose_json",
                 )
-            full_text.append(getattr(result, "text", "") or "")
-            formatted_text.append(format_segments(getattr(result, "segments", [])))
+            text_piece = getattr(result, "text", "") or ""
+            segs = getattr(result, "segments", [])
+            full_text.append(text_piece)
+            formatted_text.append(format_segments(segs))
 
         registar_transcricao(file.filename or "sem_nome")
         enviar_email_assunto(
@@ -225,7 +252,8 @@ async def transcribe(file: UploadFile = File(...)):
         raise
     except Exception as e:
         logging.exception("Erro ao processar ficheiro")
-        raise HTTPException(status_code=500, detail=f"Erro ao processar ficheiro: {e}")
+        # devolve 200 com campo "error" para compat com front-end atual
+        return {"error": f"Erro ao processar ficheiro: {e}"}
     finally:
         try: os.remove(audio_path)
         except: pass
@@ -566,7 +594,7 @@ async def generate_video(req: VideoRequest):
         out_name = f"{uuid.uuid4()}.mp4"
         out_path = os.path.join(VIDEO_DIR, out_name)
         cmd = [
-            "ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error",
+            FFMPEG, "-nostdin", "-hide_banner", "-loglevel", "error",
             "-loop", "1", "-i", img_tmp, "-i", audio_tmp,
             "-c:v", "libx264", "-tune", "stillimage",
             "-c:a", "aac", "-b:a", "192k", "-pix_fmt", "yuv420p",
