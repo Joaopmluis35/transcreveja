@@ -267,7 +267,8 @@
       </div>
 
       <button type="submit">Transcrever</button>
-      <button type="button" onclick="startRecording()">🎤 Gravar Áudio</button>
+      <button type="button" id="btnStartRecording">🎤 Gravar Áudio</button>
+
       <button type="button" id="btnStopRecording" class="hidden" style="background:#ff4c4c; color:white; font-weight:bold; margin-bottom:10px;">🛑 Parar Gravação</button>
       <p id="timerGravacao" style="font-weight:bold; margin-top: 10px; display:none;">⏱️ 00:00</p>
 
@@ -587,111 +588,67 @@
     }
   }
 
-  let mediaRecorder;
-  let audioChunks = [];
-  let timerInterval;
-  let ultimaTentativaFalhada = false;
+ let mediaRecorder;
+let audioChunks = [];
+let timerInterval;
 
-  async function startRecording() {
-    const status = document.getElementById("recordingStatus");
-    const startBtn = document.querySelector("button[onclick='startRecording()']");
-    const stopBtn = document.getElementById("btnStopRecording");
-    const transcribeBtn = document.querySelector("#uploadForm button[type='submit']");
-    const timer = document.getElementById("timerGravacao");
+async function startRecording() {
+  const status = document.getElementById("recordingStatus");
+  const startBtn = document.getElementById("btnStartRecording");
+  const stopBtn = document.getElementById("btnStopRecording");
+  const transcribeBtn = document.querySelector("#uploadForm button[type='submit']");
+  const timer = document.getElementById("timerGravacao");
 
-    if (typeof MediaRecorder === "undefined") {
-      alert("O teu navegador não suporta gravação (MediaRecorder). Usa Chrome/Edge/Firefox recente.");
-      return;
-    }
-    if (mediaRecorder && mediaRecorder.state === "recording") return;
+  // feature detection
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    alert("O teu navegador não suporta getUserMedia. Usa Chrome/Edge/Firefox recente e HTTPS.");
+    return;
+  }
+  if (typeof MediaRecorder === "undefined") {
+    alert("O teu navegador não suporta MediaRecorder.");
+    return;
+  }
+  if (mediaRecorder && mediaRecorder.state === "recording") return; // já a gravar
 
-    // pedir microfone com tratamento de erro
-    let stream;
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch (err) {
-      alert("Não foi possível aceder ao microfone. Verifica permissões e usa HTTPS/localhost.");
-      return;
-    }
+  // pedir microfone
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch (err) {
+    console.error("getUserMedia error", err);
+    alert("Não foi possível aceder ao microfone. Verifica permissões (cadeado na barra de endereços).");
+    return;
+  }
 
-    const preferidos = [
-      "audio/webm;codecs=opus",
-      "audio/ogg;codecs=opus",
-      "audio/mp4",
-      "audio/webm"
-    ];
-    const mimeType = (MediaRecorder.isTypeSupported && preferidos.find(t => MediaRecorder.isTypeSupported(t))) || "";
+  // escolher o melhor MIME suportado
+  const preferidos = [
+    "audio/webm;codecs=opus", // Chrome
+    "audio/ogg;codecs=opus",  // Firefox (algumas plataformas)
+    "audio/mp4"               // Safari
+  ];
+  const mimeType = (MediaRecorder.isTypeSupported && preferidos.find(t => MediaRecorder.isTypeSupported(t))) || "";
 
+  try {
     mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
-    audioChunks = [];
+  } catch (e) {
+    console.error("MediaRecorder init error", e);
+    alert("Não foi possível iniciar a gravação neste navegador.");
+    stream.getTracks().forEach(t => t.stop());
+    return;
+  }
 
-    mediaRecorder.ondataavailable = e => { if (e.data && e.data.size) audioChunks.push(e.data); };
+  audioChunks = [];
 
-    mediaRecorder.onstop = async () => {
-      // parar timer e libertar microfone
-      clearInterval(timerInterval);
-      timer.style.display = "none";
-      timer.textContent = "⏱️ 00:00";
-      stream.getTracks().forEach(t => t.stop());
+  mediaRecorder.onstart = () => {
+    // UI estado a gravar
+    status.textContent = "🎙️ A gravar... clique em 'Parar Gravação' para terminar.";
+    stopBtn.classList.remove("hidden");
+    startBtn.disabled = true;
+    transcribeBtn.disabled = true;
+    startBtn.style.opacity = 0.5;
+    transcribeBtn.style.opacity = 0.5;
 
-      stopBtn.classList.add("hidden");
-      startBtn.disabled = false;
-      transcribeBtn.disabled = false;
-      startBtn.style.opacity = 1;
-      transcribeBtn.style.opacity = 1;
-
-      // extensão coerente com o mime real
-      const mime = mediaRecorder.mimeType || "audio/webm";
-      const ext =
-        mime.includes("ogg") ? "ogg" :
-        (mime.includes("mp4") || mime.includes("m4a")) ? "m4a" :
-        "webm";
-
-      const blob = new Blob(audioChunks, { type: mime });
-      const formData = new FormData();
-      formData.append("file", blob, `gravacao.${ext}`);
-
-      // UI
-      status.textContent = "🕐 A processar o áudio...";
-      loading.classList.remove("hidden");
-      let p = 0;
-      const anim = setInterval(() => {
-        if (p < 90) { p += Math.random() * 5; progressBar.style.width = `${p.toFixed(1)}%`; }
-      }, 200);
-
-      try {
-        const controller = new AbortController();
-        const to = setTimeout(() => controller.abort(), 120000);
-        const res = await fetch("https://api.ouviescrevi.pt/transcribe", {
-          method: "POST",
-          body: formData,
-          signal: controller.signal
-        });
-        clearTimeout(to);
-
-        let data;
-        try { data = await res.json(); }
-        catch { throw new Error(`Resposta inválida do servidor (${res.status}).`); }
-
-        if (!res.ok) throw new Error(data.error || `Erro ${res.status}`);
-
-        transcriptionText.value = data.formatted || data.transcription || "⚠️ Erro ao transcrever.";
-        output.classList.remove("hidden");
-        status.textContent = "✅ Transcrição concluída!";
-      } catch (err) {
-        console.error(err);
-        status.textContent = "❌ Erro ao processar áudio.";
-      } finally {
-        clearInterval(anim);
-        progressBar.style.width = "100%";
-        setTimeout(() => {
-          loading.classList.add("hidden");
-          progressBar.style.width = "0%";
-        }, 800);
-      }
-    };
-
-    // timer
+    // timer visível
     timer.style.display = "block";
     let segundos = 0;
     timerInterval = setInterval(() => {
@@ -700,21 +657,105 @@
       const sec = String(segundos % 60).padStart(2, '0');
       timer.textContent = `⏱️ ${min}:${sec}`;
     }, 1000);
+  };
 
-    mediaRecorder.start();
-    status.textContent = "🎙️ A gravar... clique em 'Parar Gravação' para terminar.";
-    stopBtn.classList.remove("hidden");
-    startBtn.disabled = true;
-    transcribeBtn.disabled = true;
-    startBtn.style.opacity = 0.5;
-    transcribeBtn.style.opacity = 0.5;
-  }
+  mediaRecorder.ondataavailable = e => {
+    if (e.data && e.data.size > 0) audioChunks.push(e.data);
+  };
 
-  document.getElementById("btnStopRecording").addEventListener("click", () => {
+  mediaRecorder.onerror = (e) => {
+    console.error("MediaRecorder error", e);
+    status.textContent = "❌ Erro do gravador. Tenta de novo.";
+  };
+
+  mediaRecorder.onstop = async () => {
+    // parar timer + libertar microfone
+    clearInterval(timerInterval);
+    timer.style.display = "none";
+    timer.textContent = "⏱️ 00:00";
+    stream.getTracks().forEach(t => t.stop());
+
+    stopBtn.classList.add("hidden");
+    startBtn.disabled = false;
+    transcribeBtn.disabled = false;
+    startBtn.style.opacity = 1;
+    transcribeBtn.style.opacity = 1;
+
+    // ⚠️ proteção: sem chunks = sem áudio
+    const size = audioChunks.reduce((n, b) => n + b.size, 0);
+    if (!audioChunks.length || size === 0) {
+      status.textContent = "⚠️ Não recebemos áudio (sem chunks). Tenta falar alguns segundos antes de parar.";
+      return;
+    }
+
+    const mime = mediaRecorder.mimeType || "audio/webm";
+    const ext = mime.includes("ogg") ? "ogg" : (mime.includes("mp4") || mime.includes("m4a")) ? "m4a" : "webm";
+
+    const blob = new Blob(audioChunks, { type: mime });
+
+    // enviar para a API
+    const formData = new FormData();
+    formData.append("file", blob, `gravacao.${ext}`);
+
+    status.textContent = "🕐 A processar o áudio...";
+    const loading = document.getElementById("loading");
+    const progressBar = document.getElementById("progressBar");
+    loading.classList.remove("hidden");
+    let p = 0;
+    const anim = setInterval(() => {
+      if (p < 90) { p += Math.random() * 5; progressBar.style.width = `${p.toFixed(1)}%`; }
+    }, 200);
+
+    try {
+      const controller = new AbortController();
+      const to = setTimeout(() => controller.abort(), 120000);
+      const res = await fetch("https://api.ouviescrevi.pt/transcribe", {
+        method: "POST",
+        body: formData,
+        signal: controller.signal
+      });
+      clearTimeout(to);
+
+      let data;
+      try { data = await res.json(); }
+      catch (e) {
+        throw new Error(`Resposta inválida do servidor (${res.status}).`);
+      }
+
+      if (!res.ok || (!data.formatted && !data.transcription)) {
+        console.error("API error", data);
+        throw new Error(data.error || `Erro ${res.status}`);
+      }
+
+      document.getElementById("transcriptionText").value =
+        data.formatted || data.transcription || "⚠️ Erro ao transcrever.";
+      document.getElementById("output").classList.remove("hidden");
+      status.textContent = "✅ Transcrição concluída!";
+    } catch (err) {
+      console.error(err);
+      status.textContent = "❌ Erro ao processar áudio.";
+    } finally {
+      clearInterval(anim);
+      progressBar.style.width = "100%";
+      setTimeout(() => {
+        loading.classList.add("hidden");
+        progressBar.style.width = "0%";
+      }, 800);
+    }
+  };
+
+  // 🔑 truque importante: passar um timeslice para garantir fluxos de dados
+  // (evita ficar sem chunks em gravações curtas)
+  mediaRecorder.start(250);
+
+  // ligar o botão "parar"
+  document.getElementById("btnStopRecording").onclick = () => {
     if (mediaRecorder && mediaRecorder.state === "recording") {
       mediaRecorder.stop();
     }
-  });
+  };
+}
+
 
   function logout() {
     localStorage.removeItem("loggedIn");
@@ -911,6 +952,17 @@
     fileInput.addEventListener("change", () => {
       fileNameDisplay.textContent = fileInput.files.length > 0 ? `Ficheiro: ${fileInput.files[0].name}` : "Nenhum ficheiro selecionado";
     });
+	// Ligar botões de gravação
+document.getElementById("btnStartRecording")
+  .addEventListener("click", startRecording);
+
+document.getElementById("btnStopRecording")
+  .addEventListener("click", () => {
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+      mediaRecorder.stop();
+    }
+  });
+
   });
 
   function tentarNovamente() {
