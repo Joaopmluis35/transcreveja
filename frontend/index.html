@@ -667,6 +667,8 @@ place-items: center;
 
 
 		<button onclick="gerarMinuta()"><span>📩 Gerar Minuta</span></button>
+		<button onclick="partilharWhatsapp()"><span>📲 Partilhar no WhatsApp</span></button>
+
 <button onclick="corrigirTextoIA()"><span>📝 Corrigir Texto</span></button>
 
 		<button onclick="abrirModalTraducao()"><span>🌍 Traduzir</span></button>
@@ -1582,6 +1584,22 @@ function copiarTextoBox(idTexto, botao) {
     botao.textContent = "✅ Copiado!";
     setTimeout(() => botao.textContent = "📋 Copiar Tudo", 2000);
   });
+}
+function partilharWhatsapp() {
+  const text = document.getElementById("transcriptionText").value.trim();
+  if (!text) {
+    alert("⚠️ A transcrição está vazia. Primeiro gera uma transcrição.");
+    return;
+  }
+
+  // Mensagem com link no fim
+  const mensagem = text + "\n\n🔗 Transcrito com Ouviescrevi: https://ouviescrevi.pt";
+
+  // Codifica para URL
+  const url = "https://wa.me/?text=" + encodeURIComponent(mensagem);
+
+  // Abre o WhatsApp
+  window.open(url, "_blank");
 }
 
 </script>
