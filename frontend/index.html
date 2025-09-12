@@ -145,7 +145,7 @@
 
     /* barra de progresso com largura constante */
     #loading p{ margin:8px 0; }
-    #transcricaoStatus{ min-height:46px; display:flex; align-items:center; justify-content:center; } /* altura fixa p/ frases diferentes */
+    #transcricaoStatus{ min-height:46px; display:flex; align-items:center; justify-content:center; }
     #progressWrap{ background:#ddd; border-radius:8px; width:100%; height:20px; }
     #progressBar{ height:100%; width:0%; background:#4caf50; border-radius:8px; transition:width .2s ease; }
 
@@ -169,22 +169,26 @@
     #modalTraducao.show{ display:flex !important; }
     #modalTraducao .card{ background:white; padding:20px; border-radius:10px; text-align:center; max-width:400px; color:#333; }
 
-    /* dropdown export (desktop por hover; mobile por clique) */
-    .dropdown-export{ position:relative; display:inline-block; }
+    /* dropdown export (hover só em dispositivos com rato; mobile abre por clique) */
+    .dropdown-export{ position:relative; display:inline-block; flex:1 1 auto; min-width:130px; max-width:220px; }
     .dropdown-content{
-      display:none;            /* fechado por defeito */
+      display:none;
       flex-direction:column;
       position:absolute;
       background:white;
-      min-width:180px;
+      min-width:200px;
       box-shadow:0 8px 16px rgba(0,0,0,.2);
       z-index:10;
       border-radius:8px;
-          top: 68%; left:0;
-      padding:5px 0;
+      top:110%; left:0;
+      padding:6px 0;
     }
-    .dropdown-export:hover .dropdown-content{ display:flex; } /* desktop: hover */
-    .dropdown-export.open .dropdown-content{ display:flex; } /* abre por clique */
+    .dropdown-export.open .dropdown-content{ display:flex !important; } /* força abertura por clique */
+
+    /* hover só se existir hover real (desktop) */
+    @media (hover:hover) and (pointer:fine){
+      .dropdown-export:hover .dropdown-content{ display:flex; }
+    }
 
     .dropdown-content button{
       background:none; border:none; padding:10px 20px; text-align:left; font-size:.95em; color:#333; cursor:pointer; width:100%;
@@ -228,9 +232,6 @@
         margin-top:8px;
         padding:6px 0;
         z-index:auto;
-      }
-      @media (hover:none){
-        .dropdown-export:hover .dropdown-content{ display:none; } /* ignora hover em touch */
       }
     }
   </style>
@@ -323,8 +324,6 @@
       </div>
 
       <div class="btn-group">
-       
-
         <button id="btnGerarResumo"><span>🧠 Gerar Resumo</span></button>
         <button onclick="partilharWhatsapp()"><span>📲 Partilhar no WhatsApp</span></button>
         <button onclick="gerarMinuta()"><span>📩 Gerar Minuta</span></button>
@@ -332,7 +331,8 @@
         <button onclick="abrirModalTraducao()"><span>🌍 Traduzir</span></button>
         <button onclick="classificarConteudo()"><span>📚 Classificar Tipo</span></button>
         <button onclick="gerarEmailIA()"><span>📧 Gerar Email</span></button>
-		 <div class="dropdown-export" id="exportDropdown">
+
+        <div class="dropdown-export" id="exportDropdown">
           <button id="exportBtn" aria-haspopup="true" aria-expanded="false"><span>📁 Exportar ▼</span></button>
           <div class="dropdown-content" id="exportOptions">
             <button onclick="exportText('pdf')"><span>📄 Exportar PDF</span></button>
@@ -390,6 +390,10 @@
   // Estado global
   // =========================
   const API_BASE = "https://api.ouviescrevi.pt";
+
+  // 👉 coloca aqui o teu email de admin para receber a notificação
+  const ADMIN_EMAIL = "admin@ouviescrevi.pt";
+
   let mediaRecorder;
   let audioChunks = [];
   let timerInterval;      // gravação
@@ -609,6 +613,36 @@
       const a = document.createElement('a');
       a.href = url; a.download = "transcricao.srt"; a.click();
       URL.revokeObjectURL(url);
+    }
+  }
+
+  // =========================
+  // Partilhar WhatsApp + notificar por email
+  // =========================
+  async function partilharWhatsapp(){
+    const text = (document.getElementById("transcriptionText").value || "").trim();
+    const url = "https://api.whatsapp.com/send?text=" + encodeURIComponent(text || "Partilha feita pelo Ouviescrevi.");
+    // abre WhatsApp
+    window.open(url, "_blank");
+
+    // notificar backend por email
+    try{
+      await fetch(`${API_BASE}/notify-whatsapp-share`, {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({
+          email: ADMIN_EMAIL,
+          when: new Date().toISOString(),
+          userAgent: navigator.userAgent,
+          textPreview: text.slice(0, 200)
+        })
+      });
+    }catch(err){
+      // fallback: abrir cliente de email do admin
+      const subject = encodeURIComponent("Notificação: Partilha no WhatsApp");
+      const body = encodeURIComponent(`Alguém clicou em "Partilhar no WhatsApp".\n\nData: ${new Date().toLocaleString()}\nUser-Agent: ${navigator.userAgent}\n\nPré-visualização do texto:\n${text.slice(0,500)}`);
+      window.open(`mailto:${ADMIN_EMAIL}?subject=${subject}&body=${body}`, "_blank");
+      console.warn("Falha a notificar via API. Usado fallback mailto.", err);
     }
   }
 
@@ -1047,12 +1081,16 @@
     const dropdown = document.getElementById('exportDropdown');
     const btn = document.getElementById('exportBtn');
 
-    btn.addEventListener('click', function(e){
+    const toggle = (e) => {
       e.preventDefault();
       e.stopPropagation();
       dropdown.classList.toggle('open');
       btn.setAttribute('aria-expanded', dropdown.classList.contains('open'));
-    });
+    };
+
+    btn.addEventListener('click', toggle, { passive:false });
+    // melhora para iOS: também reagir ao touchstart
+    btn.addEventListener('touchstart', toggle, { passive:false });
 
     // fechar ao clicar fora
     document.addEventListener('click', function(e){
