@@ -19,170 +19,200 @@
       color: white;
       text-align: center;
     }
-#adminContent{
-    place-items: center;
-}
-    header { padding: 20px; }
-    header h1 { margin: 0; font-size: 2em; }
+    #adminContent{ place-items:center; }
+    header{ padding:20px; }
+    header h1{ margin:0; font-size:2em; }
 
-    main {
-      padding: 40px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    main{
+      padding:40px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
     }
 
-    form {
-      background: white;
-      color: #333;
-      padding: 20px 30px;
-      border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-      margin-top: 20px;
-      max-width: 600px;
-      width: 100%;
-      text-align: left;
+    form{
+      background:white; color:#333;
+      padding:20px 30px;
+      border-radius:10px;
+      box-shadow:0 5px 15px rgba(0,0,0,0.1);
+      margin-top:20px;
+      max-width:600px;
+      width:100%;
+      text-align:left;
     }
 
-    input, button {
-      margin: 10px 0;
-      padding: 10px;
-      font-size: 1em;
-      width: 100%;
-      cursor: pointer;
+    input,button{
+      margin:10px 0;
+      padding:10px;
+      font-size:1em;
+      width:100%;
+      cursor:pointer;
     }
 
-    button {
-      background-color: #e6d7fb;
-      color: #333;
-      border: 2px solid #A550F7;
-      border-radius: 8px;
-      font-weight: bold;
-      transition: all 0.3s ease;
+    button{
+      background-color:#e6d7fb;
+      color:#333;
+      border:2px solid #A550F7;
+      border-radius:8px;
+      font-weight:bold;
+      transition:all 0.3s ease;
     }
-    button:hover { background: linear-gradient(135deg, #A550F7, #00C3FF); color: white; border-color: transparent; }
+    button:hover{ background:linear-gradient(135deg,#A550F7,#00C3FF); color:white; border-color:transparent; }
 
-    .hidden { display: none; }
+    .hidden{ display:none; }
 
-    #output textarea {
-      width: 100%;
-      min-height: 200px;
-      margin-top: 10px;
-      padding: 15px;
-      font-family: 'Segoe UI', sans-serif;
-      font-size: 1rem;
-      color: #333;
-      background: #fdfdfd;
-      border: 2px solid #A550F7;
-      border-radius: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-      line-height: 1.6;
-      resize: vertical;
-      transition: border-color 0.3s, box-shadow 0.3s;
-    }
-    #output textarea:focus { outline: none; border-color: #00C3FF; box-shadow: 0 0 0 4px rgba(0,195,255,0.15); }
+    /* output/areas alinhados à largura do form */
+    #loading, #output { width:100%; max-width:600px; }
 
-    .btn-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: center;
-      margin-top: 10px;
+    #output textarea{
+      width:100%;
+      min-height:200px;
+      margin-top:10px;
+      padding:15px;
+      font-family:'Segoe UI', sans-serif;
+      font-size:1rem;
+      color:#333;
+      background:#fdfdfd;
+      border:2px solid #A550F7;
+      border-radius:10px;
+      box-shadow:0 2px 5px rgba(0,0,0,0.05);
+      line-height:1.6;
+      resize:vertical;
+      transition:border-color 0.3s, box-shadow 0.3s;
     }
-    .btn-group button {
-      flex: 1 1 auto;
-      min-width: 130px;
-      max-width: 220px;
-      padding: 12px 18px;
-      font-size: 1em;
-      font-weight: bold;
-      border: 2px solid #A550F7;
-      border-radius: 8px;
-      background-color: #e6d7fb;
-      color: #333;
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-      transition: color 0.3s ease, border-color 0.3s ease;
-    }
-    .btn-group button::before {
-      content: "";
-      position: absolute;
-      left: 0; bottom: -100%;
-      width: 100%; height: 100%;
-      background: linear-gradient(135deg, #A550F7, #00C3FF);
-      transition: all 0.4s ease;
-      z-index: 0;
-    }
-    .btn-group button:hover::before { bottom: 0; }
-    .btn-group button:hover { color: white; border-color: transparent; }
-    .btn-group button span { position: relative; z-index: 2; }
+    #output textarea:focus{ outline:none; border-color:#00C3FF; box-shadow:0 0 0 4px rgba(0,195,255,0.15); }
 
-    #dropZone {
-      border: 2px dashed #A550F7; padding: 20px; text-align: center; cursor: pointer;
-      border-radius: 10px; margin-bottom: 15px; background-color: #fafafa; color: #333; position: relative;
+    .btn-group{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      justify-content:center;
+      margin-top:10px;
     }
-    #dropZone:hover { background-color: #f0f0f0; }
-    #dropZone input[type="file"] { display: none; }
-    #fileName { display: block; margin-top: 10px; color: #555; font-size: 14px; font-style: italic; }
-
-    .switch-container {
-      display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 14px;
+    .btn-group button{
+      flex:1 1 auto;
+      min-width:130px;
+      max-width:220px;
+      padding:12px 18px;
+      font-size:1em;
+      font-weight:bold;
+      border:2px solid #A550F7;
+      border-radius:8px;
+      background-color:#e6d7fb;
+      color:#333;
+      cursor:pointer;
+      position:relative;
+      overflow:hidden;
+      transition:color 0.3s ease, border-color 0.3s ease;
     }
-    .switch-container input[type="checkbox"] {
-      appearance: none; width: 40px; height: 20px; background: #ccc; border-radius: 20px; position: relative; cursor: pointer; outline: none; transition: background 0.3s;
+    .btn-group button::before{
+      content:"";
+      position:absolute; left:0; bottom:-100%;
+      width:100%; height:100%;
+      background:linear-gradient(135deg,#A550F7,#00C3FF);
+      transition:all 0.4s ease; z-index:0;
     }
-    .switch-container input[type="checkbox"]::before {
-      content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: white; border-radius: 50%; transition: transform 0.3s;
+    .btn-group button:hover::before{ bottom:0; }
+    .btn-group button:hover{ color:white; border-color:transparent; }
+    .btn-group button span{ position:relative; z-index:2; }
+
+    #dropZone{
+      border:2px dashed #A550F7;
+      padding:20px;
+      text-align:center;
+      cursor:pointer;
+      border-radius:10px;
+      margin-bottom:15px;
+      background-color:#fafafa; color:#333;
+      position:relative;
     }
-    .switch-container input[type="checkbox"]:checked { background: #4caf50; }
-    .switch-container input[type="checkbox"]:checked::before { transform: translateX(20px); }
-    .switch-label { user-select: none; }
+    #dropZone:hover{ background-color:#f0f0f0; }
+    #dropZone input[type="file"]{ display:none; }
+    #fileName{ display:block; margin-top:10px; color:#555; font-size:14px; font-style:italic; }
 
-    #loading p { margin: 8px 0; }
-    #progressWrap { background:#ddd; border-radius:8px; width:100%; height:20px; }
-    #progressBar { height:100%; width:0%; background:#4caf50; border-radius:8px; transition: width .2s ease; }
+    .switch-container{
+      display:flex; align-items:center; gap:10px; margin-top:10px; font-size:14px;
+    }
+    .switch-container input[type="checkbox"]{
+      appearance:none; width:40px; height:20px; background:#ccc; border-radius:20px; position:relative; cursor:pointer; outline:none; transition:background 0.3s;
+    }
+    .switch-container input[type="checkbox"]::before{
+      content:""; position:absolute; top:2px; left:2px; width:16px; height:16px; background:white; border-radius:50%; transition:transform 0.3s;
+    }
+    .switch-container input[type="checkbox"]:checked{ background:#4caf50; }
+    .switch-container input[type="checkbox"]:checked::before{ transform:translateX(20px); }
+    .switch-label{ user-select:none; }
 
-    /* Status banners */
-    .status {
-      background:#fff3cd; color:#856404; border-left:5px solid #ffc107; padding:12px 18px; margin:15px 0;
-      border-radius:5px; font-weight:bold;
+    /* barra de progresso com largura constante */
+    #loading p{ margin:8px 0; }
+    #transcricaoStatus{ min-height:46px; display:flex; align-items:center; justify-content:center; } /* altura fixa p/ frases diferentes */
+    #progressWrap{ background:#ddd; border-radius:8px; width:100%; height:20px; }
+    #progressBar{ height:100%; width:0%; background:#4caf50; border-radius:8px; transition:width .2s ease; }
+
+    /* status banners */
+    .status{
+      background:#fff3cd; color:#856404; border-left:5px solid #ffc107;
+      padding:12px 18px; margin:15px 0; border-radius:5px; font-weight:bold;
     }
 
-    /* Transcription timer (while processing) */
-    #timerTranscricao { /* ✅ contador do tempo de transcrição */
-      color:#333; font-weight:bold; background:#e9f7ff; border-left:5px solid #00C3FF; padding:8px 12px; border-radius:5px;
-      display:inline-block;
+    /* temporizador transcrição */
+    #timerTranscricao{
+      color:#333; font-weight:bold; background:#e9f7ff;
+      border-left:5px solid #00C3FF; padding:8px 12px; border-radius:5px; display:inline-block;
     }
 
-    /* Modal tradução */
-    #modalTraducao { display:none !important; }
-    #modalTraducao.show { display:flex !important; }
-    #modalTraducao .card { background:white; padding:20px; border-radius:10px; text-align:center; max-width:400px; color:#333; }
+    /* resumo: garantir texto escuro */
+    #resumoTexto{ color:#222; }
 
-    /* Nav nichos (se usar header externo ignora) */
-    #nichoMenu { display:flex; flex-wrap:wrap; justify-content:center; gap:12px; position:sticky; top:0; z-index:999; }
-    #nichoMenu button {
+    /* modal tradução */
+    #modalTraducao{ display:none !important; }
+    #modalTraducao.show{ display:flex !important; }
+    #modalTraducao .card{ background:white; padding:20px; border-radius:10px; text-align:center; max-width:400px; color:#333; }
+
+    /* dropdown export: abre no hover */
+    .dropdown-export{ position:relative; display:inline-block; }
+    .dropdown-content{
+      display:none;            /* fechado por defeito */
+      flex-direction:column;
+      position:absolute;
+      background:white;
+      min-width:180px;
+      box-shadow:0 8px 16px rgba(0,0,0,.2);
+      z-index:1;
+      border-radius:8px;
+      top:110%; left:0;
+      padding:5px 0;
+    }
+    .dropdown-export:hover .dropdown-content{ display:flex; } /* abre no hover */
+    .dropdown-content button{
+      background:none; border:none; padding:10px 20px; text-align:left; font-size:.95em; color:#333; cursor:pointer; width:100%;
+    }
+    .dropdown-content button:hover{ background:#f0f0f0; }
+
+    /* nav nichos */
+    #nichoMenu{ display:flex; flex-wrap:wrap; justify-content:center; gap:12px; position:sticky; top:0; z-index:999; }
+    #nichoMenu button{
       position:relative; overflow:hidden; background:#e6d7fb; color:#333; border:2px solid #A550F7; border-radius:50px;
       padding:10px 20px; font-weight:bold; font-size:.95em; cursor:pointer; transition:color .3s, border-color .3s;
       box-shadow:0 2px 4px rgba(0,0,0,.1); flex:0 0 auto; white-space:nowrap; width:max-content; z-index:1;
     }
-    #nichoMenu button::before {
+    #nichoMenu button::before{
       content:""; position:absolute; left:0; bottom:-100%; width:100%; height:100%;
       background:linear-gradient(135deg,#A550F7,#00C3FF); transition:bottom .6s cubic-bezier(.25,1,.5,1); z-index:0;
     }
-    #nichoMenu button:hover::before { bottom:0; }
-    #nichoMenu button span { position:relative; z-index:2; }
-    #nichoMenu button:hover { color:white; border-color:white; }
+    #nichoMenu button:hover::before{ bottom:0; }
+    #nichoMenu button span{ position:relative; z-index:2; }
+    #nichoMenu button:hover{ color:white; border-color:white; }
 
-    @media (max-width: 820px) {
-      main { padding:20px; }
-      form { padding:15px 20px; width:100%; max-width:100%; }
-      input, button { width:100%; font-size:1em; }
-      .btn-group { flex-direction:column; align-items:stretch; }
-      .btn-group button { max-width:100%; min-width:unset; font-size:1em; }
-      #output textarea { min-height:160px; }
-      #modalTraducao .card { width:90%; max-width:90%; }
+    @media (max-width:820px){
+      main{ padding:20px; }
+      form{ padding:15px 20px; width:100%; max-width:100%; }
+      input,button{ width:100%; font-size:1em; }
+      .btn-group{ flex-direction:column; align-items:stretch; }
+      .btn-group button{ max-width:100%; min-width:unset; font-size:1em; }
+      #output textarea{ min-height:160px; }
+      #modalTraducao .card{ width:90%; max-width:90%; }
+      #loading, #output{ max-width:100%; }
     }
   </style>
 </head>
@@ -191,7 +221,6 @@
 <div id="header"></div>
 
 <main>
-
   <div id="adminContent">
     <p>
       <strong>🧠 Ouviescrevi</strong> é o teu assistente com IA para
@@ -224,8 +253,6 @@
 
     <div id="loading" class="hidden">
       <p class="status" id="transcricaoStatus">🔄 A preparar...</p>
-
-      <!-- ✅ contador do tempo de transcrição -->
       <p id="timerTranscricao" class="hidden">⏳ 00:00</p>
 
       <div id="progressWrap">
@@ -249,7 +276,7 @@
 
       <div id="resumoBox" class="hidden">
         <h3>📌 Resumo:</h3>
-        <div id="resumoTexto" style="background:#f0f0f0; padding:15px; border-radius:8px; white-space:pre-wrap;"></div>
+        <div id="resumoTexto" style="background:#f0f0f0; color:#222; padding:15px; border-radius:8px; white-space:pre-wrap;"></div>
         <div style="text-align:right; margin-top:5px;">
           <button onclick="copiarTextoBox('resumoTexto', this)" style="background:#e6d7fb; border:2px solid #A550F7; border-radius:6px; padding:5px 12px; font-size:.9em; cursor:pointer; color:#333; font-weight:bold;">📋 Copiar Tudo</button>
         </div>
@@ -277,9 +304,9 @@
       </div>
 
       <div class="btn-group">
-        <div class="dropdown-export" style="position:relative; display:inline-block;">
+        <div class="dropdown-export">
           <button id="exportBtn"><span>📁 Exportar ▼</span></button>
-          <div class="dropdown-content hidden" id="exportOptions" style="display:flex; flex-direction:column; position:absolute; background:white; min-width:180px; box-shadow:0 8px 16px rgba(0,0,0,.2); z-index:1; border-radius:8px; top:110%; left:0; padding:5px 0;">
+          <div class="dropdown-content" id="exportOptions">
             <button onclick="exportText('pdf')"><span>📄 Exportar PDF</span></button>
             <button onclick="exportText('doc')"><span>📝 Exportar DOC</span></button>
             <button onclick="exportText('txt')"><span>📃 Exportar TXT</span></button>
@@ -300,8 +327,8 @@
   </div>
 
   <!-- Modal de tradução -->
-  <div id="modalTraducao" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,.6); display:flex; justify-content:center; align-items:center; z-index:9999;">
+  <div id="modalTraducao" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%;
+    background:rgba(0,0,0,.6); display:flex; justify-content:center; align-items:center; z-index:9999;">
     <div class="card">
       <h3 style="margin-bottom:10px;">🌍 Seleciona o idioma de destino:</h3>
       <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center;">
@@ -346,11 +373,10 @@
   let mediaRecorder;
   let audioChunks = [];
   let timerInterval;      // gravação
-  let trxTimerInterval;   // ✅ transcrição
+  let trxTimerInterval;   // transcrição
   let statusInterval;     // frases animadas
   let ultimaTentativaFalhada = false;
 
-  // Frases animadas durante transcrição
   const statusFrases = [
     "🧩 A montar o quebra-cabeças da tua gravação...",
     "🧠 A preparar os neurónios para ouvir o ficheiro...",
@@ -367,7 +393,7 @@
   // =========================
   // Utilitários UI
   // =========================
-  function iniciarFrasesAnimadas(el) {
+  function iniciarFrasesAnimadas(el){
     let i = 0;
     el.textContent = statusFrases[i];
     el.classList.remove("hidden");
@@ -381,19 +407,16 @@
       }, 300);
     }, 2500);
   }
-  function pararFrasesAnimadas(el) {
+  function pararFrasesAnimadas(el){
     clearInterval(statusInterval);
     if (el) el.style.opacity = 1;
   }
-
-  function formatMMSS(totalSeconds) {
+  function formatMMSS(totalSeconds){
     const m = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
     const s = String(totalSeconds % 60).padStart(2, '0');
     return `${m}:${s}`;
   }
-
-  // ✅ contador do tempo de transcrição (sobe até parar)
-  function iniciarTimerTranscricao() {
+  function iniciarTimerTranscricao(){
     const el = document.getElementById("timerTranscricao");
     let secs = 0;
     el.textContent = "⏳ 00:00";
@@ -403,7 +426,7 @@
       el.textContent = `⏳ ${formatMMSS(secs)}`;
     }, 1000);
   }
-  function pararTimerTranscricao() {
+  function pararTimerTranscricao(){
     clearInterval(trxTimerInterval);
     document.getElementById("timerTranscricao").classList.add("hidden");
   }
@@ -437,9 +460,9 @@
     btnStartRec.style.opacity = 0.6;
 
     iniciarFrasesAnimadas(statusEl);
-    iniciarTimerTranscricao(); // ✅
+    iniciarTimerTranscricao();
 
-    // progresso "fake" suave até 90%
+    // progresso "fake" até 90%
     let progress = 0;
     const interval = setInterval(() => {
       if (progress < 90) {
@@ -448,7 +471,7 @@
       }
     }, 200);
 
-    // Request com retries + timeout
+    // pedido com retries
     const formData = new FormData();
     formData.append("file", file);
 
@@ -456,34 +479,25 @@
     let data = {};
     const MAX_TRIES = 3;
 
-    for (let tentativa = 1; tentativa <= MAX_TRIES && !sucesso; tentativa++) {
-      try {
-        if (tentativa === 2) {
+    for (let tentativa = 1; tentativa <= MAX_TRIES && !sucesso; tentativa++){
+      try{
+        if (tentativa === 2){
           pararFrasesAnimadas(statusEl);
           statusEl.textContent = "😓 Está difícil... mas estamos a tentar novamente com toda a força!";
-        } else if (tentativa === 3) {
+        } else if (tentativa === 3){
           statusEl.textContent = "🛠️ Última tentativa — estamos a ajustar os parâmetros...";
         }
 
         const controller = new AbortController();
-        const to = setTimeout(() => controller.abort(), 180000); // 3 min por tentativa
-        const res = await fetch(`${API_BASE}/transcribe`, {
-          method: "POST",
-          body: formData,
-          signal: controller.signal
-        });
+        const to = setTimeout(() => controller.abort(), 180000); // 3 min
+        const res = await fetch(`${API_BASE}/transcribe`, { method:"POST", body: formData, signal: controller.signal });
         clearTimeout(to);
 
-        // tenta ler JSON com segurança
         let jsonText = await res.text();
-        try { data = JSON.parse(jsonText); }
-        catch { data = { error: `Resposta inválida do servidor (${res.status})` }; }
-
+        try{ data = JSON.parse(jsonText); } catch{ data = { error: `Resposta inválida do servidor (${res.status})` }; }
         if (!res.ok) throw new Error(data.error || `Erro ${res.status}`);
-
         sucesso = !!(data.formatted || data.transcription || data.text);
-      } catch (err) {
-        // espera curta antes de nova tentativa
+      }catch(err){
         await new Promise(r => setTimeout(r, 700));
       }
     }
@@ -491,12 +505,11 @@
     clearInterval(interval);
     progressBar.style.width = "100%";
     pararFrasesAnimadas(statusEl);
-    pararTimerTranscricao(); // ✅
+    pararTimerTranscricao();
 
-    // Mostrar resultados
     const identificar = document.getElementById("identificarLocutores").checked;
     const textoRecebido = data.formatted || data.transcription || data.text || "";
-    if (sucesso && textoRecebido.trim()) {
+    if (sucesso && textoRecebido.trim()){
       let textoFinal = textoRecebido;
       if (identificar) textoFinal = aplicarLocutores(textoFinal);
       transcriptionText.value = textoFinal;
@@ -514,7 +527,6 @@
       loading.classList.add("hidden");
       progressBar.style.width = "0%";
       document.getElementById("btnRetry").classList.toggle("hidden", !ultimaTentativaFalhada);
-      // reativar botões
       btnTranscrever.disabled = false;
       btnStartRec.disabled = false;
       btnTranscrever.style.opacity = 1;
@@ -525,52 +537,46 @@
   // =========================
   // Exportações
   // =========================
-  function exportText(type) {
+  function exportText(type){
     const text = transcriptionText.value || "";
     if (!text) return;
 
-    if (type === 'pdf') {
+    if (type === 'pdf'){
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
       const lines = doc.splitTextToSize(text, 180);
       let y = 20;
-      for (let i = 0; i < lines.length; i++) {
-        if (y > 270) { doc.addPage(); y = 20; }
+      for (let i = 0; i < lines.length; i++){
+        if (y > 270){ doc.addPage(); y = 20; }
         doc.text(lines[i], 15, y);
         y += 8;
       }
       doc.save("transcricao.pdf");
-    } else if (type === 'doc') {
+    } else if (type === 'doc'){
       const blob = new Blob([text], { type: 'application/msword;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url;
-      a.download = "transcricao.doc";
-      a.click();
+      a.href = url; a.download = "transcricao.doc"; a.click();
       URL.revokeObjectURL(url);
-    } else if (type === 'txt') {
+    } else if (type === 'txt'){
       const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url;
-      a.download = "transcricao.txt";
-      a.click();
+      a.href = url; a.download = "transcricao.txt"; a.click();
       URL.revokeObjectURL(url);
-    } else if (type === 'json') {
+    } else if (type === 'json'){
       const json = JSON.stringify({ transcription: text }, null, 2);
       const blob = new Blob([json], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url;
-      a.download = "transcricao.json";
-      a.click();
+      a.href = url; a.download = "transcricao.json"; a.click();
       URL.revokeObjectURL(url);
-    } else if (type === 'srt') {
+    } else if (type === 'srt'){
       const lines = text.split('\n');
       let srt = '', count = 1;
-      for (let line of lines) {
+      for (let line of lines){
         const match = line.match(/^\[(\d{2}):(\d{2})\]\s*(.+)$/);
-        if (match) {
+        if (match){
           const [, min, sec, content] = match;
           const start = `00:${min}:${sec},000`;
           const end = `00:${min}:${String(Math.min(59, parseInt(sec) + 2)).padStart(2, '0')},000`;
@@ -581,9 +587,7 @@
       const blob = new Blob([srt], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url;
-      a.download = "transcricao.srt";
-      a.click();
+      a.href = url; a.download = "transcricao.srt"; a.click();
       URL.revokeObjectURL(url);
     }
   }
@@ -596,64 +600,42 @@
     if (mediaRecorder && mediaRecorder.state === "recording") mediaRecorder.stop();
   });
 
-  async function startRecording() {
+  async function startRecording(){
     const status = document.getElementById("recordingStatus");
     const startBtn = document.getElementById("btnStartRec");
     const stopBtn = document.getElementById("btnStopRecording");
     const transcribeBtn = document.getElementById("btnTranscrever");
     const timer = document.getElementById("timerGravacao");
 
-    // Feature detection
-    if (!navigator.mediaDevices?.getUserMedia) {
-      alert("O teu navegador não suporta getUserMedia. Usa Chrome/Edge/Firefox recente e HTTPS.");
-      return;
-    }
-    if (typeof MediaRecorder === "undefined") {
-      alert("O teu navegador não suporta MediaRecorder.");
-      return;
-    }
+    if (!navigator.mediaDevices?.getUserMedia){ alert("O teu navegador não suporta getUserMedia. Usa Chrome/Edge/Firefox recente e HTTPS."); return; }
+    if (typeof MediaRecorder === "undefined"){ alert("O teu navegador não suporta MediaRecorder."); return; }
     if (mediaRecorder && mediaRecorder.state === "recording") return;
 
-    // pedir microfone
     let stream;
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch {
-      alert("Não foi possível aceder ao microfone. Verifica permissões.");
-      return;
-    }
+    try{ stream = await navigator.mediaDevices.getUserMedia({ audio:true }); }
+    catch{ alert("Não foi possível aceder ao microfone. Verifica permissões."); return; }
 
-    // escolher MIME suportado
     const preferidos = ["audio/webm;codecs=opus", "audio/ogg;codecs=opus", "audio/mp4"];
     const mimeType = (MediaRecorder.isTypeSupported && preferidos.find(t => MediaRecorder.isTypeSupported(t))) || "";
-
-    try {
-      mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
-    } catch {
-      alert("Não foi possível iniciar a gravação neste navegador.");
-      stream.getTracks().forEach(t => t.stop());
-      return;
-    }
+    try{ mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined); }
+    catch{ alert("Não foi possível iniciar a gravação neste navegador."); stream.getTracks().forEach(t => t.stop()); return; }
 
     audioChunks = [];
 
     mediaRecorder.onstart = () => {
       status.textContent = "🎙️ A gravar... clique em 'Parar Gravação' para terminar.";
       stopBtn.classList.remove("hidden");
-      startBtn.disabled = true;
-      transcribeBtn.disabled = true;
+      startBtn.disabled = true; transcribeBtn.disabled = true;
       startBtn.style.opacity = 0.6; transcribeBtn.style.opacity = 0.6;
 
       timer.classList.remove("hidden");
       let segundos = 0;
       timerInterval = setInterval(() => {
-        segundos++;
-        timer.textContent = `⏱️ ${formatMMSS(segundos)}`;
+        segundos++; timer.textContent = `⏱️ ${formatMMSS(segundos)}`;
       }, 1000);
     };
 
     mediaRecorder.ondataavailable = e => { if (e.data && e.data.size > 0) audioChunks.push(e.data); };
-
     mediaRecorder.onerror = () => { status.textContent = "❌ Erro do gravador. Tenta de novo."; };
 
     mediaRecorder.onstop = async () => {
@@ -662,12 +644,11 @@
       stream.getTracks().forEach(t => t.stop());
 
       stopBtn.classList.add("hidden");
-      startBtn.disabled = false;
-      transcribeBtn.disabled = false;
+      startBtn.disabled = false; transcribeBtn.disabled = false;
       startBtn.style.opacity = 1; transcribeBtn.style.opacity = 1;
 
       const size = audioChunks.reduce((n, b) => n + b.size, 0);
-      if (!audioChunks.length || size === 0) {
+      if (!audioChunks.length || size === 0){
         status.textContent = "⚠️ Sem áudio (sem chunks). Tenta falar alguns segundos antes de parar.";
         return;
       }
@@ -683,12 +664,12 @@
       loading.classList.remove("hidden");
       progressBar.style.width = "0%";
       iniciarFrasesAnimadas(statusEl);
-      iniciarTimerTranscricao(); // ✅
+      iniciarTimerTranscricao();
 
       let p = 0;
       const anim = setInterval(() => { if (p < 90) { p += Math.random() * 5; progressBar.style.width = `${p.toFixed(1)}%`; } }, 200);
 
-      try {
+      try{
         const controller = new AbortController();
         const to = setTimeout(() => controller.abort(), 120000);
         const res = await fetch(`${API_BASE}/transcribe`, { method:"POST", body: formData, signal: controller.signal });
@@ -696,95 +677,83 @@
 
         let data = {};
         let txt = await res.text();
-        try { data = JSON.parse(txt); } catch { data = { error: `Resposta inválida (${res.status})` }; }
+        try{ data = JSON.parse(txt); } catch{ data = { error: `Resposta inválida (${res.status})` }; }
 
         transcriptionText.value = data.formatted || data.transcription || "⚠️ Erro ao transcrever.";
         output.classList.remove("hidden");
         status.textContent = "✅ Transcrição concluída!";
-      } catch (err) {
+      }catch(err){
         status.textContent = "❌ Erro ao processar áudio.";
-      } finally {
+      }finally{
         clearInterval(anim);
         progressBar.style.width = "100%";
         pararFrasesAnimadas(statusEl);
-        pararTimerTranscricao(); // ✅
+        pararTimerTranscricao();
         setTimeout(() => { loading.classList.add("hidden"); progressBar.style.width = "0%"; }, 700);
       }
     };
 
-    mediaRecorder.start(250); // timeslice para garantir chunks
+    mediaRecorder.start(250);
   }
 
   // =========================
-  // Botões e handlers extra
+  // Ações extra
   // =========================
-  function tentarNovamente() {
+  function tentarNovamente(){
     const file = document.getElementById("fileInput").files[0];
-    if (!file) { alert("⚠️ Nenhum ficheiro selecionado."); return; }
+    if (!file){ alert("⚠️ Nenhum ficheiro selecionado."); return; }
     form.dispatchEvent(new Event("submit", { bubbles:true, cancelable:true }));
   }
 
-  async function classificarConteudo() {
+  async function classificarConteudo(){
     const text = transcriptionText.value.trim();
     if (!text) return alert("⚠️ Transcrição vazia.");
-
     const btn = event.target.closest("button");
     const original = btn.innerHTML; btn.innerHTML = "<span>📚 A classificar...</span>"; btn.disabled = true;
-
-    try {
+    try{
       const res = await fetch(`${API_BASE}/classify`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, token: "ouviescrevi2025@resumo" })
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ text, token:"ouviescrevi2025@resumo" })
       });
       const data = await res.json();
       const box = document.getElementById("classificacaoBox");
       document.getElementById("classificacaoTexto").textContent =
         data.type ? `🔎 ${data.type}` : (data.error ? `❌ Erro: ${data.error}` : "❌ Erro inesperado.");
       box.classList.remove("hidden");
-    } catch {
+    }catch{
       const box = document.getElementById("classificacaoBox");
       document.getElementById("classificacaoTexto").textContent = "❌ Falha ao comunicar com a API.";
       box.classList.remove("hidden");
-    } finally {
+    }finally{
       btn.innerHTML = original; btn.disabled = false;
     }
   }
 
-  async function corrigirTextoIA() {
+  async function corrigirTextoIA(){
     const text = transcriptionText.value.trim();
     if (!text) return alert("⚠️ Transcrição vazia.");
-
     const btn = event.target.closest("button");
     const original = btn.innerHTML; btn.innerHTML = "<span>📝 A corrigir...</span>"; btn.disabled = true;
-    try {
+    try{
       const res = await fetch(`${API_BASE}/correct`, {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ text, token: "ouviescrevi2025@resumo" })
+        body: JSON.stringify({ text, token:"ouviescrevi2025@resumo" })
       });
       const data = await res.json();
-      if (data.corrected) {
-        transcriptionText.value = data.corrected;
-        alert("✅ Texto corrigido com sucesso!");
-      } else {
-        alert("❌ Erro: " + (data.error || "resposta inválida"));
-      }
-    } catch {
-      alert("❌ Falha ao comunicar com a API.");
-    } finally {
-      btn.innerHTML = original; btn.disabled = false;
-    }
+      if (data.corrected){ transcriptionText.value = data.corrected; alert("✅ Texto corrigido com sucesso!"); }
+      else { alert("❌ Erro: " + (data.error || "resposta inválida")); }
+    }catch{ alert("❌ Falha ao comunicar com a API."); }
+    finally{ btn.innerHTML = original; btn.disabled = false; }
   }
 
-  async function gerarMinuta() {
+  async function gerarMinuta(){
     const text = transcriptionText.value.trim();
     if (!text) return alert("⚠️ Transcrição vazia.");
-
     const btn = event.target.closest("button");
     const original = btn.innerHTML; btn.innerHTML = "<span>📩 A gerar minuta...</span>"; btn.disabled = true;
-
-    try {
+    try{
       const res = await fetch(`${API_BASE}/summarize`, {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
@@ -795,23 +764,21 @@
       document.getElementById("minutaTexto").textContent = data.summary || "❌ Erro ao gerar minuta.";
       box.classList.remove("hidden");
       scrollSeInvisivel("minutaBox");
-    } catch {
+    }catch{
       const box = document.getElementById("minutaBox");
       document.getElementById("minutaTexto").textContent = "❌ Erro inesperado ao comunicar com a API.";
       box.classList.remove("hidden");
-    } finally {
+    }finally{
       btn.innerHTML = original; btn.disabled = false;
     }
   }
 
-  async function gerarResumo(e) {
+  async function gerarResumo(e){
     const text = transcriptionText.value.trim();
     if (!text) return alert("⚠️ Transcrição vazia.");
-
     const btn = e?.target?.closest("button") || document.querySelector("#btnGerarResumo");
     const original = btn.innerHTML; btn.innerHTML = "<span>🧠 A gerar resumo...</span>"; btn.disabled = true;
-
-    try {
+    try{
       const res = await fetch(`${API_BASE}/summarize`, {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
@@ -823,18 +790,15 @@
         data.summary || ("❌ Erro ao gerar resumo: " + (data.error || "resposta inválida"));
       box.classList.remove("hidden");
       scrollSeInvisivel("resumoBox");
-    } catch {
-      alert("❌ Erro ao gerar resumo.");
-    } finally {
-      btn.innerHTML = original; btn.disabled = false;
-    }
+    }catch{ alert("❌ Erro ao gerar resumo."); }
+    finally{ btn.innerHTML = original; btn.disabled = false; }
   }
 
-  function aplicarLocutores(transcricao) {
+  function aplicarLocutores(transcricao){
     const linhas = transcricao.split('\n');
     let resultado = '';
     let locutorAtual = 'João';
-    for (let i = 0; i < linhas.length; i++) {
+    for (let i = 0; i < linhas.length; i++){
       const linha = linhas[i].trim();
       if (!linha) continue;
       const nova = linha.replace(/^\[(\d{2}:\d{2})\]/, (m, ts) => {
@@ -847,21 +811,16 @@
     return resultado.trim();
   }
 
-  function abrirModalTraducao() {
-    document.getElementById("modalTraducao").classList.add("show");
-  }
-  function fecharModalTraducao() {
-    document.getElementById("modalTraducao").classList.remove("show");
-  }
+  function abrirModalTraducao(){ document.getElementById("modalTraducao").classList.add("show"); }
+  function fecharModalTraducao(){ document.getElementById("modalTraducao").classList.remove("show"); }
   document.getElementById("modalTraducao").addEventListener("click", (e) => {
     if (e.target.id === "modalTraducao") fecharModalTraducao();
   });
 
-  async function traduzirTextoComIdioma(event, idioma) {
+  async function traduzirTextoComIdioma(event, idioma){
     fecharModalTraducao();
     const texto = transcriptionText.value.trim();
     if (!texto) return alert("⚠️ Transcrição vazia.");
-
     const status = document.getElementById("traducaoStatus");
     const progressBar = document.getElementById("traducaoProgressBar");
     const progressWrapper = document.getElementById("traducaoProgressWrapper");
@@ -873,14 +832,14 @@
 
     let p = 0;
     const interval = setInterval(() => {
-      if (p < 90) { p += Math.random() * 5; progressBar.style.width = `${p}%`; }
+      if (p < 90){ p += Math.random() * 5; progressBar.style.width = `${p}%`; }
     }, 200);
 
     const btn = event.target;
     const originalText = btn.textContent || "🌍 Traduzir";
     btn.textContent = "🌍 A traduzir..."; btn.disabled = true;
 
-    try {
+    try{
       const res = await fetch(`${API_BASE}/translate`, {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
@@ -889,7 +848,7 @@
       const data = await res.json();
       clearInterval(interval);
       progressBar.style.width = "100%";
-      if (data.translation) {
+      if (data.translation){
         transcriptionText.value = data.translation;
         document.getElementById("traducaoTexto").textContent = data.translation;
         document.getElementById("traducaoBox").classList.remove("hidden");
@@ -897,9 +856,9 @@
       } else {
         status.textContent = "❌ Erro: Tradução não recebida.";
       }
-    } catch {
+    }catch{
       status.textContent = "❌ Oops! Tivemos um problema ao comunicar com a IA.";
-    } finally {
+    }finally{
       setTimeout(() => {
         status.classList.add("hidden");
         progressWrapper.classList.add("hidden");
@@ -910,16 +869,14 @@
     }
   }
 
-  function copiarTranscricao() {
+  function copiarTranscricao(){
     const textarea = document.getElementById("transcriptionText");
     textarea.select();
     document.execCommand("copy");
-    const btn = event.target;
-    btn.textContent = "✅ Copiado!";
+    const btn = event.target; btn.textContent = "✅ Copiado!";
     setTimeout(() => btn.textContent = "📋 Copiar Tudo", 2000);
   }
-
-  function copiarTextoBox(idTexto, botao) {
+  function copiarTextoBox(idTexto, botao){
     const texto = document.getElementById(idTexto).textContent.trim();
     if (!texto) return;
     navigator.clipboard.writeText(texto).then(() => {
@@ -927,15 +884,13 @@
       setTimeout(() => botao.textContent = "📋 Copiar Tudo", 2000);
     });
   }
-
-  function limparTudo() {
+  function limparTudo(){
     const fileInput = document.getElementById("fileInput");
     fileInput.value = "";
     document.getElementById("fileName").textContent = "Nenhum ficheiro selecionado";
     transcriptionText.value = "";
     output.classList.add("hidden");
 
-    // caixas
     document.getElementById("resumoTexto").textContent = "";
     document.getElementById("traducaoTexto").textContent = "";
     document.getElementById("minutaTexto").textContent = "";
@@ -945,7 +900,6 @@
     document.getElementById("minutaBox").classList.add("hidden");
     document.getElementById("classificacaoBox").classList.add("hidden");
 
-    // status
     document.getElementById("traducaoStatus").classList.add("hidden");
     document.getElementById("traducaoProgressWrapper").classList.add("hidden");
     progressBar.style.width = "0%";
@@ -960,34 +914,12 @@
     document.getElementById("timerGravacao").classList.add("hidden");
     document.getElementById("timerGravacao").textContent = "⏱️ 00:00";
   }
-
-  function scrollSeInvisivel(id) {
+  function scrollSeInvisivel(id){
     const el = document.getElementById(id);
     if (el && !el.classList.contains("hidden")) el.scrollIntoView({ behavior:"smooth", block:"center" });
   }
 
-  function partilharWhatsapp() {
-    const text = document.getElementById("transcriptionText").value.trim();
-    if (!text) return alert("⚠️ A transcrição está vazia.");
-    const mensagem = text + "\n\n🔗 Transcrito com Ouviescrevi: https://ouviescrevi.pt";
-    const url = "https://wa.me/?text=" + encodeURIComponent(mensagem);
-    window.open(url, "_blank");
-  }
-
-  // dropdown export
-  document.getElementById("exportBtn").addEventListener("click", () => {
-    document.getElementById("exportOptions").classList.toggle("hidden");
-  });
-  window.addEventListener("click", (e) => {
-    if (!e.target.closest(".dropdown-export")) {
-      document.getElementById("exportOptions").classList.add("hidden");
-    }
-  });
-
-  // Resumo button
-  document.getElementById("btnGerarResumo").addEventListener("click", gerarResumo);
-
-  // Drag & drop
+  // Drag & drop + header/footer
   document.addEventListener("DOMContentLoaded", () => {
     const dropZone = document.getElementById("dropZone");
     const fileInput = document.getElementById("fileInput");
@@ -998,7 +930,7 @@
     dropZone.addEventListener("dragleave", () => { dropZone.style.background = "#fafafa"; });
     dropZone.addEventListener("drop", (e) => {
       e.preventDefault(); dropZone.style.background = "#fafafa";
-      if (e.dataTransfer.files.length > 0) {
+      if (e.dataTransfer.files.length > 0){
         fileInput.files = e.dataTransfer.files;
         fileNameDisplay.textContent = `Ficheiro: ${fileInput.files[0].name}`;
       }
@@ -1008,7 +940,6 @@
     });
   });
 
-  // Carregar header/footer externos (se existirem)
   fetch("header.html").then(r => r.text()).then(html => {
     const headerDiv = document.getElementById("header");
     headerDiv.innerHTML = html;
@@ -1024,6 +955,9 @@
   footerMount.id = "footer";
   document.body.appendChild(footerMount);
   fetch("footer.html").then(res => res.text()).then(html => document.getElementById("footer").innerHTML = html);
+
+  // botão “Gerar Resumo”
+  document.getElementById("btnGerarResumo").addEventListener("click", gerarResumo);
 </script>
 </body>
 </html>
