@@ -180,7 +180,7 @@
       box-shadow:0 8px 16px rgba(0,0,0,.2);
       z-index:10;
       border-radius:8px;
-      top:110%; left:0;
+          top: 68%; left:0;
       padding:5px 0;
     }
     .dropdown-export:hover .dropdown-content{ display:flex; } /* desktop: hover */
@@ -322,7 +322,16 @@
         <div id="classificacaoTexto" style="background:#f0f0f0; color:#222; padding:10px; border-radius:8px; white-space:pre-wrap;"></div>
       </div>
 
-      <div class="btn-group">
+      
+
+        <button id="btnGerarResumo"><span>🧠 Gerar Resumo</span></button>
+        <button onclick="partilharWhatsapp()"><span>📲 Partilhar no WhatsApp</span></button>
+        <button onclick="gerarMinuta()"><span>📩 Gerar Minuta</span></button>
+        <button onclick="corrigirTextoIA()"><span>📝 Corrigir Texto</span></button>
+        <button onclick="abrirModalTraducao()"><span>🌍 Traduzir</span></button>
+        <button onclick="classificarConteudo()"><span>📚 Classificar Tipo</span></button>
+        <button onclick="gerarEmailIA()"><span>📧 Gerar Email</span></button>
+		<div class="btn-group">
         <div class="dropdown-export" id="exportDropdown">
           <button id="exportBtn" aria-haspopup="true" aria-expanded="false"><span>📁 Exportar ▼</span></button>
           <div class="dropdown-content" id="exportOptions">
@@ -333,14 +342,6 @@
             <button onclick="exportText('json')"><span>🔢 Exportar JSON</span></button>
           </div>
         </div>
-
-        <button id="btnGerarResumo"><span>🧠 Gerar Resumo</span></button>
-        <button onclick="partilharWhatsapp()"><span>📲 Partilhar no WhatsApp</span></button>
-        <button onclick="gerarMinuta()"><span>📩 Gerar Minuta</span></button>
-        <button onclick="corrigirTextoIA()"><span>📝 Corrigir Texto</span></button>
-        <button onclick="abrirModalTraducao()"><span>🌍 Traduzir</span></button>
-        <button onclick="classificarConteudo()"><span>📚 Classificar Tipo</span></button>
-        <button onclick="gerarEmailIA()"><span>📧 Gerar Email</span></button>
       </div>
     </div>
   </div>
