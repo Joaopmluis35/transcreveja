@@ -62,7 +62,7 @@
     .hidden{ display:none; }
 
     /* output/areas alinhados à largura do form */
-    #loading, #output { width:100%; max-width:600px; }
+    #loading, #output { width:100%;  }
 
     #output textarea{
       width:100%;
@@ -169,7 +169,7 @@
     #modalTraducao.show{ display:flex !important; }
     #modalTraducao .card{ background:white; padding:20px; border-radius:10px; text-align:center; max-width:400px; color:#333; }
 
-    /* dropdown export: abre no hover */
+    /* dropdown export (desktop por hover; mobile por clique) */
     .dropdown-export{ position:relative; display:inline-block; }
     .dropdown-content{
       display:none;            /* fechado por defeito */
@@ -178,12 +178,14 @@
       background:white;
       min-width:180px;
       box-shadow:0 8px 16px rgba(0,0,0,.2);
-      z-index:1;
+      z-index:10;
       border-radius:8px;
       top:110%; left:0;
       padding:5px 0;
     }
-    .dropdown-export:hover .dropdown-content{ display:flex; } /* abre no hover */
+    .dropdown-export:hover .dropdown-content{ display:flex; } /* desktop: hover */
+    .dropdown-export.open .dropdown-content{ display:flex; } /* abre por clique */
+
     .dropdown-content button{
       background:none; border:none; padding:10px 20px; text-align:left; font-size:.95em; color:#333; cursor:pointer; width:100%;
     }
@@ -213,6 +215,23 @@
       #output textarea{ min-height:160px; }
       #modalTraducao .card{ width:90%; max-width:90%; }
       #loading, #output{ max-width:100%; }
+
+      /* dropdown em fluxo no mobile (não sobrepõe) */
+      .dropdown-export{ width:100%; }
+      .dropdown-content{
+        position:static;
+        min-width:0;
+        width:100%;
+        box-shadow:none;
+        border:2px solid #A550F7;
+        border-radius:10px;
+        margin-top:8px;
+        padding:6px 0;
+        z-index:auto;
+      }
+      @media (hover:none){
+        .dropdown-export:hover .dropdown-content{ display:none; } /* ignora hover em touch */
+      }
     }
   </style>
 </head>
@@ -304,8 +323,8 @@
       </div>
 
       <div class="btn-group">
-        <div class="dropdown-export">
-          <button id="exportBtn"><span>📁 Exportar ▼</span></button>
+        <div class="dropdown-export" id="exportDropdown">
+          <button id="exportBtn" aria-haspopup="true" aria-expanded="false"><span>📁 Exportar ▼</span></button>
           <div class="dropdown-content" id="exportOptions">
             <button onclick="exportText('pdf')"><span>📄 Exportar PDF</span></button>
             <button onclick="exportText('doc')"><span>📝 Exportar DOC</span></button>
@@ -730,11 +749,47 @@
     }
   }
 
+  // Abre nova janela e mostra estado/resultado da correção
   async function corrigirTextoIA(){
     const text = transcriptionText.value.trim();
     if (!text) return alert("⚠️ Transcrição vazia.");
+
+    // abrir janela imediatamente (evita bloqueio de popups)
+    const win = window.open("", "textoCorrigido", "width=560,height=500");
+    if (win) {
+      win.document.open();
+      win.document.write(`
+        <!doctype html><html lang="pt"><head>
+          <meta charset="utf-8">
+          <title>Correção de Texto</title>
+          <style>
+            body{font-family:'Segoe UI',sans-serif;margin:0;background:#f6f7fb;color:#222;}
+            .box{max-width:760px;margin:24px auto;background:#fff;border-radius:12px;
+                 box-shadow:0 8px 24px rgba(0,0,0,.08);padding:20px;}
+            h2{margin:0 0 8px 0}
+            .muted{color:#666;margin:0 0 12px 0}
+            textarea{width:100%;min-height:240px;border:1px solid #ddd;border-radius:8px;padding:12px;resize:vertical;}
+            .row{display:flex;gap:10px;justify-content:flex-end;margin-top:10px}
+            button{background:#A550F7;color:#fff;border:none;border-radius:8px;padding:10px 14px;cursor:pointer;font-weight:600}
+            button:hover{opacity:.9}
+          </style>
+        </head><body>
+          <div class="box">
+            <h2>📝 A corrigir…</h2>
+            <p class="muted">Por favor aguarda, estamos a melhorar o teu texto.</p>
+            <textarea readonly>Processando…</textarea>
+            <div class="row">
+              <button onclick="window.close()">Fechar</button>
+            </div>
+          </div>
+        </body></html>
+      `);
+      win.document.close();
+    }
+
     const btn = event.target.closest("button");
     const original = btn.innerHTML; btn.innerHTML = "<span>📝 A corrigir...</span>"; btn.disabled = true;
+
     try{
       const res = await fetch(`${API_BASE}/correct`, {
         method:"POST",
@@ -742,10 +797,37 @@
         body: JSON.stringify({ text, token:"ouviescrevi2025@resumo" })
       });
       const data = await res.json();
-      if (data.corrected){ transcriptionText.value = data.corrected; alert("✅ Texto corrigido com sucesso!"); }
-      else { alert("❌ Erro: " + (data.error || "resposta inválida")); }
-    }catch{ alert("❌ Falha ao comunicar com a API."); }
-    finally{ btn.innerHTML = original; btn.disabled = false; }
+
+      if (data.corrected){
+        transcriptionText.value = data.corrected;
+
+        if (win) {
+          const doc = win.document;
+          doc.querySelector("h2").textContent = "✅ Texto corrigido";
+          doc.querySelector(".muted").textContent = "Podes copiar o texto abaixo.";
+          const ta = doc.querySelector("textarea");
+          ta.removeAttribute("readonly");
+          ta.value = data.corrected;
+
+          // adiciona botão Copiar
+          const row = doc.querySelector(".row");
+          const copyBtn = doc.createElement("button");
+          copyBtn.textContent = "Copiar";
+          copyBtn.onclick = () => { ta.select(); doc.execCommand("copy"); copyBtn.textContent = "Copiado!"; setTimeout(()=>copyBtn.textContent="Copiar",1200); };
+          row.prepend(copyBtn);
+        } else {
+          alert("✅ Texto corrigido com sucesso!");
+        }
+      } else {
+        if (win) win.close();
+        alert("❌ Erro: " + (data.error || "resposta inválida"));
+      }
+    } catch {
+      if (win) win.close();
+      alert("❌ Falha ao comunicar com a API.");
+    } finally{
+      btn.innerHTML = original; btn.disabled = false;
+    }
   }
 
   async function gerarMinuta(){
@@ -958,6 +1040,35 @@
 
   // botão “Gerar Resumo”
   document.getElementById("btnGerarResumo").addEventListener("click", gerarResumo);
+
+  // ▼ Exportar: abrir/fechar por clique + fechar ao tocar fora/Escape
+  (function(){
+    const dropdown = document.getElementById('exportDropdown');
+    const btn = document.getElementById('exportBtn');
+
+    btn.addEventListener('click', function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      dropdown.classList.toggle('open');
+      btn.setAttribute('aria-expanded', dropdown.classList.contains('open'));
+    });
+
+    // fechar ao clicar fora
+    document.addEventListener('click', function(e){
+      if (!dropdown.contains(e.target)){
+        dropdown.classList.remove('open');
+        btn.setAttribute('aria-expanded','false');
+      }
+    });
+
+    // fechar com ESC
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape'){
+        dropdown.classList.remove('open');
+        btn.setAttribute('aria-expanded','false');
+      }
+    });
+  })();
 </script>
 </body>
 </html>
