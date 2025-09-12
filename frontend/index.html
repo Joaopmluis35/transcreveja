@@ -180,7 +180,7 @@
       box-shadow:0 8px 16px rgba(0,0,0,.2);
       z-index:10;
       border-radius:8px;
-      top:110%; left:0;
+      top:95%; left:0;
       padding:6px 0;
     }
     .dropdown-export.open .dropdown-content{ display:flex !important; } /* força abertura por clique */
@@ -221,7 +221,7 @@
       #loading, #output{ max-width:100%; }
 
       /* dropdown em fluxo no mobile (não sobrepõe) */
-      .dropdown-export{ width:100%; }
+      .dropdown-export{ width:100%; max-width:100%; }
       .dropdown-content{
         position:static;
         min-width:0;
@@ -335,11 +335,11 @@
         <div class="dropdown-export" id="exportDropdown">
           <button id="exportBtn" aria-haspopup="true" aria-expanded="false"><span>📁 Exportar ▼</span></button>
           <div class="dropdown-content" id="exportOptions">
-            <button onclick="exportText('pdf')"><span>📄 Exportar PDF</span></button>
-            <button onclick="exportText('doc')"><span>📝 Exportar DOC</span></button>
-            <button onclick="exportText('txt')"><span>📃 Exportar TXT</span></button>
-            <button onclick="exportText('srt')"><span>🎞️ Exportar SRT</span></button>
-            <button onclick="exportText('json')"><span>🔢 Exportar JSON</span></button>
+            <button data-export="pdf"><span>📄 Exportar PDF</span></button>
+            <button data-export="doc"><span>📝 Exportar DOC</span></button>
+            <button data-export="txt"><span>📃 Exportar TXT</span></button>
+            <button data-export="srt"><span>🎞️ Exportar SRT</span></button>
+            <button data-export="json"><span>🔢 Exportar JSON</span></button>
           </div>
         </div>
       </div>
@@ -390,9 +390,8 @@
   // Estado global
   // =========================
   const API_BASE = "https://api.ouviescrevi.pt";
-
-  // 👉 coloca aqui o teu email de admin para receber a notificação
-  const ADMIN_EMAIL = "admin@ouviescrevi.pt";
+  const API_TOKEN = "ouviescrevi2025@resumo"; // o mesmo usado no backend
+  const ADMIN_EMAIL = "admin@ouviescrevi.pt"; // fallback mailto se a API falhar
 
   let mediaRecorder;
   let audioChunks = [];
@@ -513,7 +512,7 @@
         }
 
         const controller = new AbortController();
-        const to = setTimeout(() => controller.abort(), 180000); // 3 min
+        const to = setTimeout(() => controller.abort(), 130000); // ~2m10s (alinhado ao backend watchdog)
         const res = await fetch(`${API_BASE}/transcribe`, { method:"POST", body: formData, signal: controller.signal });
         clearTimeout(to);
 
@@ -522,6 +521,10 @@
         if (!res.ok) throw new Error(data.error || `Erro ${res.status}`);
         sucesso = !!(data.formatted || data.transcription || data.text);
       }catch(err){
+        // se for abort, mostra info clara
+        if (err.name === "AbortError"){
+          data = { error: "Tempo limite atingido. Tentaremos novamente…" };
+        }
         await new Promise(r => setTimeout(r, 700));
       }
     }
@@ -540,7 +543,9 @@
       output.classList.remove("hidden");
       statusEl.textContent = "✅ Transcrição concluída com sucesso!";
     } else {
-      transcriptionText.value = "❌ Não foi possível obter a transcrição. Tenta novamente mais tarde.";
+      // Se o backend devolveu warning, mostra-o junto do texto
+      const warn = data.warning ? `\n\nℹ️ ${data.warning}` : "";
+      transcriptionText.value = ("❌ Não foi possível obter a transcrição. Tenta novamente mais tarde." + warn).trim();
       output.classList.remove("hidden");
       statusEl.textContent = "⚠️ Não conseguimos transcrever desta vez.";
       document.getElementById("btnRetry").classList.remove("hidden");
@@ -617,30 +622,35 @@
   }
 
   // =========================
-  // Partilhar WhatsApp + notificar por email
+  // Partilhar WhatsApp + notificar backend
   // =========================
   async function partilharWhatsapp(){
     const text = (document.getElementById("transcriptionText").value || "").trim();
     const url = "https://api.whatsapp.com/send?text=" + encodeURIComponent(text || "Partilha feita pelo Ouviescrevi.");
-    // abre WhatsApp
+    // abre WhatsApp imediatamente (evita bloqueio popup)
     window.open(url, "_blank");
 
-    // notificar backend por email
+    // notificar backend (que envia email e regista log)
     try{
-      await fetch(`${API_BASE}/notify-whatsapp-share`, {
+      await fetch(`${API_BASE}/notify/whatsapp`, {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
         body: JSON.stringify({
-          email: ADMIN_EMAIL,
-          when: new Date().toISOString(),
-          userAgent: navigator.userAgent,
-          textPreview: text.slice(0, 200)
+          token: API_TOKEN,
+          page: location.pathname,
+          note: `preview="${text.slice(0,200)}" ua="${navigator.userAgent}"`
         })
       });
     }catch(err){
       // fallback: abrir cliente de email do admin
       const subject = encodeURIComponent("Notificação: Partilha no WhatsApp");
-      const body = encodeURIComponent(`Alguém clicou em "Partilhar no WhatsApp".\n\nData: ${new Date().toLocaleString()}\nUser-Agent: ${navigator.userAgent}\n\nPré-visualização do texto:\n${text.slice(0,500)}`);
+      const body = encodeURIComponent(
+        `Alguém clicou em "Partilhar no WhatsApp".\n\n` +
+        `Data: ${new Date().toLocaleString()}\n` +
+        `Página: ${location.pathname}\n` +
+        `User-Agent: ${navigator.userAgent}\n\n` +
+        `Pré-visualização do texto:\n${text.slice(0,500)}`
+      );
       window.open(`mailto:${ADMIN_EMAIL}?subject=${subject}&body=${body}`, "_blank");
       console.warn("Falha a notificar via API. Usado fallback mailto.", err);
     }
@@ -725,7 +735,7 @@
 
       try{
         const controller = new AbortController();
-        const to = setTimeout(() => controller.abort(), 120000);
+        const to = setTimeout(() => controller.abort(), 130000);
         const res = await fetch(`${API_BASE}/transcribe`, { method:"POST", body: formData, signal: controller.signal });
         clearTimeout(to);
 
@@ -737,7 +747,7 @@
         output.classList.remove("hidden");
         status.textContent = "✅ Transcrição concluída!";
       }catch(err){
-        status.textContent = "❌ Erro ao processar áudio.";
+        status.textContent = err.name === "AbortError" ? "⏰ Tempo limite atingido. Tenta novamente." : "❌ Erro ao processar áudio.";
       }finally{
         clearInterval(anim);
         progressBar.style.width = "100%";
@@ -768,7 +778,7 @@
       const res = await fetch(`${API_BASE}/classify`, {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ text, token:"ouviescrevi2025@resumo" })
+        body: JSON.stringify({ text, token: API_TOKEN })
       });
       const data = await res.json();
       const box = document.getElementById("classificacaoBox");
@@ -829,7 +839,7 @@
       const res = await fetch(`${API_BASE}/correct`, {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ text, token:"ouviescrevi2025@resumo" })
+        body: JSON.stringify({ text, token: API_TOKEN })
       });
       const data = await res.json();
 
@@ -874,7 +884,7 @@
       const res = await fetch(`${API_BASE}/summarize`, {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ text, mode:"minuta", token:"ouviescrevi2025@resumo" })
+        body: JSON.stringify({ text, mode:"minuta", token: API_TOKEN })
       });
       const data = await res.json();
       const box = document.getElementById("minutaBox");
@@ -899,7 +909,7 @@
       const res = await fetch(`${API_BASE}/summarize`, {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ text, token:"ouviescrevi2025@resumo" })
+        body: JSON.stringify({ text, token: API_TOKEN })
       });
       const data = await res.json();
       const box = document.getElementById("resumoBox");
@@ -909,6 +919,78 @@
       scrollSeInvisivel("resumoBox");
     }catch{ alert("❌ Erro ao gerar resumo."); }
     finally{ btn.innerHTML = original; btn.disabled = false; }
+  }
+
+  // (extra) Gerar email a partir do texto/resumo
+  async function gerarEmailIA(){
+    const text = transcriptionText.value.trim();
+    if (!text) return alert("⚠️ Transcrição/Resumo vazio.");
+    const tone = "formal";
+    const btn = event.target.closest("button");
+    const original = btn.innerHTML; btn.innerHTML = "<span>📧 A gerar email...</span>"; btn.disabled = true;
+
+    const win = window.open("", "emailGerado", "width=640,height=560");
+    if (win){
+      win.document.open();
+      win.document.write(`
+        <!doctype html><html lang="pt"><head>
+        <meta charset="utf-8"><title>Email Gerado</title>
+        <style>
+          body{font-family:'Segoe UI',sans-serif;margin:0;background:#f6f7fb;color:#222;}
+          .box{max-width:900px;margin:24px auto;background:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.08);padding:20px;}
+          h2{margin:0 0 8px 0}
+          .muted{color:#666;margin:0 0 12px 0}
+          textarea{width:100%;min-height:320px;border:1px solid #ddd;border-radius:8px;padding:12px;resize:vertical;}
+          .row{display:flex;gap:10px;justify-content:flex-end;margin-top:10px}
+          button{background:#A550F7;color:#fff;border:none;border-radius:8px;padding:10px 14px;cursor:pointer;font-weight:600}
+          button:hover{opacity:.9}
+        </style>
+        </head><body>
+          <div class="box">
+            <h2>📧 A gerar email…</h2>
+            <p class="muted">Aguarda um momento.</p>
+            <textarea readonly>Processando…</textarea>
+            <div class="row"><button onclick="window.close()">Fechar</button></div>
+          </div>
+        </body></html>
+      `);
+      win.document.close();
+    }
+
+    try{
+      const res = await fetch(`${API_BASE}/generate-email`, {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ text, token: API_TOKEN, tone })
+      });
+      const data = await res.json();
+      if (data.email){
+        if (win){
+          const doc = win.document;
+          doc.querySelector("h2").textContent = "✅ Email gerado";
+          doc.querySelector(".muted").textContent = "Revê e copia/cola no teu cliente de email.";
+          const ta = doc.querySelector("textarea");
+          ta.removeAttribute("readonly");
+          ta.value = data.email;
+
+          const row = doc.querySelector(".row");
+          const copyBtn = doc.createElement("button");
+          copyBtn.textContent = "Copiar";
+          copyBtn.onclick = () => { ta.select(); doc.execCommand("copy"); copyBtn.textContent = "Copiado!"; setTimeout(()=>copyBtn.textContent="Copiar",1200); };
+          row.prepend(copyBtn);
+        } else {
+          alert("✅ Email gerado!");
+        }
+      } else {
+        if (win) win.close();
+        alert("❌ Erro ao gerar email.");
+      }
+    }catch{
+      if (win) win.close();
+      alert("❌ Falha ao comunicar com a API.");
+    }finally{
+      btn.innerHTML = original; btn.disabled = false;
+    }
   }
 
   function aplicarLocutores(transcricao){
@@ -960,7 +1042,7 @@
       const res = await fetch(`${API_BASE}/translate`, {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ text: texto, language: idioma, token:"ouviescrevi2025@resumo" })
+        body: JSON.stringify({ text: texto, language: idioma, token: API_TOKEN })
       });
       const data = await res.json();
       clearInterval(interval);
@@ -1076,36 +1158,32 @@
   // botão “Gerar Resumo”
   document.getElementById("btnGerarResumo").addEventListener("click", gerarResumo);
 
-  // ▼ Exportar: abrir/fechar por clique + fechar ao tocar fora/Escape
+  // ▼ Exportar: robusto para mobile (pointer events) + fecha ao selecionar opção/fora/Escape
   (function(){
     const dropdown = document.getElementById('exportDropdown');
     const btn = document.getElementById('exportBtn');
+    const options = document.getElementById('exportOptions');
 
-    const toggle = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      dropdown.classList.toggle('open');
-      btn.setAttribute('aria-expanded', dropdown.classList.contains('open'));
-    };
+    const open = () => { dropdown.classList.add('open'); btn.setAttribute('aria-expanded','true'); };
+    const close = () => { dropdown.classList.remove('open'); btn.setAttribute('aria-expanded','false'); };
+    const toggle = (e) => { e.preventDefault(); e.stopPropagation(); dropdown.classList.toggle('open'); btn.setAttribute('aria-expanded', dropdown.classList.contains('open')); };
 
-    btn.addEventListener('click', toggle, { passive:false });
-    // melhora para iOS: também reagir ao touchstart
-    btn.addEventListener('touchstart', toggle, { passive:false });
+    // usar pointerup para evitar duplo disparo (touch + click)
+    btn.addEventListener('pointerup', toggle, { passive:false });
 
     // fechar ao clicar fora
-    document.addEventListener('click', function(e){
-      if (!dropdown.contains(e.target)){
-        dropdown.classList.remove('open');
-        btn.setAttribute('aria-expanded','false');
-      }
-    });
+    document.addEventListener('click', (e) => { if (!dropdown.contains(e.target)) close(); });
 
     // fechar com ESC
-    document.addEventListener('keydown', function(e){
-      if (e.key === 'Escape'){
-        dropdown.classList.remove('open');
-        btn.setAttribute('aria-expanded','false');
-      }
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+
+    // clicar numa opção executa export e fecha menu
+    options.addEventListener('click', (e) => {
+      const target = e.target.closest('button[data-export]');
+      if (!target) return;
+      const type = target.getAttribute('data-export');
+      close();
+      setTimeout(() => exportText(type), 0);
     });
   })();
 </script>
