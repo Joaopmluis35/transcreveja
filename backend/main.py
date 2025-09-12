@@ -14,6 +14,7 @@ import sqlite3
 import logging
 import textwrap
 import shutil
+import time
 
 import requests
 from bs4 import BeautifulSoup
@@ -43,7 +44,6 @@ if not OPENAI_API_KEY:
 
 ADMIN_TOKEN = os.getenv("ADMIN_TOKEN")
 if not ADMIN_TOKEN:
-    # torna explícito; evita fallback público em produção
     raise RuntimeError("Falta ADMIN_TOKEN no .env")
 
 client = OpenAI(api_key=OPENAI_API_KEY)
@@ -59,7 +59,7 @@ if not FFMPEG:
     raise RuntimeError("ffmpeg não encontrado. Instala o binário do sistema ou mantém 'imageio-ffmpeg' no requirements.")
 
 # Parâmetros
-MAX_FILE_SIZE_MB = int(os.getenv("MAX_FILE_SIZE_MB", "300"))  # antes 25
+MAX_FILE_SIZE_MB = int(os.getenv("MAX_FILE_SIZE_MB", "300"))
 SEGMENT_DURATION = int(os.getenv("SEGMENT_DURATION", "600"))  # 10 min
 SUM_MODEL = os.getenv("SUM_MODEL", "gpt-4o-mini")
 CLS_MODEL = os.getenv("CLS_MODEL", "gpt-4o-mini")
@@ -124,17 +124,22 @@ def _seg_get(seg, key, default=None):
         except Exception:
             return default
 
-def format_segments(segments):
-    def format_time(seconds):
-        m, s = divmod(int(seconds), 60)
-        return f"[{m:02d}:{s:02d}]"
+def _format_time(seconds: float):
+    try:
+        seconds = int(seconds)
+    except Exception:
+        seconds = 0
+    m, s = divmod(seconds, 60)
+    return f"[{m:02d}:{s:02d}]"
 
+def format_segments_with_offset(segments, offset_seconds: int = 0):
+    """Formata segmentos adicionando offset (para ficheiros longos)."""
     formatted = []
     for s in segments or []:
         start = _seg_get(s, "start", 0)
-        text = _seg_get(s, "text", "").strip()
+        text = (_seg_get(s, "text", "") or "").strip()
         if text:
-            formatted.append(f"{format_time(start)} {text}")
+            formatted.append(f"{_format_time(start + offset_seconds)} {text}")
     return "\n\n".join(formatted).strip()
 
 def split_audio(input_path, output_dir, segment_duration=SEGMENT_DURATION):
@@ -171,12 +176,30 @@ def registar_transcricao(nome_ficheiro: str):
     finally:
         conn.close()
 
+def transcrever_parte_c_com_retries(file_path: str, retries: int = 3, sleep_base: float = 1.0):
+    """Tenta transcrever um ficheiro com backoff exponencial."""
+    last_err = None
+    for attempt in range(1, retries + 1):
+        try:
+            with open(file_path, "rb") as audio:
+                result = client.audio.transcriptions.create(
+                    model="whisper-1",
+                    file=audio,
+                    response_format="verbose_json",
+                )
+            return result
+        except Exception as e:
+            last_err = e
+            logging.warning("Falha a transcrever %s (tentativa %d/%d): %s", file_path, attempt, retries, e)
+            time.sleep(sleep_base * (2 ** (attempt - 1)))
+    raise last_err
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Rotas
 # ──────────────────────────────────────────────────────────────────────────────
 @app.get("/debug")
 def debug():
-    return {"status": "OK", "versao": "1.0"}
+    return {"status": "OK", "versao": "1.1"}
 
 @app.post("/transcribe")
 async def transcribe(file: UploadFile = File(...)):
@@ -191,78 +214,138 @@ async def transcribe(file: UploadFile = File(...)):
             shutil.copyfileobj(file.file, out)
     except Exception as e:
         logging.exception("Falha ao gravar upload")
-        raise HTTPException(status_code=400, detail=f"Falha ao gravar ficheiro: {e}")
+        # devolve sempre payload utilizável
+        return {"transcription": "", "formatted": "", "warning": f"Falha ao gravar ficheiro: {e}"}
 
     # limite de tamanho após gravar
-    size_mb = os.path.getsize(tmp_path) / (1024 * 1024)
-    if size_mb > MAX_FILE_SIZE_MB:
-        try: os.remove(tmp_path)
-        except: pass
-        raise HTTPException(status_code=413, detail=f"Ficheiro > {MAX_FILE_SIZE_MB}MB")
+    try:
+        size_mb = os.path.getsize(tmp_path) / (1024 * 1024)
+    except Exception:
+        size_mb = 0
 
-    # converter para wav 16k mono
-    audio_path = os.path.join(tempfile.gettempdir(), f"audio_{uuid.uuid4()}.wav")
+    if size_mb > MAX_FILE_SIZE_MB:
+        try:
+            os.remove(tmp_path)
+        except:
+            pass
+        # devolve best-effort vazio, sem estourar no front
+        return {
+            "transcription": "",
+            "formatted": "",
+            "warning": f"Ficheiro > {MAX_FILE_SIZE_MB}MB. Reduz o tamanho e tenta novamente."
+        }
+
+    # converter para wav 16k mono (para robustez); se falhar, seguimos com original
+    audio_wav_path = os.path.join(tempfile.gettempdir(), f"audio_{uuid.uuid4()}.wav")
+    converted_ok = False
     try:
         conv = [
             FFMPEG, "-nostdin", "-hide_banner", "-loglevel", "error",
-            "-y", "-i", tmp_path, "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", audio_path
+            "-y", "-i", tmp_path, "-vn", "-sn",  # ignora vídeo/legendas
+            "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", audio_wav_path
         ]
         subprocess.run(conv, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        converted_ok = True
     except subprocess.CalledProcessError as e:
-        logging.error("FFmpeg error: %s", e.stderr.decode(errors="ignore"))
-        raise HTTPException(status_code=400, detail="Erro ao converter áudio (ffmpeg).")
-    finally:
-        try: os.remove(tmp_path)
-        except: pass
+        logging.error("FFmpeg error (converter): %s", e.stderr.decode(errors="ignore"))
+        converted_ok = False
 
     split_dir = tempfile.mkdtemp(prefix="split_")
+    parts = []
+    used_source = None
     try:
-        parts = split_audio(audio_path, split_dir)
+        # 1) tenta partir o WAV convertido; senão, parte o original; se falhar, sem partição
+        try:
+            source_for_split = audio_wav_path if converted_ok else tmp_path
+            parts = split_audio(source_for_split, split_dir)
+            used_source = source_for_split
+        except Exception as e:
+            logging.warning("Falha ao partir áudio (%s). Vai sem split. Erro: %s", file.filename, e)
+            parts = []
 
-        # fallback: se por algum motivo não criou segmentos, usa o WAV inteiro
+        # fallback: sem segmentos → usa o melhor ficheiro disponível
         if not parts:
-            parts = [audio_path]
+            used_source = audio_wav_path if converted_ok else tmp_path
+            parts = [used_source]
 
-        full_text, formatted_text = [], []
+        full_text_chunks = []
+        formatted_chunks = []
+        offset_seconds = 0
+        failed_segments = 0
+        processed_segments = 0
 
-        for part in parts:
-            with open(part, "rb") as audio:
-                result = client.audio.transcriptions.create(
-                    model="whisper-1",
-                    file=audio,
-                    response_format="verbose_json",
-                )
-            text_piece = getattr(result, "text", "") or ""
-            segs = getattr(result, "segments", [])
-            full_text.append(text_piece)
-            formatted_text.append(format_segments(segs))
+        for idx, part in enumerate(parts):
+            try:
+                result = transcrever_parte_c_com_retries(part, retries=3, sleep_base=1.0)
+                text_piece = getattr(result, "text", "") or ""
+                segs = getattr(result, "segments", []) or []
+                full_text_chunks.append(text_piece)
+                formatted_chunks.append(format_segments_with_offset(segs, offset_seconds))
+            except Exception as e:
+                failed_segments += 1
+                logging.exception("Erro ao transcrever parte %d (%s): %s", idx, part, e)
+                # mantém fluxo: acrescenta placeholder leve
+                formatted_chunks.append(f"{_format_time(offset_seconds)} [Falha no segmento]")
+            finally:
+                processed_segments += 1
+                # aumenta offset só quando trabalhamos com chunks segmentados
+                if len(parts) > 1:
+                    offset_seconds += SEGMENT_DURATION
 
-        registar_transcricao(file.filename or "sem_nome")
-        enviar_email_assunto(
-            f"Nova transcrição recebida: {file.filename}",
-            "Nova transcrição no Ouviescrevi",
-        )
+        # registo e notificação
+        try:
+            registar_transcricao(file.filename or "sem_nome")
+        except Exception as e:
+            logging.warning("Falha ao registar na DB: %s", e)
 
-        return {
-            "transcription": "\n".join(t for t in full_text if t).strip(),
-            "formatted": "\n\n".join(t for t in formatted_text if t).strip(),
+        try:
+            enviar_email_assunto(
+                f"Nova transcrição recebida: {file.filename}",
+                "Nova transcrição no Ouviescrevi",
+            )
+        except Exception as e:
+            logging.warning("Falha ao enviar email de notificação: %s", e)
+
+        # resposta sempre consistente
+        transcription_out = "\n".join(t for t in full_text_chunks if t).strip()
+        formatted_out = "\n\n".join(t for t in formatted_chunks if t).strip()
+
+        payload = {
+            "transcription": transcription_out,
+            "formatted": formatted_out,
         }
 
-    except HTTPException:
-        raise
+        if failed_segments > 0:
+            payload["warning"] = f"{failed_segments} de {processed_segments} segmentos não foram transcritos à primeira (aplicado retry/fallback)."
+
+        # se nada foi possível, devolve strings vazias (front mostra mensagem)
+        return payload
+
     except Exception as e:
-        logging.exception("Erro ao processar ficheiro")
-        # devolve 200 com campo "error" para compat com front-end atual
-        return {"error": f"Erro ao processar ficheiro: {e}"}
+        logging.exception("Erro inesperado no processamento")
+        # devolve best-effort vazio, sem quebrar front
+        return {"transcription": "", "formatted": "", "warning": f"Erro ao processar: {e}"}
     finally:
-        try: os.remove(audio_path)
-        except: pass
+        # limpeza
+        try:
+            if os.path.exists(audio_wav_path):
+                os.remove(audio_wav_path)
+        except:
+            pass
+        try:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+        except:
+            pass
         try:
             for f in os.listdir(split_dir):
-                try: os.remove(os.path.join(split_dir, f))
-                except: pass
+                try:
+                    os.remove(os.path.join(split_dir, f))
+                except:
+                    pass
             os.rmdir(split_dir)
-        except: pass
+        except:
+            pass
 
 # ── IA payloads ───────────────────────────────────────────────────────────────
 class SummarizeRequest(BaseModel):
@@ -308,7 +391,10 @@ async def summarize(req: SummarizeRequest):
             temperature=0.5,
             max_tokens=600,
         )
-        enviar_email_assunto("Resumo com IA gerado", "Resumo criado no Ouviescrevi")
+        try:
+            enviar_email_assunto("Resumo com IA gerado", "Resumo criado no Ouviescrevi")
+        except Exception:
+            pass
         return {"summary": resp.choices[0].message.content.strip()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -341,7 +427,10 @@ async def translate_text(request: Request):
             ],
             temperature=0.3,
         )
-        enviar_email_assunto("Tradução com IA feita", "Tradução realizada no Ouviescrevi")
+        try:
+            enviar_email_assunto("Tradução com IA feita", "Tradução realizada no Ouviescrevi")
+        except Exception:
+            pass
         return {"translation": resp.choices[0].message.content.strip()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -366,7 +455,10 @@ async def classify_content(req: ClassifyRequest):
             temperature=0.3,
             max_tokens=20,
         )
-        enviar_email_assunto("Classificação com IA feita", "Classificação feita no Ouviescrevi")
+        try:
+            enviar_email_assunto("Classificação com IA feita", "Classificação feita no Ouviescrevi")
+        except Exception:
+            pass
         return {"type": resp.choices[0].message.content.strip()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -386,7 +478,10 @@ async def correct_text(req: Request):
             ],
             temperature=0.2,
         )
-        enviar_email_assunto("Correção com IA feita", "Texto corrigido no Ouviescrevi")
+        try:
+            enviar_email_assunto("Correção com IA feita", "Texto corrigido no Ouviescrevi")
+        except Exception:
+            pass
         return {"corrected": resp.choices[0].message.content.strip()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -414,7 +509,10 @@ async def generate_email(req: EmailRequest):
             temperature=0.7,
             max_tokens=700,
         )
-        enviar_email_assunto("Email com IA gerado", "Email gerado no Ouviescrevi")
+        try:
+            enviar_email_assunto("Email com IA gerado", "Email gerado no Ouviescrevi")
+        except Exception:
+            pass
         return {"email": resp.choices[0].message.content.strip()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -468,8 +566,10 @@ def get_logs():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro ao ler logs: {e}")
     finally:
-        try: conn.close()
-        except: pass
+        try:
+            conn.close()
+        except:
+            pass
 
 class QuestionRequest(BaseModel):
     text: str
@@ -502,7 +602,10 @@ async def generate_questions(req: QuestionRequest):
             temperature=0.7,
             max_tokens=900,
         )
-        enviar_email_assunto("Perguntas de estudo geradas", "Perguntas geradas no Ouviescrevi")
+        try:
+            enviar_email_assunto("Perguntas de estudo geradas", "Perguntas geradas no Ouviescrevi")
+        except Exception:
+            pass
         return {"questions": resp.choices[0].message.content.strip()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -556,7 +659,10 @@ async def summarize_url(req: Request):
             summaries.append(f"🧩 Parte {i}:\n{resp.choices[0].message.content.strip()}")
 
         final_summary = "\n\n".join(summaries)
-        enviar_email_assunto(f"Resumo gerado por URL:\n{url}", "Resumo por URL no Ouviescrevi")
+        try:
+            enviar_email_assunto(f"Resumo gerado por URL:\n{url}", "Resumo por URL no Ouviescrevi")
+        except Exception:
+            pass
         return {"summary": final_summary}
     except HTTPException:
         raise
@@ -604,8 +710,10 @@ async def generate_video(req: VideoRequest):
 
         # limpar temporários
         for p in (audio_tmp, img_tmp):
-            try: os.remove(p)
-            except: pass
+            try:
+                os.remove(p)
+            except:
+                pass
 
         return {"success": True, "video_url": f"/static/videos/{out_name}"}
     except HTTPException:

@@ -1,51 +1,35 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-  <meta charset="UTF-8">
-  <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png">
-   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png" />
   <title>Ouviescrevi – Conversor Inteligente</title>
   <meta name="description" content="Converte ficheiros com IA. Word para PDF, imagens para PDF, e muito mais!">
   <meta name="keywords" content="converter Word para PDF, PDF para texto, imagem para PDF, conversor de ficheiros online, transcrição de áudio, transcrição automática, Ouviescrevi">
-
   <meta name="robots" content="index, follow">
   <style>
-
-
     body {
-  margin: 0;
-  font-family: 'Segoe UI', sans-serif;
-  background: linear-gradient(135deg, #A550F7, #00C3FF);
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  background-size: 100% 100%;
-  color: white;
-  text-align: center;
-}
-.hourglass{
-margin:0px!important;
-}
-	#modalTraducao {
-  display: none !important;
-}
-#modalTraducao.show {
-  display: flex !important;
-}
-
-
-    header {
-      padding: 20px;
-    }
-    header h1 {
       margin: 0;
-      font-size: 2em;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #A550F7, #00C3FF);
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      background-size: 100% 100%;
+      color: white;
+      text-align: center;
     }
+
+    header { padding: 20px; }
+    header h1 { margin: 0; font-size: 2em; }
+
     main {
       padding: 40px;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
+
     form {
       background: white;
       color: #333;
@@ -57,6 +41,7 @@ margin:0px!important;
       width: 100%;
       text-align: left;
     }
+
     input, button {
       margin: 10px 0;
       padding: 10px;
@@ -64,6 +49,7 @@ margin:0px!important;
       width: 100%;
       cursor: pointer;
     }
+
     button {
       background-color: #e6d7fb;
       color: #333;
@@ -72,19 +58,28 @@ margin:0px!important;
       font-weight: bold;
       transition: all 0.3s ease;
     }
-    button:hover {
-      background: linear-gradient(135deg, #A550F7, #00C3FF);
-      color: white;
-      border-color: transparent;
-    }
+    button:hover { background: linear-gradient(135deg, #A550F7, #00C3FF); color: white; border-color: transparent; }
+
     .hidden { display: none; }
+
     #output textarea {
       width: 100%;
-      height: 200px;
+      min-height: 200px;
       margin-top: 10px;
-      padding: 10px;
-      font-family: monospace;
+      padding: 15px;
+      font-family: 'Segoe UI', sans-serif;
+      font-size: 1rem;
+      color: #333;
+      background: #fdfdfd;
+      border: 2px solid #A550F7;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      line-height: 1.6;
+      resize: vertical;
+      transition: border-color 0.3s, box-shadow 0.3s;
     }
+    #output textarea:focus { outline: none; border-color: #00C3FF; box-shadow: 0 0 0 4px rgba(0,195,255,0.15); }
+
     .btn-group {
       display: flex;
       flex-wrap: wrap;
@@ -95,433 +90,98 @@ margin:0px!important;
     .btn-group button {
       flex: 1 1 auto;
       min-width: 130px;
-      max-width: 200px;
-      padding: 10px;
-      font-size: 0.95em;
-      cursor: pointer;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-      background: #f5f5f5;
-      transition: background 0.3s;
-    }
-    .btn-group button:hover {
-      background: #e0e0e0;
-    }
-    #resumoBox {
-      margin-top: 20px;
-      padding: 20px;
-      background: #ffffff;
-      border: 1px solid #ccc;
-      border-left: 5px solid #4caf50;
-      max-width: 800px;
-      width: 100%;
+      max-width: 220px;
+      padding: 12px 18px;
+      font-size: 1em;
+      font-weight: bold;
+      border: 2px solid #A550F7;
+      border-radius: 8px;
+      background-color: #e6d7fb;
       color: #333;
-    }
-    .switch-container {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-top: 10px;
-      font-size: 14px;
-    }
-    .switch-container input[type="checkbox"] {
-      appearance: none;
-      width: 40px;
-      height: 20px;
-      background: #ccc;
-      border-radius: 20px;
-      position: relative;
       cursor: pointer;
-      outline: none;
-      transition: background 0.3s;
+      position: relative;
+      overflow: hidden;
+      transition: color 0.3s ease, border-color 0.3s ease;
     }
-    .switch-container input[type="checkbox"]::before {
+    .btn-group button::before {
       content: "";
       position: absolute;
-      top: 2px;
-      left: 2px;
-      width: 16px;
-      height: 16px;
-      background: white;
-      border-radius: 50%;
-      transition: transform 0.3s;
+      left: 0; bottom: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(135deg, #A550F7, #00C3FF);
+      transition: all 0.4s ease;
+      z-index: 0;
     }
-    .switch-container input[type="checkbox"]:checked {
-      background: #4caf50;
+    .btn-group button:hover::before { bottom: 0; }
+    .btn-group button:hover { color: white; border-color: transparent; }
+    .btn-group button span { position: relative; z-index: 2; }
+
+    #dropZone {
+      border: 2px dashed #A550F7; padding: 20px; text-align: center; cursor: pointer;
+      border-radius: 10px; margin-bottom: 15px; background-color: #fafafa; color: #333; position: relative;
     }
-    .switch-container input[type="checkbox"]:checked::before {
-      transform: translateX(20px);
+    #dropZone:hover { background-color: #f0f0f0; }
+    #dropZone input[type="file"] { display: none; }
+    #fileName { display: block; margin-top: 10px; color: #555; font-size: 14px; font-style: italic; }
+
+    .switch-container {
+      display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 14px;
     }
-    .switch-label {
-      user-select: none;
+    .switch-container input[type="checkbox"] {
+      appearance: none; width: 40px; height: 20px; background: #ccc; border-radius: 20px; position: relative; cursor: pointer; outline: none; transition: background 0.3s;
     }
-    .hourglass {
-      width: 60px;
-      height: 60px;
-      margin: 20px auto;
-      border: 4px solid #A550F7;
-      border-radius: 50%;
-      position: relative;
-      animation: rotateHourglass 2.5s infinite linear;
+    .switch-container input[type="checkbox"]::before {
+      content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: white; border-radius: 50%; transition: transform 0.3s;
     }
-    .hourglass::before, .hourglass::after {
-      content: '';
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 12px;
-      height: 12px;
-      background: #A550F7;
-      border-radius: 50%;
+    .switch-container input[type="checkbox"]:checked { background: #4caf50; }
+    .switch-container input[type="checkbox"]:checked::before { transform: translateX(20px); }
+    .switch-label { user-select: none; }
+
+    #loading p { margin: 8px 0; }
+    #progressWrap { background:#ddd; border-radius:8px; width:100%; height:20px; }
+    #progressBar { height:100%; width:0%; background:#4caf50; border-radius:8px; transition: width .2s ease; }
+
+    /* Status banners */
+    .status {
+      background:#fff3cd; color:#856404; border-left:5px solid #ffc107; padding:12px 18px; margin:15px 0;
+      border-radius:5px; font-weight:bold;
     }
-    .hourglass::before {
-      top: 12px;
-      animation: sandTop 2.5s infinite linear;
+
+    /* Transcription timer (while processing) */
+    #timerTranscricao { /* ✅ contador do tempo de transcrição */
+      color:#333; font-weight:bold; background:#e9f7ff; border-left:5px solid #00C3FF; padding:8px 12px; border-radius:5px;
+      display:inline-block;
     }
-    .hourglass::after {
-      bottom: 12px;
-      animation: sandBottom 2.5s infinite linear;
+
+    /* Modal tradução */
+    #modalTraducao { display:none !important; }
+    #modalTraducao.show { display:flex !important; }
+    #modalTraducao .card { background:white; padding:20px; border-radius:10px; text-align:center; max-width:400px; color:#333; }
+
+    /* Nav nichos (se usar header externo ignora) */
+    #nichoMenu { display:flex; flex-wrap:wrap; justify-content:center; gap:12px; position:sticky; top:0; z-index:999; }
+    #nichoMenu button {
+      position:relative; overflow:hidden; background:#e6d7fb; color:#333; border:2px solid #A550F7; border-radius:50px;
+      padding:10px 20px; font-weight:bold; font-size:.95em; cursor:pointer; transition:color .3s, border-color .3s;
+      box-shadow:0 2px 4px rgba(0,0,0,.1); flex:0 0 auto; white-space:nowrap; width:max-content; z-index:1;
     }
-    @keyframes rotateHourglass {
-      0%   { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    #nichoMenu button::before {
+      content:""; position:absolute; left:0; bottom:-100%; width:100%; height:100%;
+      background:linear-gradient(135deg,#A550F7,#00C3FF); transition:bottom .6s cubic-bezier(.25,1,.5,1); z-index:0;
     }
-    @keyframes sandTop {
-      0%   { opacity: 1; }
-      50%  { opacity: 0; }
-      100% { opacity: 1; }
+    #nichoMenu button:hover::before { bottom:0; }
+    #nichoMenu button span { position:relative; z-index:2; }
+    #nichoMenu button:hover { color:white; border-color:white; }
+
+    @media (max-width: 820px) {
+      main { padding:20px; }
+      form { padding:15px 20px; width:100%; max-width:100%; }
+      input, button { width:100%; font-size:1em; }
+      .btn-group { flex-direction:column; align-items:stretch; }
+      .btn-group button { max-width:100%; min-width:unset; font-size:1em; }
+      #output textarea { min-height:160px; }
+      #modalTraducao .card { width:90%; max-width:90%; }
     }
-    @keyframes sandBottom {
-      0%   { opacity: 0; }
-      50%  { opacity: 1; }
-      100% { opacity: 0; }
-    }
-	.btn-group button {
-  flex: 1 1 auto;
-  min-width: 130px;
-  max-width: 200px;
-  padding: 12px 18px;
-  font-size: 1em;
-  font-weight: bold;
-  border: 2px solid #A550F7;
-  border-radius: 8px;
-  background-color: #e6d7fb;
-  color: #333;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  transition: color 0.3s ease, border-color 0.3s ease;
-}
-
-.btn-group button::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #A550F7, #00C3FF);
-  transition: all 0.4s ease;
-  z-index: 0;
-}
-
-.btn-group button:hover::before {
-  bottom: 0;
-}
-
-.btn-group button:hover {
-  color: white;
-  border-color: transparent;
-}
-
-.btn-group button span {
-  position: relative;
-  z-index: 2;
-}
-#adminContent{
-place-items: center;
-}
-#modalTraducao button:hover {
-  background: linear-gradient(135deg, #A550F7, #00C3FF);
-  color: white;
-  border-color: transparent;
-}
-#btnRetry {
-  background: #ffc107;
-  color: #333;
-  border: none;
-  padding: 10px 20px;
-  margin-top: 15px;
-  border-radius: 6px;
-  font-weight: bold;
-  font-size: 1em;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-#btnRetry:hover {
-  background: #ff9800;
-  color: white;
-}
-@media (max-width: 820px) {
-  main {
-    padding: 20px;
-  }
-
-  form {
-    padding: 15px 20px;
-    width: 100%;
-    max-width: 100%;
-  }
-
-  input, button {
-    width: 100%;
-    font-size: 1em;
-  }
-
-  .btn-group {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .btn-group button {
-    max-width: 100%;
-    min-width: unset;
-    font-size: 1em;
-  }
-
-  #transcriptionText {
-    height: 160px;
-  }
-
-  #resumoBox, #traducaoBox {
-    padding: 15px;
-    font-size: 0.95em;
-  }
-
-  #modalTraducao > div {
-    width: 90%;
-    max-width: 90%;
-  }
-
-  #btnRetry {
-    width: 100%;
-  }
-}
-#dropZone {
-  border: 2px dashed #A550F7;
-  padding: 20px;
-  text-align: center;
-  cursor: pointer;
-  border-radius: 10px;
-  margin-bottom: 15px;
-  background-color: #fafafa;
-  color: #333;
-  position: relative;
-}
-#dropZone:hover {
-  background-color: #f0f0f0;
-}
-#dropZone input[type="file"] {
-  display: none;
-}
-#fileName {
-  display: block;
-  margin-top: 10px;
-  color: #555;
-  font-size: 14px;
-  font-style: italic;
-}
-.botao-salvar span {
-  position: relative;
-  z-index: 2;
-}
-#transcriptionText {
-  width: 100%;
-  min-height: 200px;
-  padding: 15px;
-  font-family: 'Segoe UI', sans-serif;
-  font-size: 1rem;
-  color: #333;
-  background: #fdfdfd;
-  border: 2px solid #A550F7;
-  border-radius: 10px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-  resize: vertical; /* permite ao utilizador ajustar a altura */
-  line-height: 1.6;
-  transition: border-color 0.3s, box-shadow 0.3s;
-}
-
-#transcriptionText:focus {
-  outline: none;
-  border-color: #00C3FF;
-  box-shadow: 0 0 0 4px rgba(0,195,255,0.15);
-}
-#nichoMenu {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 12px;
- 
- 
-  position: sticky;
-  top: 0;
-  z-index: 999;
-}
-
-#nichoMenu button {
-  position: relative;
-  overflow: hidden;
-  background-color: #e6d7fb;
-  color: #333;
-  border: 2px solid #A550F7;
-  border-radius: 50px;
-  padding: 10px 20px;
-  font-weight: bold;
-  font-size: 0.95em;
-  cursor: pointer;
-  transition: color 0.3s ease, border-color 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  flex: 0 0 auto;
-  white-space: nowrap;
-  width: max-content;
-  z-index: 1; /* ✅ Isto é importante */
-}
-
-#nichoMenu button::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: -100%; /* fora de vista inicialmente */
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #A550F7, #00C3FF);
-  transition: bottom 0.6s cubic-bezier(0.25, 1, 0.5, 1);
-  z-index: 0;
-}
-
-#nichoMenu button:hover::before {
-  bottom: 0; /* desliza para cima */
-}
-
-
-#nichoMenu button span {
-  position: relative;
-  z-index: 2; /* ✅ Garante que o texto aparece acima do gradiente */
-}
-
-#nichoMenu button:hover {
-	
-  color: white;
-  border-color: white;
-}
-.dropdown-export {
-  position: relative;
-  display: inline-block;
-}
-
-#exportBtn {
-  background-color: #e6d7fb;
-  color: #333;
-  border: 2px solid #A550F7;
-  border-radius: 8px;
-  padding: 15px 20px;
-  font-weight: bold;
-  font-size: 0.95em;
-  cursor: pointer;
-}
-
-#exportBtn:hover {
-  background: linear-gradient(135deg, #A550F7, #00C3FF);
-  color: white;
-  border-color: transparent;
-}
-
-.dropdown-content {
-  display: flex;
-  flex-direction: column;
-  position: absolute;
-  background-color: white;
-  min-width: 180px;
-  box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
-  z-index: 1;
-  border-radius: 8px;
-  top: 110%;
-  left: 0;
-  padding: 5px 0;
-}
-
-.dropdown-content button {
-  background: none;
-  border: none;
-  padding: 10px 20px;
-  text-align: left;
-  font-size: 0.95em;
-  color: #333;
-  cursor: pointer;
-  width: 100%;
-}
-
-.dropdown-content button:hover {
-  background-color: #f0f0f0;
-}
-
-.hidden {
-  display: none;
-}
-  .btn-group button:active::before {
-  bottom: 0;
-}
-
-.btn-group button:active span {
-  position: relative;
-  z-index: 3;
-}
-.btn-group button span {
-  position: relative !important;
-  z-index: 3 !important;
-  display: inline-block;
-}
-@media only screen and (max-width: 430px) {
- .hourglass {
-    width: 30px !important;
-    height: 30px !important;
-    margin: 0 !important;
-    border: 4px solid #A550F7;
-    border-radius: 50%;
-    position: relative;
-    animation: rotateHourglass 2.5s infinite linear;
-    flex-shrink: 0;
-  }
-
-  .logo-area {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    padding: 10px;
-    flex-wrap: nowrap;
-  }
-
-  .logo-area img {
-    max-height: 30px;
-    height: auto;
-    width: auto;
-  }
-
-  .logo-area h1 {
-    font-size: 1.1em;
-    margin: 0;
-  }
-
-  #burgerBtn {
-    background: none;
-    border: none;
-    font-size: 24px;
-    color: white;
-    cursor: pointer;
-    padding: 0;
-  }
-}
   </style>
 </head>
 <body>
@@ -529,391 +189,356 @@ place-items: center;
 <div id="header"></div>
 
 <main>
- 
 
-  <div id="adminContent" >
-
-	
-<p><strong>🧠 Ouviescrevi</strong> é o teu assistente com IA para <br> <strong>transcrever</strong> 🎙️, <strong>traduzir</strong> 🌍, <strong>resumir</strong> 📌 e <strong>converter ficheiros</strong> 📄 <br> — tudo num clique. Simples, rápido e gratuito.</p>
-
+  <div id="adminContent">
+    <p>
+      <strong>🧠 Ouviescrevi</strong> é o teu assistente com IA para
+      <br><strong>transcrever</strong> 🎙️, <strong>traduzir</strong> 🌍, <strong>resumir</strong> 📌 e <strong>converter ficheiros</strong> 📄
+      <br>— simples, rápido e gratuito.
+    </p>
 
     <form id="uploadForm">
-	
       <div id="dropZone">
-  <p>📁 <strong>Arrasta o ficheiro aqui</strong> ou clica para escolher</p>
-  <input type="file" id="fileInput" accept="audio/*,video/*" required>
-  <span id="fileName">Nenhum ficheiro selecionado</span>
-</div>
+        <p>📁 <strong>Arrasta o ficheiro aqui</strong> ou clica para escolher</p>
+        <input type="file" id="fileInput" accept="audio/*,video/*" required>
+        <span id="fileName">Nenhum ficheiro selecionado</span>
+      </div>
 
-      <button type="submit">Transcrever</button>
-      <button type="button" onclick="startRecording()">🎤 Gravar Áudio</button>
-	  <button type="button" onclick="limparTudo()" style="background:#ffffff; border:2px solid #A550F7; color:#A550F7; font-weight:bold; margin-bottom:10px;">🧹 Limpar Tudo</button>
+      <button type="submit" id="btnTranscrever">Transcrever</button>
+      <button type="button" id="btnStartRec">🎤 Gravar Áudio</button>
+      <button type="button" id="btnStopRecording" class="hidden" style="background:#ff4c4c; color:white; font-weight:bold; margin-bottom:10px;">🛑 Parar Gravação</button>
+      <button type="button" onclick="limparTudo()" style="background:#ffffff; border:2px solid #A550F7; color:#A550F7; font-weight:bold; margin-bottom:10px;">🧹 Limpar Tudo</button>
 
-	  <button type="button" id="btnStopRecording" class="hidden" style="background:#ff4c4c; color:white; font-weight:bold; margin-bottom:10px;">🛑 Parar Gravação</button>
-<p id="timerGravacao" style="font-weight:bold; margin-top: 10px; display:none;">⏱️ 00:00</p>
+      <p id="timerGravacao" class="hidden" style="font-weight:bold; margin-top: 10px;">⏱️ 00:00</p>
 
-		 <label class="switch-container">
-  <input type="checkbox" id="identificarLocutores">
-  <span class="slider"></span>
-  <span class="switch-label">Identificar falas com nomes de locutores</span>
-</label>
-
+      <label class="switch-container">
+        <input type="checkbox" id="identificarLocutores">
+        <span class="slider"></span>
+        <span class="switch-label">Identificar falas com nomes de locutores</span>
+      </label>
 
       <p id="recordingStatus"></p>
     </form>
 
-
     <div id="loading" class="hidden">
-      <p>🔄 A processar transcrição...</p>
-      <div style="background:#ddd; border-radius:8px; width:100%; height:20px;">
-        <div id="progressBar" style="height:100%; width:0%; background:#4caf50; border-radius:8px;"></div>
+      <p class="status" id="transcricaoStatus">🔄 A preparar...</p>
+
+      <!-- ✅ contador do tempo de transcrição -->
+      <p id="timerTranscricao" class="hidden">⏳ 00:00</p>
+
+      <div id="progressWrap">
+        <div id="progressBar"></div>
       </div>
     </div>
-<p id="transcricaoStatus" class="hidden" style="
-  background: #fff3cd;
-  color: #856404;
-  border-left: 5px solid #ffc107;
-  padding: 12px 18px;
-  margin: 15px 0;
-  border-radius: 5px;
-  font-weight: bold;
-  transition: opacity 0.5s ease;
-  opacity: 1;
-">
-  🔄 A preparar...
-</p>
-
-
-
 
     <div id="output" class="hidden">
       <h3>Transcrição:</h3>
       <textarea id="transcriptionText" readonly></textarea>
-	  <div style="text-align: right; margin-top: 5px;">
-		  <button onclick="copiarTranscricao()" style="
-			background: #e6d7fb;
-			border: 2px solid #A550F7;
-			border-radius: 6px;
-			padding: 5px 12px;
-			font-size: 0.9em;
-			cursor: pointer;
-			color: #333;
-			font-weight: bold;
-		  ">📋 Copiar Tudo</button>
-		</div>
+      <div style="text-align:right; margin-top:5px;">
+        <button onclick="copiarTranscricao()" style="background:#e6d7fb; border:2px solid #A550F7; border-radius:6px; padding:5px 12px; font-size:.9em; cursor:pointer; color:#333; font-weight:bold;">📋 Copiar Tudo</button>
+      </div>
 
-	  <button id="btnRetry" onclick="tentarNovamente()"><span>🔁 Tentar novamente</span></button>
+      <button id="btnRetry" class="hidden" onclick="tentarNovamente()"><span>🔁 Tentar novamente</span></button>
 
+      <p id="traducaoStatus" class="status hidden">🌍 A traduzir... por favor aguarde</p>
+      <div id="traducaoProgressWrapper" class="hidden" style="background:#ddd; border-radius:8px; width:100%; height:20px; margin-top:10px;">
+        <div id="traducaoProgressBar" style="height:100%; width:0%; background:#A550F7; border-radius:8px;"></div>
+      </div>
 
+      <div id="resumoBox" class="hidden">
+        <h3>📌 Resumo:</h3>
+        <div id="resumoTexto" style="background:#f0f0f0; padding:15px; border-radius:8px; white-space:pre-wrap;"></div>
+        <div style="text-align:right; margin-top:5px;">
+          <button onclick="copiarTextoBox('resumoTexto', this)" style="background:#e6d7fb; border:2px solid #A550F7; border-radius:6px; padding:5px 12px; font-size:.9em; cursor:pointer; color:#333; font-weight:bold;">📋 Copiar Tudo</button>
+        </div>
+      </div>
 
-	<p id="traducaoStatus" class="hidden" style="
-  background: #fff3cd;
-  color: #856404;
-  border-left: 5px solid #ffc107;
-  padding: 12px 18px;
-  margin: 15px 0;
-  border-radius: 5px;
-  font-weight: bold;
-">
-  🌍 A traduzir... por favor aguarde
-</p>
-<div id="traducaoProgressWrapper" class="hidden" style="background:#ddd; border-radius:8px; width:100%; height:20px; margin-top:10px;">
-  <div id="traducaoProgressBar" style="height:100%; width:0%; background:#A550F7; border-radius:8px;"></div>
-</div>
+      <div id="minutaBox" class="hidden">
+        <h3>📩 Minuta da Reunião:</h3>
+        <div id="minutaTexto" style="background:#f0f0f0; color:#222; padding:15px; border-radius:8px; white-space:pre-wrap;"></div>
+        <div style="text-align:right; margin-top:5px;">
+          <button onclick="copiarTextoBox('minutaTexto', this)" style="background:#e6d7fb; border:2px solid #A550F7; border-radius:6px; padding:5px 12px; font-size:.9em; cursor:pointer; color:#333; font-weight:bold;">📋 Copiar Tudo</button>
+        </div>
+      </div>
 
+      <div id="traducaoBox" class="hidden">
+        <h3>🌍 Tradução:</h3>
+        <div id="traducaoTexto" style="background:#f0f0f0; color:#222; padding:15px; border-radius:8px; white-space:pre-wrap;"></div>
+        <div style="text-align:right; margin-top:5px;">
+          <button onclick="copiarTextoBox('traducaoTexto', this)" style="background:#e6d7fb; border:2px solid #A550F7; border-radius:6px; padding:5px 12px; font-size:.9em; cursor:pointer; color:#333; font-weight:bold;">📋 Copiar Tudo</button>
+        </div>
+      </div>
 
-<div id="resumoBox" class="hidden">
-  <h3>📌 Resumo:</h3>
-  <div id="resumoTexto" style="background:#f0f0f0; padding:15px; border-radius:8px; white-space:pre-wrap;"></div>
-  <div style="text-align: right; margin-top: 5px;">
-  <button onclick="copiarTextoBox('resumoTexto', this)" style="background: #e6d7fb; border: 2px solid #A550F7; border-radius: 6px; padding: 5px 12px; font-size: 0.9em; cursor: pointer; color: #333; font-weight: bold;">📋 Copiar Tudo</button>
-</div>
-</div>
-<div id="minutaBox" class="hidden">
-  <h3>📩 Minuta da Reunião:</h3>
-  <div id="minutaTexto" style="background:#f0f0f0; color:#222; padding:15px; border-radius:8px; white-space:pre-wrap;"></div>
-  <div style="text-align: right; margin-top: 5px;">
-  <button onclick="copiarTextoBox('minutaTexto', this)" style="background: #e6d7fb; border: 2px solid #A550F7; border-radius: 6px; padding: 5px 12px; font-size: 0.9em; cursor: pointer; color: #333; font-weight: bold;">📋 Copiar Tudo</button>
-</div>
-</div>
+      <div id="classificacaoBox" class="hidden">
+        <h3>📚 Tipo de Conteúdo:</h3>
+        <div id="classificacaoTexto" style="background:#f0f0f0; color:#222; padding:10px; border-radius:8px; white-space:pre-wrap;"></div>
+      </div>
 
-<div id="traducaoBox" class="hidden">
-  <h3>🌍 Tradução:</h3>
- <div id="traducaoTexto" style="background:#f0f0f0; color:#222; padding:15px; border-radius:8px; white-space:pre-wrap;"></div>
-
-<div style="text-align: right; margin-top: 5px;">
-  <button onclick="copiarTextoBox('traducaoTexto', this)" style="background: #e6d7fb; border: 2px solid #A550F7; border-radius: 6px; padding: 5px 12px; font-size: 0.9em; cursor: pointer; color: #333; font-weight: bold;">📋 Copiar Tudo</button>
-</div>
-</div>
- <div id="classificacaoBox" class="hidden">
-  <h3>📚 Tipo de Conteúdo:</h3>
-  <div id="classificacaoTexto" style="background:#f0f0f0; color:#222; padding:10px; border-radius:8px; white-space:pre-wrap;"></div>
-</div>
       <div class="btn-group">
-        <div class="dropdown-export">
-  <button id="exportBtn"><span>📁 Exportar ▼</span></button>
-  <div class="dropdown-content hidden" id="exportOptions">
-    <button onclick="exportText('pdf')"><span>📄 Exportar PDF</span></button>
-    <button onclick="exportText('docx')"><span>📝 Exportar DOCX</span></button>
-    <button onclick="exportText('txt')"><span>📃 Exportar TXT</span></button>
-    <button onclick="exportText('srt')"><span>🎞️ Exportar SRT</span></button>
-    <button onclick="exportText('json')"><span>🔢 Exportar JSON</span></button>
+        <div class="dropdown-export" style="position:relative; display:inline-block;">
+          <button id="exportBtn"><span>📁 Exportar ▼</span></button>
+          <div class="dropdown-content hidden" id="exportOptions" style="display:flex; flex-direction:column; position:absolute; background:white; min-width:180px; box-shadow:0 8px 16px rgba(0,0,0,.2); z-index:1; border-radius:8px; top:110%; left:0; padding:5px 0;">
+            <button onclick="exportText('pdf')"><span>📄 Exportar PDF</span></button>
+            <button onclick="exportText('doc')"><span>📝 Exportar DOC</span></button>
+            <button onclick="exportText('txt')"><span>📃 Exportar TXT</span></button>
+            <button onclick="exportText('srt')"><span>🎞️ Exportar SRT</span></button>
+            <button onclick="exportText('json')"><span>🔢 Exportar JSON</span></button>
+          </div>
+        </div>
 
-
-  </div>
-</div>
-
-		<button id="btnGerarResumo"><span>🧠 Gerar Resumo</span></button>
-<button onclick="partilharWhatsapp()"><span>📲 Partilhar no WhatsApp</span></button>
-
-		<button onclick="gerarMinuta()"><span>📩 Gerar Minuta</span></button>
-		
-
-<button onclick="corrigirTextoIA()"><span>📝 Corrigir Texto</span></button>
-
-		<button onclick="abrirModalTraducao()"><span>🌍 Traduzir</span></button>
-		<button onclick="classificarConteudo()"><span>📚 Classificar Tipo</span></button>
-<button onclick="gerarEmailIA()"><span>📧 Gerar Email</span></button>
-
-
+        <button id="btnGerarResumo"><span>🧠 Gerar Resumo</span></button>
+        <button onclick="partilharWhatsapp()"><span>📲 Partilhar no WhatsApp</span></button>
+        <button onclick="gerarMinuta()"><span>📩 Gerar Minuta</span></button>
+        <button onclick="corrigirTextoIA()"><span>📝 Corrigir Texto</span></button>
+        <button onclick="abrirModalTraducao()"><span>🌍 Traduzir</span></button>
+        <button onclick="classificarConteudo()"><span>📚 Classificar Tipo</span></button>
+        <button onclick="gerarEmailIA()"><span>📧 Gerar Email</span></button>
       </div>
     </div>
   </div>
-  
-  <!-- Modal de tradução -->
-<div id="modalTraducao" class="hidden" style="
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: center;
-  z-index: 9999;
-">
-  <div style="
-    background: white; padding: 20px; border-radius: 10px;
-    text-align: center; max-width: 400px; color: #333;
-  ">
-    <h3 style="margin-bottom: 10px;">🌍 Seleciona o idioma de destino:</h3>
-    <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
-	<button onclick="traduzirTextoComIdioma(event, 'português')">Português</button>
-      <button onclick="traduzirTextoComIdioma(event, 'inglês')">Inglês</button>
-      <button onclick="traduzirTextoComIdioma(event, 'espanhol')">Espanhol</button>
-      <button onclick="traduzirTextoComIdioma(event, 'francês')">Francês</button>
-<button onclick="traduzirTextoComIdioma(event, 'alemão')">Alemão</button>
-<button onclick="traduzirTextoComIdioma(event, 'italiano')">Italiano</button>
 
-      <button onclick="fecharModalTraducao()">Cancelar</button>
+  <!-- Modal de tradução -->
+  <div id="modalTraducao" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,.6); display:flex; justify-content:center; align-items:center; z-index:9999;">
+    <div class="card">
+      <h3 style="margin-bottom:10px;">🌍 Seleciona o idioma de destino:</h3>
+      <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center;">
+        <button onclick="traduzirTextoComIdioma(event, 'português')">Português</button>
+        <button onclick="traduzirTextoComIdioma(event, 'inglês')">Inglês</button>
+        <button onclick="traduzirTextoComIdioma(event, 'espanhol')">Espanhol</button>
+        <button onclick="traduzirTextoComIdioma(event, 'francês')">Francês</button>
+        <button onclick="traduzirTextoComIdioma(event, 'alemão')">Alemão</button>
+        <button onclick="traduzirTextoComIdioma(event, 'italiano')">Italiano</button>
+        <button onclick="fecharModalTraducao()">Cancelar</button>
+      </div>
     </div>
   </div>
-</div>
-<section id="apresentacaoSEO" style="max-width: 800px; margin: 40px auto; background: white; padding: 20px; border-radius: 12px; color: #333; font-size: 1.1em; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-  <h2 style="color: #A550F7;">🧠 O que é o Ouviescrevi?</h2>
-  <p>
-    Ouviescrevi é uma ferramenta online que utiliza Inteligência Artificial (IA) para <strong>transcrever áudio e vídeo automaticamente</strong>, gerar <strong>resumos inteligentes</strong>, <strong>traduzir</strong> textos, <strong>corrigir erros</strong> e até <strong>converter ficheiros como Word para PDF</strong>, imagem para texto, e muito mais.
-  </p>
-  <p>
-    Ideal para <strong>professores</strong>, <strong>jornalistas</strong>, <strong>estudantes</strong>, <strong>empresas</strong> e qualquer pessoa que precise transformar voz em texto de forma rápida e gratuita.
-  </p>
-  <p>
-    Não precisas instalar nada. Basta arrastar um ficheiro, gravar a tua voz ou colar o texto — e deixas o resto connosco. 🚀
-  </p>
- <div style="margin-top: 15px; text-align: left; display: inline-block;">
-  <p><strong>Funcionalidades principais:</strong></p>
-  <div style="line-height: 1.8;">
-    <p>🎙️ Transcrição de áudio/vídeo (com Whisper AI)</p>
-    <p>🧠 Resumo automático de texto e PDFs</p>
-    <p>🌍 Tradução para vários idiomas</p>
-    <p>📚 Classificação automática do tipo de conteúdo</p>
-    <p>📁 Conversor de Word, PDF, Imagens, etc.</p>
-  </div>
-</div>
 
-  <p>
-    Começa agora gratuitamente. Simples, seguro e feito em Portugal 🇵🇹
-  </p>
-</section>
+  <section id="apresentacaoSEO" style="max-width: 800px; margin: 40px auto; background: white; padding: 20px; border-radius: 12px; color: #333; font-size: 1.1em; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+    <h2 style="color: #A550F7;">🧠 O que é o Ouviescrevi?</h2>
+    <p>
+      Ouviescrevi é uma ferramenta online que utiliza Inteligência Artificial (IA) para
+      <strong>transcrever áudio e vídeo automaticamente</strong>, gerar <strong>resumos inteligentes</strong>, <strong>traduzir</strong> textos,
+      <strong>corrigir erros</strong> e até <strong>converter ficheiros como Word para PDF</strong>, imagem para texto, e muito mais.
+    </p>
+    <p>Ideal para <strong>professores</strong>, <strong>jornalistas</strong>, <strong>estudantes</strong>, <strong>empresas</strong> e qualquer pessoa que precise transformar voz em texto de forma rápida e gratuita.</p>
+    <p>Não precisas instalar nada. Basta arrastar um ficheiro, gravar a tua voz ou colar o texto — e deixas o resto connosco. 🚀</p>
+    <div style="margin-top: 15px; text-align: left; display: inline-block; line-height: 1.8;">
+      <p><strong>Funcionalidades principais:</strong></p>
+      <p>🎙️ Transcrição de áudio/vídeo (com Whisper AI)</p>
+      <p>🧠 Resumo automático de texto e PDFs</p>
+      <p>🌍 Tradução para vários idiomas</p>
+      <p>📚 Classificação automática do tipo de conteúdo</p>
+      <p>📁 Conversor de Word, PDF, Imagens, etc.</p>
+    </div>
+    <p>Começa agora gratuitamente. Simples, seguro e feito em Portugal 🇵🇹</p>
+  </section>
 </main>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
- 
+  // =========================
+  // Estado global
+  // =========================
+  const API_BASE = "https://api.ouviescrevi.pt";
+  let mediaRecorder;
+  let audioChunks = [];
+  let timerInterval;      // gravação
+  let trxTimerInterval;   // ✅ transcrição
+  let statusInterval;     // frases animadas
+  let ultimaTentativaFalhada = false;
 
- 
+  // Frases animadas durante transcrição
+  const statusFrases = [
+    "🧩 A montar o quebra-cabeças da tua gravação...",
+    "🧠 A preparar os neurónios para ouvir o ficheiro...",
+    "📡 A sintonizar as ondas do áudio...",
+    "🎧 A escutar com atenção... já começámos a transcrever!",
+    "💬 A traduzir som em texto com alma...",
+    "🔍 A caçar cada sílaba... nada escapa aos nossos ouvidos!",
+    "🧾 A transformar conversa fiada em texto afinado...",
+    "📚 A passar o áudio a limpo, como um bom aluno no fim da aula!",
+    "🕵️‍♂️ A investigar sotaques como um detetive linguístico!",
+    "⏳ A captar cada segundo como se fosse ouro!"
+  ];
 
+  // =========================
+  // Utilitários UI
+  // =========================
+  function iniciarFrasesAnimadas(el) {
+    let i = 0;
+    el.textContent = statusFrases[i];
+    el.classList.remove("hidden");
+    el.style.opacity = 1;
+    statusInterval = setInterval(() => {
+      el.style.opacity = 0;
+      setTimeout(() => {
+        i = (i + 1) % statusFrases.length;
+        el.textContent = statusFrases[i];
+        el.style.opacity = 1;
+      }, 300);
+    }, 2500);
+  }
+  function pararFrasesAnimadas(el) {
+    clearInterval(statusInterval);
+    if (el) el.style.opacity = 1;
+  }
+
+  function formatMMSS(totalSeconds) {
+    const m = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+    const s = String(totalSeconds % 60).padStart(2, '0');
+    return `${m}:${s}`;
+  }
+
+  // ✅ contador do tempo de transcrição (sobe até parar)
+  function iniciarTimerTranscricao() {
+    const el = document.getElementById("timerTranscricao");
+    let secs = 0;
+    el.textContent = "⏳ 00:00";
+    el.classList.remove("hidden");
+    trxTimerInterval = setInterval(() => {
+      secs++;
+      el.textContent = `⏳ ${formatMMSS(secs)}`;
+    }, 1000);
+  }
+  function pararTimerTranscricao() {
+    clearInterval(trxTimerInterval);
+    document.getElementById("timerTranscricao").classList.add("hidden");
+  }
+
+  // =========================
+  // Upload/Transcrever
+  // =========================
   const form = document.getElementById("uploadForm");
   const loading = document.getElementById("loading");
   const progressBar = document.getElementById("progressBar");
   const output = document.getElementById("output");
   const transcriptionText = document.getElementById("transcriptionText");
-  let progressInterval;
-const statusFrases = [
-  "🧩 A montar o quebra-cabeças da tua gravação...",
-  "🧠 A preparar os neurónios para ouvir o ficheiro...",
-  "📡 A sintonizar as ondas do áudio...",
-  "🎧 A escutar com atenção... já começámos a transcrever!",
-  "💬 A traduzir som em texto com alma...",
-  "🔍 A caçar cada sílaba... nada escapa aos nossos ouvidos!",
-  "🧾 A transformar conversa fiada em texto afinado...",
-  "📚 A passar o áudio a limpo, como um bom aluno no fim da aula!",
-  "🕵️‍♂️ A investigar sotaques como um detetive linguístico!",
-  "🍿 A ouvir com atenção de cinema – mas sem pipocas!",
-  "📼 A rebobinar palavras perdidas no tempo...",
-  "⏳ A captar cada segundo como se fosse ouro!",
-  "🛠️ A afinar os ouvidos com ferramentas de IA!",
-  "🎙️ A dar voz ao silêncio... e texto à conversa!",
-  "💡 A iluminar ideias escondidas nas entrelinhas do áudio...",
-  "🌀 A navegar entre ecos e suspiros!",
-  "📖 A escrever a história por detrás da tua gravação...",
-  "🚀 A lançar a transcrição para o espaço da compreensão!",
-  "⚙️ A decifrar sons com engenharia de palavras!",
-  "🎭 A distinguir cada personagem nesta peça sonora!"
-];
+  const statusEl = document.getElementById("transcricaoStatus");
+  const btnTranscrever = document.getElementById("btnTranscrever");
+  const btnStartRec = document.getElementById("btnStartRec");
 
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const file = document.getElementById("fileInput").files[0];
+    if (!file) return;
 
-let statusInterval;
-
-function iniciarFrasesAnimadas(statusElement) {
-  let i = 0;
-  statusElement.textContent = statusFrases[i];
-  statusElement.classList.remove("hidden");
-  statusElement.style.opacity = 1;
-
-  statusInterval = setInterval(() => {
-    statusElement.style.opacity = 0;
-    setTimeout(() => {
-      i = (i + 1) % statusFrases.length;
-      statusElement.textContent = statusFrases[i];
-      statusElement.style.opacity = 1;
-    }, 400);
-  }, 2800);
-}
-
-function pararFrasesAnimadas(statusElement) {
-  clearInterval(statusInterval);
-  statusElement.style.opacity = 1;
-}
-
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const file = document.getElementById("fileInput").files[0];
-  if (!file) return;
-
-  const formData = new FormData();
-  formData.append("file", file);
-
-  const status = document.getElementById("transcricaoStatus");
-  const progressBar = document.getElementById("progressBar");
-
-  // ❌ Desativar botões durante a transcrição
-  const btnTranscrever = form.querySelector('button[type="submit"]');
-  const btnGravar = form.querySelector('button[onclick="startRecording()"]');
-  btnTranscrever.disabled = true;
-  btnGravar.disabled = true;
-  btnTranscrever.style.opacity = 0.5;
-  btnGravar.style.opacity = 0.5;
-
-  // Reset UI
-  document.getElementById("output").classList.add("hidden");
-  document.getElementById("transcriptionText").value = "";
-  document.getElementById("loading").classList.remove("hidden");
-  status.classList.remove("hidden");
-  progressBar.style.width = "0%";
-
-  iniciarFrasesAnimadas(status);
-
-  let progress = 0;
-  let interval = setInterval(() => {
-    if (progress < 90) {
-      progress += Math.random() * 5;
-      progressBar.style.width = `${progress.toFixed(1)}%`;
-    }
-  }, 200);
-
-  let tentativa = 1;
-  let sucesso = false;
-  let data = {};
-
-  while (tentativa <= 2 && !sucesso) {
-    try {
-      if (tentativa === 2) {
-        pararFrasesAnimadas(status);
-        status.textContent = "😓 Está difícil... mas estamos a tentar novamente com toda a força!";
-      }
-
-      const res = await fetch("https://api.ouviescrevi.pt/transcribe", {
-        method: "POST",
-        body: formData
-      });
-
-      data = await res.json();
-      sucesso = true;
-    } catch (err) {
-      tentativa++;
-      if (tentativa > 2) {
-        console.error("❌ Falha total:", err);
-      }
-    }
-  }
-
-  clearInterval(interval);
-  progressBar.style.width = "100%";
-  pararFrasesAnimadas(status);
-
-  if (sucesso && (data.formatted || data.transcription)) {
-    const identificar = document.getElementById("identificarLocutores").checked;
-    let textoFinal = data.formatted || data.transcription;
-    if (identificar) textoFinal = aplicarLocutores(textoFinal);
-
-    document.getElementById("transcriptionText").value = textoFinal;
-    document.getElementById("output").classList.remove("hidden");
-    status.textContent = "✅ Transcrição concluída com sucesso!";
-  } else {
-    document.getElementById("transcriptionText").value = "❌ Erro ao transcrever. Tenta novamente mais tarde.";
-    document.getElementById("output").classList.remove("hidden");
-    status.textContent = "⚠️ Não conseguimos transcrever desta vez.";
-  }
-
-  setTimeout(() => {
-    document.getElementById("loading").classList.add("hidden");
-    status.classList.add("hidden");
+    // reset UI
+    output.classList.add("hidden");
+    transcriptionText.value = "";
+    loading.classList.remove("hidden");
     progressBar.style.width = "0%";
 
-    if (!sucesso) {
-      ultimaTentativaFalhada = true;
-      document.getElementById("btnRetry").classList.remove("hidden");
-    } else {
-      ultimaTentativaFalhada = false;
-      document.getElementById("btnRetry").classList.add("hidden");
+    btnTranscrever.disabled = true;
+    btnStartRec.disabled = true;
+    btnTranscrever.style.opacity = 0.6;
+    btnStartRec.style.opacity = 0.6;
+
+    iniciarFrasesAnimadas(statusEl);
+    iniciarTimerTranscricao(); // ✅
+
+    // progresso "fake" suave até 90%
+    let progress = 0;
+    const interval = setInterval(() => {
+      if (progress < 90) {
+        progress += Math.random() * 5;
+        progressBar.style.width = `${progress.toFixed(1)}%`;
+      }
+    }, 200);
+
+    // Request com retries + timeout
+    const formData = new FormData();
+    formData.append("file", file);
+
+    let sucesso = false;
+    let data = {};
+    const MAX_TRIES = 3;
+
+    for (let tentativa = 1; tentativa <= MAX_TRIES && !sucesso; tentativa++) {
+      try {
+        if (tentativa === 2) {
+          pararFrasesAnimadas(statusEl);
+          statusEl.textContent = "😓 Está difícil... mas estamos a tentar novamente com toda a força!";
+        } else if (tentativa === 3) {
+          statusEl.textContent = "🛠️ Última tentativa — estamos a ajustar os parâmetros...";
+        }
+
+        const controller = new AbortController();
+        const to = setTimeout(() => controller.abort(), 180000); // 3 min por tentativa
+        const res = await fetch(`${API_BASE}/transcribe`, {
+          method: "POST",
+          body: formData,
+          signal: controller.signal
+        });
+        clearTimeout(to);
+
+        // tenta ler JSON com segurança
+        let jsonText = await res.text();
+        try { data = JSON.parse(jsonText); }
+        catch { data = { error: `Resposta inválida do servidor (${res.status})` }; }
+
+        if (!res.ok) throw new Error(data.error || `Erro ${res.status}`);
+
+        sucesso = !!(data.formatted || data.transcription || data.text);
+      } catch (err) {
+        // espera curta antes de nova tentativa
+        await new Promise(r => setTimeout(r, 700));
+      }
     }
 
-    // ✅ Reativar botões após a transcrição
-    btnTranscrever.disabled = false;
-    btnGravar.disabled = false;
-    btnTranscrever.style.opacity = 1;
-    btnGravar.style.opacity = 1;
+    clearInterval(interval);
+    progressBar.style.width = "100%";
+    pararFrasesAnimadas(statusEl);
+    pararTimerTranscricao(); // ✅
 
-  }, 1200);
-});
+    // Mostrar resultados
+    const identificar = document.getElementById("identificarLocutores").checked;
+    const textoRecebido = data.formatted || data.transcription || data.text || "";
+    if (sucesso && textoRecebido.trim()) {
+      let textoFinal = textoRecebido;
+      if (identificar) textoFinal = aplicarLocutores(textoFinal);
+      transcriptionText.value = textoFinal;
+      output.classList.remove("hidden");
+      statusEl.textContent = "✅ Transcrição concluída com sucesso!";
+    } else {
+      transcriptionText.value = "❌ Não foi possível obter a transcrição. Tenta novamente mais tarde.";
+      output.classList.remove("hidden");
+      statusEl.textContent = "⚠️ Não conseguimos transcrever desta vez.";
+      document.getElementById("btnRetry").classList.remove("hidden");
+      ultimaTentativaFalhada = true;
+    }
 
+    setTimeout(() => {
+      loading.classList.add("hidden");
+      progressBar.style.width = "0%";
+      document.getElementById("btnRetry").classList.toggle("hidden", !ultimaTentativaFalhada);
+      // reativar botões
+      btnTranscrever.disabled = false;
+      btnStartRec.disabled = false;
+      btnTranscrever.style.opacity = 1;
+      btnStartRec.style.opacity = 1;
+    }, 800);
+  });
 
-
-
-
+  // =========================
+  // Exportações
+  // =========================
   function exportText(type) {
-    const text = transcriptionText.value;
+    const text = transcriptionText.value || "";
+    if (!text) return;
 
     if (type === 'pdf') {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
-      const textLines = doc.splitTextToSize(text, 180);
+      const lines = doc.splitTextToSize(text, 180);
       let y = 20;
-      for (let i = 0; i < textLines.length; i++) {
-        if (y > 270) {
-          doc.addPage();
-          y = 20;
-        }
-        doc.text(textLines[i], 15, y);
+      for (let i = 0; i < lines.length; i++) {
+        if (y > 270) { doc.addPage(); y = 20; }
+        doc.text(lines[i], 15, y);
         y += 8;
       }
       doc.save("transcricao.pdf");
-    }
-    else if (type === 'docx') {
+    } else if (type === 'doc') {
       const blob = new Blob([text], { type: 'application/msword;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -921,8 +546,7 @@ form.addEventListener("submit", async (e) => {
       a.download = "transcricao.doc";
       a.click();
       URL.revokeObjectURL(url);
-    }
-    else if (type === 'txt') {
+    } else if (type === 'txt') {
       const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -930,8 +554,7 @@ form.addEventListener("submit", async (e) => {
       a.download = "transcricao.txt";
       a.click();
       URL.revokeObjectURL(url);
-    }
-    else if (type === 'json') {
+    } else if (type === 'json') {
       const json = JSON.stringify({ transcription: text }, null, 2);
       const blob = new Blob([json], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -940,16 +563,15 @@ form.addEventListener("submit", async (e) => {
       a.download = "transcricao.json";
       a.click();
       URL.revokeObjectURL(url);
-    }
-    else if (type === 'srt') {
+    } else if (type === 'srt') {
       const lines = text.split('\n');
       let srt = '', count = 1;
       for (let line of lines) {
-        const match = line.match(/^\[(\d{2}):(\d{2})\] (.+)$/);
+        const match = line.match(/^\[(\d{2}):(\d{2})\]\s*(.+)$/);
         if (match) {
-          const [_, min, sec, content] = match;
+          const [, min, sec, content] = match;
           const start = `00:${min}:${sec},000`;
-          const end = `00:${min}:${String(parseInt(sec) + 2).padStart(2, '0')},000`;
+          const end = `00:${min}:${String(Math.min(59, parseInt(sec) + 2)).padStart(2, '0')},000`;
           srt += `${count}\n${start} --> ${end}\n${content}\n\n`;
           count++;
         }
@@ -964,675 +586,442 @@ form.addEventListener("submit", async (e) => {
     }
   }
 
-  let mediaRecorder;
-  let audioChunks = [];
+  // =========================
+  // Gravação
+  // =========================
+  document.getElementById("btnStartRec").addEventListener("click", startRecording);
+  document.getElementById("btnStopRecording").addEventListener("click", () => {
+    if (mediaRecorder && mediaRecorder.state === "recording") mediaRecorder.stop();
+  });
 
- let timerInterval;
+  async function startRecording() {
+    const status = document.getElementById("recordingStatus");
+    const startBtn = document.getElementById("btnStartRec");
+    const stopBtn = document.getElementById("btnStopRecording");
+    const transcribeBtn = document.getElementById("btnTranscrever");
+    const timer = document.getElementById("timerGravacao");
 
-async function startRecording() {
-  const status = document.getElementById("recordingStatus");
-  const startBtn = document.querySelector("button[onclick='startRecording()']");
-  const stopBtn = document.getElementById("btnStopRecording");
-  const transcribeBtn = document.querySelector("#uploadForm button[type='submit']");
-  const timer = document.getElementById("timerGravacao");
+    // Feature detection
+    if (!navigator.mediaDevices?.getUserMedia) {
+      alert("O teu navegador não suporta getUserMedia. Usa Chrome/Edge/Firefox recente e HTTPS.");
+      return;
+    }
+    if (typeof MediaRecorder === "undefined") {
+      alert("O teu navegador não suporta MediaRecorder.");
+      return;
+    }
+    if (mediaRecorder && mediaRecorder.state === "recording") return;
 
-  if (mediaRecorder && mediaRecorder.state === "recording") return;
+    // pedir microfone
+    let stream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch {
+      alert("Não foi possível aceder ao microfone. Verifica permissões.");
+      return;
+    }
 
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  mediaRecorder = new MediaRecorder(stream);
-  audioChunks = [];
-
-  mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-
-  mediaRecorder.onstop = async () => {
-    clearInterval(timerInterval);
-    timer.style.display = "none";
-    timer.textContent = "⏱️ 00:00";
-
-    stopBtn.classList.add("hidden");
-    startBtn.disabled = false;
-    transcribeBtn.disabled = false;
-
-    startBtn.style.opacity = 1;
-    transcribeBtn.style.opacity = 1;
-
-    const blob = new Blob(audioChunks, { type: 'audio/webm' });
-    const formData = new FormData();
-    formData.append("file", blob, "gravacao.webm");
-
-    status.textContent = "🕐 A processar o áudio...";
-    document.getElementById("loading").classList.remove("hidden");
+    // escolher MIME suportado
+    const preferidos = ["audio/webm;codecs=opus", "audio/ogg;codecs=opus", "audio/mp4"];
+    const mimeType = (MediaRecorder.isTypeSupported && preferidos.find(t => MediaRecorder.isTypeSupported(t))) || "";
 
     try {
-      const res = await fetch("https://api.ouviescrevi.pt/transcribe", {
+      mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+    } catch {
+      alert("Não foi possível iniciar a gravação neste navegador.");
+      stream.getTracks().forEach(t => t.stop());
+      return;
+    }
+
+    audioChunks = [];
+
+    mediaRecorder.onstart = () => {
+      status.textContent = "🎙️ A gravar... clique em 'Parar Gravação' para terminar.";
+      stopBtn.classList.remove("hidden");
+      startBtn.disabled = true;
+      transcribeBtn.disabled = true;
+      startBtn.style.opacity = 0.6; transcribeBtn.style.opacity = 0.6;
+
+      timer.classList.remove("hidden");
+      let segundos = 0;
+      timerInterval = setInterval(() => {
+        segundos++;
+        timer.textContent = `⏱️ ${formatMMSS(segundos)}`;
+      }, 1000);
+    };
+
+    mediaRecorder.ondataavailable = e => { if (e.data && e.data.size > 0) audioChunks.push(e.data); };
+
+    mediaRecorder.onerror = () => { status.textContent = "❌ Erro do gravador. Tenta de novo."; };
+
+    mediaRecorder.onstop = async () => {
+      clearInterval(timerInterval);
+      timer.classList.add("hidden"); timer.textContent = "⏱️ 00:00";
+      stream.getTracks().forEach(t => t.stop());
+
+      stopBtn.classList.add("hidden");
+      startBtn.disabled = false;
+      transcribeBtn.disabled = false;
+      startBtn.style.opacity = 1; transcribeBtn.style.opacity = 1;
+
+      const size = audioChunks.reduce((n, b) => n + b.size, 0);
+      if (!audioChunks.length || size === 0) {
+        status.textContent = "⚠️ Sem áudio (sem chunks). Tenta falar alguns segundos antes de parar.";
+        return;
+      }
+
+      const mime = mediaRecorder.mimeType || "audio/webm";
+      const ext = mime.includes("ogg") ? "ogg" : (mime.includes("mp4") || mime.includes("m4a")) ? "m4a" : "webm";
+      const blob = new Blob(audioChunks, { type: mime });
+
+      const formData = new FormData();
+      formData.append("file", blob, `gravacao.${ext}`);
+
+      status.textContent = "🕐 A processar o áudio...";
+      loading.classList.remove("hidden");
+      progressBar.style.width = "0%";
+      iniciarFrasesAnimadas(statusEl);
+      iniciarTimerTranscricao(); // ✅
+
+      let p = 0;
+      const anim = setInterval(() => { if (p < 90) { p += Math.random() * 5; progressBar.style.width = `${p.toFixed(1)}%`; } }, 200);
+
+      try {
+        const controller = new AbortController();
+        const to = setTimeout(() => controller.abort(), 120000);
+        const res = await fetch(`${API_BASE}/transcribe`, { method:"POST", body: formData, signal: controller.signal });
+        clearTimeout(to);
+
+        let data = {};
+        let txt = await res.text();
+        try { data = JSON.parse(txt); } catch { data = { error: `Resposta inválida (${res.status})` }; }
+
+        transcriptionText.value = data.formatted || data.transcription || "⚠️ Erro ao transcrever.";
+        output.classList.remove("hidden");
+        status.textContent = "✅ Transcrição concluída!";
+      } catch (err) {
+        status.textContent = "❌ Erro ao processar áudio.";
+      } finally {
+        clearInterval(anim);
+        progressBar.style.width = "100%";
+        pararFrasesAnimadas(statusEl);
+        pararTimerTranscricao(); // ✅
+        setTimeout(() => { loading.classList.add("hidden"); progressBar.style.width = "0%"; }, 700);
+      }
+    };
+
+    mediaRecorder.start(250); // timeslice para garantir chunks
+  }
+
+  // =========================
+  // Botões e handlers extra
+  // =========================
+  function tentarNovamente() {
+    const file = document.getElementById("fileInput").files[0];
+    if (!file) { alert("⚠️ Nenhum ficheiro selecionado."); return; }
+    form.dispatchEvent(new Event("submit", { bubbles:true, cancelable:true }));
+  }
+
+  async function classificarConteudo() {
+    const text = transcriptionText.value.trim();
+    if (!text) return alert("⚠️ Transcrição vazia.");
+
+    const btn = event.target.closest("button");
+    const original = btn.innerHTML; btn.innerHTML = "<span>📚 A classificar...</span>"; btn.disabled = true;
+
+    try {
+      const res = await fetch(`${API_BASE}/classify`, {
         method: "POST",
-        body: formData
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, token: "ouviescrevi2025@resumo" })
       });
       const data = await res.json();
-
-      document.getElementById("transcriptionText").value = data.formatted || data.transcription || "⚠️ Erro ao transcrever.";
-      document.getElementById("output").classList.remove("hidden");
-      status.textContent = "✅ Transcrição concluída!";
-    } catch (err) {
-      status.textContent = "❌ Erro ao processar áudio.";
+      const box = document.getElementById("classificacaoBox");
+      document.getElementById("classificacaoTexto").textContent =
+        data.type ? `🔎 ${data.type}` : (data.error ? `❌ Erro: ${data.error}` : "❌ Erro inesperado.");
+      box.classList.remove("hidden");
+    } catch {
+      const box = document.getElementById("classificacaoBox");
+      document.getElementById("classificacaoTexto").textContent = "❌ Falha ao comunicar com a API.";
+      box.classList.remove("hidden");
+    } finally {
+      btn.innerHTML = original; btn.disabled = false;
     }
-
-    document.getElementById("loading").classList.add("hidden");
-  };
-
-  // Mostrar timer e iniciar contagem
-  timer.style.display = "block";
-  let segundos = 0;
-  timerInterval = setInterval(() => {
-    segundos++;
-    const min = String(Math.floor(segundos / 60)).padStart(2, '0');
-    const sec = String(segundos % 60).padStart(2, '0');
-    timer.textContent = `⏱️ ${min}:${sec}`;
-  }, 1000);
-
-  mediaRecorder.start();
-  status.textContent = "🎙️ A gravar... clique em 'Parar Gravação' para terminar.";
-  stopBtn.classList.remove("hidden");
-  startBtn.disabled = true;
-  transcribeBtn.disabled = true;
-
-  startBtn.style.opacity = 0.5;
-  transcribeBtn.style.opacity = 0.5;
-}
-document.getElementById("btnStopRecording").addEventListener("click", () => {
-  if (mediaRecorder && mediaRecorder.state === "recording") {
-    mediaRecorder.stop();
   }
-});
 
-
- 
- async function gerarResumo(event) {
+  async function corrigirTextoIA() {
     const text = transcriptionText.value.trim();
-    if (!text) {
-        alert("⚠️ Transcrição vazia.");
-        return;
+    if (!text) return alert("⚠️ Transcrição vazia.");
+
+    const btn = event.target.closest("button");
+    const original = btn.innerHTML; btn.innerHTML = "<span>📝 A corrigir...</span>"; btn.disabled = true;
+    try {
+      const res = await fetch(`${API_BASE}/correct`, {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ text, token: "ouviescrevi2025@resumo" })
+      });
+      const data = await res.json();
+      if (data.corrected) {
+        transcriptionText.value = data.corrected;
+        alert("✅ Texto corrigido com sucesso!");
+      } else {
+        alert("❌ Erro: " + (data.error || "resposta inválida"));
+      }
+    } catch {
+      alert("❌ Falha ao comunicar com a API.");
+    } finally {
+      btn.innerHTML = original; btn.disabled = false;
     }
+  }
 
-    const btn = event?.target?.closest("button") || document.querySelector("#btnGerarResumo");
-    const span = btn.querySelector("span");
-    const originalText = span ? span.textContent : btn.textContent;
+  async function gerarMinuta() {
+    const text = transcriptionText.value.trim();
+    if (!text) return alert("⚠️ Transcrição vazia.");
 
-    if (span) span.textContent = "🧠 A gerar resumo...";
-    else btn.textContent = "🧠 A gerar resumo...";
-
-    btn.disabled = true;
-
-    const resumoTexto = document.getElementById("resumoTexto");
-    const resumoBox = document.getElementById("resumoBox");
+    const btn = event.target.closest("button");
+    const original = btn.innerHTML; btn.innerHTML = "<span>📩 A gerar minuta...</span>"; btn.disabled = true;
 
     try {
-        const res = await fetch("https://api.ouviescrevi.pt/summarize", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                text: text,
-                token: "ouviescrevi2025@resumo"
-            })
-        });
-
-        const data = await res.json();
-
-        if (data.summary) {
-            resumoTexto.textContent = data.summary;
-        } else if (data.error) {
-            resumoTexto.textContent = "❌ Erro ao gerar resumo: " + data.error;
-        } else {
-            resumoTexto.textContent = "❌ Erro inesperado na resposta.";
-        }
-
-        resumoBox.classList.remove("hidden");
-    } catch (err) {
-        alert("❌ Erro ao gerar resumo.");
-        console.error(err);
+      const res = await fetch(`${API_BASE}/summarize`, {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ text, mode:"minuta", token:"ouviescrevi2025@resumo" })
+      });
+      const data = await res.json();
+      const box = document.getElementById("minutaBox");
+      document.getElementById("minutaTexto").textContent = data.summary || "❌ Erro ao gerar minuta.";
+      box.classList.remove("hidden");
+      scrollSeInvisivel("minutaBox");
+    } catch {
+      const box = document.getElementById("minutaBox");
+      document.getElementById("minutaTexto").textContent = "❌ Erro inesperado ao comunicar com a API.";
+      box.classList.remove("hidden");
     } finally {
-        if (span) span.textContent = originalText;
-        else btn.textContent = originalText;
-        btn.disabled = false;
+      btn.innerHTML = original; btn.disabled = false;
     }
-	scrollSeInvisivel("resumoBox");
-}
-
-function aplicarLocutores(transcricao) {
-  const linhas = transcricao.split('\n');
-  let resultado = '';
-  let locutorAtual = 'João';
-
-  for (let i = 0; i < linhas.length; i++) {
-    const linha = linhas[i].trim();
-    if (!linha) continue;
-
-    const novaLinha = linha.replace(/^\[(\d{2}:\d{2})\]/, (match, timestamp) => {
-      const nome = locutorAtual;
-      locutorAtual = locutorAtual === 'João' ? 'Maria' : 'João'; // alternar
-      return `[${timestamp}] ${nome}:`;
-    });
-
-    resultado += novaLinha + '\n';
   }
 
-  return resultado.trim();
-}
-// Torna o campo editável (já está assim por padrão)
-transcriptionText.removeAttribute("readonly");
+  async function gerarResumo(e) {
+    const text = transcriptionText.value.trim();
+    if (!text) return alert("⚠️ Transcrição vazia.");
 
-// Cria aviso informativo acima do textarea
-const avisoEditar = document.createElement("div");
-avisoEditar.innerHTML = `<div style="background: #fff3cd; color: #856404; border-left: 5px solid #ffc107; padding: 12px 18px; margin-bottom: 15px; font-size: 15px; border-radius: 5px;">
-  ✏️ <strong>Podes editar o texto abaixo</strong>. Quando terminares, clica em <strong>"Salvar Alterações"</strong> para guardar.
-</div>
-`;
-avisoEditar.style.background = "#fff8dc";
-avisoEditar.style.borderLeft = "5px solid #ffc107";
-avisoEditar.style.padding = "10px 15px";
-avisoEditar.style.marginBottom = "10px";
-avisoEditar.style.fontSize = "14px";
+    const btn = e?.target?.closest("button") || document.querySelector("#btnGerarResumo");
+    const original = btn.innerHTML; btn.innerHTML = "<span>🧠 A gerar resumo...</span>"; btn.disabled = true;
 
-// Cria botão de salvar
-const btnSalvar = document.createElement("button");
-btnSalvar.innerHTML = '<span>💾 Salvar Alterações</span>';
-
-btnSalvar.style.background = "#4caf50";
-btnSalvar.style.color = "#fff";
-btnSalvar.style.fontWeight = "bold";
-btnSalvar.style.marginBottom = "15px";
-btnSalvar.style.cursor = "pointer";
-btnSalvar.onclick = () => {
-  const textoAtualizado = transcriptionText.value.trim();
-  localStorage.setItem("transcricao_temporaria", textoAtualizado);
-
-  btnSalvar.innerHTML = '<span>✅ Alterações salvas!</span>';
-  btnSalvar.disabled = true;
-
-  setTimeout(() => {
-    btnSalvar.innerHTML = '<span>💾 Salvar Alterações</span>';
-    btnSalvar.disabled = false;
-  }, 2000);
-};
-
-
-document.addEventListener("DOMContentLoaded", () => {
-
- // Oculta o modal de tradução no arranque, por garantia
-  document.getElementById("modalTraducao").classList.add("hidden");
-  const btnGroup = document.querySelector(".btn-group");
-  transcriptionText.parentElement.insertBefore(avisoEditar, transcriptionText);
-  btnGroup.insertBefore(btnSalvar, btnGroup.firstChild);
-
-  const guardada = localStorage.getItem("transcricao_temporaria");
-// Carrega automaticamente a transcrição guardada, sem mostrar aviso
-if (guardada && transcriptionText.value.trim() === "") {
-  transcriptionText.value = guardada;
-}
-
- // ✅ ADICIONA AQUI
-  document.getElementById("btnGerarResumo").addEventListener("click", gerarResumo);
-});
-function abrirModalTraducao() {
-  const modal = document.getElementById("modalTraducao");
-  modal.classList.add("show");
-}
-
-function fecharModalTraducao() {
-  const modal = document.getElementById("modalTraducao");
-  modal.classList.remove("show");
-  
-}
-
-
-async function traduzirTextoComIdioma(event, idioma) {
-  fecharModalTraducao();
-
-  const texto = transcriptionText.value.trim();
-  if (!texto) {
-    alert("⚠️ Transcrição vazia.");
-    return;
+    try {
+      const res = await fetch(`${API_BASE}/summarize`, {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ text, token:"ouviescrevi2025@resumo" })
+      });
+      const data = await res.json();
+      const box = document.getElementById("resumoBox");
+      document.getElementById("resumoTexto").textContent =
+        data.summary || ("❌ Erro ao gerar resumo: " + (data.error || "resposta inválida"));
+      box.classList.remove("hidden");
+      scrollSeInvisivel("resumoBox");
+    } catch {
+      alert("❌ Erro ao gerar resumo.");
+    } finally {
+      btn.innerHTML = original; btn.disabled = false;
+    }
   }
 
-  const status = document.getElementById("traducaoStatus");
-  const progressBar = document.getElementById("traducaoProgressBar");
-  const progressWrapper = document.getElementById("traducaoProgressWrapper");
-
-  // Mostrar loading visual
-  status.classList.remove("hidden");
-  status.textContent = "🌍 A traduzir... por favor aguarda";
-  //progressWrapper.classList.remove("hidden");
-  progressBar.style.width = "0%";
-
-  let progress = 0;
-  const interval = setInterval(() => {
-    if (progress < 90) {
-      progress += Math.random() * 5;
-      progressBar.style.width = `${progress}%`;
+  function aplicarLocutores(transcricao) {
+    const linhas = transcricao.split('\n');
+    let resultado = '';
+    let locutorAtual = 'João';
+    for (let i = 0; i < linhas.length; i++) {
+      const linha = linhas[i].trim();
+      if (!linha) continue;
+      const nova = linha.replace(/^\[(\d{2}:\d{2})\]/, (m, ts) => {
+        const nome = locutorAtual;
+        locutorAtual = locutorAtual === 'João' ? 'Maria' : 'João';
+        return `[${ts}] ${nome}:`;
+      });
+      resultado += nova + '\n';
     }
-  }, 200);
-
-  const btn = event.target;
-  const originalText = btn.textContent || "🌍 Traduzir";
-  btn.textContent = "🌍 A traduzir...";
-  btn.disabled = true;
-
-  try {
-    const response = await fetch("https://api.ouviescrevi.pt/translate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        text: texto,
-        language: idioma,
-        token: "ouviescrevi2025@resumo"
-      })
-    });
-
-    const data = await response.json();
-
-    clearInterval(interval);
-    progressBar.style.width = "100%";
-
-    if (data.translation) {
-      transcriptionText.value = data.translation;
-      document.getElementById("traducaoTexto").textContent = data.translation;
-      document.getElementById("traducaoBox").classList.remove("hidden");
-      status.textContent = "✅ Tradução concluída com sucesso!";
-    } else {
-      status.textContent = "❌ Erro: Tradução não recebida.";
-    }
-
-  } catch (err) {
-    console.error(err);
-    status.textContent = "❌ Oops! Tivemos um problema ao comunicar com a IA.";
-  } finally {
-    setTimeout(() => {
-      status.classList.add("hidden");
-      progressWrapper.classList.add("hidden");
-      progressBar.style.width = "0%";
-    }, 1200);
-
-    btn.textContent = originalText;
-    btn.disabled = false;
+    return resultado.trim();
   }
-  scrollSeInvisivel("traducaoBox");
-}
 
+  function abrirModalTraducao() {
+    document.getElementById("modalTraducao").classList.add("show");
+  }
+  function fecharModalTraducao() {
+    document.getElementById("modalTraducao").classList.remove("show");
+  }
+  document.getElementById("modalTraducao").addEventListener("click", (e) => {
+    if (e.target.id === "modalTraducao") fecharModalTraducao();
+  });
 
-
-
-document.getElementById("modalTraducao").addEventListener("click", function(e) {
-  if (e.target.id === "modalTraducao") {
+  async function traduzirTextoComIdioma(event, idioma) {
     fecharModalTraducao();
-  }
-});
+    const texto = transcriptionText.value.trim();
+    if (!texto) return alert("⚠️ Transcrição vazia.");
 
+    const status = document.getElementById("traducaoStatus");
+    const progressBar = document.getElementById("traducaoProgressBar");
+    const progressWrapper = document.getElementById("traducaoProgressWrapper");
 
+    status.classList.remove("hidden");
+    status.textContent = "🌍 A traduzir... por favor aguarda";
+    progressWrapper.classList.remove("hidden");
+    progressBar.style.width = "0%";
 
-document.addEventListener("DOMContentLoaded", () => {
-  const dropZone = document.getElementById("dropZone");
-  const fileInput = document.getElementById("fileInput");
-  const fileNameDisplay = document.getElementById("fileName");
+    let p = 0;
+    const interval = setInterval(() => {
+      if (p < 90) { p += Math.random() * 5; progressBar.style.width = `${p}%`; }
+    }, 200);
 
-  dropZone.addEventListener("click", () => {
-    fileInput.click();
-  });
+    const btn = event.target;
+    const originalText = btn.textContent || "🌍 Traduzir";
+    btn.textContent = "🌍 A traduzir..."; btn.disabled = true;
 
-  dropZone.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    dropZone.style.background = "#e0d7ff";
-  });
-
-  dropZone.addEventListener("dragleave", () => {
-    dropZone.style.background = "#fafafa";
-  });
-
-  dropZone.addEventListener("drop", (e) => {
-    e.preventDefault();
-    dropZone.style.background = "#fafafa";
-    if (e.dataTransfer.files.length > 0) {
-      fileInput.files = e.dataTransfer.files;
-      fileNameDisplay.textContent = `Ficheiro: ${fileInput.files[0].name}`;
-    }
-  });
-
-  fileInput.addEventListener("change", () => {
-    if (fileInput.files.length > 0) {
-      fileNameDisplay.textContent = `Ficheiro: ${fileInput.files[0].name}`;
-    } else {
-      fileNameDisplay.textContent = "Nenhum ficheiro selecionado";
-    }
-  });
-
-});
-
-document.getElementById("btnStopRecording").addEventListener("click", () => {
-  if (mediaRecorder && mediaRecorder.state === "recording") {
-    mediaRecorder.stop();
-  }
-});
-
-function tentarNovamente() {
-  const form = document.getElementById("uploadForm");
-
-  if (!form) {
-    console.error("❌ Formulário não encontrado!");
-    return;
-  }
-
-  const file = document.getElementById("fileInput").files[0];
-  if (!file) {
-    alert("⚠️ Nenhum ficheiro selecionado. Por favor, seleciona um ficheiro antes de tentar novamente.");
-    return;
-  }
-
-  // Submeter manualmente
-  console.log("🔁 A tentar novamente a transcrição...");
-  form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
-}
-
-async function classificarConteudo() {
-  const text = transcriptionText.value.trim();
-  if (!text) {
-    alert("⚠️ Transcrição vazia.");
-    return;
-  }
-
-  const btn = event.target;
-  const originalText = btn.textContent;
-  btn.textContent = "📚 A classificar...";
-  btn.disabled = true;
-
-  const classificacaoTexto = document.getElementById("classificacaoTexto");
-  const classificacaoBox = document.getElementById("classificacaoBox");
-
-  try {
-    const res = await fetch("https://api.ouviescrevi.pt/classify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        text: text,
-        token: "ouviescrevi2025@resumo"
-      })
-    });
-
-    const data = await res.json();
-    if (data.type) {
-      classificacaoTexto.textContent = `🔎 ${data.type}`;
-    } else if (data.error) {
-      classificacaoTexto.textContent = `❌ Erro: ${data.error}`;
-    } else {
-      classificacaoTexto.textContent = `❌ Erro inesperado.`;
-    }
-
-    classificacaoBox.classList.remove("hidden");
-
-  } catch (err) {
-    console.error("❌ Erro ao classificar:", err);
-    classificacaoTexto.textContent = "❌ Falha ao comunicar com a API.";
-    classificacaoBox.classList.remove("hidden");
-  } finally {
-    btn.textContent = originalText;
-    btn.disabled = false;
-  }
-}
-async function corrigirTextoIA() {
-  const text = transcriptionText.value.trim();
-  if (!text) {
-    alert("⚠️ Transcrição vazia.");
-    return;
-  }
-
- const btn = event.target.closest("button");
-const span = btn.querySelector("span");
-const originalText = span.textContent;
-span.textContent = "📝 A corrigir...";
-  btn.disabled = true;
-
-  try {
-    const res = await fetch("https://api.ouviescrevi.pt/correct", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        text: text,
-        token: "ouviescrevi2025@resumo"
-      })
-    });
-
-    const data = await res.json();
-    if (data.corrected) {
-      transcriptionText.value = data.corrected;
-      alert("✅ Texto corrigido com sucesso!");
-    } else if (data.error) {
-      alert("❌ Erro: " + data.error);
-    } else {
-      alert("❌ Erro inesperado na correção.");
-    }
-
-  } catch (err) {
-    console.error("❌ Erro ao corrigir:", err);
-    alert("❌ Falha ao comunicar com a API.");
-  } finally {
-    btn.textContent = originalText;
-    btn.disabled = false;
-  }
-}
-
-async function gerarMinuta() {
-  const text = transcriptionText.value.trim();
-  if (!text) {
-    alert("⚠️ Transcrição vazia.");
-    return;
-  }
-
-  const btn = event.target;
-  const originalText = btn.textContent;
-  btn.textContent = "📩 A gerar minuta...";
-  btn.disabled = true;
-
-  const minutaTexto = document.getElementById("minutaTexto");
-  const minutaBox = document.getElementById("minutaBox");
-
-  try {
-    const res = await fetch("https://api.ouviescrevi.pt/summarize", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        text: text,
-        mode: "minuta", // <- chave importante!
-        token: "ouviescrevi2025@resumo"
-      })
-    });
-
-    const data = await res.json();
-    if (data.summary) {
-      minutaTexto.textContent = data.summary;
-      minutaBox.classList.remove("hidden");
-    } else {
-      minutaTexto.textContent = "❌ Erro ao gerar minuta.";
-      minutaBox.classList.remove("hidden");
-    }
-
-  } catch (err) {
-    console.error("❌ Erro ao gerar minuta:", err);
-    minutaTexto.textContent = "❌ Erro inesperado ao comunicar com a API.";
-    minutaBox.classList.remove("hidden");
-  } finally {
-    btn.textContent = originalText;
-    btn.disabled = false;
-  }
-  scrollSeInvisivel("minutaBox");
-}
-async function gerarEmailIA() {
-  const text = transcriptionText.value.trim();
-  if (!text) return alert("⚠️ Transcrição vazia.");
-
-  const tone = confirm("Usar tom informal?") ? "informal" : "formal";
-
-  const btn = event.target;
-  const original = btn.textContent;
-  btn.textContent = "📧 A gerar email...";
-  btn.disabled = true;
-
-  try {
-    const res = await fetch("https://api.ouviescrevi.pt/generate-email", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        text: text,
-        token: "ouviescrevi2025@resumo",
-        tone: tone
-      })
-    });
-    const data = await res.json();
-    if (data.email) {
-      alert("📨 Email gerado com sucesso!\n\n" + data.email);
-    } else {
-      alert("❌ Erro ao gerar email: " + data.error);
-    }
-  } catch (err) {
-    alert("❌ Falha ao comunicar com a IA.");
-  } finally {
-    btn.textContent = original;
-    btn.disabled = false;
-  }
-}
-
-function irParaNicho(nicho) {
-  window.location.href = `${nicho}.html`;
-}
-function irParaResumo() {
-  window.location.href = "resumo.html"; // ou o nome real do ficheiro/resumo.html
-}
-document.getElementById("exportBtn").addEventListener("click", () => {
-  const options = document.getElementById("exportOptions");
-  options.classList.toggle("hidden");
-});
-
-window.addEventListener("click", (e) => {
-  if (!e.target.closest(".dropdown-export")) {
-    document.getElementById("exportOptions").classList.add("hidden");
-  }
-});
-function copiarTranscricao() {
-  const textarea = document.getElementById("transcriptionText");
-  textarea.select();
-  document.execCommand("copy");
-
-  // Feedback visual
-  const btn = event.target;
-  btn.textContent = "✅ Copiado!";
-  setTimeout(() => btn.textContent = "📋 Copiar Tudo", 2000);
-}
-window.addEventListener("error", function(e) {
-  console.error("Erro global:", e.message, e);
-});
-function limparTudo() {
-  // Limpa o ficheiro
-  const fileInput = document.getElementById("fileInput");
-  fileInput.value = "";
-  document.getElementById("fileName").textContent = "Nenhum ficheiro selecionado";
-
-  // Limpa o texto da transcrição e oculta outputs
-  document.getElementById("transcriptionText").value = "";
-  document.getElementById("output").classList.add("hidden");
-
-  // Limpa caixas extra
-  document.getElementById("resumoTexto").textContent = "";
-  document.getElementById("traducaoTexto").textContent = "";
-  document.getElementById("minutaTexto").textContent = "";
-  document.getElementById("classificacaoTexto").textContent = "";
-
-  document.getElementById("resumoBox").classList.add("hidden");
-  document.getElementById("traducaoBox").classList.add("hidden");
-  document.getElementById("minutaBox").classList.add("hidden");
-  document.getElementById("classificacaoBox").classList.add("hidden");
-
-  // Oculta status e loading
-  document.getElementById("transcricaoStatus").classList.add("hidden");
-  document.getElementById("traducaoStatus").classList.add("hidden");
-  document.getElementById("traducaoProgressWrapper").classList.add("hidden");
-  document.getElementById("progressBar").style.width = "0%";
-  document.getElementById("traducaoProgressBar").style.width = "0%";
-  document.getElementById("loading").classList.add("hidden");
-
-  // Oculta botão retry
-  document.getElementById("btnRetry").classList.add("hidden");
-
-  // Limpa localStorage
-  localStorage.removeItem("transcricao_temporaria");
-
-  // Reset ao checkbox de locutores
-  document.getElementById("identificarLocutores").checked = false;
-
-  // Limpa status visual
-  document.getElementById("recordingStatus").textContent = "";
-  document.getElementById("timerGravacao").style.display = "none";
-  document.getElementById("timerGravacao").textContent = "⏱️ 00:00";
-}
-function scrollSeInvisivel(id) {
-  const el = document.getElementById(id);
-  if (el && !el.classList.contains("hidden")) {
-    el.scrollIntoView({ behavior: "smooth", block: "center" });
-  }
-}
-function copiarTextoBox(idTexto, botao) {
-  const texto = document.getElementById(idTexto).textContent.trim();
-  if (!texto) return;
-
-  navigator.clipboard.writeText(texto).then(() => {
-    botao.textContent = "✅ Copiado!";
-    setTimeout(() => botao.textContent = "📋 Copiar Tudo", 2000);
-  });
-}
-function partilharWhatsapp() {
-  const text = document.getElementById("transcriptionText").value.trim();
-  if (!text) {
-    alert("⚠️ A transcrição está vazia. Primeiro gera uma transcrição.");
-    return;
-  }
-
-  // Mensagem com link no fim
-  const mensagem = text + "\n\n🔗 Transcrito com Ouviescrevi: https://ouviescrevi.pt";
-
-  // Codifica para URL
-  const url = "https://wa.me/?text=" + encodeURIComponent(mensagem);
-
-  // Abre o WhatsApp
-  window.open(url, "_blank");
-}
-
-</script>
-
-
-<!-- No final do <body> -->
-<script>
-  fetch("header.html")
-    .then(response => response.text())
-    .then(html => {
-      const headerDiv = document.getElementById("header");
-      headerDiv.innerHTML = html;
-
-      const tempDiv = document.createElement("div");
-      tempDiv.innerHTML = html;
-
-      tempDiv.querySelectorAll("script").forEach(oldScript => {
-        const newScript = document.createElement("script");
-        if (oldScript.src) newScript.src = oldScript.src;
-        else newScript.textContent = oldScript.textContent;
-        document.body.appendChild(newScript);
+    try {
+      const res = await fetch(`${API_BASE}/translate`, {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ text: texto, language: idioma, token:"ouviescrevi2025@resumo" })
       });
+      const data = await res.json();
+      clearInterval(interval);
+      progressBar.style.width = "100%";
+      if (data.translation) {
+        transcriptionText.value = data.translation;
+        document.getElementById("traducaoTexto").textContent = data.translation;
+        document.getElementById("traducaoBox").classList.remove("hidden");
+        status.textContent = "✅ Tradução concluída com sucesso!";
+      } else {
+        status.textContent = "❌ Erro: Tradução não recebida.";
+      }
+    } catch {
+      status.textContent = "❌ Oops! Tivemos um problema ao comunicar com a IA.";
+    } finally {
+      setTimeout(() => {
+        status.classList.add("hidden");
+        progressWrapper.classList.add("hidden");
+        progressBar.style.width = "0%";
+      }, 1200);
+      btn.textContent = originalText; btn.disabled = false;
+      scrollSeInvisivel("traducaoBox");
+    }
+  }
 
-      tempDiv.querySelectorAll("style").forEach(style => {
-        document.head.appendChild(style.cloneNode(true));
-      });
+  function copiarTranscricao() {
+    const textarea = document.getElementById("transcriptionText");
+    textarea.select();
+    document.execCommand("copy");
+    const btn = event.target;
+    btn.textContent = "✅ Copiado!";
+    setTimeout(() => btn.textContent = "📋 Copiar Tudo", 2000);
+  }
+
+  function copiarTextoBox(idTexto, botao) {
+    const texto = document.getElementById(idTexto).textContent.trim();
+    if (!texto) return;
+    navigator.clipboard.writeText(texto).then(() => {
+      botao.textContent = "✅ Copiado!";
+      setTimeout(() => botao.textContent = "📋 Copiar Tudo", 2000);
     });
-</script>
-<div id="footer"></div>
-<script>
-  fetch("footer.html")
-    .then(res => res.text())
-    .then(html => document.getElementById("footer").innerHTML = html);
+  }
+
+  function limparTudo() {
+    const fileInput = document.getElementById("fileInput");
+    fileInput.value = "";
+    document.getElementById("fileName").textContent = "Nenhum ficheiro selecionado";
+    transcriptionText.value = "";
+    output.classList.add("hidden");
+
+    // caixas
+    document.getElementById("resumoTexto").textContent = "";
+    document.getElementById("traducaoTexto").textContent = "";
+    document.getElementById("minutaTexto").textContent = "";
+    document.getElementById("classificacaoTexto").textContent = "";
+    document.getElementById("resumoBox").classList.add("hidden");
+    document.getElementById("traducaoBox").classList.add("hidden");
+    document.getElementById("minutaBox").classList.add("hidden");
+    document.getElementById("classificacaoBox").classList.add("hidden");
+
+    // status
+    document.getElementById("traducaoStatus").classList.add("hidden");
+    document.getElementById("traducaoProgressWrapper").classList.add("hidden");
+    progressBar.style.width = "0%";
+    document.getElementById("traducaoProgressBar").style.width = "0%";
+    loading.classList.add("hidden");
+
+    document.getElementById("btnRetry").classList.add("hidden");
+    ultimaTentativaFalhada = false;
+
+    document.getElementById("identificarLocutores").checked = false;
+    document.getElementById("recordingStatus").textContent = "";
+    document.getElementById("timerGravacao").classList.add("hidden");
+    document.getElementById("timerGravacao").textContent = "⏱️ 00:00";
+  }
+
+  function scrollSeInvisivel(id) {
+    const el = document.getElementById(id);
+    if (el && !el.classList.contains("hidden")) el.scrollIntoView({ behavior:"smooth", block:"center" });
+  }
+
+  function partilharWhatsapp() {
+    const text = document.getElementById("transcriptionText").value.trim();
+    if (!text) return alert("⚠️ A transcrição está vazia.");
+    const mensagem = text + "\n\n🔗 Transcrito com Ouviescrevi: https://ouviescrevi.pt";
+    const url = "https://wa.me/?text=" + encodeURIComponent(mensagem);
+    window.open(url, "_blank");
+  }
+
+  // dropdown export
+  document.getElementById("exportBtn").addEventListener("click", () => {
+    document.getElementById("exportOptions").classList.toggle("hidden");
+  });
+  window.addEventListener("click", (e) => {
+    if (!e.target.closest(".dropdown-export")) {
+      document.getElementById("exportOptions").classList.add("hidden");
+    }
+  });
+
+  // Resumo button
+  document.getElementById("btnGerarResumo").addEventListener("click", gerarResumo);
+
+  // Drag & drop
+  document.addEventListener("DOMContentLoaded", () => {
+    const dropZone = document.getElementById("dropZone");
+    const fileInput = document.getElementById("fileInput");
+    const fileNameDisplay = document.getElementById("fileName");
+
+    dropZone.addEventListener("click", () => fileInput.click());
+    dropZone.addEventListener("dragover", (e) => { e.preventDefault(); dropZone.style.background = "#e0d7ff"; });
+    dropZone.addEventListener("dragleave", () => { dropZone.style.background = "#fafafa"; });
+    dropZone.addEventListener("drop", (e) => {
+      e.preventDefault(); dropZone.style.background = "#fafafa";
+      if (e.dataTransfer.files.length > 0) {
+        fileInput.files = e.dataTransfer.files;
+        fileNameDisplay.textContent = `Ficheiro: ${fileInput.files[0].name}`;
+      }
+    });
+    fileInput.addEventListener("change", () => {
+      fileNameDisplay.textContent = fileInput.files.length > 0 ? `Ficheiro: ${fileInput.files[0].name}` : "Nenhum ficheiro selecionado";
+    });
+  });
+
+  // Carregar header/footer externos (se existirem)
+  fetch("header.html").then(r => r.text()).then(html => {
+    const headerDiv = document.getElementById("header");
+    headerDiv.innerHTML = html;
+    const tempDiv = document.createElement("div"); tempDiv.innerHTML = html;
+    tempDiv.querySelectorAll("script").forEach(oldScript => {
+      const s = document.createElement("script");
+      if (oldScript.src) s.src = oldScript.src; else s.textContent = oldScript.textContent;
+      document.body.appendChild(s);
+    });
+    tempDiv.querySelectorAll("style").forEach(style => document.head.appendChild(style.cloneNode(true)));
+  });
+  const footerMount = document.createElement("div");
+  footerMount.id = "footer";
+  document.body.appendChild(footerMount);
+  fetch("footer.html").then(res => res.text()).then(html => document.getElementById("footer").innerHTML = html);
 </script>
 </body>
 </html>
