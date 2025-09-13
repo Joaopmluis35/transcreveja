@@ -46,7 +46,7 @@
       gap: 8px;
       margin: 0 28px;
       font-weight: 700;
-      color: black;
+      color: #fff;
       text-shadow: 0 1px 0 rgba(0,0,0,.15);
     }
     .ticker__dot { opacity: .7; }
@@ -207,19 +207,6 @@
     }
     #legendasBox a:hover { background:linear-gradient(135deg,#A550F7,#00C3FF); color:#fff; border-color:transparent; }
 
-    /* player e galeria (resposta do backend) */
-    #legendasPlayer{ margin-top:12px; }
-    #legendasPlayer video{ width:100%; max-height:420px; border-radius:10px; background:#000; }
-    #legendasGallery{ margin-top:12px; }
-    .thumbs{
-      display:grid;
-      grid-template-columns: repeat(auto-fill, minmax(120px,1fr));
-      gap:10px;
-    }
-    .thumbs img{
-      width:100%; height:90px; object-fit:cover; border-radius:8px; border:2px solid #A550F7; background:#000;
-    }
-
     /* modal tradução */
     #modalTraducao{ display:none !important; }
     #modalTraducao.show{ display:flex !important; }
@@ -261,7 +248,7 @@
     #nichoMenu button span{ position:relative; z-index:2; }
     #nichoMenu button:hover{ color:white; border-color:white; }
 
-    /* ── PAINEL DE ESTILOS DE LEGENDAS (desktop + mobile) ───────────────── */
+    /* ── PAINEL DE ESTILOS DE LEGENDAS ───────────────────────────────────── */
     #subtitlePanel{
       max-width: 900px;
       width: 100%;
@@ -273,39 +260,27 @@
       padding: 18px;
     }
     #subtitlePanel h3{ margin:0 0 8px 0; color:#6b21a8; }
-    #subtitlePanel p.helper{ margin:6px 0 14px 0; color:#555; font-size:.95em; }
-
     .sub-grid{
       display:grid;
       grid-template-columns: repeat(3, minmax(0,1fr));
       gap: 12px;
       align-items: end;
     }
-    .sub-grid fieldset{
-      border:1px solid #eee; border-radius:10px; padding:10px;
-      background:#fafafa;
-    }
-    .sub-grid legend{
-      padding:0 6px; font-weight:700; color:#6b21a8; font-size:.9em;
-    }
     .sub-grid label{
       display:flex; flex-direction:column; gap:6px; font-weight:600; font-size:.95em;
-      margin-bottom:8px;
     }
     .sub-grid input[type="text"],
     .sub-grid input[type="number"],
     .sub-grid input[type="range"],
-    .sub-grid input[type="color"],
     .sub-grid select{
       width:100%;
       padding:8px 10px;
       border:1px solid #ddd;
       border-radius:8px;
-      background:#fff;
+      background:#fafafa;
       font-weight:600;
     }
     .sub-grid small{ color:#666; font-weight:500; }
-
     .preview-wrap{
       margin-top:14px;
       display:grid;
@@ -333,12 +308,15 @@
       flex-wrap:wrap;
       justify-content:center;
     }
-    .preview-actions button{ width:auto; min-width:160px; }
+    .preview-actions button{
+      width:auto;
+      min-width:160px;
+    }
 
     @media (max-width:1024px){
       .sub-grid{ grid-template-columns: repeat(2, minmax(0,1fr)); }
     }
-    @media (max-width:820px){
+    @media (max-width:640px){
       main{ padding:20px; }
       form{ padding:15px 20px; width:100%; max-width:100%; }
       input,button{ width:100%; font-size:1em; }
@@ -347,64 +325,13 @@
       #output textarea{ min-height:160px; }
       #modalTraducao .card{ width:90%; max-width:90%; }
       #loading, #output{ max-width:100%; }
-
       .dropdown-export{ width:100%; max-width:100%; }
       .dropdown-content{
         position:static; min-width:0; width:100%; box-shadow:none;
         border:2px solid #A550F7; border-radius:10px; margin-top:8px; padding:6px 0; z-index:auto;
       }
-
       .preview-wrap{ grid-template-columns: 1fr; }
     }
-
-    /* ── FAB + Painel de Sugestões ───────────────────────────── */
-    #fabSugestao{
-      width: fit-content;
-      position:fixed; right:18px; bottom:18px; z-index:1000;
-      background:#A550F7; color:#fff; border:none; border-radius:999px;
-      padding:12px 14px; font-weight:700; box-shadow:0 8px 24px rgba(0,0,0,.25);
-      display:flex; align-items:center; gap:8px; cursor:pointer;
-      transition:transform .2s, box-shadow .2s, opacity .2s;
-    }
-    #fabSugestao:hover{ transform:translateY(-2px); box-shadow:0 12px 28px rgba(0,0,0,.28); }
-    #sugestaoPanel{
-      position:fixed; right:18px; bottom:76px; z-index:1000;
-      width:320px; max-width:calc(100vw - 36px);
-      background:#fff; color:#333; border-radius:16px; padding:16px;
-      box-shadow:0 20px 40px rgba(0,0,0,.25);
-      transform:translateY(12px) scale(.96); opacity:0; pointer-events:none;
-      transition:transform .25s cubic-bezier(.22,1,.36,1), opacity .2s;
-    }
-    #sugestaoPanel.open{ transform:translateY(0) scale(1); opacity:1; pointer-events:auto; }
-    #sugestaoPanel h4{ margin:0 0 8px 0; }
-    #sugestaoPanel textarea{
-      width:90%; min-height:110px; padding:10px; resize:vertical;
-      border:2px solid #A550F7; border-radius:10px; font:inherit; color:#333;
-      background:#fdfdfd;
-    }
-    #sugestaoPanel .actions{ display:flex; gap:8px; justify-content:flex-end; margin-top:10px; }
-    #sugestaoPanel .actions button{
-      background:#e6d7fb; border:2px solid #A550F7; color:#333;
-      border-radius:8px; font-weight:700; padding:8px 12px; cursor:pointer;
-    }
-    #toastSugestao{
-      position:fixed; right:18px; bottom:18px; z-index:1001;
-      background:#00C3FF; color:#fff; border-radius:10px; padding:10px 14px;
-      box-shadow:0 10px 24px rgba(0,0,0,.2);
-      transform:translateY(20px); opacity:0; pointer-events:none; transition:.25s;
-    }
-    #toastSugestao.show{ transform:translateY(0); opacity:1; pointer-events:auto; }
-
-    /* Wave do botão sugestão */
-    #fabSugestao .hand{ display:inline-block; transform-origin: 75% 75%; }
-    @keyframes wave {
-      0%{transform:rotate(0deg);} 10%{transform:rotate(14deg);} 20%{transform:rotate(-8deg);}
-      30%{transform:rotate(14deg);} 40%{transform:rotate(-4deg);} 50%{transform:rotate(10deg);}
-      60%,100%{transform:rotate(0deg);}
-    }
-    #fabSugestao:hover .hand{ animation: wave 1.7s ease-in-out; }
-    #fabSugestao.wave .hand{ animation: wave 1.7s ease-in-out; }
-    @media (prefers-reduced-motion: reduce){ #fabSugestao .hand{ animation:none !important; } }
   </style>
 </head>
 <body>
@@ -413,7 +340,9 @@
 
 <!-- Ticker de Atualizações -->
 <div class="ticker" aria-live="polite">
-  <div class="ticker__inner" id="updatesTrack"></div>
+  <div class="ticker__inner" id="updatesTrack">
+    <!-- preenchido via JS com a data de hoje -->
+  </div>
 </div>
 
 <main>
@@ -448,81 +377,77 @@
       <p id="recordingStatus"></p>
     </form>
 
-    <!-- Painel de estilos + pré-visualização local -->
+    <!-- Painel de estilos + pré-visualização -->
     <section id="subtitlePanel" class="hidden" aria-live="polite">
       <h3>🎨 Estilo das legendas & pré-visualização</h3>
-      <p class="helper">Carrega um MP4/MOV/etc. para abrir estas opções. Ajusta e pré-visualiza antes de gerar o SRT/MP4.</p>
-
       <div class="sub-grid">
-        <fieldset>
-          <legend>Texto de amostra</legend>
-          <label>Texto
-            <input id="subSampleText" type="text" value="Isto é uma linha de legenda de amostra." />
-          </label>
-        </fieldset>
+        <label>Texto de amostra
+          <input id="subSampleText" type="text" value="Isto é uma linha de legenda de amostra." />
+        </label>
 
-        <fieldset>
-          <legend>Tipografia</legend>
-          <label>Tamanho (px)
-            <input id="subFontSize" type="range" min="14" max="72" step="1" value="40" />
-            <small id="subFontSizeVal">40</small>
-          </label>
-          <label>Cor do texto
-            <input id="subColor" type="color" value="#ffffff" />
-          </label>
-          <label>Contorno (px)
-            <input id="subOutline" type="range" min="0" max="8" step="1" value="2" />
-            <small id="subOutlineVal">2</small>
-          </label>
-          <label>Sombra
-            <select id="subShadow">
-              <option value="none">Sem sombra</option>
-              <option value="soft" selected>Suave</option>
-              <option value="strong">Forte</option>
-            </select>
-          </label>
-        </fieldset>
+        <label>Tamanho (px)
+          <input id="subFontSize" type="range" min="14" max="72" step="1" value="40" />
+          <small id="subFontSizeVal">40</small>
+        </label>
 
-        <fieldset>
-          <legend>Caixa & Layout</legend>
-          <label style="display:flex; gap:8px; align-items:center;">Caixa de fundo
-            <input id="subBg" type="checkbox" checked style="margin-left:auto; width:auto;" />
-          </label>
-          <label>Opacidade do fundo
-            <input id="subBgOpacity" type="range" min="0" max="0.9" step="0.05" value="0.35" />
+        <label>Cor do texto
+          <input id="subColor" type="color" value="#ffffff" />
+        </label>
+
+        <label>Contorno (px)
+          <input id="subOutline" type="range" min="0" max="8" step="1" value="2" />
+          <small id="subOutlineVal">2</small>
+        </label>
+
+        <label>Sombra
+          <select id="subShadow">
+            <option value="none">Sem sombra</option>
+            <option value="soft" selected>Suave</option>
+            <option value="strong">Forte</option>
+          </select>
+        </label>
+
+        <label>Caixa de fundo
+          <div style="display:flex; gap:8px; align-items:center;">
+            <input id="subBg" type="checkbox" checked />
+            <small>opacidade</small>
+            <input id="subBgOpacity" type="range" min="0" max="0.9" step="0.05" value="0.35" style="flex:1;" />
             <small id="subBgOpacityVal">0.35</small>
-          </label>
-          <label>Padding da caixa (px)
-            <input id="subPadding" type="range" min="0" max="40" step="2" value="10" />
-            <small id="subPaddingVal">10</small>
-          </label>
-          <label>Largura máx. do bloco (%)
-            <input id="subMaxWidth" type="range" min="40" max="100" step="1" value="90" />
-            <small id="subMaxWidthVal">90%</small>
-          </label>
-        </fieldset>
+          </div>
+        </label>
 
-        <fieldset>
-          <legend>Posição</legend>
-          <label>Alinhamento
-            <select id="subAlign">
-              <option value="center" selected>Centro</option>
-              <option value="left">Esquerda</option>
-              <option value="right">Direita</option>
-            </select>
-          </label>
-          <label>Posição vertical
-            <select id="subPosition">
-              <option value="bottom" selected>Fundo</option>
-              <option value="top">Topo</option>
-              <option value="custom">Personalizada (Y)</option>
-            </select>
-          </label>
-          <label>Margem vertical (px)
-            <input id="subMarginV" type="range" min="0" max="120" step="2" value="48" />
-            <small id="subMarginVVal">48</small>
-          </label>
-        </fieldset>
+        <label>Alinhamento
+          <select id="subAlign">
+            <option value="center" selected>Centro</option>
+            <option value="left">Esquerda</option>
+            <option value="right">Direita</option>
+          </select>
+        </label>
+
+        <label>Posição
+          <select id="subPosition">
+            <option value="bottom" selected>Fundo</option>
+            <option value="top">Topo</option>
+            <option value="custom">Personalizada (Y)</option>
+          </select>
+        </label>
+
+        <label>Margem vertical (px)
+          <input id="subMarginV" type="range" min="0" max="120" step="2" value="48" />
+          <small id="subMarginVVal">48</small>
+        </label>
+
+        <label>Padding da caixa (px)
+          <input id="subPadding" type="range" min="0" max="40" step="2" value="10" />
+          <small id="subPaddingVal">10</small>
+        </label>
+
+        <label>Largura máx. do bloco (%)
+          <input id="subMaxWidth" type="range" min="40" max="100" step="1" value="90" />
+          <small id="subMaxWidthVal">90%</small>
+        </label>
+
+        <div></div><!-- placeholder para fechar a grid -->
       </div>
 
       <div class="preview-wrap">
@@ -597,26 +522,16 @@
         <div id="classificacaoTexto" style="background:#f0f0f0; color:#222; padding:10px; border-radius:8px; white-space:pre-wrap;"></div>
       </div>
 
-      <!-- Resultados de legendas/vídeo legendado (resposta do backend) -->
+      <!-- Resultados de legendas/vídeo legendado -->
       <div id="legendasBox" class="hidden">
         <h3>🎞️ Legendas / Vídeo Legendado</h3>
         <div id="legendasInfo" style="background:#f0f0f0; color:#222; padding:15px; border-radius:8px;">
           <p id="legendasMsg" style="margin:0 0 8px 0;">Pronto! Escolhe o que queres descarregar:</p>
           <div>
-            <a id="srtDownload" href="#" download target="_blank" rel="noopener">⬇️ Download SRT</a>
-            <a id="mp4Download" class="hidden" href="#" download target="_blank" rel="noopener">⬇️ Download Vídeo (MP4)</a>
+            <a id="srtDownload" href="#" download>⬇️ Download SRT</a>
+            <a id="mp4Download" class="hidden" href="#" download>⬇️ Download Vídeo (MP4)</a>
           </div>
           <p id="legendasWarn" class="hidden" style="margin-top:10px; background:#fff3cd; color:#856404; border-left:5px solid #ffc107; padding:8px 12px; border-radius:5px; font-weight:600;"></p>
-
-          <div id="legendasPlayer" class="hidden">
-            <h4 style="margin:14px 0 8px 0;">▶️ Pré-visualização</h4>
-            <video id="videoPreview" controls playsinline></video>
-          </div>
-
-          <div id="legendasGallery" class="hidden">
-            <h4 style="margin:14px 0 8px 0;">🖼️ Imagens das legendas</h4>
-            <div id="legendaPreviews" class="thumbs"></div>
-          </div>
         </div>
       </div>
 
@@ -663,43 +578,22 @@
   <section id="apresentacaoSEO" style="max-width: 800px; margin: 40px auto; background: white; padding: 20px; border-radius: 12px; color: #333; font-size: 1.1em; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
     <h2 style="color: #A550F7;">🧠 O que é o Ouviescrevi?</h2>
     <p>
-      Ouviescrevi é um assistente online com IA para <strong>transformar áudio/vídeo em texto</strong>, 
-      <strong>gerar resumos</strong>, <strong>traduzir</strong> e <strong>converter ficheiros</strong> — simples, rápido e gratuito.
+      Ouviescrevi é uma ferramenta online que utiliza Inteligência Artificial (IA) para
+      <strong>transcrever áudio e vídeo automaticamente</strong>, gerar <strong>resumos inteligentes</strong>, <strong>traduzir</strong> textos,
+      <strong>corrigir erros</strong> e até <strong>converter ficheiros como Word para PDF</strong>, imagem para texto, e muito mais.
     </p>
-    <p>Ideal para <strong>professores</strong>, <strong>jornalistas</strong>, <strong>estudantes</strong> e <strong>equipas</strong> que precisam de resultados fiáveis em minutos.</p>
+    <p>Ideal para <strong>professores</strong>, <strong>jornalistas</strong>, <strong>estudantes</strong>, <strong>empresas</strong> e qualquer pessoa que precise transformar voz em texto de forma rápida e gratuita.</p>
+    <p>Não precisas instalar nada. Basta arrastar um ficheiro, gravar a tua voz ou colar o texto — e deixas o resto connosco. 🚀</p>
     <div style="margin-top: 15px; text-align: left; display: inline-block; line-height: 1.8;">
       <p><strong>Funcionalidades principais:</strong></p>
-      <p>🎙️ Transcrição automática (Whisper AI)</p>
-      <p>🎞️ Legendas: SRT + MP4 com estilo</p>
-      <p>🧠 Resumos e minutas de reunião</p>
-      <p>🌍 Tradução multi-idioma</p>
-      <p>📝 Correção e 📚 classificação de conteúdo</p>
-      <p>📁 Conversor (Word, PDF, Imagem…)</p>
-      <p>📲 Partilha direta para WhatsApp</p>
+      <p>🎙️ Transcrição de áudio/vídeo (com Whisper AI)</p>
+      <p>🧠 Resumo automático de texto e PDFs</p>
+      <p>🌍 Tradução para vários idiomas</p>
+      <p>📚 Classificação automática do tipo de conteúdo</p>
+      <p>📁 Conversor de Word, PDF, Imagens, etc.</p>
     </div>
-    <p>Começa já — <strong>feito em Portugal</strong> 🇵🇹</p>
+    <p>Começa agora gratuitamente. Simples, seguro e feito em Portugal 🇵🇹</p>
   </section>
-
-  <!-- Botão e painel de Sugestões -->
-  <button id="fabSugestao" aria-controls="sugestaoPanel" aria-expanded="false">
-    <span class="hand" aria-hidden="true">👋</span>
-    <span class="label">Sugerir melhoria</span>
-  </button>
-
-  <div id="sugestaoPanel" role="dialog" aria-modal="true" aria-labelledby="sugTitulo">
-    <h4 id="sugTitulo">Sugerir melhoria</h4>
-    <p style="margin:0 0 8px 0; color:#555; font-size:.95em;">
-      Diz-nos o que podemos melhorar. Obrigado! 🙌
-    </p>
-    <textarea id="sugestaoTexto" placeholder="Ex.: O botão X podia ficar mais visível no mobile..."></textarea>
-    <div class="actions">
-      <button id="fecharSugestao">Cancelar</button>
-      <button id="enviarSugestao">Enviar</button>
-    </div>
-  </div>
-
-  <div id="toastSugestao" role="status" aria-live="polite">Obrigado! Sugestão enviada 🙌</div>
-
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -708,8 +602,8 @@
   // Estado global
   // =========================
   const API_BASE = "https://api.ouviescrevi.pt";
-  const API_TOKEN = "ouviescrevi2025@resumo";
-  const ADMIN_EMAIL = "admin@ouviescrevi.pt";
+  const API_TOKEN = "ouviescrevi2025@resumo"; // o mesmo usado no backend
+  const ADMIN_EMAIL = "admin@ouviescrevi.pt"; // fallback mailto se a API falhar
 
   let mediaRecorder;
   let audioChunks = [];
@@ -855,7 +749,9 @@
         if (!res.ok) throw new Error(data.error || `Erro ${res.status}`);
         sucesso = !!(data.formatted || data.transcription || data.text);
       }catch(err){
-        if (err.name === "AbortError"){ data = { error: "Tempo limite atingido. Tentaremos novamente…" }; }
+        if (err.name === "AbortError"){
+          data = { error: "Tempo limite atingido. Tentaremos novamente…" };
+        }
         await new Promise(r => setTimeout(r, 700));
       }
     }
@@ -895,7 +791,7 @@
   });
 
   // =========================
-  // Painel de legendas – helpers e preview local
+  // Painel de legendas – helpers e preview
   // =========================
   const subEls = {
     panel: document.getElementById('subtitlePanel'),
@@ -926,25 +822,23 @@
 
   function getStyle(){
     return {
-      text: (subEls.sample?.value || "Legenda").trim(),
-      fontSize: parseInt(subEls.size?.value || "40",10),
-      color: subEls.color?.value || "#ffffff",
-      outline: parseInt(subEls.outline?.value || "2",10),
-      shadow: subEls.shadow?.value || "soft", // none|soft|strong
-      bg: !!subEls.bg?.checked,
-      bgOpacity: parseFloat(subEls.bgOpacity?.value || "0.35"),
-      align: subEls.align?.value || "center", // center|left|right
-      position: subEls.position?.value || "bottom", // bottom|top|custom
-      marginV: parseInt(subEls.marginV?.value || "48",10),
-      padding: parseInt(subEls.padding?.value || "10",10),
-      maxWidthPct: parseInt(subEls.maxWidth?.value || "90",10) // %
+      text: subEls.sample.value || "Legenda",
+      fontSize: parseInt(subEls.size.value,10),
+      color: subEls.color.value,
+      outline: parseInt(subEls.outline.value,10),
+      shadow: subEls.shadow.value, // none|soft|strong
+      bg: !!subEls.bg.checked,
+      bgOpacity: parseFloat(subEls.bgOpacity.value),
+      align: subEls.align.value, // center|left|right
+      position: subEls.position.value, // bottom|top|custom
+      marginV: parseInt(subEls.marginV.value,10),
+      padding: parseInt(subEls.padding.value,10),
+      maxWidthPct: parseInt(subEls.maxWidth.value,10) // %
     };
   }
 
   function bindStyleInputs(){
-    if (!subEls.panel) return;
     const reRender = () => { if (loadedVideoMeta) renderSubtitlePreviews(); };
-
     subEls.size.addEventListener('input', () => { subEls.sizeVal.textContent=subEls.size.value; reRender(); });
     subEls.outline.addEventListener('input', () => { subEls.outlineVal.textContent=subEls.outline.value; reRender(); });
     subEls.bgOpacity.addEventListener('input', () => { subEls.bgOpacityVal.textContent=subEls.bgOpacity.value; reRender(); });
@@ -1083,7 +977,7 @@
       ctx.fillText(line, startX, yy);
     });
 
-    // limpar sombra
+    // limpar sombra para não sujar próximos desenhos
     applyShadow(ctx, 'none');
     ctx.restore();
   }
@@ -1091,9 +985,10 @@
   async function seekAndDraw(video, time, canvas){
     return new Promise((resolve, reject) => {
       const onSeeked = () => {
+        // dimensionar canvas ao vídeo mas caber num max width razoável
         const vw = video.videoWidth || 1280;
         const vh = video.videoHeight || 720;
-        const targetW = Math.min(854, vw); // 854x480 aprox
+        const targetW = Math.min(854, vw); // 854x480 ~ 480p largo
         const scale = targetW / vw;
         canvas.width = Math.round(vw * scale);
         canvas.height = Math.round(vh * scale);
@@ -1101,6 +996,7 @@
         const ctx = canvas.getContext('2d');
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
+        // desenha legendas
         const style = getStyle();
         drawSubtitle(ctx, style, canvas.width, canvas.height);
         resolve();
@@ -1122,7 +1018,9 @@
     try{
       await seekAndDraw(v, t1, subEls.prev1);
       await seekAndDraw(v, t2, subEls.prev2);
-    }catch(e){ /* ignora */ }
+    }catch(e){
+      // ignora silenciosamente
+    }
   }
 
   bindStyleInputs();
@@ -1136,19 +1034,11 @@
     const file = document.getElementById("fileInput").files[0];
     if (!file){ return alert("⚠️ Nenhum ficheiro selecionado."); }
     if (!isVideoFile(file)){ return alert("⚠️ Esta opção é apenas para ficheiros de vídeo."); }
-    if (btnLegendarVideo.dataset.busy === "1") return;
-    btnLegendarVideo.dataset.busy = "1";
 
     // reset UI
     output.classList.add("hidden");
     document.getElementById("legendasBox").classList.add("hidden");
     document.getElementById("legendasWarn").classList.add("hidden");
-    document.getElementById("legendasPlayer").classList.add("hidden");
-    document.getElementById("legendasGallery").classList.add("hidden");
-    document.getElementById("legendaPreviews").innerHTML = "";
-    const videoPreview = document.getElementById("videoPreview");
-    if (videoPreview) { videoPreview.removeAttribute("src"); videoPreview.load?.(); }
-
     loading.classList.remove("hidden");
     progressBar.style.width = "0%";
     iniciarFrasesAnimadas(statusEl);
@@ -1166,62 +1056,40 @@
 
     const formData = new FormData();
     formData.append("file", file);
-    // ➜ ENVIA também o estilo configurado
+    // parâmetros de estilo (JSON)
     formData.append("style", JSON.stringify(getStyle()));
+    // opcional: token
     formData.append("token", API_TOKEN);
 
     try{
       const controller = new AbortController();
-      const to = setTimeout(() => controller.abort(), 480000); // até 8 min
+      const to = setTimeout(() => controller.abort(), 180000); // até ~3min
       const res = await fetch(`${API_BASE}/video-subs`, { method:"POST", body: formData, signal: controller.signal });
       clearTimeout(to);
 
       let data = {};
       let raw = await res.text();
-      try{ data = JSON.parse(raw); } catch{ data = { error: `Resposta inválida (${res.status})`, raw }; }
+      try{ data = JSON.parse(raw); } catch{ data = { error: `Resposta inválida (${res.status})` }; }
 
       clearInterval(interval);
       progressBar.style.width = "100%";
       pararFrasesAnimadas(statusEl);
       pararTimerTranscricao();
 
-      if (!res.ok){ throw new Error(data.detail || data.error || `Erro ${res.status}`); }
+      if (!res.ok){
+        throw new Error(data.detail || data.error || `Erro ${res.status}`);
+      }
 
-      console.log("[video-subs] resposta JSON:", data);
+      const srtUrl = toAbsUrl(data.srt_url);
+      const mp4Url = data.video_url ? toAbsUrl(data.video_url) : null;
 
-      const srtUrlRaw = data.srt_url || data.srt || data.subtitle_url || data.subtitle || data.srtPath || data.subtitles;
-      const mp4UrlRaw = data.video_url || data.mp4_url || data.mp4 || data.video || data.videoPath || data.output;
-      const previewsRaw = data.preview_images || data.previews || data.thumbs || data.images || [];
-
-      const srtUrl = srtUrlRaw ? toAbsUrl(srtUrlRaw) : "";
-      const mp4Url = mp4UrlRaw ? toAbsUrl(mp4UrlRaw) : "";
-
-      const baseName = (file.name || "video").replace(/\.[^.]+$/, "");
-      const srtBtn = document.getElementById("srtDownload");
+      document.getElementById("srtDownload").href = srtUrl;
       const mp4Btn = document.getElementById("mp4Download");
-
-      if (srtUrl) { srtBtn.href = srtUrl; srtBtn.download = `${baseName}.srt`; srtBtn.classList.remove("hidden"); }
-      else { srtBtn.classList.add("hidden"); }
-
-      if (mp4Url) {
-        mp4Btn.href = mp4Url; mp4Btn.download = `${baseName}_legendado.mp4`;
+      if (mp4Url){
+        mp4Btn.href = mp4Url;
         mp4Btn.classList.remove("hidden");
-        const playerWrap = document.getElementById("legendasPlayer");
-        const vid = document.getElementById("videoPreview");
-        vid.src = mp4Url; vid.load(); playerWrap.classList.remove("hidden");
-      } else { mp4Btn.classList.add("hidden"); }
-
-      const galleryWrap = document.getElementById("legendasGallery");
-      const previewsEl = document.getElementById("legendaPreviews");
-      if (Array.isArray(previewsRaw) && previewsRaw.length){
-        previewsRaw.forEach((u, i) => {
-          const img = document.createElement("img");
-          img.alt = `Pré-visualização #${i+1}`;
-          img.loading = "lazy";
-          img.src = toAbsUrl(u);
-          previewsEl.appendChild(img);
-        });
-        galleryWrap.classList.remove("hidden");
+      } else {
+        mp4Btn.classList.add("hidden");
       }
 
       if (data.warning){
@@ -1233,6 +1101,7 @@
       document.getElementById("legendasBox").classList.remove("hidden");
       output.classList.remove("hidden");
       statusEl.textContent = "✅ Legendas geradas com sucesso!";
+
     } catch(err){
       clearInterval(interval);
       progressBar.style.width = "100%";
@@ -1244,22 +1113,18 @@
       const warn = document.getElementById("legendasWarn");
       warn.textContent = "❌ " + (err.message || "Erro inesperado ao comunicar com a API.");
       warn.classList.remove("hidden");
-      document.getElementById("legendasBox").classList.remove("hidden");
     } finally{
       setTimeout(() => { loading.classList.add("hidden"); progressBar.style.width = "0%"; }, 800);
       btnTranscrever.disabled = false;
       btnStartRec.disabled = false;
       btnLegendarVideo.disabled = !isVideoFile(file);
-      btnLegendarVideo.dataset.busy = "0";
     }
   }
 
   function toAbsUrl(url){
     if (!url) return "";
     if (/^https?:\/\//i.test(url)) return url;
-    const left = API_BASE.replace(/\/+$/,'');
-    const right = String(url).replace(/^\/+/,'' );
-    return `${left}/${right}`;
+    return `${API_BASE}${url.startsWith("/") ? "" : "/"}${url}`;
   }
 
   // =========================
@@ -1390,7 +1255,9 @@
 
       timer.classList.remove("hidden");
       let segundos = 0;
-      timerInterval = setInterval(() => { segundos++; timer.textContent = `⏱️ ${formatMMSS(segundos)}`; }, 1000);
+      timerInterval = setInterval(() => {
+        segundos++; timer.textContent = `⏱️ ${formatMMSS(segundos)}`;
+      }, 1000);
     };
 
     mediaRecorder.ondataavailable = e => { if (e.data && e.data.size > 0) audioChunks.push(e.data); };
@@ -1807,7 +1674,6 @@
     document.getElementById("timerGravacao").textContent = "⏱️ 00:00";
 
     btnLegendarVideo.disabled = true;
-
     // painel de legendas
     document.getElementById("subtitlePanel").classList.add("hidden");
     loadedVideoMeta = false;
@@ -1848,8 +1714,8 @@
       const isVid = isVideoFile(file);
       btnLegendarVideo.disabled = !isVid;
 
+      // carregar vídeo para previews
       if (isVid){
-        // carregar vídeo para previews locais
         if (videoObjectURL){ URL.revokeObjectURL(videoObjectURL); }
         videoObjectURL = URL.createObjectURL(file);
         const v = subEls.video;
@@ -1905,76 +1771,13 @@
   // botão “Gerar Resumo”
   document.getElementById("btnGerarResumo").addEventListener("click", gerarResumo);
 
-  // ── Sugestões (FAB)
-  (function(){
-    const fab = document.getElementById('fabSugestao');
-    function waveOnce(){
-      fab.classList.remove('wave'); void fab.offsetWidth; fab.classList.add('wave');
-      setTimeout(()=> fab.classList.remove('wave'), 1800);
-    }
-    fab.addEventListener('click', waveOnce);
-
-    let waveTimer = setInterval(() => { if (!document.hidden) waveOnce(); }, 8000);
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) { clearInterval(waveTimer); }
-      else { waveTimer = setInterval(() => !document.hidden && waveOnce(), 8000); }
-    });
-
-    const panel = document.getElementById('sugestaoPanel');
-    const textarea = document.getElementById('sugestaoTexto');
-    const btnFechar = document.getElementById('fecharSugestao');
-    const btnEnviar = document.getElementById('enviarSugestao');
-    const toast = document.getElementById('toastSugestao');
-
-    function togglePanel(open){
-      const willOpen = typeof open === 'boolean' ? open : !panel.classList.contains('open');
-      panel.classList.toggle('open', willOpen);
-      fab.setAttribute('aria-expanded', String(willOpen));
-      if (willOpen) { setTimeout(() => textarea.focus(), 100); }
-    }
-    function showToast(msg='Obrigado! Sugestão enviada 🙌'){
-      toast.textContent = msg;
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 2200);
-    }
-    async function enviarSugestao(){
-      const texto = (textarea.value || '').trim();
-      if (!texto){ textarea.focus(); return; }
-      try{
-        await fetch(`${API_BASE}/notify-whatsapp-share`, {
-          method:'POST',
-          headers:{ 'Content-Type':'application/json' },
-          body: JSON.stringify({ token: API_TOKEN, page: location.href, note: `FEEDBACK: ${texto}` })
-        });
-        textarea.value = ''; togglePanel(false); showToast();
-      }catch(e){
-        const subject = encodeURIComponent('Sugestão de melhoria (Ouviescrevi)');
-        const body = encodeURIComponent(`${texto}\n\nPágina: ${location.href}\nData: ${new Date().toLocaleString()}`);
-        window.open(`mailto:${ADMIN_EMAIL}?subject=${subject}&body=${body}`, '_blank');
-        togglePanel(false); showToast('A abrir o email…');
-      }
-    }
-
-    fab.addEventListener('click', () => togglePanel());
-    btnFechar.addEventListener('click', () => togglePanel(false));
-    btnEnviar.addEventListener('click', enviarSugestao);
-
-    document.addEventListener('click', (e) => {
-      if (!panel.classList.contains('open')) return;
-      const isClickInside = panel.contains(e.target) || fab.contains(e.target);
-      if (!isClickInside) togglePanel(false);
-    });
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && panel.classList.contains('open')) togglePanel(false);
-    });
-  })();
-
   // ▼ Exportar: robusto para mobile (pointer events) + fecha ao selecionar opção/fora/Escape
   (function(){
     const dropdown = document.getElementById('exportDropdown');
     const btn = document.getElementById('exportBtn');
     const options = document.getElementById('exportOptions');
 
+    const open = () => { dropdown.classList.add('open'); btn.setAttribute('aria-expanded','true'); };
     const close = () => { dropdown.classList.remove('open'); btn.setAttribute('aria-expanded','false'); };
     const toggle = (e) => { e.preventDefault(); e.stopPropagation(); dropdown.classList.toggle('open'); btn.setAttribute('aria-expanded', dropdown.classList.contains('open')); };
 
