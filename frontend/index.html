@@ -211,12 +211,25 @@
     }
     #legendasBox a:hover { background:linear-gradient(135deg,#A550F7,#00C3FF); color:#fff; border-color:transparent; }
 
+    /* player e galeria */
+    #legendasPlayer{ margin-top:12px; }
+    #legendasPlayer video{ width:100%; max-height:420px; border-radius:10px; background:#000; }
+    #legendasGallery{ margin-top:12px; }
+    .thumbs{
+      display:grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px,1fr));
+      gap:10px;
+    }
+    .thumbs img{
+      width:100%; height:90px; object-fit:cover; border-radius:8px; border:2px solid #A550F7; background:#000;
+    }
+
     /* modal tradução */
     #modalTraducao{ display:none !important; }
     #modalTraducao.show{ display:flex !important; }
     #modalTraducao .card{ background:white; padding:20px; border-radius:10px; text-align:center; max-width:400px; color:#333; }
 
-    /* dropdown export (hover só em dispositivos com rato; mobile abre por clique) */
+    /* dropdown export */
     .dropdown-export{ position:relative; display:inline-block; flex:1 1 auto; min-width:130px; max-width:220px; }
     .dropdown-content{
       display:none;
@@ -279,70 +292,63 @@
         z-index:auto;
       }
     }
-	/* ── FAB + Painel de Sugestões ───────────────────────────── */
-#fabSugestao{
-    width: fit-content;
-  position:fixed; right:18px; bottom:18px; z-index:1000;
-  background:#A550F7; color:#fff; border:none; border-radius:999px;
-  padding:12px 14px; font-weight:700; box-shadow:0 8px 24px rgba(0,0,0,.25);
-  display:flex; align-items:center; gap:8px; cursor:pointer;
-  transition:transform .2s, box-shadow .2s, opacity .2s;
-}
-#fabSugestao:hover{ transform:translateY(-2px); box-shadow:0 12px 28px rgba(0,0,0,.28); }
 
-#sugestaoPanel{
-  position:fixed; right:18px; bottom:76px; z-index:1000;
-  width:320px; max-width:calc(100vw - 36px);
-  background:#fff; color:#333; border-radius:16px; padding:16px;
-  box-shadow:0 20px 40px rgba(0,0,0,.25);
-  transform:translateY(12px) scale(.96); opacity:0; pointer-events:none;
-  transition:transform .25s cubic-bezier(.22,1,.36,1), opacity .2s;
-}
-#sugestaoPanel.open{ transform:translateY(0) scale(1); opacity:1; pointer-events:auto; }
-#sugestaoPanel h4{ margin:0 0 8px 0; }
-#sugestaoPanel textarea{
-  width:90%; min-height:110px; padding:10px; resize:vertical;
-  border:2px solid #A550F7; border-radius:10px; font:inherit; color:#333;
-  background:#fdfdfd;
-}
-#sugestaoPanel .actions{ display:flex; gap:8px; justify-content:flex-end; margin-top:10px; }
-#sugestaoPanel .actions button{
-  background:#e6d7fb; border:2px solid #A550F7; color:#333;
-  border-radius:8px; font-weight:700; padding:8px 12px; cursor:pointer;
-}
-#toastSugestao{
-  position:fixed; right:18px; bottom:18px; z-index:1001;
-  background:#00C3FF; color:#fff; border-radius:10px; padding:10px 14px;
-  box-shadow:0 10px 24px rgba(0,0,0,.2);
-  transform:translateY(20px); opacity:0; pointer-events:none; transition:.25s;
-}
-#toastSugestao.show{ transform:translateY(0); opacity:1; pointer-events:auto; }
-@media (max-width:820px){
-  #sugestaoPanel{ right:12px; left:12px; width:auto; }
-}
-/* ── Wave do botão sugestão ───────────────────────────── */
-#fabSugestao .hand{
-  display:inline-block;
-  transform-origin: 75% 75%; /* “pulso” da mão */
-}
-@keyframes wave {
-  0%{transform:rotate(0deg);}
-  10%{transform:rotate(14deg);}
-  20%{transform:rotate(-8deg);}
-  30%{transform:rotate(14deg);}
-  40%{transform:rotate(-4deg);}
-  50%{transform:rotate(10deg);}
-  60%,100%{transform:rotate(0deg);}
-}
-/* acena ao passar o rato */
-#fabSugestao:hover .hand{ animation: wave 1.7s ease-in-out; }
-/* acena quando adicionamos a classe via JS */
-#fabSugestao.wave .hand{ animation: wave 1.7s ease-in-out; }
+    /* ── FAB + Painel de Sugestões ───────────────────────────── */
+    #fabSugestao{
+      width: fit-content;
+      position:fixed; right:18px; bottom:18px; z-index:1000;
+      background:#A550F7; color:#fff; border:none; border-radius:999px;
+      padding:12px 14px; font-weight:700; box-shadow:0 8px 24px rgba(0,0,0,.25);
+      display:flex; align-items:center; gap:8px; cursor:pointer;
+      transition:transform .2s, box-shadow .2s, opacity .2s;
+    }
+    #fabSugestao:hover{ transform:translateY(-2px); box-shadow:0 12px 28px rgba(0,0,0,.28); }
 
-@media (prefers-reduced-motion: reduce){
-  #fabSugestao .hand{ animation:none !important; }
-}
+    #sugestaoPanel{
+      position:fixed; right:18px; bottom:76px; z-index:1000;
+      width:320px; max-width:calc(100vw - 36px);
+      background:#fff; color:#333; border-radius:16px; padding:16px;
+      box-shadow:0 20px 40px rgba(0,0,0,.25);
+      transform:translateY(12px) scale(.96); opacity:0; pointer-events:none;
+      transition:transform .25s cubic-bezier(.22,1,.36,1), opacity .2s;
+    }
+    #sugestaoPanel.open{ transform:translateY(0) scale(1); opacity:1; pointer-events:auto; }
+    #sugestaoPanel h4{ margin:0 0 8px 0; }
+    #sugestaoPanel textarea{
+      width:90%; min-height:110px; padding:10px; resize:vertical;
+      border:2px solid #A550F7; border-radius:10px; font:inherit; color:#333;
+      background:#fdfdfd;
+    }
+    #sugestaoPanel .actions{ display:flex; gap:8px; justify-content:flex-end; margin-top:10px; }
+    #sugestaoPanel .actions button{
+      background:#e6d7fb; border:2px solid #A550F7; color:#333;
+      border-radius:8px; font-weight:700; padding:8px 12px; cursor:pointer;
+    }
+    #toastSugestao{
+      position:fixed; right:18px; bottom:18px; z-index:1001;
+      background:#00C3FF; color:#fff; border-radius:10px; padding:10px 14px;
+      box-shadow:0 10px 24px rgba(0,0,0,.2);
+      transform:translateY(20px); opacity:0; pointer-events:none; transition:.25s;
+    }
+    #toastSugestao.show{ transform:translateY(0); opacity:1; pointer-events:auto; }
 
+    /* ── Wave do botão sugestão ───────────────────────────── */
+    #fabSugestao .hand{ display:inline-block; transform-origin: 75% 75%; }
+    @keyframes wave {
+      0%{transform:rotate(0deg);}
+      10%{transform:rotate(14deg);}
+      20%{transform:rotate(-8deg);}
+      30%{transform:rotate(14deg);}
+      40%{transform:rotate(-4deg);}
+      50%{transform:rotate(10deg);}
+      60%,100%{transform:rotate(0deg);}
+    }
+    #fabSugestao:hover .hand{ animation: wave 1.7s ease-in-out; }
+    #fabSugestao.wave .hand{ animation: wave 1.7s ease-in-out; }
+
+    @media (prefers-reduced-motion: reduce){
+      #fabSugestao .hand{ animation:none !important; }
+    }
   </style>
 </head>
 <body>
@@ -446,10 +452,21 @@
         <div id="legendasInfo" style="background:#f0f0f0; color:#222; padding:15px; border-radius:8px;">
           <p id="legendasMsg" style="margin:0 0 8px 0;">Pronto! Escolhe o que queres descarregar:</p>
           <div>
-            <a id="srtDownload" href="#" download>⬇️ Download SRT</a>
-            <a id="mp4Download" class="hidden" href="#" download>⬇️ Download Vídeo (MP4)</a>
+            <a id="srtDownload" href="#" download target="_blank" rel="noopener">⬇️ Download SRT</a>
+            <a id="mp4Download" class="hidden" href="#" download target="_blank" rel="noopener">⬇️ Download Vídeo (MP4)</a>
           </div>
           <p id="legendasWarn" class="hidden" style="margin-top:10px; background:#fff3cd; color:#856404; border-left:5px solid #ffc107; padding:8px 12px; border-radius:5px; font-weight:600;"></p>
+
+          <!-- Pré-visualização -->
+          <div id="legendasPlayer" class="hidden">
+            <h4 style="margin:14px 0 8px 0;">▶️ Pré-visualização</h4>
+            <video id="videoPreview" controls playsinline></video>
+          </div>
+
+          <div id="legendasGallery" class="hidden">
+            <h4 style="margin:14px 0 8px 0;">🖼️ Imagens das legendas</h4>
+            <div id="legendaPreviews" class="thumbs"></div>
+          </div>
         </div>
       </div>
 
@@ -494,45 +511,44 @@
   </div>
 
   <section id="apresentacaoSEO" style="max-width: 800px; margin: 40px auto; background: white; padding: 20px; border-radius: 12px; color: #333; font-size: 1.1em; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-  <h2 style="color: #A550F7;">🧠 O que é o Ouviescrevi?</h2>
-  <p>
-    Ouviescrevi é um assistente online com IA para <strong>transformar áudio/vídeo em texto</strong>, 
-    <strong>gerar resumos</strong>, <strong>traduzir</strong> e <strong>converter ficheiros</strong> — simples, rápido e gratuito.
-  </p>
-  <p>Ideal para <strong>professores</strong>, <strong>jornalistas</strong>, <strong>estudantes</strong> e <strong>equipas</strong> que precisam de resultados fiáveis em minutos.</p>
-  <div style="margin-top: 15px; text-align: left; display: inline-block; line-height: 1.8;">
-    <p><strong>Funcionalidades principais:</strong></p>
-    <p>🎙️ Transcrição automática (Whisper AI)</p>
-    <p>🎞️ Legendas: SRT + MP4 com estilo</p>
-    <p>🧠 Resumos e minutas de reunião</p>
-    <p>🌍 Tradução multi-idioma</p>
-    <p>📝 Correção e 📚 classificação de conteúdo</p>
-    <p>📁 Conversor (Word, PDF, Imagem…)</p>
-    <p>📲 Partilha direta para WhatsApp</p>
-  </div>
-  <p>Começa já — <strong>feito em Portugal</strong> 🇵🇹</p>
-</section>
+    <h2 style="color: #A550F7;">🧠 O que é o Ouviescrevi?</h2>
+    <p>
+      Ouviescrevi é um assistente online com IA para <strong>transformar áudio/vídeo em texto</strong>, 
+      <strong>gerar resumos</strong>, <strong>traduzir</strong> e <strong>converter ficheiros</strong> — simples, rápido e gratuito.
+    </p>
+    <p>Ideal para <strong>professores</strong>, <strong>jornalistas</strong>, <strong>estudantes</strong> e <strong>equipas</strong> que precisam de resultados fiáveis em minutos.</p>
+    <div style="margin-top: 15px; text-align: left; display: inline-block; line-height: 1.8;">
+      <p><strong>Funcionalidades principais:</strong></p>
+      <p>🎙️ Transcrição automática (Whisper AI)</p>
+      <p>🎞️ Legendas: SRT + MP4 com estilo</p>
+      <p>🧠 Resumos e minutas de reunião</p>
+      <p>🌍 Tradução multi-idioma</p>
+      <p>📝 Correção e 📚 classificação de conteúdo</p>
+      <p>📁 Conversor (Word, PDF, Imagem…)</p>
+      <p>📲 Partilha direta para WhatsApp</p>
+    </div>
+    <p>Começa já — <strong>feito em Portugal</strong> 🇵🇹</p>
+  </section>
 
   <!-- Botão e painel de Sugestões -->
-<button id="fabSugestao" aria-controls="sugestaoPanel" aria-expanded="false">
-  <span class="hand" aria-hidden="true">👋</span>
-  <span class="label">Sugerir melhoria</span>
-</button>
+  <button id="fabSugestao" aria-controls="sugestaoPanel" aria-expanded="false">
+    <span class="hand" aria-hidden="true">👋</span>
+    <span class="label">Sugerir melhoria</span>
+  </button>
 
-
-<div id="sugestaoPanel" role="dialog" aria-modal="true" aria-labelledby="sugTitulo">
-  <h4 id="sugTitulo">Sugerir melhoria</h4>
-  <p style="margin:0 0 8px 0; color:#555; font-size:.95em;">
-    Diz-nos o que podemos melhorar. Obrigado! 🙌
-  </p>
-  <textarea id="sugestaoTexto" placeholder="Ex.: O botão X podia ficar mais visível no mobile..."></textarea>
-  <div class="actions">
-    <button id="fecharSugestao">Cancelar</button>
-    <button id="enviarSugestao">Enviar</button>
+  <div id="sugestaoPanel" role="dialog" aria-modal="true" aria-labelledby="sugTitulo">
+    <h4 id="sugTitulo">Sugerir melhoria</h4>
+    <p style="margin:0 0 8px 0; color:#555; font-size:.95em;">
+      Diz-nos o que podemos melhorar. Obrigado! 🙌
+    </p>
+    <textarea id="sugestaoTexto" placeholder="Ex.: O botão X podia ficar mais visível no mobile..."></textarea>
+    <div class="actions">
+      <button id="fecharSugestao">Cancelar</button>
+      <button id="enviarSugestao">Enviar</button>
+    </div>
   </div>
-</div>
 
-<div id="toastSugestao" role="status" aria-live="polite">Obrigado! Sugestão enviada 🙌</div>
+  <div id="toastSugestao" role="status" aria-live="polite">Obrigado! Sugestão enviada 🙌</div>
 
 </main>
 
@@ -736,10 +752,20 @@
     if (!file){ return alert("⚠️ Nenhum ficheiro selecionado."); }
     if (!isVideoFile(file)){ return alert("⚠️ Esta opção é apenas para ficheiros de vídeo."); }
 
+    // evita double-clicks antes do disabled aplicar
+    if (btnLegendarVideo.dataset.busy === "1") return;
+    btnLegendarVideo.dataset.busy = "1";
+
     // reset UI
     output.classList.add("hidden");
     document.getElementById("legendasBox").classList.add("hidden");
     document.getElementById("legendasWarn").classList.add("hidden");
+    document.getElementById("legendasPlayer").classList.add("hidden");
+    document.getElementById("legendasGallery").classList.add("hidden");
+    document.getElementById("legendaPreviews").innerHTML = "";
+    const videoPreview = document.getElementById("videoPreview");
+    if (videoPreview) { videoPreview.removeAttribute("src"); videoPreview.load?.(); }
+
     loading.classList.remove("hidden");
     progressBar.style.width = "0%";
     iniciarFrasesAnimadas(statusEl);
@@ -757,18 +783,17 @@
 
     const formData = new FormData();
     formData.append("file", file);
-    // opcional: se o backend exigir token, já vai junto
     formData.append("token", API_TOKEN);
 
     try{
       const controller = new AbortController();
-      const to = setTimeout(() => controller.abort(), 180000); // até ~3min
+      const to = setTimeout(() => controller.abort(), 480000); // até 8 min (vídeos maiores)
       const res = await fetch(`${API_BASE}/video-subs`, { method:"POST", body: formData, signal: controller.signal });
       clearTimeout(to);
 
       let data = {};
       let raw = await res.text();
-      try{ data = JSON.parse(raw); } catch{ data = { error: `Resposta inválida (${res.status})` }; }
+      try{ data = JSON.parse(raw); } catch{ data = { error: `Resposta inválida (${res.status})`, raw }; }
 
       clearInterval(interval);
       progressBar.style.width = "100%";
@@ -779,29 +804,74 @@
         throw new Error(data.detail || data.error || `Erro ${res.status}`);
       }
 
-      const srtUrl = toAbsUrl(data.srt_url);
-      const mp4Url = data.video_url ? toAbsUrl(data.video_url) : null;
+      // DEBUG: ver exatamente o que o backend devolve
+      console.log("[video-subs] resposta JSON:", data);
 
-      document.getElementById("srtDownload").href = srtUrl;
+      // aceitar vários nomes de campos
+      const srtUrlRaw =
+        data.srt_url || data.srt || data.subtitle_url || data.subtitle || data.srtPath || data.subtitles;
+      const mp4UrlRaw =
+        data.video_url || data.mp4_url || data.mp4 || data.video || data.videoPath || data.output;
+
+      const previewsRaw =
+        data.preview_images || data.previews || data.thumbs || data.images || [];
+
+      const srtUrl = srtUrlRaw ? toAbsUrl(srtUrlRaw) : "";
+      const mp4Url = mp4UrlRaw ? toAbsUrl(mp4UrlRaw) : "";
+
+      // nomes de download agradáveis
+      const baseName = (file.name || "video").replace(/\.[^.]+$/, "");
+      const srtBtn = document.getElementById("srtDownload");
       const mp4Btn = document.getElementById("mp4Download");
-      if (mp4Url){
+
+      if (srtUrl) {
+        srtBtn.href = srtUrl;
+        srtBtn.download = `${baseName}.srt`;
+        srtBtn.classList.remove("hidden");
+      } else {
+        srtBtn.classList.add("hidden");
+      }
+
+      if (mp4Url) {
         mp4Btn.href = mp4Url;
+        mp4Btn.download = `${baseName}_legendado.mp4`;
         mp4Btn.classList.remove("hidden");
+
+        // player embutido
+        const playerWrap = document.getElementById("legendasPlayer");
+        const vid = document.getElementById("videoPreview");
+        vid.src = mp4Url;
+        vid.load();
+        playerWrap.classList.remove("hidden");
       } else {
         mp4Btn.classList.add("hidden");
       }
 
+      // galeria de imagens (se o backend enviar)
+      const galleryWrap = document.getElementById("legendasGallery");
+      const previewsEl = document.getElementById("legendaPreviews");
+      if (Array.isArray(previewsRaw) && previewsRaw.length){
+        previewsRaw.forEach((u, i) => {
+          const img = document.createElement("img");
+          img.alt = `Pré-visualização #${i+1}`;
+          img.loading = "lazy";
+          img.src = toAbsUrl(u);
+          previewsEl.appendChild(img);
+        });
+        galleryWrap.classList.remove("hidden");
+      }
+
+      // mensagens/avisos
       if (data.warning){
         const warn = document.getElementById("legendasWarn");
         warn.textContent = "ℹ️ " + data.warning;
         warn.classList.remove("hidden");
       }
 
-      // mostra secção e mantém coerência com as outras
+      // mostra secção
       document.getElementById("legendasBox").classList.remove("hidden");
       output.classList.remove("hidden");
       statusEl.textContent = "✅ Legendas geradas com sucesso!";
-
     } catch(err){
       clearInterval(interval);
       progressBar.style.width = "100%";
@@ -810,20 +880,25 @@
 
       output.classList.remove("hidden");
       statusEl.textContent = "❌ Não foi possível gerar as legendas.";
-      document.getElementById("legendasWarn").textContent = "❌ " + (err.message || "Erro inesperado ao comunicar com a API.");
-      document.getElementById("legendasWarn").classList.remove("hidden");
+      const warn = document.getElementById("legendasWarn");
+      warn.textContent = "❌ " + (err.message || "Erro inesperado ao comunicar com a API.");
+      warn.classList.remove("hidden");
+      document.getElementById("legendasBox").classList.remove("hidden");
     } finally{
       setTimeout(() => { loading.classList.add("hidden"); progressBar.style.width = "0%"; }, 800);
       btnTranscrever.disabled = false;
       btnStartRec.disabled = false;
       btnLegendarVideo.disabled = !isVideoFile(file);
+      btnLegendarVideo.dataset.busy = "0";
     }
   }
 
   function toAbsUrl(url){
     if (!url) return "";
     if (/^https?:\/\//i.test(url)) return url;
-    return `${API_BASE}${url.startsWith("/") ? "" : "/"}${url}`;
+    const left = API_BASE.replace(/\/+$/,'');
+    const right = String(url).replace(/^\/+/,'');
+    return `${left}/${right}`;
   }
 
   // =========================
@@ -1112,7 +1187,6 @@
           ta.removeAttribute("readonly");
           ta.value = data.corrected;
 
-          const row = doc.querySelector("row");
           const btnRow = win.document.querySelector(".row");
           const copyBtn = win.document.createElement("button");
           copyBtn.textContent = "Copiar";
@@ -1443,87 +1517,70 @@
 
   // botão “Gerar Resumo”
   document.getElementById("btnGerarResumo").addEventListener("click", gerarResumo);
-// ── Sugestões (FAB) ─────────────────────────────────────────────────────────
-(function(){
-  const fab = document.getElementById('fabSugestao');
-  // faz 1 aceno quando clicas/abres o painel
-function waveOnce(){
-  fab.classList.remove('wave');       // reset
-  void fab.offsetWidth;               // reflow p/ reiniciar animação
-  fab.classList.add('wave');
-  setTimeout(()=> fab.classList.remove('wave'), 1800);
-}
-fab.addEventListener('click', waveOnce);
 
-// (opcional) acenar de tempos a tempos para chamar a atenção
-let waveTimer = setInterval(() => {
-  if (!document.hidden) waveOnce();
-}, 8000);
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden) { clearInterval(waveTimer); }
-  else { waveTimer = setInterval(() => !document.hidden && waveOnce(), 8000); }
-});
-
-  const panel = document.getElementById('sugestaoPanel');
-  const textarea = document.getElementById('sugestaoTexto');
-  const btnFechar = document.getElementById('fecharSugestao');
-  const btnEnviar = document.getElementById('enviarSugestao');
-  const toast = document.getElementById('toastSugestao');
-
-  function togglePanel(open){
-    const willOpen = typeof open === 'boolean' ? open : !panel.classList.contains('open');
-    panel.classList.toggle('open', willOpen);
-    fab.setAttribute('aria-expanded', String(willOpen));
-    if (willOpen) { setTimeout(() => textarea.focus(), 100); }
-  }
-  function showToast(msg='Obrigado! Sugestão enviada 🙌'){
-    toast.textContent = msg;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 2200);
-  }
-  async function enviarSugestao(){
-    const texto = (textarea.value || '').trim();
-    if (!texto){ textarea.focus(); return; }
-
-    // tenta API (reutiliza endpoint de notificação existente)
-    try{
-      await fetch(`${API_BASE}/notify-whatsapp-share`, {
-        method:'POST',
-        headers:{ 'Content-Type':'application/json' },
-        body: JSON.stringify({
-          token: API_TOKEN,
-          page: location.href,
-          note: `FEEDBACK: ${texto}`
-        })
-      });
-      textarea.value = '';
-      togglePanel(false);
-      showToast();
-    }catch(e){
-      // fallback: mailto
-      const subject = encodeURIComponent('Sugestão de melhoria (Ouviescrevi)');
-      const body = encodeURIComponent(`${texto}\n\nPágina: ${location.href}\nData: ${new Date().toLocaleString()}`);
-      window.open(`mailto:${ADMIN_EMAIL}?subject=${subject}&body=${body}`, '_blank');
-      togglePanel(false);
-      showToast('A abrir o email…');
+  // ── Sugestões (FAB)
+  (function(){
+    const fab = document.getElementById('fabSugestao');
+    function waveOnce(){
+      fab.classList.remove('wave'); void fab.offsetWidth; fab.classList.add('wave');
+      setTimeout(()=> fab.classList.remove('wave'), 1800);
     }
-  }
+    fab.addEventListener('click', waveOnce);
 
-  fab.addEventListener('click', () => togglePanel());
-  btnFechar.addEventListener('click', () => togglePanel(false));
-  btnEnviar.addEventListener('click', enviarSugestao);
+    let waveTimer = setInterval(() => { if (!document.hidden) waveOnce(); }, 8000);
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) { clearInterval(waveTimer); }
+      else { waveTimer = setInterval(() => !document.hidden && waveOnce(), 8000); }
+    });
 
-  // fechar ao clicar fora
-  document.addEventListener('click', (e) => {
-    if (!panel.classList.contains('open')) return;
-    const isClickInside = panel.contains(e.target) || fab.contains(e.target);
-    if (!isClickInside) togglePanel(false);
-  });
-  // fechar com ESC
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && panel.classList.contains('open')) togglePanel(false);
-  });
-})();
+    const panel = document.getElementById('sugestaoPanel');
+    const textarea = document.getElementById('sugestaoTexto');
+    const btnFechar = document.getElementById('fecharSugestao');
+    const btnEnviar = document.getElementById('enviarSugestao');
+    const toast = document.getElementById('toastSugestao');
+
+    function togglePanel(open){
+      const willOpen = typeof open === 'boolean' ? open : !panel.classList.contains('open');
+      panel.classList.toggle('open', willOpen);
+      fab.setAttribute('aria-expanded', String(willOpen));
+      if (willOpen) { setTimeout(() => textarea.focus(), 100); }
+    }
+    function showToast(msg='Obrigado! Sugestão enviada 🙌'){
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2200);
+    }
+    async function enviarSugestao(){
+      const texto = (textarea.value || '').trim();
+      if (!texto){ textarea.focus(); return; }
+      try{
+        await fetch(`${API_BASE}/notify-whatsapp-share`, {
+          method:'POST',
+          headers:{ 'Content-Type':'application/json' },
+          body: JSON.stringify({ token: API_TOKEN, page: location.href, note: `FEEDBACK: ${texto}` })
+        });
+        textarea.value = ''; togglePanel(false); showToast();
+      }catch(e){
+        const subject = encodeURIComponent('Sugestão de melhoria (Ouviescrevi)');
+        const body = encodeURIComponent(`${texto}\n\nPágina: ${location.href}\nData: ${new Date().toLocaleString()}`);
+        window.open(`mailto:${ADMIN_EMAIL}?subject=${subject}&body=${body}`, '_blank');
+        togglePanel(false); showToast('A abrir o email…');
+      }
+    }
+
+    fab.addEventListener('click', () => togglePanel());
+    btnFechar.addEventListener('click', () => togglePanel(false));
+    btnEnviar.addEventListener('click', enviarSugestao);
+
+    document.addEventListener('click', (e) => {
+      if (!panel.classList.contains('open')) return;
+      const isClickInside = panel.contains(e.target) || fab.contains(e.target);
+      if (!isClickInside) togglePanel(false);
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && panel.classList.contains('open')) togglePanel(false);
+    });
+  })();
 
   // ▼ Exportar: robusto para mobile (pointer events) + fecha ao selecionar opção/fora/Escape
   (function(){
@@ -1531,7 +1588,6 @@ document.addEventListener('visibilitychange', () => {
     const btn = document.getElementById('exportBtn');
     const options = document.getElementById('exportOptions');
 
-    const open = () => { dropdown.classList.add('open'); btn.setAttribute('aria-expanded','true'); };
     const close = () => { dropdown.classList.remove('open'); btn.setAttribute('aria-expanded','false'); };
     const toggle = (e) => { e.preventDefault(); e.stopPropagation(); dropdown.classList.toggle('open'); btn.setAttribute('aria-expanded', dropdown.classList.contains('open')); };
 
