@@ -624,37 +624,48 @@
   // =========================
   // Partilhar WhatsApp + notificar backend
   // =========================
-  async function partilharWhatsapp(){
-    const text = (document.getElementById("transcriptionText").value || "").trim();
-    const url = "https://api.whatsapp.com/send?text=" + encodeURIComponent(text || "Partilha feita pelo Ouviescrevi.");
-    // abre WhatsApp imediatamente (evita bloqueio popup)
-    window.open(url, "_blank");
+  // =========================
+// Partilhar WhatsApp + notificar por email
+// =========================
+async function partilharWhatsapp(){
+  const textoDaTranscricao = (document.getElementById("transcriptionText").value || "").trim();
 
-    // notificar backend (que envia email e regista log)
-    try{
-      await fetch(`${API_BASE}/notify/whatsapp`, {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({
-          token: API_TOKEN,
-          page: location.pathname,
-          note: `preview="${text.slice(0,200)}" ua="${navigator.userAgent}"`
-        })
-      });
-    }catch(err){
-      // fallback: abrir cliente de email do admin
-      const subject = encodeURIComponent("Notificação: Partilha no WhatsApp");
-      const body = encodeURIComponent(
-        `Alguém clicou em "Partilhar no WhatsApp".\n\n` +
-        `Data: ${new Date().toLocaleString()}\n` +
-        `Página: ${location.pathname}\n` +
-        `User-Agent: ${navigator.userAgent}\n\n` +
-        `Pré-visualização do texto:\n${text.slice(0,500)}`
-      );
-      window.open(`mailto:${ADMIN_EMAIL}?subject=${subject}&body=${body}`, "_blank");
-      console.warn("Falha a notificar via API. Usado fallback mailto.", err);
-    }
+  // assinatura fixa
+  const assinatura = "\n\n🔗 Transcrito com Ouviescrevi: https://ouviescrevi.pt";
+
+  // se houver transcrição, inclui + assinatura; senão, só a assinatura
+  const shareBody = textoDaTranscricao
+    ? `${textoDaTranscricao}${assinatura}`
+    : assinatura;
+
+  // abrir WhatsApp com o conteúdo
+  const waUrl = "https://api.whatsapp.com/send?text=" + encodeURIComponent(shareBody);
+  window.open(waUrl, "_blank");
+
+  // notificação backend (opcional)
+  try{
+    await fetch(`${API_BASE}/notify-whatsapp-share`, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({
+        email: ADMIN_EMAIL,
+        when: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        textPreview: shareBody.slice(0, 500)
+      })
+    });
+  }catch(err){
+    const subject = encodeURIComponent("Notificação: Partilha no WhatsApp");
+    const body = encodeURIComponent(
+      `Alguém clicou em "Partilhar no WhatsApp".\n\n` +
+      `Data: ${new Date().toLocaleString()}\n` +
+      `User-Agent: ${navigator.userAgent}\n\n` +
+      `Pré-visualização do texto:\n${shareBody.slice(0,1000)}`
+    );
+    window.open(`mailto:${ADMIN_EMAIL}?subject=${subject}&body=${body}`, "_blank");
   }
+}
+
 
   // =========================
   // Gravação
