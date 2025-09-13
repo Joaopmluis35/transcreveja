@@ -17,6 +17,7 @@ import json
 import textwrap
 import shutil
 import time
+import math
 
 import requests
 from bs4 import BeautifulSoup
@@ -44,7 +45,6 @@ class JSONFormatter(logging.Formatter):
             "logger": record.name,
             "message": record.getMessage(),
         }
-        # extras comuns se existirem
         for k in ("rid", "path", "method", "status", "ms"):
             if hasattr(record, k):
                 payload[k] = getattr(record, k)
@@ -56,13 +56,11 @@ class VercelHTTPHandler(logging.Handler):
         super().__init__(level)
         self.url = url
         self.token = token
-
     def emit(self, record: logging.LogRecord):
         try:
             headers = {"Content-Type": "application/json"}
             if self.token:
                 headers["Authorization"] = f"Bearer {self.token}"
-            # Usa JSON “compacto” (a Function no Vercel só faz console.log)
             data = {
                 "level": record.levelname,
                 "logger": record.name,
@@ -70,33 +68,27 @@ class VercelHTTPHandler(logging.Handler):
             }
             requests.post(self.url, json=data, headers=headers, timeout=2)
         except Exception:
-            # Nunca deixar logging quebrar a app
             pass
 
 logger = logging.getLogger("ouviescrevi")
 logger.setLevel(getattr(logging, LOG_LEVEL, logging.INFO))
 
 if not logger.handlers:
-    # ficheiro rotativo em UTF-8
     fh = RotatingFileHandler(LOG_FILE, maxBytes=10 * 1024 * 1024, backupCount=5, encoding="utf-8")
     fh.setFormatter(logging.Formatter(LOG_FORMAT, DATE_FMT))
     logger.addHandler(fh)
 
-    # consola (Render/uvicorn)
     ch = logging.StreamHandler()
     ch.setFormatter(logging.Formatter(LOG_FORMAT, DATE_FMT))
     logger.addHandler(ch)
 
-    # opcional: envio p/ Vercel
     VERCEL_LOG_URL = os.getenv("VERCEL_LOG_URL")
     VERCEL_LOG_TOKEN = os.getenv("VERCEL_LOG_TOKEN")
     if VERCEL_LOG_URL:
         vh = VercelHTTPHandler(VERCEL_LOG_URL, VERCEL_LOG_TOKEN, level=logging.WARNING)
-        # usa formatter simples ou JSON (ambos ok; no Vercel verás o texto do message)
         vh.setFormatter(JSONFormatter())
         logger.addHandler(vh)
 
-# Capta também logs do uvicorn/fastapi no mesmo ficheiro/console
 for name in ("uvicorn", "uvicorn.error", "uvicorn.access", "fastapi"):
     logging.getLogger(name).setLevel(getattr(logging, LOG_LEVEL, logging.INFO))
     if not logging.getLogger(name).handlers:
@@ -121,7 +113,9 @@ FFMPEG_TIMEOUT = int(os.getenv("FFMPEG_TIMEOUT", "60"))
 TOTAL_TRANSCRIBE_TIMEOUT = int(os.getenv("TOTAL_TRANSCRIBE_TIMEOUT", "170"))  # watchdog global
 MAX_FILE_SIZE_MB = int(os.getenv("MAX_FILE_SIZE_MB", "300"))
 SEGMENT_DURATION = int(os.getenv("SEGMENT_DURATION", "600"))  # 10 min
+SUBS_TIMEOUT = int(os.getenv("SUBS_TIMEOUT", "900"))  # tempo p/ queimar legendas
 
+# Modelos
 SUM_MODEL = os.getenv("SUM_MODEL", "gpt-4o-mini")
 CLS_MODEL = os.getenv("CLS_MODEL", "gpt-4o-mini")
 COR_MODEL = os.getenv("COR_MODEL", "gpt-4o-mini")
@@ -144,19 +138,19 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # em prod restringe aos teus domínios
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# garantir diretório estático
+# estáticos
 STATIC_DIR = os.path.abspath("static")
 VIDEO_DIR = os.path.join(STATIC_DIR, "videos")
 os.makedirs(VIDEO_DIR, exist_ok=True)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Middleware: log de cada request com latência
+# Middleware: log de request
 # ──────────────────────────────────────────────────────────────────────────────
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
@@ -216,10 +210,10 @@ def _seg_get(seg, key, default=None):
 
 def _format_time(seconds: float):
     try:
-        seconds = int(seconds)
+        seconds = float(seconds)
     except Exception:
-        seconds = 0
-    m, s = divmod(seconds, 60)
+        seconds = 0.0
+    m, s = divmod(int(seconds), 60)
     return f"[{m:02d}:{s:02d}]"
 
 def format_segments_with_offset(segments, offset_seconds: int = 0):
@@ -295,12 +289,48 @@ def transcrever_parte_c_com_retries(file_path: str, retries: int = 3, sleep_base
             time.sleep(sleep_base * (2 ** (attempt - 1)))
     raise last_err
 
+# ── Helpers específicos p/ SRT ────────────────────────────────────────────────
+def _srt_timestamp(t: float) -> str:
+    t = max(0.0, float(t))
+    h = int(t // 3600)
+    m = int((t % 3600) // 60)
+    s = int(t % 60)
+    ms = int(round((t - math.floor(t)) * 1000))
+    if ms >= 1000:
+        s += 1
+        ms -= 1000
+    if s >= 60:
+        m += 1
+        s -= 60
+    if m >= 60:
+        h += 1
+        m -= 60
+    return f"{h:02d}:{m:02d}:{s:02d},{ms:03d}"
+
+def _escape_subtitles_path(p: str) -> str:
+    # Escapar caracteres que interferem com o parser do filtro
+    return os.path.abspath(p).replace("\\", "\\\\").replace(":", "\\:").replace("'", "\\'")
+
+def _write_srt(entries: list[tuple[float, float, str]], out_path: str):
+    lines: list[str] = []
+    idx = 1
+    for start, end, text in entries:
+        if not text:
+            continue
+        lines.append(str(idx))
+        lines.append(f"{_srt_timestamp(start)} --> {_srt_timestamp(end)}")
+        lines.append(text.strip())
+        lines.append("")
+        idx += 1
+    with open(out_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines))
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Rotas
 # ──────────────────────────────────────────────────────────────────────────────
 @app.get("/debug")
 def debug():
-    return {"status": "OK", "versao": "1.3"}
+    return {"status": "OK", "versao": "1.4"}  # ↑ versão incrementada
 
 @app.post("/transcribe")
 async def transcribe(file: UploadFile = File(...)):
@@ -308,7 +338,6 @@ async def transcribe(file: UploadFile = File(...)):
     t_start = time.monotonic()
     logger.info("[%s] Upload recebido: %s (%s)", rid, file.filename, file.content_type)
 
-    # grava o upload
     orig_ext = os.path.splitext(file.filename or "")[1].lower() or ".bin"
     tmp_path = os.path.join(tempfile.gettempdir(), f"input_{uuid.uuid4()}{orig_ext}")
     try:
@@ -322,14 +351,11 @@ async def transcribe(file: UploadFile = File(...)):
         return {"transcription": "", "formatted": "", "warning": f"Falha ao gravar ficheiro: {e}"}
 
     if size_mb > MAX_FILE_SIZE_MB:
-        try:
-            os.remove(tmp_path)
-        except:
-            pass
+        try: os.remove(tmp_path)
+        except: pass
         logger.warning("[%s] Ficheiro > %dMB (%.2f MB).", rid, MAX_FILE_SIZE_MB, size_mb)
         return {"transcription": "", "formatted": "", "warning": f"Ficheiro > {MAX_FILE_SIZE_MB}MB. Reduz o tamanho e tenta novamente."}
 
-    # converter para wav 16k mono
     audio_wav_path = os.path.join(tempfile.gettempdir(), f"audio_{uuid.uuid4()}.wav")
     converted_ok = False
     try:
@@ -371,7 +397,6 @@ async def transcribe(file: UploadFile = File(...)):
                 logger.error("[%s] Watchdog TOTAL_TRANSCRIBE_TIMEOUT atingido aos %.2fs. Interrompendo.",
                              rid, time.monotonic() - t_start)
                 break
-
             try:
                 result = transcrever_parte_c_com_retries(part, retries=3, sleep_base=1.0, timeout=WHISPER_TIMEOUT)
                 text_piece = getattr(result, "text", "") or ""
@@ -428,6 +453,167 @@ async def transcribe(file: UploadFile = File(...)):
                 except:
                     pass
             os.rmdir(split_dir)
+        except:
+            pass
+
+# ── NOVO: Vídeo com legendas embutidas ───────────────────────────────────────
+@app.post("/video-subs")
+async def video_subs(file: UploadFile = File(...)):
+    """
+    Upload de vídeo → transcreve (Whisper) → gera SRT → queima legendas no vídeo.
+    Resposta: { video_url, srt_url, warning? }
+    """
+    rid = str(uuid.uuid4())
+    t_start = time.monotonic()
+    logger.info("[%s] [video-subs] Upload: %s (%s)", rid, file.filename, file.content_type)
+
+    # Gravar upload
+    orig_ext = os.path.splitext(file.filename or "")[1].lower() or ".mp4"
+    if orig_ext not in {".mp4", ".mov", ".mkv", ".webm", ".avi"}:
+        orig_ext = ".mp4"
+    tmp_video = os.path.join(tempfile.gettempdir(), f"vid_{uuid.uuid4()}{orig_ext}")
+    try:
+        with open(tmp_video, "wb") as out:
+            await file.seek(0)
+            shutil.copyfileobj(file.file, out)
+        size_mb = os.path.getsize(tmp_video) / (1024 * 1024)
+        logger.info("[%s] [video-subs] Guardado: %.2f MB", rid, size_mb)
+    except Exception as e:
+        logger.exception("[%s] [video-subs] Falha a gravar vídeo", rid)
+        raise HTTPException(status_code=400, detail=f"Falha ao gravar vídeo: {e}")
+
+    if size_mb > MAX_FILE_SIZE_MB:
+        try: os.remove(tmp_video)
+        except: pass
+        raise HTTPException(status_code=413, detail=f"Ficheiro > {MAX_FILE_SIZE_MB}MB. Reduz o tamanho e tenta novamente.")
+
+    # Extrair/normalizar áudio para transcrição
+    audio_wav_path = os.path.join(tempfile.gettempdir(), f"subs_{uuid.uuid4()}.wav")
+    try:
+        conv = [FFMPEG, "-nostdin", "-hide_banner", "-loglevel", "error", "-y",
+                "-i", tmp_video, "-vn", "-sn",
+                "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", audio_wav_path]
+        safe_run_ffmpeg(conv, desc="audio p/ subs (wav)", timeout=max(60, FFMPEG_TIMEOUT))
+    except Exception:
+        logger.exception("[%s] [video-subs] Falha a extrair áudio", rid)
+        raise HTTPException(status_code=500, detail="Falha ao extrair áudio com FFmpeg.")
+
+    # Particionar áudio e transcrever (como no /transcribe)
+    split_dir = tempfile.mkdtemp(prefix="subs_split_")
+    try:
+        parts = split_audio(audio_wav_path, split_dir)
+        if not parts:
+            parts = [audio_wav_path]
+        entries: list[tuple[float, float, str]] = []  # [(start,end,text)]
+        offset_seconds = 0
+        processed_segments = 0
+        failed_segments = 0
+        watchdog_hit = False
+
+        for idx, part in enumerate(parts):
+            if (time.monotonic() - t_start) > TOTAL_TRANSCRIBE_TIMEOUT:
+                watchdog_hit = True
+                logger.error("[%s] [video-subs] Watchdog TOTAL timeout", rid)
+                break
+            try:
+                result = transcrever_parte_c_com_retries(part, retries=3, sleep_base=1.0, timeout=WHISPER_TIMEOUT)
+                segs = getattr(result, "segments", []) or []
+                for s in segs:
+                    st = float(_seg_get(s, "start", 0.0)) + offset_seconds
+                    en = float(_seg_get(s, "end", st + 0.01)) + offset_seconds
+                    tx = (_seg_get(s, "text", "") or "").strip()
+                    if tx:
+                        entries.append((st, en, tx))
+                processed_segments += 1
+                logger.info("[%s] [video-subs] chunk %d/%d OK c/ %d segmentos", rid, idx+1, len(parts), len(segs))
+            except Exception:
+                logger.exception("[%s] [video-subs] Erro a transcrever chunk %d", rid, idx+1)
+                failed_segments += 1
+            finally:
+                if len(parts) > 1:
+                    offset_seconds += SEGMENT_DURATION
+
+        # Gerar SRT
+        base = str(uuid.uuid4())
+        srt_tmp = os.path.join(tempfile.gettempdir(), f"{base}.srt")
+        _write_srt(entries, srt_tmp)
+
+        # Copiar SRT para estáticos (download)
+        srt_out = os.path.join(VIDEO_DIR, f"{base}.srt")
+        try:
+            shutil.copyfile(srt_tmp, srt_out)
+        except Exception:
+            logger.exception("[%s] [video-subs] Falha a copiar SRT p/ static", rid)
+            raise HTTPException(status_code=500, detail="Falha ao preparar SRT para download.")
+
+        # Queimar legendas no vídeo
+        out_video = os.path.join(VIDEO_DIR, f"{base}.mp4")
+        vf = f"subtitles={_escape_subtitles_path(srt_tmp)}:force_style='FontName=DejaVu Sans,FontSize=24,Outline=1,BorderStyle=1,Shadow=0,MarginV=24'"
+        burn = [
+            FFMPEG, "-nostdin", "-hide_banner", "-loglevel", "error", "-y",
+            "-i", tmp_video,
+            "-vf", vf,
+            "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+            "-c:a", "copy",
+            out_video
+        ]
+        warning = None
+        try:
+            safe_run_ffmpeg(burn, desc="queimar-legendas", timeout=SUBS_TIMEOUT)
+            logger.info("[%s] [video-subs] Vídeo legendado gerado", rid)
+        except Exception:
+            # Fallback: entregar só o SRT
+            warning = "Não foi possível embutir as legendas (FFmpeg/libass). A entregar apenas o .srt."
+            logger.warning("[%s] [video-subs] Falha a queimar legendas. Fallback SRT.", rid)
+            out_video = None
+
+        # Registar e notificar
+        try:
+            registar_transcricao((file.filename or "sem_nome") + " [legendado]")
+        except Exception as e:
+            logger.warning("[%s] [video-subs] Falha ao registar DB: %s", rid, e)
+        try:
+            enviar_email_assunto(f"Vídeo legendado gerado: {file.filename}", "Vídeo legendado no Ouviescrevi")
+        except Exception:
+            pass
+
+        resp = {
+            "srt_url": f"/static/videos/{os.path.basename(srt_out)}",
+        }
+        if out_video:
+            resp["video_url"] = f"/static/videos/{os.path.basename(out_video)}"
+        if warning:
+            resp["warning"] = warning
+        if failed_segments:
+            resp["note"] = f"Alguns segmentos falharam ({failed_segments})."
+
+        return resp
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("[%s] [video-subs] Erro inesperado", rid)
+        raise HTTPException(status_code=500, detail=f"Erro ao processar vídeo: {e}")
+    finally:
+        # limpeza
+        for p in (audio_wav_path, tmp_video, ):
+            try:
+                if p and os.path.exists(p):
+                    os.remove(p)
+            except:
+                pass
+        try:
+            for f in os.listdir(split_dir):
+                try:
+                    os.remove(os.path.join(split_dir, f))
+                except:
+                    pass
+            os.rmdir(split_dir)
+        except:
+            pass
+        try:
+            if 'srt_tmp' in locals() and os.path.exists(srt_tmp):
+                os.remove(srt_tmp)
         except:
             pass
 
@@ -710,6 +896,7 @@ class WhatsAppNotify(BaseModel):
     page: str | None = None
     note: str | None = None
     token: str
+
 @app.post("/notify-whatsapp-share")
 @app.post("/notify/whatsapp")
 async def notify_whatsapp(req: WhatsAppNotify):
@@ -723,7 +910,7 @@ async def notify_whatsapp(req: WhatsAppNotify):
         logger.exception("Erro ao notificar WhatsApp share")
         raise HTTPException(status_code=500, detail=str(e))
 
-# ── Vídeo (router) ────────────────────────────────────────────────────────────
+# ── Vídeo (router) existente ─────────────────────────────────────────────────
 router = APIRouter()
 
 class VideoRequest(BaseModel):

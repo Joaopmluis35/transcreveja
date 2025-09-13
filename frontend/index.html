@@ -23,6 +23,43 @@
     header{ padding:20px; }
     header h1{ margin:0; font-size:2em; }
 
+    /* ── Ticker de atualizações ───────────────────────────────────────────── */
+    .ticker {
+      width: 100%;
+      overflow: hidden;
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(4px);
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+    .ticker__inner {
+      display: inline-block;
+      white-space: nowrap;
+      padding: 8px 0;
+      animation: ticker-scroll 24s linear infinite;
+    }
+    .ticker__item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 28px;
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 0 1px 0 rgba(0,0,0,.15);
+    }
+    .ticker__dot {
+      opacity: .7;
+    }
+    @keyframes ticker-scroll {
+      0%   { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .ticker__inner { animation: none; }
+    }
+
     main{
       padding:40px;
       display:flex;
@@ -58,6 +95,7 @@
       transition:all 0.3s ease;
     }
     button:hover{ background:linear-gradient(135deg,#A550F7,#00C3FF); color:white; border-color:transparent; }
+    button[disabled]{ opacity:.55; cursor:not-allowed; }
 
     .hidden{ display:none; }
 
@@ -161,8 +199,17 @@
       border-left:5px solid #00C3FF; padding:8px 12px; border-radius:5px; display:inline-block;
     }
 
-    /* resumo: garantir texto escuro */
-    #resumoTexto{ color:#222; }
+    /* caixas secundárias */
+    #resumoTexto, #minutaTexto, #traducaoTexto, #classificacaoTexto { color:#222; }
+
+    /* caixa de resultados de legendas */
+    #legendasBox a {
+      display:inline-block; margin-right:8px; margin-top:6px;
+      background:#e6d7fb; border:2px solid #A550F7; color:#333;
+      padding:8px 12px; border-radius:8px; font-weight:700; text-decoration:none;
+      transition:all .3s ease;
+    }
+    #legendasBox a:hover { background:linear-gradient(135deg,#A550F7,#00C3FF); color:#fff; border-color:transparent; }
 
     /* modal tradução */
     #modalTraducao{ display:none !important; }
@@ -183,9 +230,8 @@
       top:95%; left:0;
       padding:6px 0;
     }
-    .dropdown-export.open .dropdown-content{ display:flex !important; } /* força abertura por clique */
+    .dropdown-export.open .dropdown-content{ display:flex !important; }
 
-    /* hover só se existir hover real (desktop) */
     @media (hover:hover) and (pointer:fine){
       .dropdown-export:hover .dropdown-content{ display:flex; }
     }
@@ -196,7 +242,7 @@
     .dropdown-content button:hover{ background:#f0f0f0; }
 
     /* nav nichos */
-    #nichoMenu{ display:flex; flex-wrap:wrap; justify-content:center; gap:12px; position:sticky; top:0; z-index:999; }
+    #nichoMenu{ display:flex; flex-wrap:wrap; justify-content:center; gap:12px; position:sticky; top:0; z-index:998; }
     #nichoMenu button{
       position:relative; overflow:hidden; background:#e6d7fb; color:#333; border:2px solid #A550F7; border-radius:50px;
       padding:10px 20px; font-weight:bold; font-size:.95em; cursor:pointer; transition:color .3s, border-color .3s;
@@ -220,7 +266,6 @@
       #modalTraducao .card{ width:90%; max-width:90%; }
       #loading, #output{ max-width:100%; }
 
-      /* dropdown em fluxo no mobile (não sobrepõe) */
       .dropdown-export{ width:100%; max-width:100%; }
       .dropdown-content{
         position:static;
@@ -240,6 +285,13 @@
 
 <div id="header"></div>
 
+<!-- Ticker de Atualizações -->
+<div class="ticker" aria-live="polite">
+  <div class="ticker__inner" id="updatesTrack">
+    <!-- preenchido via JS com a data de hoje -->
+  </div>
+</div>
+
 <main>
   <div id="adminContent">
     <p>
@@ -256,6 +308,7 @@
       </div>
 
       <button type="submit" id="btnTranscrever">Transcrever</button>
+      <button type="button" id="btnLegendarVideo" disabled>🎬 Legendar Vídeo (SRT + MP4)</button>
       <button type="button" id="btnStartRec">🎤 Gravar Áudio</button>
       <button type="button" id="btnStopRecording" class="hidden" style="background:#ff4c4c; color:white; font-weight:bold; margin-bottom:10px;">🛑 Parar Gravação</button>
       <button type="button" onclick="limparTudo()" style="background:#ffffff; border:2px solid #A550F7; color:#A550F7; font-weight:bold; margin-bottom:10px;">🧹 Limpar Tudo</button>
@@ -321,6 +374,19 @@
       <div id="classificacaoBox" class="hidden">
         <h3>📚 Tipo de Conteúdo:</h3>
         <div id="classificacaoTexto" style="background:#f0f0f0; color:#222; padding:10px; border-radius:8px; white-space:pre-wrap;"></div>
+      </div>
+
+      <!-- Resultados de legendas/vídeo legendado -->
+      <div id="legendasBox" class="hidden">
+        <h3>🎞️ Legendas / Vídeo Legendado</h3>
+        <div id="legendasInfo" style="background:#f0f0f0; color:#222; padding:15px; border-radius:8px;">
+          <p id="legendasMsg" style="margin:0 0 8px 0;">Pronto! Escolhe o que queres descarregar:</p>
+          <div>
+            <a id="srtDownload" href="#" download>⬇️ Download SRT</a>
+            <a id="mp4Download" class="hidden" href="#" download>⬇️ Download Vídeo (MP4)</a>
+          </div>
+          <p id="legendasWarn" class="hidden" style="margin-top:10px; background:#fff3cd; color:#856404; border-left:5px solid #ffc107; padding:8px 12px; border-radius:5px; font-weight:600;"></p>
+        </div>
       </div>
 
       <div class="btn-group">
@@ -465,6 +531,15 @@
   const statusEl = document.getElementById("transcricaoStatus");
   const btnTranscrever = document.getElementById("btnTranscrever");
   const btnStartRec = document.getElementById("btnStartRec");
+  const btnLegendarVideo = document.getElementById("btnLegendarVideo");
+
+  // Helper: é vídeo?
+  function isVideoFile(file){
+    if (!file) return false;
+    if (file.type && file.type.startsWith("video/")) return true;
+    const ext = (file.name || "").split(".").pop().toLowerCase();
+    return ["mp4","mov","m4v","mkv","avi","webm","ts","m2ts","flv"].includes(ext);
+  }
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -474,11 +549,14 @@
     // reset UI
     output.classList.add("hidden");
     transcriptionText.value = "";
+    document.getElementById("legendasBox").classList.add("hidden");
+    document.getElementById("legendasWarn").classList.add("hidden");
     loading.classList.remove("hidden");
     progressBar.style.width = "0%";
 
     btnTranscrever.disabled = true;
     btnStartRec.disabled = true;
+    btnLegendarVideo.disabled = !isVideoFile(file);
     btnTranscrever.style.opacity = 0.6;
     btnStartRec.style.opacity = 0.6;
 
@@ -512,7 +590,7 @@
         }
 
         const controller = new AbortController();
-        const to = setTimeout(() => controller.abort(), 130000); // ~2m10s (alinhado ao backend watchdog)
+        const to = setTimeout(() => controller.abort(), 130000);
         const res = await fetch(`${API_BASE}/transcribe`, { method:"POST", body: formData, signal: controller.signal });
         clearTimeout(to);
 
@@ -521,7 +599,6 @@
         if (!res.ok) throw new Error(data.error || `Erro ${res.status}`);
         sucesso = !!(data.formatted || data.transcription || data.text);
       }catch(err){
-        // se for abort, mostra info clara
         if (err.name === "AbortError"){
           data = { error: "Tempo limite atingido. Tentaremos novamente…" };
         }
@@ -543,7 +620,6 @@
       output.classList.remove("hidden");
       statusEl.textContent = "✅ Transcrição concluída com sucesso!";
     } else {
-      // Se o backend devolveu warning, mostra-o junto do texto
       const warn = data.warning ? `\n\nℹ️ ${data.warning}` : "";
       transcriptionText.value = ("❌ Não foi possível obter a transcrição. Tenta novamente mais tarde." + warn).trim();
       output.classList.remove("hidden");
@@ -558,10 +634,111 @@
       document.getElementById("btnRetry").classList.toggle("hidden", !ultimaTentativaFalhada);
       btnTranscrever.disabled = false;
       btnStartRec.disabled = false;
+      btnLegendarVideo.disabled = !isVideoFile(file);
       btnTranscrever.style.opacity = 1;
       btnStartRec.style.opacity = 1;
     }, 800);
   });
+
+  // =========================
+  // Nova função: Legendar Vídeo (SRT + MP4)
+  // =========================
+  btnLegendarVideo.addEventListener("click", legendarVideo);
+
+  async function legendarVideo(){
+    const file = document.getElementById("fileInput").files[0];
+    if (!file){ return alert("⚠️ Nenhum ficheiro selecionado."); }
+    if (!isVideoFile(file)){ return alert("⚠️ Esta opção é apenas para ficheiros de vídeo."); }
+
+    // reset UI
+    output.classList.add("hidden");
+    document.getElementById("legendasBox").classList.add("hidden");
+    document.getElementById("legendasWarn").classList.add("hidden");
+    loading.classList.remove("hidden");
+    progressBar.style.width = "0%";
+    iniciarFrasesAnimadas(statusEl);
+    iniciarTimerTranscricao();
+
+    btnTranscrever.disabled = true;
+    btnStartRec.disabled = true;
+    btnLegendarVideo.disabled = true;
+
+    // progresso "fake"
+    let p = 0;
+    const interval = setInterval(() => {
+      if (p < 90){ p += Math.random() * 5; progressBar.style.width = `${p.toFixed(1)}%`; }
+    }, 200);
+
+    const formData = new FormData();
+    formData.append("file", file);
+    // opcional: se o backend exigir token, já vai junto
+    formData.append("token", API_TOKEN);
+
+    try{
+      const controller = new AbortController();
+      const to = setTimeout(() => controller.abort(), 180000); // até ~3min
+      const res = await fetch(`${API_BASE}/video-subs`, { method:"POST", body: formData, signal: controller.signal });
+      clearTimeout(to);
+
+      let data = {};
+      let raw = await res.text();
+      try{ data = JSON.parse(raw); } catch{ data = { error: `Resposta inválida (${res.status})` }; }
+
+      clearInterval(interval);
+      progressBar.style.width = "100%";
+      pararFrasesAnimadas(statusEl);
+      pararTimerTranscricao();
+
+      if (!res.ok){
+        throw new Error(data.detail || data.error || `Erro ${res.status}`);
+      }
+
+      const srtUrl = toAbsUrl(data.srt_url);
+      const mp4Url = data.video_url ? toAbsUrl(data.video_url) : null;
+
+      document.getElementById("srtDownload").href = srtUrl;
+      const mp4Btn = document.getElementById("mp4Download");
+      if (mp4Url){
+        mp4Btn.href = mp4Url;
+        mp4Btn.classList.remove("hidden");
+      } else {
+        mp4Btn.classList.add("hidden");
+      }
+
+      if (data.warning){
+        const warn = document.getElementById("legendasWarn");
+        warn.textContent = "ℹ️ " + data.warning;
+        warn.classList.remove("hidden");
+      }
+
+      // mostra secção e mantém coerência com as outras
+      document.getElementById("legendasBox").classList.remove("hidden");
+      output.classList.remove("hidden");
+      statusEl.textContent = "✅ Legendas geradas com sucesso!";
+
+    } catch(err){
+      clearInterval(interval);
+      progressBar.style.width = "100%";
+      pararFrasesAnimadas(statusEl);
+      pararTimerTranscricao();
+
+      output.classList.remove("hidden");
+      statusEl.textContent = "❌ Não foi possível gerar as legendas.";
+      document.getElementById("legendasWarn").textContent = "❌ " + (err.message || "Erro inesperado ao comunicar com a API.");
+      document.getElementById("legendasWarn").classList.remove("hidden");
+    } finally{
+      setTimeout(() => { loading.classList.add("hidden"); progressBar.style.width = "0%"; }, 800);
+      btnTranscrever.disabled = false;
+      btnStartRec.disabled = false;
+      btnLegendarVideo.disabled = !isVideoFile(file);
+    }
+  }
+
+  function toAbsUrl(url){
+    if (!url) return "";
+    if (/^https?:\/\//i.test(url)) return url;
+    return `${API_BASE}${url.startsWith("/") ? "" : "/"}${url}`;
+  }
 
   // =========================
   // Exportações
@@ -622,50 +799,36 @@
   }
 
   // =========================
-  // Partilhar WhatsApp + notificar backend
+  // Partilhar WhatsApp + notificar backend (com token)
   // =========================
-  // =========================
-// Partilhar WhatsApp + notificar por email
-// =========================
-async function partilharWhatsapp(){
-  const textoDaTranscricao = (document.getElementById("transcriptionText").value || "").trim();
+  async function partilharWhatsapp(){
+    const textoDaTranscricao = (document.getElementById("transcriptionText").value || "").trim();
+    const assinatura = "\n\n🔗 Transcrito com Ouviescrevi: https://ouviescrevi.pt";
+    const shareBody = textoDaTranscricao ? `${textoDaTranscricao}${assinatura}` : assinatura;
 
-  // assinatura fixa
-  const assinatura = "\n\n🔗 Transcrito com Ouviescrevi: https://ouviescrevi.pt";
+    const waUrl = "https://api.whatsapp.com/send?text=" + encodeURIComponent(shareBody);
+    window.open(waUrl, "_blank");
 
-  // se houver transcrição, inclui + assinatura; senão, só a assinatura
-  const shareBody = textoDaTranscricao
-    ? `${textoDaTranscricao}${assinatura}`
-    : assinatura;
-
-  // abrir WhatsApp com o conteúdo
-  const waUrl = "https://api.whatsapp.com/send?text=" + encodeURIComponent(shareBody);
-  window.open(waUrl, "_blank");
-
-  // notificação backend (opcional)
-  try{
-    await fetch(`${API_BASE}/notify-whatsapp-share`, {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({
-        email: ADMIN_EMAIL,
-        when: new Date().toISOString(),
-        userAgent: navigator.userAgent,
-        textPreview: shareBody.slice(0, 500)
-      })
-    });
-  }catch(err){
-    const subject = encodeURIComponent("Notificação: Partilha no WhatsApp");
-    const body = encodeURIComponent(
-      `Alguém clicou em "Partilhar no WhatsApp".\n\n` +
-      `Data: ${new Date().toLocaleString()}\n` +
-      `User-Agent: ${navigator.userAgent}\n\n` +
-      `Pré-visualização do texto:\n${shareBody.slice(0,1000)}`
-    );
-    window.open(`mailto:${ADMIN_EMAIL}?subject=${subject}&body=${body}`, "_blank");
+    try{
+      await fetch(`${API_BASE}/notify-whatsapp-share`, {
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({
+          token: API_TOKEN,
+          page: location.href,
+          note: "Partilha via botão principal",
+        })
+      });
+    }catch(err){
+      const subject = encodeURIComponent("Notificação: Partilha no WhatsApp");
+      const body = encodeURIComponent(
+        `Alguém clicou em "Partilhar no WhatsApp".\n\n` +
+        `Data: ${new Date().toLocaleString()}\n\n` +
+        `Pré-visualização do texto:\n${shareBody.slice(0,1000)}`
+      );
+      window.open(`mailto:${ADMIN_EMAIL}?subject=${subject}&body=${body}`, "_blank");
+    }
   }
-}
-
 
   // =========================
   // Gravação
@@ -805,12 +968,10 @@ async function partilharWhatsapp(){
     }
   }
 
-  // Abre nova janela e mostra estado/resultado da correção
   async function corrigirTextoIA(){
     const text = transcriptionText.value.trim();
     if (!text) return alert("⚠️ Transcrição vazia.");
 
-    // abrir janela imediatamente (evita bloqueio de popups)
     const win = window.open("", "textoCorrigido", "width=560,height=500");
     if (win) {
       win.document.open();
@@ -865,12 +1026,12 @@ async function partilharWhatsapp(){
           ta.removeAttribute("readonly");
           ta.value = data.corrected;
 
-          // adiciona botão Copiar
-          const row = doc.querySelector(".row");
-          const copyBtn = doc.createElement("button");
+          const row = doc.querySelector("row");
+          const btnRow = win.document.querySelector(".row");
+          const copyBtn = win.document.createElement("button");
           copyBtn.textContent = "Copiar";
           copyBtn.onclick = () => { ta.select(); doc.execCommand("copy"); copyBtn.textContent = "Copiado!"; setTimeout(()=>copyBtn.textContent="Copiar",1200); };
-          row.prepend(copyBtn);
+          btnRow.prepend(copyBtn);
         } else {
           alert("✅ Texto corrigido com sucesso!");
         }
@@ -932,7 +1093,6 @@ async function partilharWhatsapp(){
     finally{ btn.innerHTML = original; btn.disabled = false; }
   }
 
-  // (extra) Gerar email a partir do texto/resumo
   async function gerarEmailIA(){
     const text = transcriptionText.value.trim();
     if (!text) return alert("⚠️ Transcrição/Resumo vazio.");
@@ -1109,6 +1269,8 @@ async function partilharWhatsapp(){
     document.getElementById("traducaoBox").classList.add("hidden");
     document.getElementById("minutaBox").classList.add("hidden");
     document.getElementById("classificacaoBox").classList.add("hidden");
+    document.getElementById("legendasBox").classList.add("hidden");
+    document.getElementById("legendasWarn").classList.add("hidden");
 
     document.getElementById("traducaoStatus").classList.add("hidden");
     document.getElementById("traducaoProgressWrapper").classList.add("hidden");
@@ -1123,13 +1285,15 @@ async function partilharWhatsapp(){
     document.getElementById("recordingStatus").textContent = "";
     document.getElementById("timerGravacao").classList.add("hidden");
     document.getElementById("timerGravacao").textContent = "⏱️ 00:00";
+
+    btnLegendarVideo.disabled = true;
   }
   function scrollSeInvisivel(id){
     const el = document.getElementById(id);
     if (el && !el.classList.contains("hidden")) el.scrollIntoView({ behavior:"smooth", block:"center" });
   }
 
-  // Drag & drop + header/footer
+  // Drag & drop + header/footer + habilitar botão legendar conforme tipo
   document.addEventListener("DOMContentLoaded", () => {
     const dropZone = document.getElementById("dropZone");
     const fileInput = document.getElementById("fileInput");
@@ -1143,13 +1307,38 @@ async function partilharWhatsapp(){
       if (e.dataTransfer.files.length > 0){
         fileInput.files = e.dataTransfer.files;
         fileNameDisplay.textContent = `Ficheiro: ${fileInput.files[0].name}`;
+        btnLegendarVideo.disabled = !isVideoFile(fileInput.files[0]);
       }
     });
     fileInput.addEventListener("change", () => {
-      fileNameDisplay.textContent = fileInput.files.length > 0 ? `Ficheiro: ${fileInput.files[0].name}` : "Nenhum ficheiro selecionado";
+      if (fileInput.files.length > 0){
+        fileNameDisplay.textContent = `Ficheiro: ${fileInput.files[0].name}`;
+        btnLegendarVideo.disabled = !isVideoFile(fileInput.files[0]);
+      } else {
+        fileNameDisplay.textContent = "Nenhum ficheiro selecionado";
+        btnLegendarVideo.disabled = true;
+      }
     });
+
+    // Ticker de atualizações com data de hoje
+    const dataHoje = new Date().toLocaleDateString('pt-PT');
+    const updates = [
+      `🆕 ${dataHoje} – Partilhar no WhatsApp disponível`,
+      `🆕 ${dataHoje} – Legendar vídeo (SRT + MP4)`,
+    ];
+    const track = document.getElementById("updatesTrack");
+    track.innerHTML = `
+      <span class="ticker__item">${updates[0]}</span>
+      <span class="ticker__dot">•</span>
+      <span class="ticker__item">${updates[1]}</span>
+      <span class="ticker__dot">•</span>
+      <span class="ticker__item">${updates[0]}</span>
+      <span class="ticker__dot">•</span>
+      <span class="ticker__item">${updates[1]}</span>
+    `;
   });
 
+  // Header/Footer inject
   fetch("header.html").then(r => r.text()).then(html => {
     const headerDiv = document.getElementById("header");
     headerDiv.innerHTML = html;
@@ -1179,16 +1368,10 @@ async function partilharWhatsapp(){
     const close = () => { dropdown.classList.remove('open'); btn.setAttribute('aria-expanded','false'); };
     const toggle = (e) => { e.preventDefault(); e.stopPropagation(); dropdown.classList.toggle('open'); btn.setAttribute('aria-expanded', dropdown.classList.contains('open')); };
 
-    // usar pointerup para evitar duplo disparo (touch + click)
     btn.addEventListener('pointerup', toggle, { passive:false });
-
-    // fechar ao clicar fora
     document.addEventListener('click', (e) => { if (!dropdown.contains(e.target)) close(); });
-
-    // fechar com ESC
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
 
-    // clicar numa opção executa export e fecha menu
     options.addEventListener('click', (e) => {
       const target = e.target.closest('button[data-export]');
       if (!target) return;
