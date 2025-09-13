@@ -279,6 +279,47 @@
         z-index:auto;
       }
     }
+	/* ── FAB + Painel de Sugestões ───────────────────────────── */
+#fabSugestao{
+  position:fixed; right:18px; bottom:18px; z-index:1000;
+  background:#A550F7; color:#fff; border:none; border-radius:999px;
+  padding:12px 14px; font-weight:700; box-shadow:0 8px 24px rgba(0,0,0,.25);
+  display:flex; align-items:center; gap:8px; cursor:pointer;
+  transition:transform .2s, box-shadow .2s, opacity .2s;
+}
+#fabSugestao:hover{ transform:translateY(-2px); box-shadow:0 12px 28px rgba(0,0,0,.28); }
+
+#sugestaoPanel{
+  position:fixed; right:18px; bottom:76px; z-index:1000;
+  width:320px; max-width:calc(100vw - 36px);
+  background:#fff; color:#333; border-radius:16px; padding:16px;
+  box-shadow:0 20px 40px rgba(0,0,0,.25);
+  transform:translateY(12px) scale(.96); opacity:0; pointer-events:none;
+  transition:transform .25s cubic-bezier(.22,1,.36,1), opacity .2s;
+}
+#sugestaoPanel.open{ transform:translateY(0) scale(1); opacity:1; pointer-events:auto; }
+#sugestaoPanel h4{ margin:0 0 8px 0; }
+#sugestaoPanel textarea{
+  width:100%; min-height:110px; padding:10px; resize:vertical;
+  border:2px solid #A550F7; border-radius:10px; font:inherit; color:#333;
+  background:#fdfdfd;
+}
+#sugestaoPanel .actions{ display:flex; gap:8px; justify-content:flex-end; margin-top:10px; }
+#sugestaoPanel .actions button{
+  background:#e6d7fb; border:2px solid #A550F7; color:#333;
+  border-radius:8px; font-weight:700; padding:8px 12px; cursor:pointer;
+}
+#toastSugestao{
+  position:fixed; right:18px; bottom:18px; z-index:1001;
+  background:#00C3FF; color:#fff; border-radius:10px; padding:10px 14px;
+  box-shadow:0 10px 24px rgba(0,0,0,.2);
+  transform:translateY(20px); opacity:0; pointer-events:none; transition:.25s;
+}
+#toastSugestao.show{ transform:translateY(0); opacity:1; pointer-events:auto; }
+@media (max-width:820px){
+  #sugestaoPanel{ right:12px; left:12px; width:auto; }
+}
+
   </style>
 </head>
 <body>
@@ -448,6 +489,23 @@
     </div>
     <p>Começa agora gratuitamente. Simples, seguro e feito em Portugal 🇵🇹</p>
   </section>
+  <!-- Botão e painel de Sugestões -->
+<button id="fabSugestao" aria-controls="sugestaoPanel" aria-expanded="false">💡 Sugerir melhoria</button>
+
+<div id="sugestaoPanel" role="dialog" aria-modal="true" aria-labelledby="sugTitulo">
+  <h4 id="sugTitulo">Sugerir melhoria</h4>
+  <p style="margin:0 0 8px 0; color:#555; font-size:.95em;">
+    Diz-nos o que podemos melhorar. Obrigado! 🙌
+  </p>
+  <textarea id="sugestaoTexto" placeholder="Ex.: O botão X podia ficar mais visível no mobile..."></textarea>
+  <div class="actions">
+    <button id="fecharSugestao">Cancelar</button>
+    <button id="enviarSugestao">Enviar</button>
+  </div>
+</div>
+
+<div id="toastSugestao" role="status" aria-live="polite">Obrigado! Sugestão enviada 🙌</div>
+
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1357,6 +1415,69 @@
 
   // botão “Gerar Resumo”
   document.getElementById("btnGerarResumo").addEventListener("click", gerarResumo);
+// ── Sugestões (FAB) ─────────────────────────────────────────────────────────
+(function(){
+  const fab = document.getElementById('fabSugestao');
+  const panel = document.getElementById('sugestaoPanel');
+  const textarea = document.getElementById('sugestaoTexto');
+  const btnFechar = document.getElementById('fecharSugestao');
+  const btnEnviar = document.getElementById('enviarSugestao');
+  const toast = document.getElementById('toastSugestao');
+
+  function togglePanel(open){
+    const willOpen = typeof open === 'boolean' ? open : !panel.classList.contains('open');
+    panel.classList.toggle('open', willOpen);
+    fab.setAttribute('aria-expanded', String(willOpen));
+    if (willOpen) { setTimeout(() => textarea.focus(), 100); }
+  }
+  function showToast(msg='Obrigado! Sugestão enviada 🙌'){
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+  async function enviarSugestao(){
+    const texto = (textarea.value || '').trim();
+    if (!texto){ textarea.focus(); return; }
+
+    // tenta API (reutiliza endpoint de notificação existente)
+    try{
+      await fetch(`${API_BASE}/notify-whatsapp-share`, {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify({
+          token: API_TOKEN,
+          page: location.href,
+          note: `FEEDBACK: ${texto}`
+        })
+      });
+      textarea.value = '';
+      togglePanel(false);
+      showToast();
+    }catch(e){
+      // fallback: mailto
+      const subject = encodeURIComponent('Sugestão de melhoria (Ouviescrevi)');
+      const body = encodeURIComponent(`${texto}\n\nPágina: ${location.href}\nData: ${new Date().toLocaleString()}`);
+      window.open(`mailto:${ADMIN_EMAIL}?subject=${subject}&body=${body}`, '_blank');
+      togglePanel(false);
+      showToast('A abrir o email…');
+    }
+  }
+
+  fab.addEventListener('click', () => togglePanel());
+  btnFechar.addEventListener('click', () => togglePanel(false));
+  btnEnviar.addEventListener('click', enviarSugestao);
+
+  // fechar ao clicar fora
+  document.addEventListener('click', (e) => {
+    if (!panel.classList.contains('open')) return;
+    const isClickInside = panel.contains(e.target) || fab.contains(e.target);
+    if (!isClickInside) togglePanel(false);
+  });
+  // fechar com ESC
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && panel.classList.contains('open')) togglePanel(false);
+  });
+})();
 
   // ▼ Exportar: robusto para mobile (pointer events) + fecha ao selecionar opção/fora/Escape
   (function(){
