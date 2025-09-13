@@ -46,19 +46,15 @@
       gap: 8px;
       margin: 0 28px;
       font-weight: 700;
-      color: #fff;
+      color: black;
       text-shadow: 0 1px 0 rgba(0,0,0,.15);
     }
-    .ticker__dot {
-      opacity: .7;
-    }
+    .ticker__dot { opacity: .7; }
     @keyframes ticker-scroll {
       0%   { transform: translateX(100%); }
       100% { transform: translateX(-100%); }
     }
-    @media (prefers-reduced-motion: reduce) {
-      .ticker__inner { animation: none; }
-    }
+    @media (prefers-reduced-motion: reduce) { .ticker__inner { animation: none; } }
 
     main{
       padding:40px;
@@ -216,7 +212,7 @@
     #modalTraducao.show{ display:flex !important; }
     #modalTraducao .card{ background:white; padding:20px; border-radius:10px; text-align:center; max-width:400px; color:#333; }
 
-    /* dropdown export (hover só em dispositivos com rato; mobile abre por clique) */
+    /* dropdown export */
     .dropdown-export{ position:relative; display:inline-block; flex:1 1 auto; min-width:130px; max-width:220px; }
     .dropdown-content{
       display:none;
@@ -231,11 +227,7 @@
       padding:6px 0;
     }
     .dropdown-export.open .dropdown-content{ display:flex !important; }
-
-    @media (hover:hover) and (pointer:fine){
-      .dropdown-export:hover .dropdown-content{ display:flex; }
-    }
-
+    @media (hover:hover) and (pointer:fine){ .dropdown-export:hover .dropdown-content{ display:flex; } }
     .dropdown-content button{
       background:none; border:none; padding:10px 20px; text-align:left; font-size:.95em; color:#333; cursor:pointer; width:100%;
     }
@@ -256,7 +248,75 @@
     #nichoMenu button span{ position:relative; z-index:2; }
     #nichoMenu button:hover{ color:white; border-color:white; }
 
-    @media (max-width:820px){
+    /* ── PAINEL DE ESTILOS DE LEGENDAS ───────────────────────────────────── */
+    #subtitlePanel{
+      max-width: 900px;
+      width: 100%;
+      margin: 18px auto 0;
+      background: white;
+      color: #333;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.12);
+      padding: 18px;
+    }
+    #subtitlePanel h3{ margin:0 0 8px 0; color:#6b21a8; }
+    .sub-grid{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap: 12px;
+      align-items: end;
+    }
+    .sub-grid label{
+      display:flex; flex-direction:column; gap:6px; font-weight:600; font-size:.95em;
+    }
+    .sub-grid input[type="text"],
+    .sub-grid input[type="number"],
+    .sub-grid input[type="range"],
+    .sub-grid select{
+      width:100%;
+      padding:8px 10px;
+      border:1px solid #ddd;
+      border-radius:8px;
+      background:#fafafa;
+      font-weight:600;
+    }
+    .sub-grid small{ color:#666; font-weight:500; }
+    .preview-wrap{
+      margin-top:14px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+    }
+    .preview-card{
+      background:#f7f7fb;
+      border:1px solid #e6e6f7;
+      border-radius:10px;
+      padding:10px;
+      text-align:center;
+    }
+    .preview-card h4{ margin:4px 0 8px 0; color:#444; font-size:.95em; }
+    .preview-card canvas{
+      width:100%;
+      height:auto;
+      border-radius:8px;
+      background:#222;
+    }
+    .preview-actions{
+      margin-top:10px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:center;
+    }
+    .preview-actions button{
+      width:auto;
+      min-width:160px;
+    }
+
+    @media (max-width:1024px){
+      .sub-grid{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+    }
+    @media (max-width:640px){
       main{ padding:20px; }
       form{ padding:15px 20px; width:100%; max-width:100%; }
       input,button{ width:100%; font-size:1em; }
@@ -265,19 +325,12 @@
       #output textarea{ min-height:160px; }
       #modalTraducao .card{ width:90%; max-width:90%; }
       #loading, #output{ max-width:100%; }
-
       .dropdown-export{ width:100%; max-width:100%; }
       .dropdown-content{
-        position:static;
-        min-width:0;
-        width:100%;
-        box-shadow:none;
-        border:2px solid #A550F7;
-        border-radius:10px;
-        margin-top:8px;
-        padding:6px 0;
-        z-index:auto;
+        position:static; min-width:0; width:100%; box-shadow:none;
+        border:2px solid #A550F7; border-radius:10px; margin-top:8px; padding:6px 0; z-index:auto;
       }
+      .preview-wrap{ grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -323,6 +376,99 @@
 
       <p id="recordingStatus"></p>
     </form>
+
+    <!-- Painel de estilos + pré-visualização -->
+    <section id="subtitlePanel" class="hidden" aria-live="polite">
+      <h3>🎨 Estilo das legendas & pré-visualização</h3>
+      <div class="sub-grid">
+        <label>Texto de amostra
+          <input id="subSampleText" type="text" value="Isto é uma linha de legenda de amostra." />
+        </label>
+
+        <label>Tamanho (px)
+          <input id="subFontSize" type="range" min="14" max="72" step="1" value="40" />
+          <small id="subFontSizeVal">40</small>
+        </label>
+
+        <label>Cor do texto
+          <input id="subColor" type="color" value="#ffffff" />
+        </label>
+
+        <label>Contorno (px)
+          <input id="subOutline" type="range" min="0" max="8" step="1" value="2" />
+          <small id="subOutlineVal">2</small>
+        </label>
+
+        <label>Sombra
+          <select id="subShadow">
+            <option value="none">Sem sombra</option>
+            <option value="soft" selected>Suave</option>
+            <option value="strong">Forte</option>
+          </select>
+        </label>
+
+        <label>Caixa de fundo
+          <div style="display:flex; gap:8px; align-items:center;">
+            <input id="subBg" type="checkbox" checked />
+            <small>opacidade</small>
+            <input id="subBgOpacity" type="range" min="0" max="0.9" step="0.05" value="0.35" style="flex:1;" />
+            <small id="subBgOpacityVal">0.35</small>
+          </div>
+        </label>
+
+        <label>Alinhamento
+          <select id="subAlign">
+            <option value="center" selected>Centro</option>
+            <option value="left">Esquerda</option>
+            <option value="right">Direita</option>
+          </select>
+        </label>
+
+        <label>Posição
+          <select id="subPosition">
+            <option value="bottom" selected>Fundo</option>
+            <option value="top">Topo</option>
+            <option value="custom">Personalizada (Y)</option>
+          </select>
+        </label>
+
+        <label>Margem vertical (px)
+          <input id="subMarginV" type="range" min="0" max="120" step="2" value="48" />
+          <small id="subMarginVVal">48</small>
+        </label>
+
+        <label>Padding da caixa (px)
+          <input id="subPadding" type="range" min="0" max="40" step="2" value="10" />
+          <small id="subPaddingVal">10</small>
+        </label>
+
+        <label>Largura máx. do bloco (%)
+          <input id="subMaxWidth" type="range" min="40" max="100" step="1" value="90" />
+          <small id="subMaxWidthVal">90%</small>
+        </label>
+
+        <div></div><!-- placeholder para fechar a grid -->
+      </div>
+
+      <div class="preview-wrap">
+        <div class="preview-card">
+          <h4>Pré-visualização – 25% do vídeo</h4>
+          <canvas id="preview1" width="854" height="480"></canvas>
+          <div class="preview-actions">
+            <button id="dlPrev1" type="button">⬇️ Guardar imagem 1</button>
+          </div>
+        </div>
+        <div class="preview-card">
+          <h4>Pré-visualização – 75% do vídeo</h4>
+          <canvas id="preview2" width="854" height="480"></canvas>
+          <div class="preview-actions">
+            <button id="dlPrev2" type="button">⬇️ Guardar imagem 2</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    <video id="hiddenVideo" style="display:none;" crossorigin="anonymous" playsinline></video>
+    <!-- /Painel de estilos -->
 
     <div id="loading" class="hidden">
       <p class="status" id="transcricaoStatus">🔄 A preparar...</p>
@@ -465,6 +611,10 @@
   let trxTimerInterval;   // transcrição
   let statusInterval;     // frases animadas
   let ultimaTentativaFalhada = false;
+
+  // ► estado do vídeo/preview de legendas
+  let loadedVideoMeta = false;
+  let videoObjectURL = null;
 
   const statusFrases = [
     "🧩 A montar o quebra-cabeças da tua gravação...",
@@ -641,6 +791,241 @@
   });
 
   // =========================
+  // Painel de legendas – helpers e preview
+  // =========================
+  const subEls = {
+    panel: document.getElementById('subtitlePanel'),
+    sample: document.getElementById('subSampleText'),
+    size: document.getElementById('subFontSize'),
+    sizeVal: document.getElementById('subFontSizeVal'),
+    color: document.getElementById('subColor'),
+    outline: document.getElementById('subOutline'),
+    outlineVal: document.getElementById('subOutlineVal'),
+    shadow: document.getElementById('subShadow'),
+    bg: document.getElementById('subBg'),
+    bgOpacity: document.getElementById('subBgOpacity'),
+    bgOpacityVal: document.getElementById('subBgOpacityVal'),
+    align: document.getElementById('subAlign'),
+    position: document.getElementById('subPosition'),
+    marginV: document.getElementById('subMarginV'),
+    marginVVal: document.getElementById('subMarginVVal'),
+    padding: document.getElementById('subPadding'),
+    paddingVal: document.getElementById('subPaddingVal'),
+    maxWidth: document.getElementById('subMaxWidth'),
+    maxWidthVal: document.getElementById('subMaxWidthVal'),
+    prev1: document.getElementById('preview1'),
+    prev2: document.getElementById('preview2'),
+    dl1: document.getElementById('dlPrev1'),
+    dl2: document.getElementById('dlPrev2'),
+    video: document.getElementById('hiddenVideo')
+  };
+
+  function getStyle(){
+    return {
+      text: subEls.sample.value || "Legenda",
+      fontSize: parseInt(subEls.size.value,10),
+      color: subEls.color.value,
+      outline: parseInt(subEls.outline.value,10),
+      shadow: subEls.shadow.value, // none|soft|strong
+      bg: !!subEls.bg.checked,
+      bgOpacity: parseFloat(subEls.bgOpacity.value),
+      align: subEls.align.value, // center|left|right
+      position: subEls.position.value, // bottom|top|custom
+      marginV: parseInt(subEls.marginV.value,10),
+      padding: parseInt(subEls.padding.value,10),
+      maxWidthPct: parseInt(subEls.maxWidth.value,10) // %
+    };
+  }
+
+  function bindStyleInputs(){
+    const reRender = () => { if (loadedVideoMeta) renderSubtitlePreviews(); };
+    subEls.size.addEventListener('input', () => { subEls.sizeVal.textContent=subEls.size.value; reRender(); });
+    subEls.outline.addEventListener('input', () => { subEls.outlineVal.textContent=subEls.outline.value; reRender(); });
+    subEls.bgOpacity.addEventListener('input', () => { subEls.bgOpacityVal.textContent=subEls.bgOpacity.value; reRender(); });
+    subEls.marginV.addEventListener('input', () => { subEls.marginVVal.textContent=subEls.marginV.value; reRender(); });
+    subEls.padding.addEventListener('input', () => { subEls.paddingVal.textContent=subEls.padding.value; reRender(); });
+    subEls.maxWidth.addEventListener('input', () => { subEls.maxWidthVal.textContent=subEls.maxWidth.value + '%'; reRender(); });
+
+    ['change','input'].forEach(evt => {
+      [subEls.sample, subEls.color, subEls.shadow, subEls.bg, subEls.align, subEls.position]
+      .forEach(el => el.addEventListener(evt, reRender));
+    });
+
+    subEls.dl1.addEventListener('click', () => downloadCanvas(subEls.prev1, 'preview_25.png'));
+    subEls.dl2.addEventListener('click', () => downloadCanvas(subEls.prev2, 'preview_75.png'));
+  }
+
+  function downloadCanvas(canvas, filename){
+    const a=document.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = filename;
+    a.click();
+  }
+
+  function drawRoundedRect(ctx, x, y, w, h, r){
+    const radius = Math.min(r, w/2, h/2);
+    ctx.beginPath();
+    ctx.moveTo(x+radius, y);
+    ctx.lineTo(x+w-radius, y);
+    ctx.quadraticCurveTo(x+w, y, x+w, y+radius);
+    ctx.lineTo(x+w, y+h-radius);
+    ctx.quadraticCurveTo(x+w, y+h, x+w-radius, y+h);
+    ctx.lineTo(x+radius, y+h);
+    ctx.quadraticCurveTo(x, y+h, x, y+h-radius);
+    ctx.lineTo(x, y+radius);
+    ctx.quadraticCurveTo(x, y, x+radius, y);
+    ctx.closePath();
+  }
+
+  function wrapLines(ctx, text, maxWidth){
+    const words = text.split(/\s+/);
+    const lines = [];
+    let line = '';
+    for (let w of words){
+      const test = line ? (line + ' ' + w) : w;
+      const width = ctx.measureText(test).width;
+      if (width > maxWidth && line){
+        lines.push(line);
+        line = w;
+      }else{
+        line = test;
+      }
+    }
+    if (line) lines.push(line);
+    return lines;
+  }
+
+  function applyShadow(ctx, kind){
+    if (kind === 'none'){
+      ctx.shadowColor='transparent'; ctx.shadowBlur=0; ctx.shadowOffsetX=0; ctx.shadowOffsetY=0;
+    } else if (kind === 'soft'){
+      ctx.shadowColor='rgba(0,0,0,0.55)'; ctx.shadowBlur=6; ctx.shadowOffsetX=0; ctx.shadowOffsetY=2;
+    } else {
+      ctx.shadowColor='rgba(0,0,0,0.8)'; ctx.shadowBlur=10; ctx.shadowOffsetX=0; ctx.shadowOffsetY=3;
+    }
+  }
+
+  function drawSubtitle(ctx, style, canvasWidth, canvasHeight){
+    ctx.save();
+
+    // fonte
+    ctx.font = `${style.fontSize}px "Segoe UI", system-ui, Arial, sans-serif`;
+    ctx.fillStyle = style.color || '#fff';
+    ctx.textBaseline = 'alphabetic';
+
+    // limites e linhas
+    const maxBlockW = canvasWidth * (style.maxWidthPct/100);
+    const lines = wrapLines(ctx, style.text, maxBlockW);
+    const lineHeight = Math.round(style.fontSize * 1.25);
+    const blockW = Math.min(
+      maxBlockW,
+      Math.max(...lines.map(l => ctx.measureText(l).width))
+    );
+    const blockH = lines.length * lineHeight;
+
+    // posição X
+    let x;
+    if (style.align === 'left') x = Math.round((canvasWidth - maxBlockW)/2);
+    else if (style.align === 'right') x = Math.round(canvasWidth - (canvasWidth - maxBlockW)/2 - blockW);
+    else x = Math.round((canvasWidth - blockW)/2);
+
+    // posição Y
+    let y;
+    const margin = style.marginV;
+    if (style.position === 'top') {
+      y = margin + style.padding + lineHeight; // baseline da 1ª linha
+    } else if (style.position === 'custom'){
+      y = margin + style.padding + lineHeight;
+    } else { // bottom
+      y = canvasHeight - margin - style.padding - (blockH - lineHeight/5);
+    }
+
+    // caixa de fundo
+    if (style.bg){
+      const pad = style.padding;
+      const boxX = x - pad;
+      const boxY = (style.position==='bottom') ? y - (lines.length*lineHeight) - pad + Math.round(lineHeight*0.2) : y - lineHeight - pad + Math.round(lineHeight*0.2);
+      const boxW = blockW + pad*2;
+      const boxH = blockH + pad*2;
+      ctx.globalAlpha = Math.max(0, Math.min(style.bgOpacity, 0.95));
+      ctx.fillStyle = 'black';
+      drawRoundedRect(ctx, boxX, boxY, boxW, boxH, Math.min(16, pad*1.2));
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    // sombra
+    applyShadow(ctx, style.shadow);
+
+    // contorno
+    if (style.outline > 0){
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = 'black';
+      ctx.lineWidth = style.outline + 1;
+    }
+
+    // alinhamento canvas
+    ctx.textAlign = (style.align === 'left') ? 'left' : (style.align === 'right') ? 'right' : 'center';
+    const alignOffset = (ctx.textAlign === 'left') ? 0 : (ctx.textAlign==='right' ? blockW : blockW/2);
+    const startX = x + alignOffset;
+
+    // desenhar linhas
+    lines.forEach((line, i) => {
+      const yy = y + i*lineHeight;
+      if (style.outline > 0) ctx.strokeText(line, startX, yy);
+      ctx.fillStyle = style.color || '#fff';
+      ctx.fillText(line, startX, yy);
+    });
+
+    // limpar sombra para não sujar próximos desenhos
+    applyShadow(ctx, 'none');
+    ctx.restore();
+  }
+
+  async function seekAndDraw(video, time, canvas){
+    return new Promise((resolve, reject) => {
+      const onSeeked = () => {
+        // dimensionar canvas ao vídeo mas caber num max width razoável
+        const vw = video.videoWidth || 1280;
+        const vh = video.videoHeight || 720;
+        const targetW = Math.min(854, vw); // 854x480 ~ 480p largo
+        const scale = targetW / vw;
+        canvas.width = Math.round(vw * scale);
+        canvas.height = Math.round(vh * scale);
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // desenha legendas
+        const style = getStyle();
+        drawSubtitle(ctx, style, canvas.width, canvas.height);
+        resolve();
+      };
+      const onError = (e) => reject(e);
+
+      video.currentTime = Math.min(Math.max(time, 0), (video.duration || 1) - 0.01);
+      video.removeEventListener('seeked', onSeeked);
+      video.addEventListener('seeked', onSeeked, { once:true });
+      video.addEventListener('error', onError, { once:true });
+    });
+  }
+
+  async function renderSubtitlePreviews(){
+    if (!loadedVideoMeta) return;
+    const v = subEls.video;
+    const t1 = v.duration * 0.25;
+    const t2 = v.duration * 0.75;
+    try{
+      await seekAndDraw(v, t1, subEls.prev1);
+      await seekAndDraw(v, t2, subEls.prev2);
+    }catch(e){
+      // ignora silenciosamente
+    }
+  }
+
+  bindStyleInputs();
+
+  // =========================
   // Nova função: Legendar Vídeo (SRT + MP4)
   // =========================
   btnLegendarVideo.addEventListener("click", legendarVideo);
@@ -671,7 +1056,9 @@
 
     const formData = new FormData();
     formData.append("file", file);
-    // opcional: se o backend exigir token, já vai junto
+    // parâmetros de estilo (JSON)
+    formData.append("style", JSON.stringify(getStyle()));
+    // opcional: token
     formData.append("token", API_TOKEN);
 
     try{
@@ -711,7 +1098,6 @@
         warn.classList.remove("hidden");
       }
 
-      // mostra secção e mantém coerência com as outras
       document.getElementById("legendasBox").classList.remove("hidden");
       output.classList.remove("hidden");
       statusEl.textContent = "✅ Legendas geradas com sucesso!";
@@ -724,8 +1110,9 @@
 
       output.classList.remove("hidden");
       statusEl.textContent = "❌ Não foi possível gerar as legendas.";
-      document.getElementById("legendasWarn").textContent = "❌ " + (err.message || "Erro inesperado ao comunicar com a API.");
-      document.getElementById("legendasWarn").classList.remove("hidden");
+      const warn = document.getElementById("legendasWarn");
+      warn.textContent = "❌ " + (err.message || "Erro inesperado ao comunicar com a API.");
+      warn.classList.remove("hidden");
     } finally{
       setTimeout(() => { loading.classList.add("hidden"); progressBar.style.width = "0%"; }, 800);
       btnTranscrever.disabled = false;
@@ -1026,7 +1413,6 @@
           ta.removeAttribute("readonly");
           ta.value = data.corrected;
 
-          const row = doc.querySelector("row");
           const btnRow = win.document.querySelector(".row");
           const copyBtn = win.document.createElement("button");
           copyBtn.textContent = "Copiar";
@@ -1256,6 +1642,7 @@
   }
   function limparTudo(){
     const fileInput = document.getElementById("fileInput");
+    if (videoObjectURL){ URL.revokeObjectURL(videoObjectURL); videoObjectURL=null; }
     fileInput.value = "";
     document.getElementById("fileName").textContent = "Nenhum ficheiro selecionado";
     transcriptionText.value = "";
@@ -1287,13 +1674,16 @@
     document.getElementById("timerGravacao").textContent = "⏱️ 00:00";
 
     btnLegendarVideo.disabled = true;
+    // painel de legendas
+    document.getElementById("subtitlePanel").classList.add("hidden");
+    loadedVideoMeta = false;
   }
   function scrollSeInvisivel(id){
     const el = document.getElementById(id);
     if (el && !el.classList.contains("hidden")) el.scrollIntoView({ behavior:"smooth", block:"center" });
   }
 
-  // Drag & drop + header/footer + habilitar botão legendar conforme tipo
+  // Drag & drop + header/footer + habilitar botão legendar conforme tipo + carregar vídeo no painel
   document.addEventListener("DOMContentLoaded", () => {
     const dropZone = document.getElementById("dropZone");
     const fileInput = document.getElementById("fileInput");
@@ -1306,25 +1696,48 @@
       e.preventDefault(); dropZone.style.background = "#fafafa";
       if (e.dataTransfer.files.length > 0){
         fileInput.files = e.dataTransfer.files;
-        fileNameDisplay.textContent = `Ficheiro: ${fileInput.files[0].name}`;
-        btnLegendarVideo.disabled = !isVideoFile(fileInput.files[0]);
+        handleFileSelected(fileInput.files[0], fileNameDisplay);
       }
     });
     fileInput.addEventListener("change", () => {
       if (fileInput.files.length > 0){
-        fileNameDisplay.textContent = `Ficheiro: ${fileInput.files[0].name}`;
-        btnLegendarVideo.disabled = !isVideoFile(fileInput.files[0]);
+        handleFileSelected(fileInput.files[0], fileNameDisplay);
       } else {
         fileNameDisplay.textContent = "Nenhum ficheiro selecionado";
         btnLegendarVideo.disabled = true;
+        subEls.panel.classList.add('hidden');
       }
     });
+
+    function handleFileSelected(file, labelEl){
+      labelEl.textContent = `Ficheiro: ${file.name}`;
+      const isVid = isVideoFile(file);
+      btnLegendarVideo.disabled = !isVid;
+
+      // carregar vídeo para previews
+      if (isVid){
+        if (videoObjectURL){ URL.revokeObjectURL(videoObjectURL); }
+        videoObjectURL = URL.createObjectURL(file);
+        const v = subEls.video;
+        v.src = videoObjectURL;
+        loadedVideoMeta = false;
+        v.onloadedmetadata = async () => {
+          loadedVideoMeta = true;
+          subEls.panel.classList.remove('hidden');
+          await renderSubtitlePreviews();
+        };
+      } else {
+        subEls.panel.classList.add('hidden');
+        loadedVideoMeta = false;
+      }
+    }
 
     // Ticker de atualizações com data de hoje
     const dataHoje = new Date().toLocaleDateString('pt-PT');
     const updates = [
       `🆕 ${dataHoje} – Partilhar no WhatsApp disponível`,
       `🆕 ${dataHoje} – Legendar vídeo (SRT + MP4)`,
+      `🆕 ${dataHoje} – Estilos de legendas + pré-visualização`
     ];
     const track = document.getElementById("updatesTrack");
     track.innerHTML = `
@@ -1332,7 +1745,7 @@
       <span class="ticker__dot">•</span>
       <span class="ticker__item">${updates[1]}</span>
       <span class="ticker__dot">•</span>
-      <span class="ticker__item">${updates[0]}</span>
+      <span class="ticker__item">${updates[2]}</span>
       <span class="ticker__dot">•</span>
       <span class="ticker__item">${updates[1]}</span>
     `;
