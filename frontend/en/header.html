@@ -256,7 +256,33 @@
     width: 24px;
     height: 16px;
   }
-  
+  /* ——— Fix: impedir que o CSS global da página afete o header ——— */
+#topoOuviescrevi nav#nichoMenu {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  margin: 0 0 0 18px;   /* alinhado à direita do logo */
+  flex-wrap: nowrap;    /* tudo na mesma linha em desktop */
+}
+
+#topoOuviescrevi nav#nichoMenu button{
+  width: auto !important;        /* neutraliza width:100% global */
+  flex: 0 0 auto;
+  white-space: nowrap;           /* não quebra texto */
+  max-width: none;
+  padding: 10px 18px;
+}
+
+/* Em ecrãs mais pequenos podes deixar quebrar ou usar burger */
+@media (max-width: 1100px){
+  #topoOuviescrevi nav#nichoMenu{ flex-wrap: wrap; }
+}
+
+/* Garantir que o botão da língua não ganha width:100% */
+#topoOuviescrevi .language-selector button{ width: auto !important; }
+
 </style>
 
 <script>
