@@ -13,6 +13,7 @@ import subprocess
 import sqlite3
 import logging
 from logging.handlers import RotatingFileHandler
+import json
 import textwrap
 import shutil
 import time
@@ -20,7 +21,6 @@ import time
 import requests
 from bs4 import BeautifulSoup
 from gtts import gTTS
-
 from openai import OpenAI
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -28,21 +28,80 @@ from openai import OpenAI
 # ──────────────────────────────────────────────────────────────────────────────
 load_dotenv()
 
-# ── Logging robusto (rotativo + console) ─────────────────────────────────────
-LOG_FORMAT = "%(asctime)s [%(levelname)s] %(message)s"
+# ── Logging robusto (ficheiro rotativo + console + envio opcional p/ Vercel) ─
+LOG_FORMAT = "%(asctime)s %(levelname)s %(name)s: %(message)s"
 DATE_FMT = "%Y-%m-%d %H:%M:%S"
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+LOG_DIR = os.getenv("LOG_DIR", os.path.abspath("./logs"))
+os.makedirs(LOG_DIR, exist_ok=True)
+LOG_FILE = os.path.join(LOG_DIR, "ouviescrevi.log")
+
+class JSONFormatter(logging.Formatter):
+    def format(self, record: logging.LogRecord) -> str:
+        payload = {
+            "ts": datetime.utcnow().isoformat(timespec="seconds") + "Z",
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+        }
+        # extras comuns se existirem
+        for k in ("rid", "path", "method", "status", "ms"):
+            if hasattr(record, k):
+                payload[k] = getattr(record, k)
+        return json.dumps(payload, ensure_ascii=False)
+
+class VercelHTTPHandler(logging.Handler):
+    """Envia logs para uma Function no Vercel (aparecem no dashboard)."""
+    def __init__(self, url: str, token: str | None = None, level=logging.WARNING):
+        super().__init__(level)
+        self.url = url
+        self.token = token
+
+    def emit(self, record: logging.LogRecord):
+        try:
+            headers = {"Content-Type": "application/json"}
+            if self.token:
+                headers["Authorization"] = f"Bearer {self.token}"
+            # Usa JSON “compacto” (a Function no Vercel só faz console.log)
+            data = {
+                "level": record.levelname,
+                "logger": record.name,
+                "message": self.format(record),
+            }
+            requests.post(self.url, json=data, headers=headers, timeout=2)
+        except Exception:
+            # Nunca deixar logging quebrar a app
+            pass
 
 logger = logging.getLogger("ouviescrevi")
-logger.setLevel(logging.INFO)
+logger.setLevel(getattr(logging, LOG_LEVEL, logging.INFO))
+
 if not logger.handlers:
-    # ficheiro com rotação
-    fh = RotatingFileHandler("ouviescrevi.log", maxBytes=10 * 1024 * 1024, backupCount=5)
+    # ficheiro rotativo em UTF-8
+    fh = RotatingFileHandler(LOG_FILE, maxBytes=10 * 1024 * 1024, backupCount=5, encoding="utf-8")
     fh.setFormatter(logging.Formatter(LOG_FORMAT, DATE_FMT))
     logger.addHandler(fh)
-    # consola (útil em Render logs)
+
+    # consola (Render/uvicorn)
     ch = logging.StreamHandler()
     ch.setFormatter(logging.Formatter(LOG_FORMAT, DATE_FMT))
     logger.addHandler(ch)
+
+    # opcional: envio p/ Vercel
+    VERCEL_LOG_URL = os.getenv("VERCEL_LOG_URL")
+    VERCEL_LOG_TOKEN = os.getenv("VERCEL_LOG_TOKEN")
+    if VERCEL_LOG_URL:
+        vh = VercelHTTPHandler(VERCEL_LOG_URL, VERCEL_LOG_TOKEN, level=logging.WARNING)
+        # usa formatter simples ou JSON (ambos ok; no Vercel verás o texto do message)
+        vh.setFormatter(JSONFormatter())
+        logger.addHandler(vh)
+
+# Capta também logs do uvicorn/fastapi no mesmo ficheiro/console
+for name in ("uvicorn", "uvicorn.error", "uvicorn.access", "fastapi"):
+    logging.getLogger(name).setLevel(getattr(logging, LOG_LEVEL, logging.INFO))
+    if not logging.getLogger(name).handlers:
+        logging.getLogger(name).handlers = logger.handlers
+    logging.getLogger(name).propagate = False
 
 # DB bootstrap
 from database import criar_base
@@ -56,7 +115,7 @@ ADMIN_TOKEN = os.getenv("ADMIN_TOKEN")
 if not ADMIN_TOKEN:
     raise RuntimeError("Falta ADMIN_TOKEN no .env")
 
-# Timeouts e parâmetros (ajustáveis por .env)
+# Timeouts e parâmetros
 WHISPER_TIMEOUT = int(os.getenv("WHISPER_TIMEOUT", "110"))  # por chunk
 FFMPEG_TIMEOUT = int(os.getenv("FFMPEG_TIMEOUT", "60"))
 TOTAL_TRANSCRIBE_TIMEOUT = int(os.getenv("TOTAL_TRANSCRIBE_TIMEOUT", "170"))  # watchdog global
@@ -68,10 +127,10 @@ CLS_MODEL = os.getenv("CLS_MODEL", "gpt-4o-mini")
 COR_MODEL = os.getenv("COR_MODEL", "gpt-4o-mini")
 EML_MODEL = os.getenv("EML_MODEL", "gpt-4o-mini")
 
-# OpenAI client (com timeout default de rede)
+# OpenAI client
 client = OpenAI(api_key=OPENAI_API_KEY, timeout=WHISPER_TIMEOUT)
 
-# Descobrir ffmpeg (PATH → fallback imageio-ffmpeg)
+# Descobrir ffmpeg
 try:
     from imageio_ffmpeg import get_ffmpeg_exe
 except Exception:
@@ -97,6 +156,27 @@ os.makedirs(VIDEO_DIR, exist_ok=True)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 # ──────────────────────────────────────────────────────────────────────────────
+# Middleware: log de cada request com latência
+# ──────────────────────────────────────────────────────────────────────────────
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    rid = str(uuid.uuid4())[:8]
+    start = time.monotonic()
+    extra = {"rid": rid, "path": request.url.path, "method": request.method}
+    logging.getLogger("ouviescrevi").info(f"→ {request.method} {request.url.path}", extra=extra)
+    try:
+        response = await call_next(request)
+        ms = round((time.monotonic() - start) * 1000, 1)
+        extra |= {"status": response.status_code, "ms": ms}
+        logging.getLogger("ouviescrevi").info(f"← {request.method} {request.url.path} {response.status_code} {ms}ms", extra=extra)
+        return response
+    except Exception:
+        ms = round((time.monotonic() - start) * 1000, 1)
+        extra |= {"status": 500, "ms": ms}
+        logging.getLogger("ouviescrevi").exception(f"✖ {request.method} {request.url.path} 500 {ms}ms", extra=extra)
+        raise
+
+# ──────────────────────────────────────────────────────────────────────────────
 # Helpers
 # ──────────────────────────────────────────────────────────────────────────────
 def require_token(token: str):
@@ -106,23 +186,19 @@ def require_token(token: str):
 def enviar_email_assunto(mensagem: str, assunto: str = "Nova atividade no Ouviescrevi"):
     import smtplib
     from email.message import EmailMessage
-
     try:
         msg = EmailMessage()
         msg.set_content(mensagem)
         msg["Subject"] = assunto
         msg["From"] = os.getenv("SMTP_FROM", "notificacoes@ouviescrevi.pt")
         msg["To"] = os.getenv("SMTP_TO", "ouviescrevi@gmail.com")
-
         smtp_user = os.getenv("SMTP_USER")
         smtp_password = os.getenv("SMTP_PASSWORD")
         smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
         smtp_port = int(os.getenv("SMTP_PORT", "465"))
-
         if not (smtp_user and smtp_password):
             logger.warning("SMTP_USER/SMTP_PASSWORD não configurados; a notificação não será enviada.")
             return
-
         with smtplib.SMTP_SSL(smtp_host, smtp_port) as smtp:
             smtp.login(smtp_user, smtp_password)
             smtp.send_message(msg)
@@ -130,7 +206,6 @@ def enviar_email_assunto(mensagem: str, assunto: str = "Nova atividade no Ouvies
         logger.error("Erro ao enviar email: %s", e)
 
 def _seg_get(seg, key, default=None):
-    # suporta objeto (atributo) e dict
     try:
         return getattr(seg, key)
     except Exception:
@@ -148,7 +223,6 @@ def _format_time(seconds: float):
     return f"[{m:02d}:{s:02d}]"
 
 def format_segments_with_offset(segments, offset_seconds: int = 0):
-    """Formata segmentos adicionando offset (para ficheiros longos)."""
     formatted = []
     for s in segments or []:
         start = _seg_get(s, "start", 0)
@@ -189,37 +263,26 @@ def split_audio(input_path, output_dir, segment_duration=SEGMENT_DURATION):
         "-y",
     ]
     safe_run_ffmpeg(cmd, desc="segmentacao", timeout=max(30, min(FFMPEG_TIMEOUT, segment_duration + 30)))
-    segments = sorted(
-        os.path.join(output_dir, f)
-        for f in os.listdir(output_dir)
-        if f.endswith(".wav")
-    )
+    segments = sorted(os.path.join(output_dir, f) for f in os.listdir(output_dir) if f.endswith(".wav"))
     return segments
 
 def registar_transcricao(nome_ficheiro: str):
     conn = sqlite3.connect("ouviescrevi.db")
     try:
         cur = conn.cursor()
-        cur.execute(
-            "INSERT INTO transcricoes (ficheiro, data) VALUES (?, ?)",
-            (nome_ficheiro, datetime.now().isoformat()),
-        )
+        cur.execute("INSERT INTO transcricoes (ficheiro, data) VALUES (?, ?)", (nome_ficheiro, datetime.now().isoformat()))
         conn.commit()
     finally:
         conn.close()
 
 def transcrever_parte_c_com_retries(file_path: str, retries: int = 3, sleep_base: float = 1.0, timeout: int = WHISPER_TIMEOUT):
-    """Tenta transcrever um ficheiro com backoff e timeout por pedido."""
     last_err = None
     for attempt in range(1, retries + 1):
         t0 = time.monotonic()
         try:
             with open(file_path, "rb") as audio:
-                # timeout por requisição via with_options
                 result = client.with_options(timeout=timeout).audio.transcriptions.create(
-                    model="whisper-1",
-                    file=audio,
-                    response_format="verbose_json",
+                    model="whisper-1", file=audio, response_format="verbose_json"
                 )
             dur = time.monotonic() - t0
             logger.info("Whisper OK (%s) tentativa %d em %.2fs", os.path.basename(file_path), attempt, dur)
@@ -227,7 +290,7 @@ def transcrever_parte_c_com_retries(file_path: str, retries: int = 3, sleep_base
         except Exception as e:
             dur = time.monotonic() - t0
             last_err = e
-            logger.warning("Whisper FALHA (%s) tentativa %d/%.0f em %.2fs: %s",
+            logger.warning("Whisper FALHA (%s) tentativa %d/%d em %.2fs: %s",
                            os.path.basename(file_path), attempt, retries, dur, str(e)[:300])
             time.sleep(sleep_base * (2 ** (attempt - 1)))
     raise last_err
@@ -241,11 +304,11 @@ def debug():
 
 @app.post("/transcribe")
 async def transcribe(file: UploadFile = File(...)):
-    rid = str(uuid.uuid4())  # request_id para correlacionar
+    rid = str(uuid.uuid4())
     t_start = time.monotonic()
     logger.info("[%s] Upload recebido: %s (%s)", rid, file.filename, file.content_type)
 
-    # grava o upload em stream para tmp (evita carregar tudo em memória)
+    # grava o upload
     orig_ext = os.path.splitext(file.filename or "")[1].lower() or ".bin"
     tmp_path = os.path.join(tempfile.gettempdir(), f"input_{uuid.uuid4()}{orig_ext}")
     try:
@@ -258,28 +321,20 @@ async def transcribe(file: UploadFile = File(...)):
         logger.exception("[%s] Falha ao gravar upload", rid)
         return {"transcription": "", "formatted": "", "warning": f"Falha ao gravar ficheiro: {e}"}
 
-    # limite de tamanho após gravar
     if size_mb > MAX_FILE_SIZE_MB:
         try:
             os.remove(tmp_path)
         except:
             pass
         logger.warning("[%s] Ficheiro > %dMB (%.2f MB).", rid, MAX_FILE_SIZE_MB, size_mb)
-        return {
-            "transcription": "",
-            "formatted": "",
-            "warning": f"Ficheiro > {MAX_FILE_SIZE_MB}MB. Reduz o tamanho e tenta novamente."
-        }
+        return {"transcription": "", "formatted": "", "warning": f"Ficheiro > {MAX_FILE_SIZE_MB}MB. Reduz o tamanho e tenta novamente."}
 
-    # converter para wav 16k mono (robustez)
+    # converter para wav 16k mono
     audio_wav_path = os.path.join(tempfile.gettempdir(), f"audio_{uuid.uuid4()}.wav")
     converted_ok = False
     try:
-        conv = [
-            FFMPEG, "-nostdin", "-hide_banner", "-loglevel", "error",
-            "-y", "-i", tmp_path, "-vn", "-sn",  # ignora vídeo/legendas
-            "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", audio_wav_path
-        ]
+        conv = [FFMPEG, "-nostdin", "-hide_banner", "-loglevel", "error", "-y", "-i", tmp_path, "-vn", "-sn",
+                "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", audio_wav_path]
         safe_run_ffmpeg(conv, desc="conversao-wav", timeout=FFMPEG_TIMEOUT)
         converted_ok = True
     except Exception:
@@ -292,30 +347,25 @@ async def transcribe(file: UploadFile = File(...)):
     watchdog_hit = False
 
     try:
-        # 1) tenta partir o WAV convertido; senão, parte o original; senão, sem partição
         try:
             source_for_split = audio_wav_path if converted_ok else tmp_path
             parts = split_audio(source_for_split, split_dir)
             used_source = source_for_split
             logger.info("[%s] Segmentos criados: %d", rid, len(parts))
         except Exception as e:
-            logger.warning("[%s] Falha ao partir áudio (%s). Vai sem split. Erro: %s",
-                           rid, file.filename, str(e)[:300])
+            logger.warning("[%s] Falha ao partir áudio (%s). Vai sem split. Erro: %s", rid, file.filename, str(e)[:300])
             parts = []
 
-        # fallback: sem segmentos → usa o melhor ficheiro disponível
         if not parts:
             used_source = audio_wav_path if converted_ok else tmp_path
             parts = [used_source]
 
-        full_text_chunks = []
-        formatted_chunks = []
+        full_text_chunks, formatted_chunks = [], []
         offset_seconds = 0
         failed_segments = 0
         processed_segments = 0
 
         for idx, part in enumerate(parts):
-            # Watchdog: sai se a transcrição exceder o tempo total
             if (time.monotonic() - t_start) > TOTAL_TRANSCRIBE_TIMEOUT:
                 watchdog_hit = True
                 logger.error("[%s] Watchdog TOTAL_TRANSCRIBE_TIMEOUT atingido aos %.2fs. Interrompendo.",
@@ -328,59 +378,43 @@ async def transcribe(file: UploadFile = File(...)):
                 segs = getattr(result, "segments", []) or []
                 full_text_chunks.append(text_piece)
                 formatted_chunks.append(format_segments_with_offset(segs, offset_seconds))
-                logger.info("[%s] Chunk %d/%.0f transcrito. len(text)=%d",
-                            rid, idx + 1, len(parts), len(text_piece))
-            except Exception as e:
+                logger.info("[%s] Chunk %d/%d transcrito. len(text)=%d", rid, idx + 1, len(parts), len(text_piece))
+            except Exception:
                 failed_segments += 1
                 logger.exception("[%s] Erro ao transcrever parte %d (%s)", rid, idx, os.path.basename(part))
                 formatted_chunks.append(f"{_format_time(offset_seconds)} [Falha no segmento]")
             finally:
                 processed_segments += 1
-                # aumenta offset só quando trabalhamos com chunks segmentados
                 if len(parts) > 1:
                     offset_seconds += SEGMENT_DURATION
 
-        # registo e notificação
         try:
             registar_transcricao(file.filename or "sem_nome")
         except Exception as e:
             logger.warning("[%s] Falha ao registar na DB: %s", rid, e)
 
         try:
-            enviar_email_assunto(
-                f"Nova transcrição recebida: {file.filename}",
-                "Nova transcrição no Ouviescrevi",
-            )
+            enviar_email_assunto(f"Nova transcrição recebida: {file.filename}", "Nova transcrição no Ouviescrevi")
         except Exception as e:
             logger.warning("[%s] Falha ao enviar email de notificação: %s", rid, e)
 
         transcription_out = "\n".join(t for t in full_text_chunks if t).strip()
         formatted_out = "\n\n".join(t for t in formatted_chunks if t).strip()
 
-        payload = {
-            "transcription": transcription_out,
-            "formatted": formatted_out,
-        }
-
+        payload = {"transcription": transcription_out, "formatted": formatted_out}
         if failed_segments > 0:
             payload["warning"] = f"{failed_segments} de {processed_segments} segmentos falharam (aplicado retry/fallback)."
-
         if watchdog_hit:
-            payload["warning"] = (payload.get("warning", "") + " " if payload.get("warning") else "") + \
-                                 "Tempo total excedido (parcial devolvido)."
+            payload["warning"] = (payload.get("warning", "") + " " if payload.get("warning") else "") + "Tempo total excedido (parcial devolvido)."
 
         dur_total = time.monotonic() - t_start
-        logger.info("[%s] FIM transcribe em %.2fs | processed=%d failed=%d watchdog=%s",
-                    rid, dur_total, processed_segments, failed_segments, watchdog_hit)
-
-        # garantir sempre resposta válida
+        logger.info("[%s] FIM transcribe em %.2fs | processed=%d failed=%d watchdog=%s", rid, dur_total, processed_segments, failed_segments, watchdog_hit)
         return payload
 
     except Exception as e:
         logger.exception("[%s] Erro inesperado no processamento", rid)
         return {"transcription": "", "formatted": "", "warning": f"Erro ao processar: {e}"}
     finally:
-        # limpeza
         for p in (audio_wav_path, tmp_path):
             try:
                 if p and os.path.exists(p):
@@ -407,37 +441,28 @@ class SummarizeRequest(BaseModel):
 @app.post("/summarize")
 async def summarize(req: SummarizeRequest):
     require_token(req.token)
-
     if req.lang == "en":
         if req.mode == "minuta":
-            prompt = (
-                "Based on the transcript below, create clear bullet-point minutes including:"
-                "\n- Topics discussed\n- Decisions\n- Owners (if mentioned)\n- Action items\n\n"
-                f"Transcript:\n{req.text}"
-            )
+            prompt = ("Based on the transcript below, create clear bullet-point minutes including:\n"
+                      "- Topics discussed\n- Decisions\n- Owners (if mentioned)\n- Action items\n\n"
+                      f"Transcript:\n{req.text}")
             sys = "You summarize transcripts into meeting minutes."
         else:
             prompt = f"Summarize clearly and concisely:\n\n{req.text}"
             sys = "You summarize transcripts."
     else:
         if req.mode == "minuta":
-            prompt = (
-                "A partir da transcrição abaixo, cria uma minuta em tópicos com:"
-                "\n- Tópicos discutidos\n- Decisões\n- Responsáveis (se houver)\n- Ações\n\n"
-                f"Transcrição:\n{req.text}"
-            )
+            prompt = ("A partir da transcrição abaixo, cria uma minuta em tópicos com:\n"
+                      "- Tópicos discutidos\n- Decisões\n- Responsáveis (se houver)\n- Ações\n\n"
+                      f"Transcrição:\n{req.text}")
             sys = "Resumes transcrições em minutas."
         else:
             prompt = f"Resume de forma clara e concisa:\n\n{req.text}"
             sys = "És um assistente que resume transcrições de áudio."
-
     try:
         resp = client.chat.completions.create(
             model=SUM_MODEL,
-            messages=[
-                {"role": "system", "content": sys},
-                {"role": "user", "content": prompt},
-            ],
+            messages=[{"role": "system", "content": sys}, {"role": "user", "content": prompt}],
             temperature=0.5,
             max_tokens=600,
         )
@@ -456,25 +481,13 @@ async def translate_text(request: Request):
     language = (data.get("language") or "").lower()
     token = data.get("token") or ""
     require_token(token)
-
-    idiomas = {
-        "inglês": "English",
-        "espanhol": "Spanish",
-        "francês": "French",
-        "alemão": "German",
-        "italiano": "Italian",
-        "português": "Portuguese",
-    }
+    idiomas = {"inglês": "English", "espanhol": "Spanish", "francês": "French", "alemão": "German", "italiano": "Italian", "português": "Portuguese"}
     if language not in idiomas:
         raise HTTPException(status_code=400, detail=f"Idioma não suportado: {language}")
-
     try:
         resp = client.chat.completions.create(
             model=SUM_MODEL,
-            messages=[
-                {"role": "system", "content": f"Traduz o texto para {idiomas[language]}."},
-                {"role": "user", "content": text},
-            ],
+            messages=[{"role": "system", "content": f"Traduz o texto para {idiomas[language]}."}, {"role": "user", "content": text}],
             temperature=0.3,
         )
         try:
@@ -492,19 +505,11 @@ class ClassifyRequest(BaseModel):
 @app.post("/classify")
 async def classify_content(req: ClassifyRequest):
     require_token(req.token)
-    prompt = (
-        "Classifica o texto como uma das opções:\n"
-        "- Entrevista\n- Aula\n- Podcast\n- Reunião\n- Apresentação\n- Testemunho\n- Conversa informal\n\n"
-        f"Texto:\n{req.text}\n\n"
-        "Responde só com uma etiqueta."
-    )
+    prompt = ("Classifica o texto como uma das opções:\n"
+              "- Entrevista\n- Aula\n- Podcast\n- Reunião\n- Apresentação\n- Testemunho\n- Conversa informal\n\n"
+              f"Texto:\n{req.text}\n\nResponde só com uma etiqueta.")
     try:
-        resp = client.chat.completions.create(
-            model=CLS_MODEL,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.3,
-            max_tokens=20,
-        )
+        resp = client.chat.completions.create(model=CLS_MODEL, messages=[{"role": "user", "content": prompt}], temperature=0.3, max_tokens=20)
         try:
             enviar_email_assunto("Classificação com IA feita", "Classificação feita no Ouviescrevi")
         except Exception:
@@ -522,10 +527,8 @@ async def correct_text(req: Request):
     try:
         resp = client.chat.completions.create(
             model=COR_MODEL,
-            messages=[
-                {"role": "system", "content": "Corrige ortografia e gramática mantendo o sentido e o tom."},
-                {"role": "user", "content": text},
-            ],
+            messages=[{"role": "system", "content": "Corrige ortografia e gramática mantendo o sentido e o tom."},
+                      {"role": "user", "content": text}],
             temperature=0.2,
         )
         try:
@@ -544,18 +547,13 @@ class EmailRequest(BaseModel):
 @app.post("/generate-email")
 async def generate_email(req: EmailRequest):
     require_token(req.token)
-    prompt = (
-        f"Gera um email em tom {req.tone} a partir do seguinte resumo/transcrição de uma reunião:\n\n"
-        f"{req.text}\n\n"
-        "O email deve ser claro, direto e adequado para enviar após a reunião."
-    )
+    prompt = (f"Gera um email em tom {req.tone} a partir do seguinte resumo/transcrição de uma reunião:\n\n{req.text}\n\n"
+              "O email deve ser claro, direto e adequado para enviar após a reunião.")
     try:
         resp = client.chat.completions.create(
             model=EML_MODEL,
-            messages=[
-                {"role": "system", "content": "Escreves emails profissionais a partir de resumos/transcrições."},
-                {"role": "user", "content": prompt},
-            ],
+            messages=[{"role": "system", "content": "Escreves emails profissionais a partir de resumos/transcrições."},
+                      {"role": "user", "content": prompt}],
             temperature=0.7,
             max_tokens=700,
         )
@@ -598,7 +596,7 @@ def contar_transcricoes_hoje():
     conn = sqlite3.connect("ouviescrevi.db")
     try:
         cur = conn.cursor()
-        hoje = date.today().isoformat()  # YYYY-MM-DD
+        hoje = date.today().isoformat()
         cur.execute("SELECT COUNT(*) FROM transcricoes WHERE substr(data,1,10) = ?", (hoje,))
         total = cur.fetchone()[0]
         return {"total": total}
@@ -631,20 +629,15 @@ class QuestionRequest(BaseModel):
 async def generate_questions(req: QuestionRequest):
     require_token(req.token)
     if req.lang == "en":
-        prompt = (
-            f"Generate {req.num_questions} multiple-choice questions based on the text. "
-            "For each: question, four options (A–D), correct answer, short explanation.\n\n"
-            f"Text:\n{req.text}"
-        )
+        prompt = (f"Generate {req.num_questions} multiple-choice questions based on the text. "
+                  "For each: question, four options (A–D), correct answer, short explanation.\n\n"
+                  f"Text:\n{req.text}")
         sys = "You create study questions."
     else:
-        prompt = (
-            f"Gera {req.num_questions} perguntas de escolha múltipla com base no texto. "
-            "Para cada pergunta: enunciado, quatro opções (A–D), resposta correta e breve explicação.\n\n"
-            f"Texto:\n{req.text}"
-        )
+        prompt = (f"Gera {req.num_questions} perguntas de escolha múltipla com base no texto. "
+                  "Para cada pergunta: enunciado, quatro opções (A–D), resposta correta e breve explicação.\n\n"
+                  f"Texto:\n{req.text}")
         sys = "Cria perguntas de estudo."
-
     try:
         resp = client.chat.completions.create(
             model=SUM_MODEL,
@@ -667,9 +660,7 @@ async def summarize_url(req: Request):
     token = data.get("token")
     mode = data.get("mode", "normal")
     lang = data.get("lang", "pt")
-
     require_token(token)
-
     try:
         headers = {"User-Agent": "OuviescreviBot/1.0 (+https://ouviescrevi.pt)"}
         r = requests.get(url, headers=headers, timeout=12)
@@ -677,13 +668,10 @@ async def summarize_url(req: Request):
         soup = BeautifulSoup(r.content, "html.parser")
         paragraphs = soup.find_all("p")
         full_text = " ".join(p.get_text(strip=True) for p in paragraphs if len(p.get_text()) > 40)
-
         if not full_text:
             raise HTTPException(status_code=400, detail="Não foi possível extrair conteúdo útil da URL.")
-
         chunks = textwrap.wrap(full_text, 3000)
         summaries = []
-
         for i, chunk in enumerate(chunks, start=1):
             if lang == "en":
                 if mode == "minuta":
@@ -699,7 +687,6 @@ async def summarize_url(req: Request):
                 else:
                     prompt = "Resume de forma clara e concisa:\n\n" + chunk
                     sys = "És um assistente que resume artigos online."
-
             resp = client.chat.completions.create(
                 model=SUM_MODEL,
                 messages=[{"role": "system", "content": sys}, {"role": "user", "content": prompt}],
@@ -707,7 +694,6 @@ async def summarize_url(req: Request):
                 max_tokens=800,
             )
             summaries.append(f"🧩 Parte {i}:\n{resp.choices[0].message.content.strip()}")
-
         final_summary = "\n\n".join(summaries)
         try:
             enviar_email_assunto(f"Resumo gerado por URL:\n{url}", "Resumo por URL no Ouviescrevi")
@@ -727,7 +713,6 @@ class WhatsAppNotify(BaseModel):
 
 @app.post("/notify/whatsapp")
 async def notify_whatsapp(req: WhatsAppNotify):
-    """Endpoint para registar que o utilizador clicou em 'Partilhar no WhatsApp'."""
     require_token(req.token)
     try:
         msg = f"Partilha no WhatsApp usada.\nPágina: {req.page or '-'}\nNota: {req.note or '-'}\nData: {datetime.now().isoformat()}"
@@ -751,11 +736,8 @@ class VideoRequest(BaseModel):
 async def generate_video(req: VideoRequest):
     require_token(req.token)
     try:
-        # 1) TTS
         audio_tmp = os.path.join(tempfile.gettempdir(), f"{uuid.uuid4()}.mp3")
         gTTS(text=req.text, lang=req.voice_lang).save(audio_tmp)
-
-        # 2) imagem
         img_tmp = os.path.join(tempfile.gettempdir(), f"{uuid.uuid4()}.jpg")
         rr = requests.get(req.image_url, timeout=10)
         ct = rr.headers.get("Content-Type", "")
@@ -764,26 +746,15 @@ async def generate_video(req: VideoRequest):
                 f.write(rr.content)
         else:
             raise HTTPException(status_code=400, detail="Erro ao obter imagem.")
-
-        # 3) FFmpeg → guarda em /static/videos
         out_name = f"{uuid.uuid4()}.mp4"
         out_path = os.path.join(VIDEO_DIR, out_name)
-        cmd = [
-            FFMPEG, "-nostdin", "-hide_banner", "-loglevel", "error",
-            "-loop", "1", "-i", img_tmp, "-i", audio_tmp,
-            "-c:v", "libx264", "-tune", "stillimage",
-            "-c:a", "aac", "-b:a", "192k", "-pix_fmt", "yuv420p",
-            "-shortest", "-y", out_path
-        ]
+        cmd = [FFMPEG, "-nostdin", "-hide_banner", "-loglevel", "error", "-loop", "1", "-i", img_tmp, "-i", audio_tmp,
+               "-c:v", "libx264", "-tune", "stillimage", "-c:a", "aac", "-b:a", "192k", "-pix_fmt", "yuv420p",
+               "-shortest", "-y", out_path]
         safe_run_ffmpeg(cmd, desc="gerar-video", timeout=max(60, FFMPEG_TIMEOUT))
-
-        # limpar temporários
         for p in (audio_tmp, img_tmp):
-            try:
-                os.remove(p)
-            except:
-                pass
-
+            try: os.remove(p)
+            except: pass
         return {"success": True, "video_url": f"/static/videos/{out_name}"}
     except HTTPException:
         raise
