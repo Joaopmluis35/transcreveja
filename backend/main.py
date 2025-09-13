@@ -1,5 +1,5 @@
 # main.py
-from fastapi import FastAPI, File, UploadFile, Request, HTTPException, APIRouter, Form
+from fastapi import FastAPI, File, UploadFile, Request, HTTPException, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -121,9 +121,6 @@ CLS_MODEL = os.getenv("CLS_MODEL", "gpt-4o-mini")
 COR_MODEL = os.getenv("COR_MODEL", "gpt-4o-mini")
 EML_MODEL = os.getenv("EML_MODEL", "gpt-4o-mini")
 
-# Base pública (para links absolutos em emails, opcional)
-PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "").rstrip("/")
-
 # OpenAI client
 client = OpenAI(api_key=OPENAI_API_KEY, timeout=WHISPER_TIMEOUT)
 
@@ -202,63 +199,6 @@ def enviar_email_assunto(mensagem: str, assunto: str = "Nova atividade no Ouvies
     except Exception as e:
         logger.error("Erro ao enviar email: %s", e)
 
-def enviar_email_para(destinatario: str, mensagem: str, assunto: str = "Notificação Ouviescrevi"):
-    """Envio simples para qualquer destinatário (usado quando notify_email é fornecido)."""
-    import smtplib
-    from email.message import EmailMessage
-    try:
-        smtp_user = os.getenv("SMTP_USER")
-        smtp_password = os.getenv("SMTP_PASSWORD")
-        if not (smtp_user and smtp_password):
-            logger.warning("SMTP_USER/SMTP_PASSWORD não configurados; email não enviado para %s.", destinatario)
-            return
-        smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
-        smtp_port = int(os.getenv("SMTP_PORT", "465"))
-
-        msg = EmailMessage()
-        msg.set_content(mensagem)
-        msg["Subject"] = assunto
-        msg["From"] = os.getenv("SMTP_FROM", "notificacoes@ouviescrevi.pt")
-        msg["To"] = destinatario
-
-        with smtplib.SMTP_SSL(smtp_host, smtp_port) as smtp:
-            smtp.login(smtp_user, smtp_password)
-            smtp.send_message(msg)
-    except Exception as e:
-        logger.error("Erro ao enviar email para %s: %s", destinatario, e)
-
-def registar_transcricao(nome_ficheiro: str):
-    conn = sqlite3.connect("ouviescrevi.db")
-    try:
-        cur = conn.cursor()
-        cur.execute("INSERT INTO transcricoes (ficheiro, data) VALUES (?, ?)", (nome_ficheiro, datetime.now().isoformat()))
-        conn.commit()
-    finally:
-        conn.close()
-
-def registar_job(tipo: str, ficheiro: str | None, rid: str, meta: dict):
-    """Regista um job detalhado (JSON) sem depender do esquema existente."""
-    conn = sqlite3.connect("ouviescrevi.db")
-    try:
-        cur = conn.cursor()
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS jobs (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                tipo TEXT,
-                data TEXT,
-                rid TEXT,
-                ficheiro TEXT,
-                meta TEXT
-            )
-        """)
-        cur.execute(
-            "INSERT INTO jobs (tipo, data, rid, ficheiro, meta) VALUES (?, ?, ?, ?, ?)",
-            (tipo, datetime.now().isoformat(), rid, ficheiro or "", json.dumps(meta, ensure_ascii=False))
-        )
-        conn.commit()
-    finally:
-        conn.close()
-
 def _seg_get(seg, key, default=None):
     try:
         return getattr(seg, key)
@@ -320,6 +260,15 @@ def split_audio(input_path, output_dir, segment_duration=SEGMENT_DURATION):
     segments = sorted(os.path.join(output_dir, f) for f in os.listdir(output_dir) if f.endswith(".wav"))
     return segments
 
+def registar_transcricao(nome_ficheiro: str):
+    conn = sqlite3.connect("ouviescrevi.db")
+    try:
+        cur = conn.cursor()
+        cur.execute("INSERT INTO transcricoes (ficheiro, data) VALUES (?, ?)", (nome_ficheiro, datetime.now().isoformat()))
+        conn.commit()
+    finally:
+        conn.close()
+
 def transcrever_parte_c_com_retries(file_path: str, retries: int = 3, sleep_base: float = 1.0, timeout: int = WHISPER_TIMEOUT):
     last_err = None
     for attempt in range(1, retries + 1):
@@ -376,76 +325,12 @@ def _write_srt(entries: list[tuple[float, float, str]], out_path: str):
     with open(out_path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
 
-# ── Estilo → libass (para /video-subs) ────────────────────────────────────────
-def _hex_to_ass(color_hex: str, alpha_0_255: int = 0) -> str:
-    """
-    Converte #RRGGBB para &HAABBGGRR (formato ASS), onde AA é 'transparência' (00=opaco, FF=transparente).
-    """
-    try:
-        color_hex = (color_hex or "#FFFFFF").lstrip("#")
-        r = int(color_hex[0:2], 16)
-        g = int(color_hex[2:4], 16)
-        b = int(color_hex[4:6], 16)
-    except Exception:
-        r, g, b = 255, 255, 255
-    a = max(0, min(255, int(alpha_0_255)))
-    return f"&H{a:02X}{b:02X}{g:02X}{r:02X}"
-
-def _build_force_style(style: dict) -> str:
-    """
-    Constrói a string force_style do libass com base no dicionário enviado pelo frontend.
-    Campos: fontSize, color, outline, shadow('none'|'soft'|'strong'), bg(bool), bgOpacity(0..0.95),
-            align('left'|'center'|'right'), position('bottom'|'top'|'custom'), marginV(px)
-    """
-    font_size = int(style.get("fontSize", 24))
-    color_hex = style.get("color", "#FFFFFF")
-    outline = int(style.get("outline", 1))
-    shadow_kind = style.get("shadow", "soft")
-    bg = bool(style.get("bg", True))
-    bg_opacity = float(style.get("bgOpacity", 0.35))
-    align_h = style.get("align", "center")
-    position = style.get("position", "bottom")
-    margin_v = int(style.get("marginV", 48))
-
-    # Sombra razoável
-    shadow = 0
-    if shadow_kind == "soft":
-        shadow = 3
-    elif shadow_kind == "strong":
-        shadow = 6
-
-    # Alinhamento ASS (7/8/9 topo, 1/2/3 fundo)
-    if position == "top":
-        alignment_map = {"left": 7, "center": 8, "right": 9}
-    else:
-        alignment_map = {"left": 1, "center": 2, "right": 3}
-    alignment = alignment_map.get(align_h, 2)
-
-    primary = _hex_to_ass(color_hex, 0)  # opaco
-    back_alpha = int((1.0 - max(0.0, min(bg_opacity, 0.95))) * 255)  # 0.35 opaco -> 65% transparente
-    back = _hex_to_ass("000000", back_alpha)
-    border_style = 3 if bg else 1  # 3 = caixa opaca atrás do texto
-    outline = max(0, min(8, outline))
-
-    kv = [
-        f"FontName=DejaVu Sans",
-        f"FontSize={font_size}",
-        f"PrimaryColour={primary}",
-        f"Outline={outline}",
-        f"Shadow={shadow}",
-        f"BorderStyle={border_style}",
-        f"BackColour={back}",
-        f"Alignment={alignment}",
-        f"MarginV={margin_v}",
-    ]
-    return ",".join(kv)
-
 # ──────────────────────────────────────────────────────────────────────────────
 # Rotas
 # ──────────────────────────────────────────────────────────────────────────────
 @app.get("/debug")
 def debug():
-    return {"status": "OK", "versao": "1.5"}  # ↑ versão incrementada
+    return {"status": "OK", "versao": "1.4"}  # ↑ versão incrementada
 
 @app.post("/transcribe")
 async def transcribe(file: UploadFile = File(...)):
@@ -573,40 +458,14 @@ async def transcribe(file: UploadFile = File(...)):
 
 # ── NOVO: Vídeo com legendas embutidas ───────────────────────────────────────
 @app.post("/video-subs")
-async def video_subs(
-    request: Request,
-    file: UploadFile = File(...),
-    style: str | None = Form(None),           # JSON com estilo vindo do frontend
-    token: str | None = Form(None),           # deve corresponder a ADMIN_TOKEN
-    notify_email: str | None = Form(None)     # opcional: email do utilizador a notificar
-):
+async def video_subs(file: UploadFile = File(...)):
     """
     Upload de vídeo → transcreve (Whisper) → gera SRT → queima legendas no vídeo.
-    Resposta: { video_url?, srt_url, warning?, note? }
+    Resposta: { video_url, srt_url, warning? }
     """
     rid = str(uuid.uuid4())
     t_start = time.monotonic()
-
-    # Segurança (exigir token se fornecido do frontend – recomendado)
-    if token is None:
-        # Mantém comportamento aberto só se precisares. Se quiseres forçar token:
-        # raise HTTPException(status_code=403, detail="Token em falta.")
-        pass
-    else:
-        require_token(token)
-
-    client_ip = request.client.host if request and request.client else "?"
-    logger.info("[%s] [video-subs] Upload de %s: %s (%s)", rid, client_ip, file.filename, file.content_type)
-
-    # Estilo (parse)
-    style_dict = {}
-    if style:
-        try:
-            style_dict = json.loads(style) if isinstance(style, str) else (style or {})
-        except Exception:
-            logger.warning("[%s] [video-subs] JSON de estilo inválido; a usar defaults.", rid)
-            style_dict = {}
-    force_style = _build_force_style(style_dict)
+    logger.info("[%s] [video-subs] Upload: %s (%s)", rid, file.filename, file.content_type)
 
     # Gravar upload
     orig_ext = os.path.splitext(file.filename or "")[1].lower() or ".mp4"
@@ -641,19 +500,15 @@ async def video_subs(
 
     # Particionar áudio e transcrever (como no /transcribe)
     split_dir = tempfile.mkdtemp(prefix="subs_split_")
-    entries: list[tuple[float, float, str]] = []
-    offset_seconds = 0
-    processed_segments = 0
-    failed_segments = 0
-    watchdog_hit = False
-    chunks_count = 0
-
     try:
         parts = split_audio(audio_wav_path, split_dir)
         if not parts:
             parts = [audio_wav_path]
-
-        chunks_count = len(parts)
+        entries: list[tuple[float, float, str]] = []  # [(start,end,text)]
+        offset_seconds = 0
+        processed_segments = 0
+        failed_segments = 0
+        watchdog_hit = False
 
         for idx, part in enumerate(parts):
             if (time.monotonic() - t_start) > TOTAL_TRANSCRIBE_TIMEOUT:
@@ -691,9 +546,9 @@ async def video_subs(
             logger.exception("[%s] [video-subs] Falha a copiar SRT p/ static", rid)
             raise HTTPException(status_code=500, detail="Falha ao preparar SRT para download.")
 
-        # Queimar legendas no vídeo (aplica estilo vindo do frontend)
+        # Queimar legendas no vídeo
         out_video = os.path.join(VIDEO_DIR, f"{base}.mp4")
-        vf = f"subtitles={_escape_subtitles_path(srt_tmp)}:force_style='{force_style}'"
+        vf = f"subtitles={_escape_subtitles_path(srt_tmp)}:force_style='FontName=DejaVu Sans,FontSize=24,Outline=1,BorderStyle=1,Shadow=0,MarginV=24'"
         burn = [
             FFMPEG, "-nostdin", "-hide_banner", "-loglevel", "error", "-y",
             "-i", tmp_video,
@@ -712,48 +567,16 @@ async def video_subs(
             logger.warning("[%s] [video-subs] Falha a queimar legendas. Fallback SRT.", rid)
             out_video = None
 
-        # Registar e notificar (interno)
+        # Registar e notificar
         try:
             registar_transcricao((file.filename or "sem_nome") + " [legendado]")
         except Exception as e:
             logger.warning("[%s] [video-subs] Falha ao registar DB: %s", rid, e)
         try:
-            enviar_email_assunto(
-                f"Vídeo legendado gerado: {file.filename}\n"
-                f"RID: {rid}\n"
-                f"Chunks: {chunks_count} | Falhas: {failed_segments}\n"
-                f"SRT: /static/videos/{os.path.basename(srt_out)}\n"
-                f"MP4: {('/static/videos/' + os.path.basename(out_video)) if out_video else '—'}"
-            , "Vídeo legendado no Ouviescrevi")
+            enviar_email_assunto(f"Vídeo legendado gerado: {file.filename}", "Vídeo legendado no Ouviescrevi")
         except Exception:
             pass
 
-        # Notificação opcional ao utilizador
-        try:
-            if notify_email:
-                srt_rel = f"/static/videos/{os.path.basename(srt_out)}"
-                mp4_rel = (f"/static/videos/{os.path.basename(out_video)}" if out_video else None)
-                srt_abs = f"{PUBLIC_BASE_URL}{srt_rel}" if PUBLIC_BASE_URL else srt_rel
-                mp4_abs = (f"{PUBLIC_BASE_URL}{mp4_rel}" if (PUBLIC_BASE_URL and mp4_rel) else mp4_rel)
-
-                corpo = [
-                    "Olá! 👋",
-                    "O teu vídeo legendado está pronto.",
-                    "",
-                    f"• Ficheiro original: {file.filename}",
-                    f"• SRT: {srt_abs}",
-                ]
-                if mp4_abs:
-                    corpo.append(f"• MP4: {mp4_abs}")
-                if warning:
-                    corpo += ["", f"Aviso: {warning}"]
-                corpo += ["", "Obrigado por usar o Ouviescrevi!"]
-
-                enviar_email_para(notify_email, "\n".join(corpo), "O teu vídeo legendado está pronto")
-        except Exception as e:
-            logger.warning("[%s] [video-subs] Falha ao notificar utilizador (%s): %s", rid, notify_email, e)
-
-        # Resposta
         resp = {
             "srt_url": f"/static/videos/{os.path.basename(srt_out)}",
         }
@@ -764,26 +587,6 @@ async def video_subs(
         if failed_segments:
             resp["note"] = f"Alguns segmentos falharam ({failed_segments})."
 
-        # Registo detalhado do job
-        try:
-            meta = {
-                "client_ip": client_ip,
-                "file_name": file.filename,
-                "size_mb": round(size_mb, 2),
-                "chunks": chunks_count,
-                "failed_chunks": failed_segments,
-                "watchdog": watchdog_hit,
-                "srt": resp["srt_url"],
-                "video": resp.get("video_url"),
-                "style": style_dict,
-                "warning": warning,
-            }
-            registar_job("video-subs", file.filename, rid, meta)
-        except Exception as e:
-            logger.warning("[%s] [video-subs] Falha a registar job: %s", rid, e)
-
-        dur_total = time.monotonic() - t_start
-        logger.info("[%s] [video-subs] FIM em %.2fs | chunks=%d falhas=%d", rid, dur_total, chunks_count, failed_segments)
         return resp
 
     except HTTPException:
