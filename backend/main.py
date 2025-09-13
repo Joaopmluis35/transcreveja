@@ -710,7 +710,7 @@ class WhatsAppNotify(BaseModel):
     page: str | None = None
     note: str | None = None
     token: str
-
+@app.post("/notify-whatsapp-share")
 @app.post("/notify/whatsapp")
 async def notify_whatsapp(req: WhatsAppNotify):
     require_token(req.token)
