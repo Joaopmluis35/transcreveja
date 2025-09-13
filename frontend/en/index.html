@@ -28,13 +28,10 @@
       text-align:center;
     }
 
-    /* ── Updates ticker ───────────────────────────────────────── */
+    /* ── Updates ticker (agora não-sticky para não sobrepor) ───────── */
     .ticker{
       width:100%;
       overflow:hidden;
-      position:sticky;
-      top:0;
-      z-index:999;
       background:rgba(255,255,255,0.12);
       backdrop-filter:blur(4px);
       border-bottom:1px solid rgba(255,255,255,.2);
@@ -45,11 +42,7 @@
       padding:8px 0;
       animation:ticker-scroll 24s linear infinite;
     }
-    .ticker__item{
-      display:inline-flex; align-items:center; gap:8px;
-      margin:0 28px; font-weight:700; color:#fff;
-      text-shadow:0 1px 0 rgba(0,0,0,.15);
-    }
+    .ticker__item{ display:inline-flex; align-items:center; gap:8px; margin:0 28px; font-weight:700; color:#fff; text-shadow:0 1px 0 rgba(0,0,0,.15); }
     .ticker__dot{opacity:.7;}
     @keyframes ticker-scroll{ 0%{transform:translateX(100%)} 100%{transform:translateX(-100%)} }
     @media (prefers-reduced-motion:reduce){ .ticker__inner{animation:none} }
@@ -75,55 +68,33 @@
       text-align:left;
     }
 
-    input,button{
-      margin:10px 0;
-      padding:10px;
-      font-size:1em;
-      width:100%;
-      cursor:pointer;
-    }
+    input,button{ margin:10px 0; padding:10px; font-size:1em; width:100%; cursor:pointer; }
 
     button{
-      background:#e6d7fb;
-      color:var(--ink);
-      border:2px solid var(--primary);
-      border-radius:8px;
-      font-weight:700;
-      transition:all .3s ease;
+      background:#e6d7fb; color:var(--ink);
+      border:2px solid var(--primary); border-radius:8px; font-weight:700; transition:all .3s ease;
     }
     button:hover{ background:var(--bggrad); color:#fff; border-color:transparent; }
     button[disabled]{ opacity:.55; cursor:not-allowed; }
-    .hidden{ display:none; }
+
+    .hidden{ display:none !important; }  /* garante que ganha à maioria dos estilos */
 
     /* Output areas */
     #loading,#output{ width:100%; }
 
     #transcriptionText{
-      width:100%;
-      min-height:200px;
-      margin-top:10px;
-      padding:15px;
-      font-family:'Segoe UI',sans-serif;
-      font-size:1rem;
-      color:var(--ink);
-      background:#fdfdfd;
-      border:2px solid var(--primary);
-      border-radius:10px;
-      box-shadow:0 2px 5px rgba(0,0,0,.05);
-      line-height:1.6;
-      resize:vertical;
+      width:100%; min-height:200px; margin-top:10px; padding:15px;
+      font-family:'Segoe UI',sans-serif; font-size:1rem; color:var(--ink);
+      background:#fdfdfd; border:2px solid var(--primary); border-radius:10px;
+      box-shadow:0 2px 5px rgba(0,0,0,.05); line-height:1.6; resize:vertical;
       transition:border-color .3s, box-shadow .3s;
     }
     #transcriptionText:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 4px rgba(0,195,255,.15); }
 
-    .btn-group{
-      display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:10px;
-    }
+    .btn-group{ display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:10px; }
     .btn-group button{
-      flex:1 1 auto; min-width:130px; max-width:220px;
-      padding:12px 18px; font-size:1em; font-weight:700;
-      border:2px solid var(--primary); border-radius:8px;
-      background:#e6d7fb; color:var(--ink); position:relative; overflow:hidden;
+      flex:1 1 auto; min-width:130px; max-width:220px; padding:12px 18px; font-size:1em; font-weight:700;
+      border:2px solid var(--primary); border-radius:8px; background:#e6d7fb; color:var(--ink); position:relative; overflow:hidden;
       transition:color .3s ease, border-color .3s ease;
     }
     .btn-group button::before{
@@ -157,14 +128,8 @@
     #transcricaoStatus{ min-height:46px; display:flex; align-items:center; justify-content:center; }
     #progressWrap{ background:#ddd; border-radius:8px; width:100%; height:20px; }
     #progressBar{ height:100%; width:0%; background:#4caf50; border-radius:8px; transition:width .2s ease; }
-    .status{
-      background:#fff3cd; color:#856404; border-left:5px solid #ffc107;
-      padding:12px 18px; margin:15px 0; border-radius:5px; font-weight:700;
-    }
-    #timerTranscricao{
-      color:var(--ink); font-weight:700; background:#e9f7ff;
-      border-left:5px solid var(--accent); padding:8px 12px; border-radius:5px; display:inline-block;
-    }
+    .status{ background:#fff3cd; color:#856404; border-left:5px solid #ffc107; padding:12px 18px; margin:15px 0; border-radius:5px; font-weight:700; }
+    #timerTranscricao{ color:var(--ink); font-weight:700; background:#e9f7ff; border-left:5px solid var(--accent); padding:8px 12px; border-radius:5px; display:inline-block; }
 
     /* Secondary boxes text color */
     #summaryText,#minutesText,#translationText,#classificationText{ color:#222; }
@@ -184,14 +149,14 @@
       z-index:10; border-radius:8px; top:95%; left:0; padding:6px 0;
     }
     .dropdown-export.open .dropdown-content{ display:flex !important; }
-    .dropdown-content button{
-      background:none; border:none; padding:10px 20px; text-align:left; font-size:.95em; color:var(--ink); cursor:pointer; width:100%;
-    }
+    .dropdown-content button{ background:none; border:none; padding:10px 20px; text-align:left; font-size:.95em; color:var(--ink); cursor:pointer; width:100%; }
     .dropdown-content button:hover{ background:#f0f0f0; }
 
-    @media (hover:hover) and (pointer:fine){
-      .dropdown-export:hover .dropdown-content{ display:flex; }
-    }
+    @media (hover:hover) and (pointer:fine){ .dropdown-export:hover .dropdown-content{ display:flex; } }
+
+    /* Modal translate: fechado por omissão; abre com .show */
+    #modalTraducao{ position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,.6); justify-content:center; align-items:center; z-index:9999; }
+    #modalTraducao.show{ display:flex !important; }
 
     /* Mobile tweaks */
     @media (max-width:820px){
@@ -203,9 +168,7 @@
       #transcriptionText{ min-height:160px; }
 
       .dropdown-export{ width:100%; max-width:100%; }
-      .dropdown-content{
-        position:static; min-width:0; width:100%; box-shadow:none; border:2px solid var(--primary); border-radius:10px; margin-top:8px; padding:6px 0; z-index:auto;
-      }
+      .dropdown-content{ position:static; min-width:0; width:100%; box-shadow:none; border:2px solid var(--primary); border-radius:10px; margin-top:8px; padding:6px 0; z-index:auto; }
     }
   </style>
 </head>
@@ -335,8 +298,8 @@
     </div>
   </div>
 
-  <!-- Translate modal -->
-  <div id="modalTraducao" class="hidden" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);display:flex;justify-content:center;align-items:center;z-index:9999;">
+  <!-- Translate modal (SEM display inline!) -->
+  <div id="modalTraducao" class="hidden">
     <div style="background:#fff;padding:20px;border-radius:10px;text-align:center;max-width:400px;color:#333;">
       <h3 style="margin-bottom:10px;">🌍 Select target language:</h3>
       <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;">
@@ -370,18 +333,12 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
-  // =========================
-  // Global state / constants
-  // =========================
   const API_BASE = "https://api.ouviescrevi.pt";
   const API_TOKEN = "ouviescrevi2025@resumo";
   const ADMIN_EMAIL = "admin@ouviescrevi.pt";
 
-  let mediaRecorder;
-  let audioChunks = [];
-  let recordTimerInterval;
-  let trxTimerInterval;
-  let statusInterval;
+  let mediaRecorder, audioChunks = [];
+  let recordTimerInterval, trxTimerInterval, statusInterval;
   let lastAttemptFailed = false;
 
   const statusPhrases = [
@@ -397,56 +354,22 @@
     "⏳ Capturing every second like it’s gold!"
   ];
 
-  // =========================
-  // UI helpers
-  // =========================
   function startStatusAnimation(el){
     let i = 0;
     el.textContent = statusPhrases[i];
     el.classList.remove("hidden");
     el.style.opacity = 1;
-    statusInterval = setInterval(() => {
+    statusInterval = setInterval(()=>{
       el.style.opacity = 0;
-      setTimeout(() => {
-        i = (i + 1) % statusPhrases.length;
-        el.textContent = statusPhrases[i];
-        el.style.opacity = 1;
-      }, 300);
-    }, 2500);
+      setTimeout(()=>{ i=(i+1)%statusPhrases.length; el.textContent=statusPhrases[i]; el.style.opacity=1; },300);
+    },2500);
   }
-  function stopStatusAnimation(el){
-    clearInterval(statusInterval);
-    if (el) el.style.opacity = 1;
-  }
-  function mmss(totalSeconds){
-    const m = String(Math.floor(totalSeconds/60)).padStart(2,'0');
-    const s = String(totalSeconds%60).padStart(2,'0');
-    return `${m}:${s}`;
-  }
-  function startTranscriptionTimer(){
-    const el = document.getElementById("timerTranscricao");
-    let secs = 0;
-    el.textContent = "⏳ 00:00";
-    el.classList.remove("hidden");
-    trxTimerInterval = setInterval(() => {
-      secs++;
-      el.textContent = `⏳ ${mmss(secs)}`;
-    }, 1000);
-  }
-  function stopTranscriptionTimer(){
-    clearInterval(trxTimerInterval);
-    document.getElementById("timerTranscricao").classList.add("hidden");
-  }
-  function isVideoFile(file){
-    if (!file) return false;
-    if (file.type && file.type.startsWith("video/")) return true;
-    const ext = (file.name||"").split(".").pop().toLowerCase();
-    return ["mp4","mov","m4v","mkv","avi","webm","ts","m2ts","flv"].includes(ext);
-  }
+  function stopStatusAnimation(el){ clearInterval(statusInterval); if (el) el.style.opacity=1; }
+  function mmss(s){ const m=String(Math.floor(s/60)).padStart(2,'0'); const ss=String(s%60).padStart(2,'0'); return `${m}:${ss}`; }
+  function startTranscriptionTimer(){ const el=document.getElementById("timerTranscricao"); let s=0; el.textContent="⏳ 00:00"; el.classList.remove("hidden"); trxTimerInterval=setInterval(()=>{ s++; el.textContent=`⏳ ${mmss(s)}`; },1000); }
+  function stopTranscriptionTimer(){ clearInterval(trxTimerInterval); document.getElementById("timerTranscricao").classList.add("hidden"); }
+  function isVideoFile(file){ if(!file) return false; if (file.type && file.type.startsWith("video/")) return true; const ext=(file.name||"").split(".").pop().toLowerCase(); return ["mp4","mov","m4v","mkv","avi","webm","ts","m2ts","flv"].includes(ext); }
 
-  // =========================
-  // Elements
-  // =========================
   const form = document.getElementById("uploadForm");
   const loading = document.getElementById("loading");
   const progressBar = document.getElementById("progressBar");
@@ -459,15 +382,11 @@
   const btnClear = document.getElementById("btnClear");
   const btnSubtitleVideo = document.getElementById("btnSubtitleVideo");
 
-  // =========================
-  // Submit / Transcribe
-  // =========================
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const file = document.getElementById("fileInput").files[0];
     if (!file) return;
 
-    // reset UI
     output.classList.add("hidden");
     transcriptionText.value = "";
     document.getElementById("subsBox").classList.add("hidden");
@@ -484,84 +403,70 @@
     startStatusAnimation(statusEl);
     startTranscriptionTimer();
 
-    // fake progress
-    let progress = 0;
-    const interval = setInterval(()=> {
-      if (progress < 90){ progress += Math.random()*5; progressBar.style.width = `${progress.toFixed(1)}%`; }
-    },200);
+    let progress=0;
+    const interval=setInterval(()=>{ if(progress<90){ progress+=Math.random()*5; progressBar.style.width=`${progress.toFixed(1)}%`; } },200);
 
-    // request with retries
     const formData = new FormData();
     formData.append("file", file);
 
-    let success = false, data = {};
-    const MAX_TRIES = 3;
-
-    for (let attempt=1; attempt<=MAX_TRIES && !success; attempt++){
+    let success=false, data={};
+    for (let attempt=1; attempt<=3 && !success; attempt++){
       try{
-        if (attempt===2){
-          stopStatusAnimation(statusEl);
-          statusEl.textContent = "😓 Tricky... trying again with stronger settings!";
-        } else if (attempt===3){
-          statusEl.textContent = "🛠️ Final attempt — adjusting parameters...";
-        }
+        if (attempt===2){ stopStatusAnimation(statusEl); statusEl.textContent="😓 Tricky... trying again with stronger settings!"; }
+        if (attempt===3){ statusEl.textContent="🛠️ Final attempt — adjusting parameters..."; }
 
-        const controller = new AbortController();
-        const to = setTimeout(()=>controller.abort(), 130000);
-        const res = await fetch(`${API_BASE}/transcribe`, { method:"POST", body:formData, signal:controller.signal });
+        const controller=new AbortController();
+        const to=setTimeout(()=>controller.abort(),130000);
+        const res=await fetch(`${API_BASE}/transcribe`,{ method:"POST", body:formData, signal:controller.signal });
         clearTimeout(to);
 
-        let jsonText = await res.text();
-        try{ data = JSON.parse(jsonText); } catch{ data = { error:`Invalid server response (${res.status})` }; }
-        if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
-        success = !!(data.formatted || data.transcription || data.text);
+        let txt=await res.text(); try{ data=JSON.parse(txt); }catch{ data={ error:`Invalid server response (${res.status})` }; }
+        if (!res.ok) throw new Error(data.error||`Error ${res.status}`);
+        success=!!(data.formatted||data.transcription||data.text);
       }catch(err){
-        if (err.name === "AbortError") data = { error:"Timeout. Retrying…" };
+        if (err.name==="AbortError") data={ error:"Timeout. Retrying…" };
         await new Promise(r=>setTimeout(r,700));
       }
     }
 
     clearInterval(interval);
-    progressBar.style.width = "100%";
+    progressBar.style.width="100%";
     stopStatusAnimation(statusEl);
     stopTranscriptionTimer();
 
-    const identify = document.getElementById("identificarLocutores").checked;
-    const received = data.formatted || data.transcription || data.text || "";
+    const identify=document.getElementById("identificarLocutores").checked;
+    const received=data.formatted||data.transcription||data.text||"";
     if (success && received.trim()){
-      let finalText = received;
-      if (identify) finalText = applySpeakers(finalText);
-      transcriptionText.value = finalText;
+      let finalText=received;
+      if (identify) finalText=applySpeakers(finalText);
+      transcriptionText.value=finalText;
       output.classList.remove("hidden");
-      statusEl.textContent = "✅ Transcription completed successfully!";
-    } else {
-      const warn = data.warning ? `\n\nℹ️ ${data.warning}` : "";
-      transcriptionText.value = ("❌ We couldn't get the transcription. Please try again later." + warn).trim();
+      statusEl.textContent="✅ Transcription completed successfully!";
+    }else{
+      const warn=data.warning?`\n\nℹ️ ${data.warning}`:"";
+      transcriptionText.value=("❌ We couldn't get the transcription. Please try again later."+warn).trim();
       output.classList.remove("hidden");
-      statusEl.textContent = "⚠️ We couldn't transcribe it this time.";
+      statusEl.textContent="⚠️ We couldn't transcribe it this time.";
       document.getElementById("btnRetry").classList.remove("hidden");
-      lastAttemptFailed = true;
+      lastAttemptFailed=true;
     }
 
     setTimeout(()=>{
       loading.classList.add("hidden");
-      progressBar.style.width = "0%";
+      progressBar.style.width="0%";
       document.getElementById("btnRetry").classList.toggle("hidden", !lastAttemptFailed);
-      btnTranscribe.disabled = false;
-      btnStartRec.disabled = false;
-      btnSubtitleVideo.disabled = !isVideoFile(file);
-      btnTranscribe.style.opacity = 1;
-      btnStartRec.style.opacity = 1;
+      btnTranscribe.disabled=false;
+      btnStartRec.disabled=false;
+      btnSubtitleVideo.disabled=!isVideoFile(file);
+      btnTranscribe.style.opacity=1;
+      btnStartRec.style.opacity=1;
     },800);
   });
 
-  // =========================
-  // Subtitle Video (SRT + MP4)
-  // =========================
   btnSubtitleVideo.addEventListener("click", subtitleVideo);
 
   async function subtitleVideo(){
-    const file = document.getElementById("fileInput").files[0];
+    const file=document.getElementById("fileInput").files[0];
     if (!file) return alert("⚠️ No file selected.");
     if (!isVideoFile(file)) return alert("⚠️ This option is for video files only.");
 
@@ -569,261 +474,193 @@
     document.getElementById("subsBox").classList.add("hidden");
     document.getElementById("subsWarn").classList.add("hidden");
     loading.classList.remove("hidden");
-    progressBar.style.width = "0%";
+    progressBar.style.width="0%";
     startStatusAnimation(statusEl);
     startTranscriptionTimer();
 
-    btnTranscribe.disabled = true;
-    btnStartRec.disabled = true;
-    btnSubtitleVideo.disabled = true;
+    btnTranscribe.disabled=true; btnStartRec.disabled=true; btnSubtitleVideo.disabled=true;
 
-    // fake progress
     let p=0; const interval=setInterval(()=>{ if(p<90){ p+=Math.random()*5; progressBar.style.width=`${p.toFixed(1)}%`; }},200);
 
-    const formData = new FormData();
+    const formData=new FormData();
     formData.append("file", file);
     formData.append("token", API_TOKEN);
 
     try{
-      const controller = new AbortController();
-      const to = setTimeout(()=>controller.abort(), 180000);
-      const res = await fetch(`${API_BASE}/video-subs`, { method:"POST", body:formData, signal:controller.signal });
+      const controller=new AbortController();
+      const to=setTimeout(()=>controller.abort(),180000);
+      const res=await fetch(`${API_BASE}/video-subs`,{ method:"POST", body:formData, signal:controller.signal });
       clearTimeout(to);
 
-      let data = {};
-      let raw = await res.text();
-      try{ data = JSON.parse(raw); } catch{ data = { error:`Invalid response (${res.status})` }; }
+      let data={}; let raw=await res.text(); try{ data=JSON.parse(raw); }catch{ data={ error:`Invalid response (${res.status})` }; }
 
       clearInterval(interval);
-      progressBar.style.width = "100%";
+      progressBar.style.width="100%";
       stopStatusAnimation(statusEl);
       stopTranscriptionTimer();
 
-      if (!res.ok) throw new Error(data.detail || data.error || `Error ${res.status}`);
+      if (!res.ok) throw new Error(data.detail||data.error||`Error ${res.status}`);
 
       const srtUrl = toAbsUrl(data.srt_url);
       const mp4Url = data.video_url ? toAbsUrl(data.video_url) : null;
 
-      document.getElementById("srtDownload").href = srtUrl;
-      const mp4Btn = document.getElementById("mp4Download");
-      if (mp4Url){ mp4Btn.href = mp4Url; mp4Btn.classList.remove("hidden"); } else { mp4Btn.classList.add("hidden"); }
+      document.getElementById("srtDownload").href=srtUrl;
+      const mp4Btn=document.getElementById("mp4Download");
+      if (mp4Url){ mp4Btn.href=mp4Url; mp4Btn.classList.remove("hidden"); } else { mp4Btn.classList.add("hidden"); }
 
       if (data.warning){
-        const warn = document.getElementById("subsWarn");
-        warn.textContent = "ℹ️ " + data.warning;
+        const warn=document.getElementById("subsWarn");
+        warn.textContent="ℹ️ "+data.warning;
         warn.classList.remove("hidden");
       }
 
       document.getElementById("subsBox").classList.remove("hidden");
       output.classList.remove("hidden");
-      statusEl.textContent = "✅ Subtitles generated successfully!";
+      statusEl.textContent="✅ Subtitles generated successfully!";
     }catch(err){
       clearInterval(interval);
-      progressBar.style.width = "100%";
+      progressBar.style.width="100%";
       stopStatusAnimation(statusEl);
       stopTranscriptionTimer();
 
       output.classList.remove("hidden");
-      statusEl.textContent = "❌ Could not generate subtitles.";
-      const warn = document.getElementById("subsWarn");
-      warn.textContent = "❌ " + (err.message || "Unexpected error while contacting the API.");
+      statusEl.textContent="❌ Could not generate subtitles.";
+      const warn=document.getElementById("subsWarn");
+      warn.textContent="❌ "+(err.message||"Unexpected error while contacting the API.");
       warn.classList.remove("hidden");
     }finally{
-      setTimeout(()=>{ loading.classList.add("hidden"); progressBar.style.width = "0%"; },800);
-      btnTranscribe.disabled = false;
-      btnStartRec.disabled = false;
-      btnSubtitleVideo.disabled = !isVideoFile(file);
+      setTimeout(()=>{ loading.classList.add("hidden"); progressBar.style.width="0%"; },800);
+      btnTranscribe.disabled=false; btnStartRec.disabled=false; btnSubtitleVideo.disabled=!isVideoFile(file);
     }
   }
 
-  function toAbsUrl(url){
-    if (!url) return "";
-    if (/^https?:\/\//i.test(url)) return url;
-    return `${API_BASE}${url.startsWith("/") ? "" : "/"}${url}`;
-  }
+  function toAbsUrl(url){ if(!url) return ""; if(/^https?:\/\//i.test(url)) return url; return `${API_BASE}${url.startsWith("/")?"":"/"}${url}`; }
 
-  // =========================
-  // Export
-  // =========================
   function exportText(type){
-    const text = transcriptionText.value || "";
+    const text=transcriptionText.value||"";
     if (!text) return;
-
-    if (type === 'pdf'){
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      const lines = doc.splitTextToSize(text, 180);
-      let y=20;
-      for (let i=0;i<lines.length;i++){
-        if (y>270){ doc.addPage(); y=20; }
-        doc.text(lines[i], 15, y);
-        y += 8;
-      }
+    if (type==='pdf'){
+      const { jsPDF } = window.jspdf; const doc=new jsPDF();
+      const lines=doc.splitTextToSize(text,180); let y=20;
+      for(let i=0;i<lines.length;i++){ if (y>270){ doc.addPage(); y=20; } doc.text(lines[i],15,y); y+=8; }
       doc.save("transcription.pdf");
-    } else if (type === 'doc'){
-      const blob = new Blob([text], { type:'application/msword;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = "transcription.doc"; a.click();
-      URL.revokeObjectURL(url);
-    } else if (type === 'txt'){
-      const blob = new Blob([text], { type:'text/plain;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = "transcription.txt"; a.click();
-      URL.revokeObjectURL(url);
-    } else if (type === 'json'){
-      const json = JSON.stringify({ transcription:text }, null, 2);
-      const blob = new Blob([json], { type:'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = "transcription.json"; a.click();
-      URL.revokeObjectURL(url);
-    } else if (type === 'srt'){
-      const lines = text.split('\n');
-      let srt = '', count = 1;
+    }else if(type==='doc'){
+      const blob=new Blob([text],{ type:'application/msword;charset=utf-8' });
+      const url=URL.createObjectURL(blob); const a=document.createElement('a');
+      a.href=url; a.download="transcription.doc"; a.click(); URL.revokeObjectURL(url);
+    }else if(type==='txt'){
+      const blob=new Blob([text],{ type:'text/plain;charset=utf-8' });
+      const url=URL.createObjectURL(blob); const a=document.createElement('a');
+      a.href=url; a.download="transcription.txt"; a.click(); URL.revokeObjectURL(url);
+    }else if(type==='json'){
+      const json=JSON.stringify({ transcription:text },null,2);
+      const blob=new Blob([json],{ type:'application/json' });
+      const url=URL.createObjectURL(blob); const a=document.createElement('a');
+      a.href=url; a.download="transcription.json"; a.click(); URL.revokeObjectURL(url);
+    }else if(type==='srt'){
+      const lines=text.split('\n'); let srt='', count=1;
       for (let line of lines){
-        const match = line.match(/^\[(\d{2}):(\d{2})\]\s*(.+)$/);
-        if (match){
-          const [, min, sec, content] = match;
-          const start = `00:${min}:${sec},000`;
-          const end = `00:${min}:${String(Math.min(59, parseInt(sec) + 2)).padStart(2,'0')},000`;
-          srt += `${count}\n${start} --> ${end}\n${content}\n\n`;
-          count++;
+        const m=line.match(/^\[(\d{2}):(\d{2})\]\s*(.+)$/);
+        if (m){ const [, min, sec, content]=m;
+          const start=`00:${min}:${sec},000`;
+          const end=`00:${min}:${String(Math.min(59,parseInt(sec)+2)).padStart(2,'0')},000`;
+          srt+=`${count}\n${start} --> ${end}\n${content}\n\n`; count++;
         }
       }
-      const blob = new Blob([srt], { type:'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = "transcription.srt"; a.click();
-      URL.revokeObjectURL(url);
+      const blob=new Blob([srt],{ type:'text/plain' });
+      const url=URL.createObjectURL(blob); const a=document.createElement('a');
+      a.href=url; a.download="transcription.srt"; a.click(); URL.revokeObjectURL(url);
     }
   }
 
-  // =========================
-  // WhatsApp share + notify backend
-  // =========================
   async function shareWhatsapp(){
-    const transText = (document.getElementById("transcriptionText").value || "").trim();
-    const signature = "\n\n🔗 Transcribed with Ouviescrevi: https://ouviescrevi.pt";
-    const shareBody = transText ? `${transText}${signature}` : signature;
-
-    const waUrl = "https://api.whatsapp.com/send?text=" + encodeURIComponent(shareBody);
-    window.open(waUrl, "_blank");
-
+    const transText=(document.getElementById("transcriptionText").value||"").trim();
+    const signature="\n\n🔗 Transcribed with Ouviescrevi: https://ouviescrevi.pt";
+    const shareBody=transText?`${transText}${signature}`:signature;
+    const waUrl="https://api.whatsapp.com/send?text="+encodeURIComponent(shareBody);
+    window.open(waUrl,"_blank");
     try{
-      await fetch(`${API_BASE}/notify-whatsapp-share`, {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({
-          token: API_TOKEN,
-          page: location.href,
-          note: "Share via main button (EN)"
-        })
-      });
+      await fetch(`${API_BASE}/notify-whatsapp-share`, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ token:API_TOKEN, page:location.href, note:"Share via main button (EN)" }) });
     }catch(err){
-      const subject = encodeURIComponent("Notification: WhatsApp Share");
-      const body = encodeURIComponent(
-        `Someone clicked "Share on WhatsApp".\n\nDate: ${new Date().toLocaleString()}\n\nPreview:\n${shareBody.slice(0,1000)}`
-      );
-      window.open(`mailto:${ADMIN_EMAIL}?subject=${subject}&body=${body}`, "_blank");
+      const subject=encodeURIComponent("Notification: WhatsApp Share");
+      const body=encodeURIComponent(`Someone clicked "Share on WhatsApp".\n\nDate: ${new Date().toLocaleString()}\n\nPreview:\n${shareBody.slice(0,1000)}`);
+      window.open(`mailto:${ADMIN_EMAIL}?subject=${subject}&body=${body}`,"_blank");
     }
   }
 
-  // =========================
-  // Recording
-  // =========================
   btnStartRec.addEventListener("click", startRecording);
   btnStopRec.addEventListener("click", ()=>{ if (mediaRecorder && mediaRecorder.state==="recording") mediaRecorder.stop(); });
   btnClear.addEventListener("click", clearAll);
 
   async function startRecording(){
-    const status = document.getElementById("recordingStatus");
-    const startBtn = btnStartRec;
-    const stopBtn = btnStopRec;
-    const transcribeBtn = btnTranscribe;
-    const timer = document.getElementById("timerGravacao");
+    const status=document.getElementById("recordingStatus");
+    const startBtn=btnStartRec, stopBtn=btnStopRec, transcribeBtn=btnTranscribe, timer=document.getElementById("timerGravacao");
 
     if (!navigator.mediaDevices?.getUserMedia){ alert("Your browser does not support getUserMedia. Use a recent Chrome/Edge/Firefox over HTTPS."); return; }
-    if (typeof MediaRecorder === "undefined"){ alert("Your browser does not support MediaRecorder."); return; }
-    if (mediaRecorder && mediaRecorder.state === "recording") return;
+    if (typeof MediaRecorder==="undefined"){ alert("Your browser does not support MediaRecorder."); return; }
+    if (mediaRecorder && mediaRecorder.state==="recording") return;
 
-    let stream;
-    try{ stream = await navigator.mediaDevices.getUserMedia({ audio:true }); }
-    catch{ alert("Microphone access failed. Check permissions."); return; }
+    let stream; try{ stream=await navigator.mediaDevices.getUserMedia({ audio:true }); }catch{ alert("Microphone access failed. Check permissions."); return; }
+    const preferred=["audio/webm;codecs=opus","audio/ogg;codecs=opus","audio/mp4"];
+    const mimeType=(MediaRecorder.isTypeSupported && preferred.find(t=>MediaRecorder.isTypeSupported(t))) || "";
+    try{ mediaRecorder=new MediaRecorder(stream, mimeType?{ mimeType }:undefined); }catch{ alert("Could not start recording in this browser."); stream.getTracks().forEach(t=>t.stop()); return; }
 
-    const preferred = ["audio/webm;codecs=opus","audio/ogg;codecs=opus","audio/mp4"];
-    const mimeType = (MediaRecorder.isTypeSupported && preferred.find(t=>MediaRecorder.isTypeSupported(t))) || "";
-    try{ mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined); }
-    catch{ alert("Could not start recording in this browser."); stream.getTracks().forEach(t=>t.stop()); return; }
-
-    audioChunks = [];
-
-    mediaRecorder.onstart = () => {
-      status.textContent = "🎙️ Recording... click 'Stop Recording' to finish.";
+    audioChunks=[];
+    mediaRecorder.onstart=()=>{
+      status.textContent="🎙️ Recording... click 'Stop Recording' to finish.";
       stopBtn.classList.remove("hidden");
-      startBtn.disabled = true; transcribeBtn.disabled = true;
-      startBtn.style.opacity = .6; transcribeBtn.style.opacity = .6;
+      startBtn.disabled=true; transcribeBtn.disabled=true;
+      startBtn.style.opacity=.6; transcribeBtn.style.opacity=.6;
 
       timer.classList.remove("hidden");
-      let seconds = 0;
-      recordTimerInterval = setInterval(()=> {
-        seconds++;
-        timer.textContent = `⏱️ ${mmss(seconds)}`;
-      },1000);
+      let s=0; recordTimerInterval=setInterval(()=>{ s++; timer.textContent=`⏱️ ${mmss(s)}`; },1000);
     };
+    mediaRecorder.ondataavailable=(e)=>{ if (e.data && e.data.size>0) audioChunks.push(e.data); };
+    mediaRecorder.onerror=()=>{ status.textContent="❌ Recorder error. Try again."; };
 
-    mediaRecorder.ondataavailable = e => { if (e.data && e.data.size>0) audioChunks.push(e.data); };
-    mediaRecorder.onerror = () => { status.textContent = "❌ Recorder error. Try again."; };
-
-    mediaRecorder.onstop = async () => {
+    mediaRecorder.onstop=async ()=>{
       clearInterval(recordTimerInterval);
-      timer.classList.add("hidden"); timer.textContent = "⏱️ 00:00";
+      timer.classList.add("hidden"); timer.textContent="⏱️ 00:00";
       stream.getTracks().forEach(t=>t.stop());
 
       stopBtn.classList.add("hidden");
-      startBtn.disabled = false; transcribeBtn.disabled = false;
-      startBtn.style.opacity = 1; transcribeBtn.style.opacity = 1;
+      startBtn.disabled=false; transcribeBtn.disabled=false;
+      startBtn.style.opacity=1; transcribeBtn.style.opacity=1;
 
-      const size = audioChunks.reduce((n,b)=>n+b.size,0);
-      if (!audioChunks.length || size===0){
-        status.textContent = "⚠️ No audio (no chunks). Try speaking a few seconds before stopping.";
-        return;
-      }
+      const size=audioChunks.reduce((n,b)=>n+b.size,0);
+      if (!audioChunks.length || size===0){ status.textContent="⚠️ No audio (no chunks). Try speaking a few seconds before stopping."; return; }
 
-      const mime = mediaRecorder.mimeType || "audio/webm";
-      const ext = mime.includes("ogg") ? "ogg" : (mime.includes("mp4")||mime.includes("m4a")) ? "m4a" : "webm";
-      const blob = new Blob(audioChunks, { type:mime });
+      const mime=mediaRecorder.mimeType || "audio/webm";
+      const ext=mime.includes("ogg")?"ogg":(mime.includes("mp4")||mime.includes("m4a"))?"m4a":"webm";
+      const blob=new Blob(audioChunks,{ type:mime });
 
-      const formData = new FormData();
+      const formData=new FormData();
       formData.append("file", blob, `recording.${ext}`);
 
-      status.textContent = "🕐 Processing audio...";
+      status.textContent="🕐 Processing audio...";
       loading.classList.remove("hidden");
-      progressBar.style.width = "0%";
+      progressBar.style.width="0%";
       startStatusAnimation(statusEl);
       startTranscriptionTimer();
 
       let p=0; const anim=setInterval(()=>{ if(p<90){ p+=Math.random()*5; progressBar.style.width=`${p.toFixed(1)}%`; }},200);
 
       try{
-        const controller = new AbortController();
-        const to = setTimeout(()=>controller.abort(),130000);
-        const res = await fetch(`${API_BASE}/transcribe`, { method:"POST", body:formData, signal:controller.signal });
+        const controller=new AbortController();
+        const to=setTimeout(()=>controller.abort(),130000);
+        const res=await fetch(`${API_BASE}/transcribe`,{ method:"POST", body:formData, signal:controller.signal });
         clearTimeout(to);
 
-        let data = {};
-        let txt = await res.text();
-        try{ data = JSON.parse(txt); } catch{ data = { error:`Invalid response (${res.status})` }; }
+        let data={}; let txt=await res.text(); try{ data=JSON.parse(txt); }catch{ data={ error:`Invalid response (${res.status})` }; }
 
-        transcriptionText.value = data.formatted || data.transcription || "⚠️ Error transcribing.";
+        transcriptionText.value=data.formatted || data.transcription || "⚠️ Error transcribing.";
         output.classList.remove("hidden");
-        status.textContent = "✅ Transcription completed!";
+        status.textContent="✅ Transcription completed!";
       }catch(err){
-        status.textContent = err.name==="AbortError" ? "⏰ Timeout. Try again." : "❌ Error processing audio.";
+        status.textContent=err.name==="AbortError" ? "⏰ Timeout. Try again." : "❌ Error processing audio.";
       }finally{
         clearInterval(anim);
-        progressBar.style.width = "100%";
+        progressBar.style.width="100%";
         stopStatusAnimation(statusEl);
         stopTranscriptionTimer();
         setTimeout(()=>{ loading.classList.add("hidden"); progressBar.style.width="0%"; },700);
@@ -833,231 +670,146 @@
     mediaRecorder.start(250);
   }
 
-  // =========================
-  // Extra actions
-  // =========================
   function retryTranscription(){
-    const file = document.getElementById("fileInput").files[0];
+    const file=document.getElementById("fileInput").files[0];
     if (!file){ alert("⚠️ No file selected."); return; }
-    form.dispatchEvent(new Event("submit", { bubbles:true, cancelable:true }));
+    form.dispatchEvent(new Event("submit",{ bubbles:true, cancelable:true }));
   }
 
   async function classifyContent(){
-    const text = transcriptionText.value.trim();
+    const text=transcriptionText.value.trim();
     if (!text) return alert("⚠️ Empty transcription.");
-    const btn = event.target.closest("button");
-    const original = btn.innerHTML; btn.innerHTML = "<span>📚 Classifying...</span>"; btn.disabled = true;
+    const btn=event.target.closest("button"); const original=btn.innerHTML; btn.innerHTML="<span>📚 Classifying...</span>"; btn.disabled=true;
     try{
-      const res = await fetch(`${API_BASE}/classify`, {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ text, token:API_TOKEN, lang:"en" })
-      });
-      const data = await res.json();
-      const box = document.getElementById("classificationBox");
-      document.getElementById("classificationText").textContent =
-        data.type ? `🔎 ${data.type}` : (data.error ? `❌ Error: ${data.error}` : "❌ Unexpected error.");
+      const res=await fetch(`${API_BASE}/classify`,{ method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ text, token:API_TOKEN, lang:"en" }) });
+      const data=await res.json();
+      const box=document.getElementById("classificationBox");
+      document.getElementById("classificationText").textContent=data.type?`🔎 ${data.type}`:(data.error?`❌ Error: ${data.error}`:"❌ Unexpected error.");
       box.classList.remove("hidden");
     }catch{
-      const box = document.getElementById("classificationBox");
-      document.getElementById("classificationText").textContent = "❌ Failed to reach the API.";
+      const box=document.getElementById("classificationBox");
+      document.getElementById("classificationText").textContent="❌ Failed to reach the API.";
       box.classList.remove("hidden");
-    }finally{
-      btn.innerHTML = original; btn.disabled = false;
-    }
+    }finally{ btn.innerHTML=original; btn.disabled=false; }
   }
 
   async function correctText(){
-    const text = transcriptionText.value.trim();
+    const text=transcriptionText.value.trim();
     if (!text) return alert("⚠️ Empty transcription.");
-    const btn = event.target.closest("button");
-    const original = btn.innerHTML; btn.innerHTML = "<span>📝 Correcting...</span>"; btn.disabled = true;
+    const btn=event.target.closest("button"); const original=btn.innerHTML; btn.innerHTML="<span>📝 Correcting...</span>"; btn.disabled=true;
     try{
-      const res = await fetch(`${API_BASE}/correct`, {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ text, token:API_TOKEN })
-      });
-      const data = await res.json();
-      if (data.corrected){
-        transcriptionText.value = data.corrected;
-        alert("✅ Text corrected!");
-      } else {
-        alert("❌ Error: " + (data.error || "Invalid response."));
-      }
-    }catch{
-      alert("❌ Failed to reach the API.");
-    }finally{
-      btn.innerHTML = original; btn.disabled = false;
-    }
+      const res=await fetch(`${API_BASE}/correct`,{ method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ text, token:API_TOKEN }) });
+      const data=await res.json();
+      if (data.corrected){ transcriptionText.value=data.corrected; alert("✅ Text corrected!"); }
+      else{ alert("❌ Error: "+(data.error||"Invalid response.")); }
+    }catch{ alert("❌ Failed to reach the API."); }
+    finally{ btn.innerHTML=original; btn.disabled=false; }
   }
 
   async function generateMinutes(){
-    const text = transcriptionText.value.trim();
+    const text=transcriptionText.value.trim();
     if (!text) return alert("⚠️ Empty transcription.");
-    const btn = event.target.closest("button");
-    const original = btn.innerHTML; btn.innerHTML = "<span>📩 Generating minutes...</span>"; btn.disabled = true;
+    const btn=event.target.closest("button"); const original=btn.innerHTML; btn.innerHTML="<span>📩 Generating minutes...</span>"; btn.disabled=true;
     try{
-      const res = await fetch(`${API_BASE}/summarize`, {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ text, mode:"minuta", token:API_TOKEN, lang:"en" })
-      });
-      const data = await res.json();
-      const box = document.getElementById("minutesBox");
-      document.getElementById("minutesText").textContent = data.summary || "❌ Error generating minutes.";
-      box.classList.remove("hidden");
-      scrollIfVisible("minutesBox");
+      const res=await fetch(`${API_BASE}/summarize`,{ method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ text, mode:"minuta", token:API_TOKEN, lang:"en" }) });
+      const data=await res.json();
+      const box=document.getElementById("minutesBox");
+      document.getElementById("minutesText").textContent=data.summary||"❌ Error generating minutes.";
+      box.classList.remove("hidden"); scrollIfVisible("minutesBox");
     }catch{
-      const box = document.getElementById("minutesBox");
-      document.getElementById("minutesText").textContent = "❌ Unexpected error reaching the API.";
+      const box=document.getElementById("minutesBox");
+      document.getElementById("minutesText").textContent="❌ Unexpected error reaching the API.";
       box.classList.remove("hidden");
-    }finally{
-      btn.innerHTML = original; btn.disabled = false;
-    }
+    }finally{ btn.innerHTML=original; btn.disabled=false; }
   }
 
   async function generateSummary(e){
-    const text = transcriptionText.value.trim();
+    const text=transcriptionText.value.trim();
     if (!text) return alert("⚠️ Empty transcription.");
-    const btn = e?.target?.closest("button") || document.querySelector("#btnGenerateSummary");
-    const original = btn.innerHTML; btn.innerHTML = "<span>🧠 Generating summary...</span>"; btn.disabled = true;
+    const btn=e?.target?.closest("button")||document.querySelector("#btnGenerateSummary");
+    const original=btn.innerHTML; btn.innerHTML="<span>🧠 Generating summary...</span>"; btn.disabled=true;
     try{
-      const res = await fetch(`${API_BASE}/summarize`, {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ text, token:API_TOKEN, lang:"en" })
-      });
-      const data = await res.json();
-      const box = document.getElementById("summaryBox");
-      document.getElementById("summaryText").textContent =
-        data.summary ? data.summary : ("❌ Error: " + (data.error || "Invalid response."));
-      box.classList.remove("hidden");
-      scrollIfVisible("summaryBox");
-    }catch{
-      alert("❌ Error generating summary.");
-    }finally{
-      btn.innerHTML = original; btn.disabled = false;
-    }
+      const res=await fetch(`${API_BASE}/summarize`,{ method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ text, token:API_TOKEN, lang:"en" }) });
+      const data=await res.json();
+      const box=document.getElementById("summaryBox");
+      document.getElementById("summaryText").textContent=data.summary?data.summary:("❌ Error: "+(data.error||"Invalid response."));
+      box.classList.remove("hidden"); scrollIfVisible("summaryBox");
+    }catch{ alert("❌ Error generating summary."); }
+    finally{ btn.innerHTML=original; btn.disabled=false; }
   }
 
   async function generateEmail(){
-    const text = transcriptionText.value.trim();
+    const text=transcriptionText.value.trim();
     if (!text) return alert("⚠️ Empty transcription.");
-    const tone = confirm("Use informal tone?") ? "informal" : "formal";
-    const btn = event.target.closest("button");
-    const original = btn.innerHTML; btn.innerHTML = "<span>📧 Generating email...</span>"; btn.disabled = true;
+    const tone=confirm("Use informal tone?")?"informal":"formal";
+    const btn=event.target.closest("button"); const original=btn.innerHTML; btn.innerHTML="<span>📧 Generating email...</span>"; btn.disabled=true;
     try{
-      const res = await fetch(`${API_BASE}/generate-email`, {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ text, token:API_TOKEN, tone, lang:"en" })
-      });
-      const data = await res.json();
-      if (data.email){
-        alert("📨 Email generated successfully!\n\n" + data.email);
-      } else {
-        alert("❌ Error generating email: " + (data.error || "Invalid response."));
-      }
-    }catch{
-      alert("❌ Failed to reach the API.");
-    }finally{
-      btn.innerHTML = original; btn.disabled = false;
-    }
+      const res=await fetch(`${API_BASE}/generate-email`,{ method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ text, token:API_TOKEN, tone, lang:"en" }) });
+      const data=await res.json();
+      if (data.email){ alert("📨 Email generated successfully!\n\n"+data.email); }
+      else{ alert("❌ Error generating email: "+(data.error||"Invalid response.")); }
+    }catch{ alert("❌ Failed to reach the API."); }
+    finally{ btn.innerHTML=original; btn.disabled=false; }
   }
 
-  function applySpeakers(transcription){
-    const lines = transcription.split('\n');
-    let result = '';
-    let speaker = 'John';
-    for (let i=0;i<lines.length;i++){
-      const line = lines[i].trim();
-      if (!line) continue;
-      const mapped = line.replace(/^\[(\d{2}:\d{2})\]/, (m, ts)=>{
-        const name = speaker;
-        speaker = speaker === 'John' ? 'Mary' : 'John';
-        return `[${ts}] ${name}:`;
-      });
-      result += mapped + '\n';
+  function applySpeakers(t){
+    const lines=t.split('\n'); let out='', sp='John';
+    for (const lineRaw of lines){
+      const line=lineRaw.trim(); if (!line) continue;
+      const mapped=line.replace(/^\[(\d{2}:\d{2})\]/,(m,ts)=>{ const name=sp; sp=sp==='John'?'Mary':'John'; return `[${ts}] ${name}:`; });
+      out+=mapped+'\n';
     }
-    return result.trim();
+    return out.trim();
   }
 
-  function openTranslateModal(){ document.getElementById("modalTraducao").classList.remove("hidden"); document.getElementById("modalTraducao").classList.add("show"); }
-  function closeTranslateModal(){ document.getElementById("modalTraducao").classList.add("hidden"); document.getElementById("modalTraducao").classList.remove("show"); }
-  document.getElementById("modalTraducao").addEventListener("click", (e)=>{ if (e.target.id==="modalTraducao") closeTranslateModal(); });
+  function openTranslateModal(){ const m=document.getElementById("modalTraducao"); m.classList.remove("hidden"); m.classList.add("show"); }
+  function closeTranslateModal(){ const m=document.getElementById("modalTraducao"); m.classList.add("hidden"); m.classList.remove("show"); }
+  document.getElementById("modalTraducao").addEventListener("click",(e)=>{ if (e.target.id==="modalTraducao") closeTranslateModal(); });
 
   async function translateTo(event, lang){
     closeTranslateModal();
-    const text = transcriptionText.value.trim();
+    const text=transcriptionText.value.trim();
     if (!text) return alert("⚠️ Empty transcription.");
-    const status = document.getElementById("traducaoStatus");
-    const pBar = document.getElementById("traducaoProgressBar");
-    const wrap = document.getElementById("traducaoProgressWrapper");
+    const status=document.getElementById("traducaoStatus");
+    const pBar=document.getElementById("traducaoProgressBar");
+    const wrap=document.getElementById("traducaoProgressWrapper");
 
-    status.classList.remove("hidden");
-    status.textContent = "🌍 Translating... please wait";
-    wrap.classList.remove("hidden");
-    pBar.style.width = "0%";
+    status.classList.remove("hidden"); status.textContent="🌍 Translating... please wait";
+    wrap.classList.remove("hidden"); pBar.style.width="0%";
+    let p=0; const interval=setInterval(()=>{ if(p<90){ p+=Math.random()*5; pBar.style.width=`${p}%`; }},200);
 
-    let p=0; const interval=setInterval(()=>{ if(p<90){ p+=Math.random()*5; pBar.style.width=`${p}%`; } },200);
-
-    const btn = event?.target;
-    const originalText = btn?.textContent || "🌍 Translate";
-    if (btn){ btn.textContent = "🌍 Translating..."; btn.disabled = true; }
+    const btn=event?.target; const original=btn?.textContent||"🌍 Translate";
+    if (btn){ btn.textContent="🌍 Translating..."; btn.disabled=true; }
 
     try{
-      const res = await fetch(`${API_BASE}/translate`, {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ text, language: lang, token: API_TOKEN })
-      });
-      const data = await res.json();
-      clearInterval(interval);
-      pBar.style.width = "100%";
+      const res=await fetch(`${API_BASE}/translate`,{ method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ text, language:lang, token:API_TOKEN }) });
+      const data=await res.json(); clearInterval(interval); pBar.style.width="100%";
       if (data.translation){
-        transcriptionText.value = data.translation;
-        document.getElementById("translationText").textContent = data.translation;
+        transcriptionText.value=data.translation;
+        document.getElementById("translationText").textContent=data.translation;
         document.getElementById("translationBox").classList.remove("hidden");
-        status.textContent = `✅ Translation to ${lang[0].toUpperCase()+lang.slice(1)} completed!`;
-      } else {
-        status.textContent = "❌ Error: Translation not received.";
-      }
-    }catch{
-      status.textContent = "❌ Oops! We had trouble contacting the AI.";
-    }finally{
+        status.textContent=`✅ Translation to ${lang[0].toUpperCase()+lang.slice(1)} completed!`;
+      }else{ status.textContent="❌ Error: Translation not received."; }
+    }catch{ status.textContent="❌ Oops! We had trouble contacting the AI."; }
+    finally{
       setTimeout(()=>{ status.classList.add("hidden"); wrap.classList.add("hidden"); pBar.style.width="0%"; },1200);
-      if (btn){ btn.textContent = originalText; btn.disabled = false; }
+      if (btn){ btn.textContent=original; btn.disabled=false; }
       scrollIfVisible("translationBox");
     }
   }
 
-  function copyTranscription(){
-    const ta = document.getElementById("transcriptionText");
-    ta.select();
-    document.execCommand("copy");
-    const btn = event.target; btn.textContent = "✅ Copied!";
-    setTimeout(()=> btn.textContent = "📋 Copy All", 2000);
-  }
-  function copyBoxText(id, btn){
-    const text = document.getElementById(id).textContent.trim();
-    if (!text) return;
-    navigator.clipboard.writeText(text).then(()=>{
-      btn.textContent = "✅ Copied!";
-      setTimeout(()=> btn.textContent = "📋 Copy All", 2000);
-    });
-  }
-  function clearAll(){
-    const fileInput = document.getElementById("fileInput");
-    fileInput.value = "";
-    document.getElementById("fileName").textContent = "No file selected";
-    transcriptionText.value = "";
-    output.classList.add("hidden");
+  function copyTranscription(){ const ta=document.getElementById("transcriptionText"); ta.select(); document.execCommand("copy"); const btn=event.target; btn.textContent="✅ Copied!"; setTimeout(()=>btn.textContent="📋 Copy All",2000); }
+  function copyBoxText(id, btn){ const t=document.getElementById(id).textContent.trim(); if (!t) return; navigator.clipboard.writeText(t).then(()=>{ btn.textContent="✅ Copied!"; setTimeout(()=>btn.textContent="📋 Copy All",2000); }); }
 
-    document.getElementById("summaryText").textContent = "";
-    document.getElementById("translationText").textContent = "";
-    document.getElementById("minutesText").textContent = "";
-    document.getElementById("classificationText").textContent = "";
+  function clearAll(){
+    const fileInput=document.getElementById("fileInput");
+    fileInput.value=""; document.getElementById("fileName").textContent="No file selected";
+    transcriptionText.value=""; output.classList.add("hidden");
+
+    document.getElementById("summaryText").textContent="";
+    document.getElementById("translationText").textContent="";
+    document.getElementById("minutesText").textContent="";
+    document.getElementById("classificationText").textContent="";
     document.getElementById("summaryBox").classList.add("hidden");
     document.getElementById("translationBox").classList.add("hidden");
     document.getElementById("minutesBox").classList.add("hidden");
@@ -1067,60 +819,55 @@
 
     document.getElementById("traducaoStatus").classList.add("hidden");
     document.getElementById("traducaoProgressWrapper").classList.add("hidden");
-    progressBar.style.width = "0%";
-    document.getElementById("traducaoProgressBar").style.width = "0%";
+    progressBar.style.width="0%";
+    document.getElementById("traducaoProgressBar").style.width="0%";
     loading.classList.add("hidden");
 
     document.getElementById("btnRetry").classList.add("hidden");
-    lastAttemptFailed = false;
+    lastAttemptFailed=false;
 
-    document.getElementById("identificarLocutores").checked = false;
-    document.getElementById("recordingStatus").textContent = "";
-    const t = document.getElementById("timerGravacao");
-    t.classList.add("hidden"); t.textContent = "⏱️ 00:00";
-
-    btnSubtitleVideo.disabled = true;
+    document.getElementById("identificarLocutores").checked=false;
+    document.getElementById("recordingStatus").textContent="";
+    const t=document.getElementById("timerGravacao"); t.classList.add("hidden"); t.textContent="⏱️ 00:00";
+    btnSubtitleVideo.disabled=true;
   }
-  function scrollIfVisible(id){
-    const el = document.getElementById(id);
-    if (el && !el.classList.contains("hidden")) el.scrollIntoView({ behavior:"smooth", block:"center" });
-  }
+  function scrollIfVisible(id){ const el=document.getElementById(id); if (el && !el.classList.contains("hidden")) el.scrollIntoView({ behavior:"smooth", block:"center" }); }
 
-  // Drag & drop + enable subtitle button by file type
+  // Drag & drop + ticker + header/footer
   document.addEventListener("DOMContentLoaded", () => {
-    const dropZone = document.getElementById("dropZone");
-    const fileInput = document.getElementById("fileInput");
-    const fileNameDisplay = document.getElementById("fileName");
+    const dropZone=document.getElementById("dropZone");
+    const fileInput=document.getElementById("fileInput");
+    const fileNameDisplay=document.getElementById("fileName");
 
-    dropZone.addEventListener("click", () => fileInput.click());
+    dropZone.addEventListener("click", ()=> fileInput.click());
     dropZone.addEventListener("dragover", (e)=>{ e.preventDefault(); dropZone.style.background="#e0d7ff"; });
     dropZone.addEventListener("dragleave", ()=>{ dropZone.style.background="#fafafa"; });
     dropZone.addEventListener("drop", (e)=>{
       e.preventDefault(); dropZone.style.background="#fafafa";
       if (e.dataTransfer.files.length>0){
-        fileInput.files = e.dataTransfer.files;
-        fileNameDisplay.textContent = `File: ${fileInput.files[0].name}`;
-        btnSubtitleVideo.disabled = !isVideoFile(fileInput.files[0]);
+        fileInput.files=e.dataTransfer.files;
+        fileNameDisplay.textContent=`File: ${fileInput.files[0].name}`;
+        btnSubtitleVideo.disabled=!isVideoFile(fileInput.files[0]);
       }
     });
     fileInput.addEventListener("change", ()=>{
       if (fileInput.files.length>0){
-        fileNameDisplay.textContent = `File: ${fileInput.files[0].name}`;
-        btnSubtitleVideo.disabled = !isVideoFile(fileInput.files[0]);
+        fileNameDisplay.textContent=`File: ${fileInput.files[0].name}`;
+        btnSubtitleVideo.disabled=!isVideoFile(fileInput.files[0]);
       } else {
-        fileNameDisplay.textContent = "No file selected";
-        btnSubtitleVideo.disabled = true;
+        fileNameDisplay.textContent="No file selected";
+        btnSubtitleVideo.disabled=true;
       }
     });
 
     // Ticker items with today's date
-    const today = new Date().toLocaleDateString('en-GB');
-    const updates = [
+    const today=new Date().toLocaleDateString('en-GB');
+    const updates=[
       `🆕 ${today} – Share on WhatsApp available`,
       `🆕 ${today} – Video subtitling (SRT + MP4)`,
     ];
-    const track = document.getElementById("updatesTrack");
-    track.innerHTML = `
+    const track=document.getElementById("updatesTrack");
+    track.innerHTML=`
       <span class="ticker__item">${updates[0]}</span>
       <span class="ticker__dot">•</span>
       <span class="ticker__item">${updates[1]}</span>
@@ -1129,46 +876,42 @@
       <span class="ticker__dot">•</span>
       <span class="ticker__item">${updates[1]}</span>
     `;
+
+    // Garante modal fechado ao carregar (caso algum CSS externo interfira)
+    const m=document.getElementById("modalTraducao");
+    m.classList.add("hidden");
+    m.classList.remove("show");
   });
 
   // Header/Footer inject
   fetch("header.html").then(r=>r.text()).then(html=>{
-    const headerDiv = document.getElementById("header");
-    headerDiv.innerHTML = html;
-    const tempDiv = document.createElement("div"); tempDiv.innerHTML = html;
+    const headerDiv=document.getElementById("header");
+    headerDiv.innerHTML=html;
+    const tempDiv=document.createElement("div"); tempDiv.innerHTML=html;
     tempDiv.querySelectorAll("script").forEach(oldScript=>{
-      const s = document.createElement("script");
-      if (oldScript.src) s.src = oldScript.src; else s.textContent = oldScript.textContent;
+      const s=document.createElement("script");
+      if (oldScript.src) s.src=oldScript.src; else s.textContent=oldScript.textContent;
       document.body.appendChild(s);
     });
     tempDiv.querySelectorAll("style").forEach(style=> document.head.appendChild(style.cloneNode(true)));
   });
-  const footerMount = document.createElement("div");
-  footerMount.id = "footer";
+  const footerMount=document.createElement("div");
+  footerMount.id="footer";
   document.body.appendChild(footerMount);
-  fetch("footer.html").then(res=>res.text()).then(html=> document.getElementById("footer").innerHTML = html);
+  fetch("footer.html").then(res=>res.text()).then(html=> document.getElementById("footer").innerHTML=html);
 
-  // Buttons
+  // Export dropdown buttons
   document.getElementById("btnGenerateSummary").addEventListener("click", generateSummary);
   (function(){
-    const dropdown = document.getElementById('exportDropdown');
-    const btn = document.getElementById('exportBtn');
-    const options = document.getElementById('exportOptions');
-
-    const close = ()=>{ dropdown.classList.remove('open'); btn.setAttribute('aria-expanded','false'); };
-    const toggle = (e)=>{ e.preventDefault(); e.stopPropagation(); dropdown.classList.toggle('open'); btn.setAttribute('aria-expanded', dropdown.classList.contains('open')); };
-
+    const dropdown=document.getElementById('exportDropdown');
+    const btn=document.getElementById('exportBtn');
+    const options=document.getElementById('exportOptions');
+    const close=()=>{ dropdown.classList.remove('open'); btn.setAttribute('aria-expanded','false'); };
+    const toggle=(e)=>{ e.preventDefault(); e.stopPropagation(); dropdown.classList.toggle('open'); btn.setAttribute('aria-expanded', dropdown.classList.contains('open')); };
     btn.addEventListener('pointerup', toggle, { passive:false });
     document.addEventListener('click', (e)=>{ if (!dropdown.contains(e.target)) close(); });
     document.addEventListener('keydown', (e)=>{ if (e.key==='Escape') close(); });
-
-    options.addEventListener('click', (e)=>{
-      const target = e.target.closest('button[data-export]');
-      if (!target) return;
-      const type = target.getAttribute('data-export');
-      close();
-      setTimeout(()=> exportText(type), 0);
-    });
+    options.addEventListener('click', (e)=>{ const target=e.target.closest('button[data-export]'); if (!target) return; const type=target.getAttribute('data-export'); close(); setTimeout(()=> exportText(type), 0); });
   })();
 </script>
 </body>
