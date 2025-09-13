@@ -127,13 +127,14 @@ PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "").rstrip("/")
 # OpenAI client
 client = OpenAI(api_key=OPENAI_API_KEY, timeout=WHISPER_TIMEOUT)
 
-# Descobrir ffmpeg
+# Descobrir ffmpeg/ffprobe
 try:
     from imageio_ffmpeg import get_ffmpeg_exe
 except Exception:
     get_ffmpeg_exe = None
 
 FFMPEG = shutil.which("ffmpeg") or (get_ffmpeg_exe() if get_ffmpeg_exe else None)
+FFPROBE = shutil.which("ffprobe")  # opcional; se não houver, fazemos fallback
 if not FFMPEG:
     raise RuntimeError("ffmpeg não encontrado. Instala o binário do sistema ou mantém 'imageio-ffmpeg' no requirements.")
 
@@ -376,6 +377,32 @@ def _write_srt(entries: list[tuple[float, float, str]], out_path: str):
     with open(out_path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
 
+# ── Probe de dimensões do vídeo (largura/altura) ─────────────────────────────
+def probe_video_dimensions(path: str) -> tuple[int | None, int | None]:
+    """Tenta obter (width,height) com ffprobe; devolve (None,None) se não for possível."""
+    if not FFPROBE:
+        return (None, None)
+    try:
+        cmd = [
+            FFPROBE, "-v", "error",
+            "-select_streams", "v:0",
+            "-show_entries", "stream=width,height",
+            "-of", "json",
+            path
+        ]
+        out = subprocess.check_output(cmd, stderr=subprocess.STDOUT, timeout=10)
+        data = json.loads(out.decode("utf-8", errors="ignore"))
+        st = (data.get("streams") or [{}])[0]
+        w = int(st.get("width")) if st.get("width") else None
+        h = int(st.get("height")) if st.get("height") else None
+        return (w, h)
+    except Exception as e:
+        logger.warning("ffprobe falhou (%s): %s", os.path.basename(path), str(e)[:200])
+        return (None, None)
+
+def _clamp(v, lo, hi):
+    return max(lo, min(hi, v))
+
 # ── Estilo → libass (para /video-subs) ────────────────────────────────────────
 def _hex_to_ass(color_hex: str, alpha_0_255: int = 0) -> str:
     """
@@ -388,14 +415,15 @@ def _hex_to_ass(color_hex: str, alpha_0_255: int = 0) -> str:
         b = int(color_hex[4:6], 16)
     except Exception:
         r, g, b = 255, 255, 255
-    a = max(0, min(255, int(alpha_0_255)))
+    a = _clamp(int(alpha_0_255), 0, 255)
     return f"&H{a:02X}{b:02X}{g:02X}{r:02X}"
 
-def _build_force_style(style: dict) -> str:
+def _build_force_style(style: dict, video_w: int | None = None) -> str:
     """
     Constrói a string force_style do libass com base no dicionário enviado pelo frontend.
     Campos: fontSize, color, outline, shadow('none'|'soft'|'strong'), bg(bool), bgOpacity(0..0.95),
-            align('left'|'center'|'right'), position('bottom'|'top'|'custom'), marginV(px)
+            align('left'|'center'|'right'), position('bottom'|'top'|'custom'), marginV(px),
+            maxWidthPct(40..100), fontFamily
     """
     font_size = int(style.get("fontSize", 24))
     color_hex = style.get("color", "#FFFFFF")
@@ -406,6 +434,9 @@ def _build_force_style(style: dict) -> str:
     align_h = style.get("align", "center")
     position = style.get("position", "bottom")
     margin_v = int(style.get("marginV", 48))
+    max_width_pct = int(style.get("maxWidthPct", 90))
+    max_width_pct = _clamp(max_width_pct, 40, 100)
+    font_family = (style.get("fontFamily") or "DejaVu Sans").strip()
 
     # Sombra razoável
     shadow = 0
@@ -415,20 +446,38 @@ def _build_force_style(style: dict) -> str:
         shadow = 6
 
     # Alinhamento ASS (7/8/9 topo, 1/2/3 fundo)
-    if position == "top":
+    if position in ("top", "custom"):
         alignment_map = {"left": 7, "center": 8, "right": 9}
     else:
         alignment_map = {"left": 1, "center": 2, "right": 3}
     alignment = alignment_map.get(align_h, 2)
 
     primary = _hex_to_ass(color_hex, 0)  # opaco
-    back_alpha = int((1.0 - max(0.0, min(bg_opacity, 0.95))) * 255)  # 0.35 opaco -> 65% transparente
+    back_alpha = int((1.0 - _clamp(bg_opacity, 0.0, 0.95)) * 255)  # 0.35 opaco -> 65% transparente
     back = _hex_to_ass("000000", back_alpha)
     border_style = 3 if bg else 1  # 3 = caixa opaca atrás do texto
-    outline = max(0, min(8, outline))
+    outline = _clamp(outline, 0, 8)
+
+    # Margens horizontais a partir do maxWidthPct (se conhecermos a largura do vídeo)
+    margin_l = None
+    margin_r = None
+    if video_w and 40 <= max_width_pct <= 100:
+        block_w = int(round(video_w * (max_width_pct / 100.0)))
+        block_w = _clamp(block_w, int(video_w * 0.4), video_w)
+        leftover = max(0, video_w - block_w)
+        if align_h == "left":
+            margin_l = 10  # margem mínima
+            margin_r = max(10, leftover)
+        elif align_h == "right":
+            margin_r = 10
+            margin_l = max(10, leftover)
+        else:  # center
+            half = leftover // 2
+            margin_l = max(10, half)
+            margin_r = max(10, leftover - half)
 
     kv = [
-        f"FontName=DejaVu Sans",
+        f"FontName={font_family}",
         f"FontSize={font_size}",
         f"PrimaryColour={primary}",
         f"Outline={outline}",
@@ -436,8 +485,18 @@ def _build_force_style(style: dict) -> str:
         f"BorderStyle={border_style}",
         f"BackColour={back}",
         f"Alignment={alignment}",
-        f"MarginV={margin_v}",
+        f"MarginV={_clamp(margin_v, 0, 200)}",
+        # Melhor quebra de linha (evita ultrapassar margens)
+        "WrapStyle=2",
+        # Garante que contorno/sombra escalam de forma consistente em reescala:
+        "ScaleBorderAndShadow=1",
+        # Contorno a preto (opaco) por defeito
+        "OutlineColour=&H00000000",
     ]
+    if margin_l is not None and margin_r is not None:
+        kv.append(f"MarginL={margin_l}")
+        kv.append(f"MarginR={margin_r}")
+
     return ",".join(kv)
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -445,7 +504,7 @@ def _build_force_style(style: dict) -> str:
 # ──────────────────────────────────────────────────────────────────────────────
 @app.get("/debug")
 def debug():
-    return {"status": "OK", "versao": "1.5"}  # ↑ versão incrementada
+    return {"status": "OK", "versao": "1.6"}  # ↑ versão incrementada
 
 @app.post("/transcribe")
 async def transcribe(file: UploadFile = File(...)):
@@ -589,7 +648,7 @@ async def video_subs(
 
     # Segurança (exigir token se fornecido do frontend – recomendado)
     if token is None:
-        # Mantém comportamento aberto só se precisares. Se quiseres forçar token:
+        # Se quiseres forçar token, descomenta:
         # raise HTTPException(status_code=403, detail="Token em falta.")
         pass
     else:
@@ -606,7 +665,6 @@ async def video_subs(
         except Exception:
             logger.warning("[%s] [video-subs] JSON de estilo inválido; a usar defaults.", rid)
             style_dict = {}
-    force_style = _build_force_style(style_dict)
 
     # Gravar upload
     orig_ext = os.path.splitext(file.filename or "")[1].lower() or ".mp4"
@@ -627,6 +685,16 @@ async def video_subs(
         try: os.remove(tmp_video)
         except: pass
         raise HTTPException(status_code=413, detail=f"Ficheiro > {MAX_FILE_SIZE_MB}MB. Reduz o tamanho e tenta novamente.")
+
+    # Dimensões do vídeo (para calcular margens horizontais a partir de maxWidthPct)
+    vid_w, vid_h = probe_video_dimensions(tmp_video)
+    if vid_w and vid_h:
+        logger.info("[%s] [video-subs] Dimensões do vídeo: %dx%d", rid, vid_w, vid_h)
+    else:
+        logger.info("[%s] [video-subs] Dimensões do vídeo indisponíveis (ffprobe ausente/falhou).", rid)
+
+    # force_style com conhecimento da largura do vídeo
+    force_style = _build_force_style(style_dict, video_w=vid_w)
 
     # Extrair/normalizar áudio para transcrição
     audio_wav_path = os.path.join(tempfile.gettempdir(), f"subs_{uuid.uuid4()}.wav")
@@ -684,7 +752,7 @@ async def video_subs(
         _write_srt(entries, srt_tmp)
 
         # Copiar SRT para estáticos (download)
-        srt_out = os.path.join(VIDEO_DIR, f"{base}.srt")
+        srt_out = os.path.join(VIDEO_DIR, f"{base}.srt")}
         try:
             shutil.copyfile(srt_tmp, srt_out)
         except Exception:
@@ -723,8 +791,9 @@ async def video_subs(
                 f"RID: {rid}\n"
                 f"Chunks: {chunks_count} | Falhas: {failed_segments}\n"
                 f"SRT: /static/videos/{os.path.basename(srt_out)}\n"
-                f"MP4: {('/static/videos/' + os.path.basename(out_video)) if out_video else '—'}"
-            , "Vídeo legendado no Ouviescrevi")
+                f"MP4: {('/static/videos/' + os.path.basename(out_video)) if out_video else '—'}",
+                "Vídeo legendado no Ouviescrevi"
+            )
         except Exception:
             pass
 
@@ -777,6 +846,7 @@ async def video_subs(
                 "video": resp.get("video_url"),
                 "style": style_dict,
                 "warning": warning,
+                "video_w": vid_w, "video_h": vid_h,
             }
             registar_job("video-subs", file.filename, rid, meta)
         except Exception as e:

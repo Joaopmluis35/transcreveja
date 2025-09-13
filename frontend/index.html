@@ -19,7 +19,8 @@
       color: white;
       text-align: center;
     }
-    #adminContent{ place-items:center; }
+    /* centro real do admin */
+    #adminContent{ display:grid; place-items:center; }
     header{ padding:20px; }
     header h1{ margin:0; font-size:2em; }
 
@@ -74,7 +75,7 @@
       text-align:left;
     }
 
-    input,button{
+    input,button,select{
       margin:10px 0;
       padding:10px;
       font-size:1em;
@@ -250,7 +251,7 @@
 
     /* ── PAINEL DE ESTILOS DE LEGENDAS ───────────────────────────────────── */
     #subtitlePanel{
-      max-width: 900px;
+      max-width: 980px;
       width: 100%;
       margin: 18px auto 0;
       background: white;
@@ -259,7 +260,9 @@
       box-shadow: 0 8px 24px rgba(0,0,0,.12);
       padding: 18px;
     }
-    #subtitlePanel h3{ margin:0 0 8px 0; color:#6b21a8; }
+    #subtitlePanel h3{ margin:0 0 8px 0; color:#6b21a8; display:flex; align-items:center; gap:10px; }
+    #subtitlePanel .tools-row{ display:flex; gap:10px; flex-wrap:wrap; margin-top:6px; }
+    #subtitlePanel .tools-row button{ width:auto; }
     .sub-grid{
       display:grid;
       grid-template-columns: repeat(3, minmax(0,1fr));
@@ -332,6 +335,90 @@
       }
       .preview-wrap{ grid-template-columns: 1fr; }
     }
+
+    /* Floating FAB */
+    #feedbackFab{
+      position: fixed; right: 18px; bottom: 18px; z-index: 9999;
+      width: 56px; height: 56px; border-radius: 50%;
+      background: #A550F7; color: #fff; display:flex; align-items:center; justify-content:center;
+      box-shadow: 0 10px 24px rgba(0,0,0,.25);
+      cursor: pointer; user-select: none;
+      animation: fb-pop .45s cubic-bezier(.2, .8, .2, 1);
+    }
+    #feedbackFab:hover{ filter: brightness(1.05); transform: translateY(-1px); }
+    #feedbackFab .wave{
+      display:inline-block; font-size: 26px; transform-origin: 70% 70%;
+      animation: fb-wave 2.4s ease-in-out infinite;
+    }
+    /* reduz animação se preferido */
+    @media (prefers-reduced-motion: reduce){
+      #feedbackFab{ animation:none; }
+      #feedbackFab .wave{ animation:none; }
+    }
+
+    /* Nudge tooltip */
+    #feedbackNudge{
+      position: fixed; right: 84px; bottom: 32px; z-index: 9998;
+      background: rgba(255,255,255,.95); color:#333; padding: 8px 12px; border-radius: 10px;
+      box-shadow: 0 6px 18px rgba(0,0,0,.20); font-weight: 700;
+      opacity: 0; pointer-events: none; transform: translateY(6px);
+      transition: opacity .35s, transform .35s;
+    }
+    #feedbackNudge.fb-show{ opacity: 1; transform: translateY(0); }
+
+    /* Modal */
+    #feedbackModal.fb-hidden{ display:none; }
+    #feedbackModal{ position:fixed; inset:0; z-index: 9999; }
+    #feedbackModal .fb-overlay{
+      position:absolute; inset:0; background: rgba(0,0,0,.55);
+      animation: fb-fade .2s ease;
+    }
+    #feedbackModal .fb-card{
+      position: relative; max-width: 560px; width: 92%;
+      margin: 6vh auto; background:#fff; color:#222; border-radius: 14px;
+      box-shadow: 0 14px 40px rgba(0,0,0,.25); padding: 18px 18px 14px 18px;
+      animation: fb-up .3s ease;
+    }
+    .fb-close{
+      position:absolute; right:10px; top:10px; border:none; background:transparent; font-size: 16px; cursor:pointer;
+    }
+    .fb-sub{ color:#555; margin:6px 0 12px 0; }
+    .fb-label{ font-weight:700; margin: 8px 0 6px 0; display:block; }
+    #fbText{
+      width:100%; border:1px solid #ddd; border-radius:10px; padding:10px; resize: vertical; font-family: inherit;
+    }
+    #fbEmail{
+      width:100%; border:1px solid #ddd; border-radius:10px; padding:10px;
+    }
+    .fb-meta{ display:flex; justify-content:flex-end; color:#666; margin: 6px 0 8px; }
+    .fb-actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:12px; }
+    #fbSend{
+      background:#A550F7; color:#fff; border:none; border-radius:10px; padding:10px 14px; font-weight:700; cursor:pointer;
+    }
+    #fbSend:disabled{ opacity:.6; cursor:not-allowed; }
+    .fb-ghost{
+      background:#e6d7fb; color:#333; border:2px solid #A550F7; border-radius:10px; padding:10px 14px; font-weight:700; cursor:pointer;
+    }
+    .fb-status{
+      margin-top:10px; font-weight:700; background:#f0f7ff; border-left:5px solid #00C3FF; padding:8px 12px; border-radius:8px;
+    }
+
+    /* Animations */
+    @keyframes fb-pop{
+      0%{ transform: scale(.7); opacity:0; }
+      100%{ transform: scale(1); opacity:1; }
+    }
+    @keyframes fb-wave{
+      0%, 100% { transform: rotate(0deg); }
+      10% { transform: rotate(18deg); }
+      20% { transform: rotate(-10deg); }
+      30% { transform: rotate(12deg); }
+      40% { transform: rotate(-6deg); }
+      50% { transform: rotate(3deg); }
+      60% { transform: rotate(0deg); }
+    }
+    @keyframes fb-fade{ from{ opacity:0; } to{ opacity:1; } }
+    @keyframes fb-up{ from{ transform: translateY(12px); opacity:.8; } to{ transform: translateY(0); opacity:1; } }
   </style>
 </head>
 <body>
@@ -380,6 +467,15 @@
     <!-- Painel de estilos + pré-visualização -->
     <section id="subtitlePanel" class="hidden" aria-live="polite">
       <h3>🎨 Estilo das legendas & pré-visualização</h3>
+
+      <div class="tools-row">
+        <button type="button" id="subPresetYoutube">Preset: YouTube</button>
+        <button type="button" id="subPresetNetflix">Preset: Netflix</button>
+        <button type="button" id="subPresetClean">Preset: Clean</button>
+        <button type="button" id="subPresetLarge">Preset: Grande</button>
+        <button type="button" id="subReset">Repor padrões</button>
+      </div>
+
       <div class="sub-grid">
         <label>Texto de amostra
           <input id="subSampleText" type="text" value="Isto é uma linha de legenda de amostra." />
@@ -411,7 +507,7 @@
           <div style="display:flex; gap:8px; align-items:center;">
             <input id="subBg" type="checkbox" checked />
             <small>opacidade</small>
-            <input id="subBgOpacity" type="range" min="0" max="0.9" step="0.05" value="0.35" style="flex:1;" />
+            <input id="subBgOpacity" type="range" min="0" max="0.95" step="0.05" value="0.35" style="flex:1;" />
             <small id="subBgOpacityVal">0.35</small>
           </div>
         </label>
@@ -447,7 +543,30 @@
           <small id="subMaxWidthVal">90%</small>
         </label>
 
-        <div></div><!-- placeholder para fechar a grid -->
+        <label>Aspeto da pré-visualização
+          <select id="subPreviewAspect">
+            <option value="original" selected>Original (do vídeo)</option>
+            <option value="16:9">Horizontal 16:9</option>
+            <option value="9:16">Vertical 9:16</option>
+            <option value="1:1">Quadrado 1:1</option>
+          </select>
+        </label>
+
+        <label>Zoom da pré-visualização (%)
+          <input id="subPreviewZoom" type="range" min="60" max="150" step="5" value="100" />
+          <small id="subPreviewZoomVal">100%</small>
+        </label>
+
+        <label>Preset
+          <select id="subPresetSelect">
+            <option value="none" selected>— Selecionar —</option>
+            <option value="youtube">YouTube (contorno)</option>
+            <option value="netflix">Netflix (caixa preta)</option>
+            <option value="clean">Clean (sem caixa)</option>
+            <option value="large">Grande (legenda grande)</option>
+          </select>
+        </label>
+
       </div>
 
       <div class="preview-wrap">
@@ -538,11 +657,11 @@
       <div class="btn-group">
         <button id="btnGerarResumo"><span>🧠 Gerar Resumo</span></button>
         <button onclick="partilharWhatsapp()"><span>📲 Partilhar no WhatsApp</span></button>
-        <button onclick="gerarMinuta()"><span>📩 Gerar Minuta</span></button>
-        <button onclick="corrigirTextoIA()"><span>📝 Corrigir Texto</span></button>
+        <button onclick="gerarMinuta(this)"><span>📩 Gerar Minuta</span></button>
+        <button onclick="corrigirTextoIA(this)"><span>📝 Corrigir Texto</span></button>
         <button onclick="abrirModalTraducao()"><span>🌍 Traduzir</span></button>
-        <button onclick="classificarConteudo()"><span>📚 Classificar Tipo</span></button>
-        <button onclick="gerarEmailIA()"><span>📧 Gerar Email</span></button>
+        <button onclick="classificarConteudo(this)"><span>📚 Classificar Tipo</span></button>
+        <button onclick="gerarEmailIA(this)"><span>📧 Gerar Email</span></button>
 
         <div class="dropdown-export" id="exportDropdown">
           <button id="exportBtn" aria-haspopup="true" aria-expanded="false"><span>📁 Exportar ▼</span></button>
@@ -564,12 +683,12 @@
     <div class="card">
       <h3 style="margin-bottom:10px;">🌍 Seleciona o idioma de destino:</h3>
       <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center;">
-        <button onclick="traduzirTextoComIdioma(event, 'português')">Português</button>
-        <button onclick="traduzirTextoComIdioma(event, 'inglês')">Inglês</button>
-        <button onclick="traduzirTextoComIdioma(event, 'espanhol')">Espanhol</button>
-        <button onclick="traduzirTextoComIdioma(event, 'francês')">Francês</button>
-        <button onclick="traduzirTextoComIdioma(event, 'alemão')">Alemão</button>
-        <button onclick="traduzirTextoComIdioma(event, 'italiano')">Italiano</button>
+        <button onclick="traduzirTextoComIdioma(this, 'português')">Português</button>
+        <button onclick="traduzirTextoComIdioma(this, 'inglês')">Inglês</button>
+        <button onclick="traduzirTextoComIdioma(this, 'espanhol')">Espanhol</button>
+        <button onclick="traduzirTextoComIdioma(this, 'francês')">Francês</button>
+        <button onclick="traduzirTextoComIdioma(this, 'alemão')">Alemão</button>
+        <button onclick="traduzirTextoComIdioma(this, 'italiano')">Italiano</button>
         <button onclick="fecharModalTraducao()">Cancelar</button>
       </div>
     </div>
@@ -602,8 +721,8 @@
   // Estado global
   // =========================
   const API_BASE = "https://api.ouviescrevi.pt";
-  const API_TOKEN = "ouviescrevi2025@resumo"; // o mesmo usado no backend
-  const ADMIN_EMAIL = "admin@ouviescrevi.pt"; // fallback mailto se a API falhar
+  const API_TOKEN = "ouviescrevi2025@resumo";
+  const ADMIN_EMAIL = "admin@ouviescrevi.pt";
 
   let mediaRecorder;
   let audioChunks = [];
@@ -653,7 +772,7 @@
   function formatMMSS(totalSeconds){
     const m = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
     const s = String(totalSeconds % 60).padStart(2, '0');
-    return `${m}:${s}`;
+    return \`\${m}:\${s}\`;
   }
   function iniciarTimerTranscricao(){
     const el = document.getElementById("timerTranscricao");
@@ -662,7 +781,7 @@
     el.classList.remove("hidden");
     trxTimerInterval = setInterval(() => {
       secs++;
-      el.textContent = `⏳ ${formatMMSS(secs)}`;
+      el.textContent = \`⏳ \${formatMMSS(secs)}\`;
     }, 1000);
   }
   function pararTimerTranscricao(){
@@ -718,7 +837,7 @@
     const interval = setInterval(() => {
       if (progress < 90) {
         progress += Math.random() * 5;
-        progressBar.style.width = `${progress.toFixed(1)}%`;
+        progressBar.style.width = \`\${progress.toFixed(1)}%\`;
       }
     }, 200);
 
@@ -741,12 +860,12 @@
 
         const controller = new AbortController();
         const to = setTimeout(() => controller.abort(), 130000);
-        const res = await fetch(`${API_BASE}/transcribe`, { method:"POST", body: formData, signal: controller.signal });
+        const res = await fetch(\`\${API_BASE}/transcribe\`, { method:"POST", body: formData, signal: controller.signal });
         clearTimeout(to);
 
         let jsonText = await res.text();
-        try{ data = JSON.parse(jsonText); } catch{ data = { error: `Resposta inválida do servidor (${res.status})` }; }
-        if (!res.ok) throw new Error(data.error || `Erro ${res.status}`);
+        try{ data = JSON.parse(jsonText); } catch{ data = { error: \`Resposta inválida do servidor (\${res.status})\` }; }
+        if (!res.ok) throw new Error(data.error || \`Erro \${res.status}\`);
         sucesso = !!(data.formatted || data.transcription || data.text);
       }catch(err){
         if (err.name === "AbortError"){
@@ -770,7 +889,7 @@
       output.classList.remove("hidden");
       statusEl.textContent = "✅ Transcrição concluída com sucesso!";
     } else {
-      const warn = data.warning ? `\n\nℹ️ ${data.warning}` : "";
+      const warn = data.warning ? \`\\n\\nℹ️ \${data.warning}\` : "";
       transcriptionText.value = ("❌ Não foi possível obter a transcrição. Tenta novamente mais tarde." + warn).trim();
       output.classList.remove("hidden");
       statusEl.textContent = "⚠️ Não conseguimos transcrever desta vez.";
@@ -817,7 +936,16 @@
     prev2: document.getElementById('preview2'),
     dl1: document.getElementById('dlPrev1'),
     dl2: document.getElementById('dlPrev2'),
-    video: document.getElementById('hiddenVideo')
+    video: document.getElementById('hiddenVideo'),
+    aspect: document.getElementById('subPreviewAspect'),
+    zoom: document.getElementById('subPreviewZoom'),
+    zoomVal: document.getElementById('subPreviewZoomVal'),
+    presetSelect: document.getElementById('subPresetSelect'),
+    presetYT: document.getElementById('subPresetYoutube'),
+    presetNF: document.getElementById('subPresetNetflix'),
+    presetCL: document.getElementById('subPresetClean'),
+    presetLG: document.getElementById('subPresetLarge'),
+    btnReset: document.getElementById('subReset'),
   };
 
   function getStyle(){
@@ -836,23 +964,117 @@
       maxWidthPct: parseInt(subEls.maxWidth.value,10) // %
     };
   }
+  function getPreviewCfg(){
+    return {
+      aspect: subEls.aspect.value, // original | 16:9 | 9:16 | 1:1
+      zoom: parseInt(subEls.zoom.value,10) // 60–150
+    };
+  }
+
+  // throttle simples para não spammar seeks enquanto arrastas
+  let renderQueued = false;
+  function scheduleRender(){
+    if (!loadedVideoMeta) return;
+    if (renderQueued) return;
+    renderQueued = true;
+    setTimeout(async () => {
+      renderQueued = false;
+      await renderSubtitlePreviews();
+    }, 120);
+  }
 
   function bindStyleInputs(){
-    const reRender = () => { if (loadedVideoMeta) renderSubtitlePreviews(); };
-    subEls.size.addEventListener('input', () => { subEls.sizeVal.textContent=subEls.size.value; reRender(); });
-    subEls.outline.addEventListener('input', () => { subEls.outlineVal.textContent=subEls.outline.value; reRender(); });
-    subEls.bgOpacity.addEventListener('input', () => { subEls.bgOpacityVal.textContent=subEls.bgOpacity.value; reRender(); });
-    subEls.marginV.addEventListener('input', () => { subEls.marginVVal.textContent=subEls.marginV.value; reRender(); });
-    subEls.padding.addEventListener('input', () => { subEls.paddingVal.textContent=subEls.padding.value; reRender(); });
-    subEls.maxWidth.addEventListener('input', () => { subEls.maxWidthVal.textContent=subEls.maxWidth.value + '%'; reRender(); });
+    subEls.size.addEventListener('input', () => { subEls.sizeVal.textContent=subEls.size.value; scheduleRender(); });
+    subEls.outline.addEventListener('input', () => { subEls.outlineVal.textContent=subEls.outline.value; scheduleRender(); });
+    subEls.bgOpacity.addEventListener('input', () => { subEls.bgOpacityVal.textContent=subEls.bgOpacity.value; scheduleRender(); });
+    subEls.marginV.addEventListener('input', () => { subEls.marginVVal.textContent=subEls.marginV.value; scheduleRender(); });
+    subEls.padding.addEventListener('input', () => { subEls.paddingVal.textContent=subEls.padding.value; scheduleRender(); });
+    subEls.maxWidth.addEventListener('input', () => { subEls.maxWidthVal.textContent=subEls.maxWidth.value + '%'; scheduleRender(); });
+    subEls.zoom.addEventListener('input', () => { subEls.zoomVal.textContent=subEls.zoom.value + '%'; scheduleRender(); });
 
+    // atualizar em tempo real (inclui color input)
     ['change','input'].forEach(evt => {
-      [subEls.sample, subEls.color, subEls.shadow, subEls.bg, subEls.align, subEls.position]
-      .forEach(el => el.addEventListener(evt, reRender));
+      [subEls.sample, subEls.color, subEls.shadow, subEls.bg, subEls.align, subEls.position, subEls.aspect]
+      .forEach(el => el.addEventListener(evt, scheduleRender));
     });
 
     subEls.dl1.addEventListener('click', () => downloadCanvas(subEls.prev1, 'preview_25.png'));
     subEls.dl2.addEventListener('click', () => downloadCanvas(subEls.prev2, 'preview_75.png'));
+
+    // presets rápidos
+    const applyPreset = (name) => {
+      if (name === 'youtube'){
+        subEls.size.value = 42;
+        subEls.color.value = '#ffffff';
+        subEls.outline.value = 3;
+        subEls.shadow.value = 'soft';
+        subEls.bg.checked = false;
+        subEls.marginV.value = 60;
+        subEls.padding.value = 10;
+        subEls.maxWidth.value = 90;
+      } else if (name === 'netflix'){
+        subEls.size.value = 40;
+        subEls.color.value = '#ffffff';
+        subEls.outline.value = 0;
+        subEls.shadow.value = 'none';
+        subEls.bg.checked = true;
+        subEls.bgOpacity.value = 0.6;
+        subEls.marginV.value = 48;
+        subEls.padding.value = 12;
+        subEls.maxWidth.value = 90;
+      } else if (name === 'clean'){
+        subEls.size.value = 34;
+        subEls.color.value = '#ffffff';
+        subEls.outline.value = 1;
+        subEls.shadow.value = 'soft';
+        subEls.bg.checked = false;
+        subEls.marginV.value = 54;
+        subEls.padding.value = 8;
+        subEls.maxWidth.value = 88;
+      } else if (name === 'large'){
+        subEls.size.value = 56;
+        subEls.color.value = '#ffffff';
+        subEls.outline.value = 3;
+        subEls.shadow.value = 'strong';
+        subEls.bg.checked = true;
+        subEls.bgOpacity.value = 0.35;
+        subEls.marginV.value = 68;
+        subEls.padding.value = 14;
+        subEls.maxWidth.value = 92;
+      }
+      // refletir labels
+      subEls.sizeVal.textContent=subEls.size.value;
+      subEls.outlineVal.textContent=subEls.outline.value;
+      subEls.bgOpacityVal.textContent=subEls.bgOpacity.value;
+      subEls.marginVVal.textContent=subEls.marginV.value;
+      subEls.paddingVal.textContent=subEls.padding.value;
+      subEls.maxWidthVal.textContent=subEls.maxWidth.value + '%';
+      scheduleRender();
+    };
+    subEls.presetYT.addEventListener('click', () => applyPreset('youtube'));
+    subEls.presetNF.addEventListener('click', () => applyPreset('netflix'));
+    subEls.presetCL.addEventListener('click', () => applyPreset('clean'));
+    subEls.presetLG.addEventListener('click', () => applyPreset('large'));
+    subEls.presetSelect.addEventListener('change', (e) => { if (e.target.value!=='none') applyPreset(e.target.value); });
+
+    subEls.btnReset.addEventListener('click', () => {
+      subEls.sample.value = "Isto é uma linha de legenda de amostra.";
+      subEls.size.value = 40; subEls.sizeVal.textContent='40';
+      subEls.color.value = '#ffffff';
+      subEls.outline.value = 2; subEls.outlineVal.textContent='2';
+      subEls.shadow.value = 'soft';
+      subEls.bg.checked = true;
+      subEls.bgOpacity.value = 0.35; subEls.bgOpacityVal.textContent='0.35';
+      subEls.align.value = 'center';
+      subEls.position.value = 'bottom';
+      subEls.marginV.value = 48; subEls.marginVVal.textContent='48';
+      subEls.padding.value = 10; subEls.paddingVal.textContent='10';
+      subEls.maxWidth.value = 90; subEls.maxWidthVal.textContent='90%';
+      subEls.aspect.value = 'original';
+      subEls.zoom.value = 100; subEls.zoomVal.textContent = '100%';
+      subEls.presetSelect.value = 'none';
+      scheduleRender();
+    });
   }
 
   function downloadCanvas(canvas, filename){
@@ -905,11 +1127,50 @@
     }
   }
 
+  function computeCanvasSize(vw, vh){
+    const { aspect, zoom } = getPreviewCfg();
+    let cw, ch;
+
+    if (aspect === 'original'){
+      // Base: limitar largura a 854px
+      const baseW = Math.min(854, vw || 1280);
+      const scale = baseW / (vw || 1280);
+      cw = Math.round((vw || 1280) * scale);
+      ch = Math.round((vh || 720) * scale);
+    } else if (aspect === '16:9'){
+      const baseW = 854;
+      cw = baseW; ch = Math.round(baseW * 9/16);
+    } else if (aspect === '9:16'){
+      const baseW = 360;
+      cw = baseW; ch = Math.round(baseW * 16/9);
+    } else { // 1:1
+      const baseW = 640;
+      cw = baseW; ch = baseW;
+    }
+
+    const z = zoom/100;
+    return { cw: Math.round(cw*z), ch: Math.round(ch*z) };
+  }
+
+  function drawCover(ctx, video, cw, ch){
+    // desenha o frame do vídeo em modo "cover", respeitando aspetos
+    const vw = video.videoWidth || 1280;
+    const vh = video.videoHeight || 720;
+
+    const scale = Math.max(cw / vw, ch / vh);
+    const sW = Math.round(cw / scale);
+    const sH = Math.round(ch / scale);
+    const sx = Math.round((vw - sW)/2);
+    const sy = Math.round((vh - sH)/2);
+
+    ctx.drawImage(video, sx, sy, sW, sH, 0, 0, cw, ch);
+  }
+
   function drawSubtitle(ctx, style, canvasWidth, canvasHeight){
     ctx.save();
 
     // fonte
-    ctx.font = `${style.fontSize}px "Segoe UI", system-ui, Arial, sans-serif`;
+    ctx.font = \`\${style.fontSize}px "Segoe UI", system-ui, Arial, sans-serif\`;
     ctx.fillStyle = style.color || '#fff';
     ctx.textBaseline = 'alphabetic';
 
@@ -985,20 +1246,21 @@
   async function seekAndDraw(video, time, canvas){
     return new Promise((resolve, reject) => {
       const onSeeked = () => {
-        // dimensionar canvas ao vídeo mas caber num max width razoável
-        const vw = video.videoWidth || 1280;
-        const vh = video.videoHeight || 720;
-        const targetW = Math.min(854, vw); // 854x480 ~ 480p largo
-        const scale = targetW / vw;
-        canvas.width = Math.round(vw * scale);
-        canvas.height = Math.round(vh * scale);
+        const { cw, ch } = computeCanvasSize(video.videoWidth, video.videoHeight);
+        canvas.width = cw;
+        canvas.height = ch;
 
         const ctx = canvas.getContext('2d');
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        // fundo escuro caso sobre bordas (não deve com cover)
+        ctx.fillStyle = '#111';
+        ctx.fillRect(0,0,cw,ch);
+
+        // desenhar frame do vídeo em modo cover
+        drawCover(ctx, video, cw, ch);
 
         // desenha legendas
         const style = getStyle();
-        drawSubtitle(ctx, style, canvas.width, canvas.height);
+        drawSubtitle(ctx, style, cw, ch);
         resolve();
       };
       const onError = (e) => reject(e);
@@ -1051,7 +1313,7 @@
     // progresso "fake"
     let p = 0;
     const interval = setInterval(() => {
-      if (p < 90){ p += Math.random() * 5; progressBar.style.width = `${p.toFixed(1)}%`; }
+      if (p < 90){ p += Math.random() * 5; progressBar.style.width = \`\${p.toFixed(1)}%\`; }
     }, 200);
 
     const formData = new FormData();
@@ -1064,12 +1326,12 @@
     try{
       const controller = new AbortController();
       const to = setTimeout(() => controller.abort(), 180000); // até ~3min
-      const res = await fetch(`${API_BASE}/video-subs`, { method:"POST", body: formData, signal: controller.signal });
+      const res = await fetch(\`\${API_BASE}/video-subs\`, { method:"POST", body: formData, signal: controller.signal });
       clearTimeout(to);
 
       let data = {};
       let raw = await res.text();
-      try{ data = JSON.parse(raw); } catch{ data = { error: `Resposta inválida (${res.status})` }; }
+      try{ data = JSON.parse(raw); } catch{ data = { error: \`Resposta inválida (\${res.status})\` }; }
 
       clearInterval(interval);
       progressBar.style.width = "100%";
@@ -1077,7 +1339,7 @@
       pararTimerTranscricao();
 
       if (!res.ok){
-        throw new Error(data.detail || data.error || `Erro ${res.status}`);
+        throw new Error(data.detail || data.error || \`Erro \${res.status}\`);
       }
 
       const srtUrl = toAbsUrl(data.srt_url);
@@ -1124,7 +1386,7 @@
   function toAbsUrl(url){
     if (!url) return "";
     if (/^https?:\/\//i.test(url)) return url;
-    return `${API_BASE}${url.startsWith("/") ? "" : "/"}${url}`;
+    return \`\${API_BASE}\${url.startsWith("/") ? "" : "/"}\${url}\`;
   }
 
   // =========================
@@ -1165,15 +1427,15 @@
       a.href = url; a.download = "transcricao.json"; a.click();
       URL.revokeObjectURL(url);
     } else if (type === 'srt'){
-      const lines = text.split('\n');
+      const lines = text.split('\\n');
       let srt = '', count = 1;
       for (let line of lines){
-        const match = line.match(/^\[(\d{2}):(\d{2})\]\s*(.+)$/);
+        const match = line.match(/^\\[(\\d{2}):(\\d{2})\\]\\s*(.+)$/);
         if (match){
           const [, min, sec, content] = match;
-          const start = `00:${min}:${sec},000`;
-          const end = `00:${min}:${String(Math.min(59, parseInt(sec) + 2)).padStart(2, '0')},000`;
-          srt += `${count}\n${start} --> ${end}\n${content}\n\n`;
+          const start = \`00:\${min}:\${sec},000\`;
+          const end = \`00:\${min}:\${String(Math.min(59, parseInt(sec) + 2)).padStart(2, '0')},000\`;
+          srt += \`\${count}\\n\${start} --> \${end}\\n\${content}\\n\\n\`;
           count++;
         }
       }
@@ -1190,14 +1452,14 @@
   // =========================
   async function partilharWhatsapp(){
     const textoDaTranscricao = (document.getElementById("transcriptionText").value || "").trim();
-    const assinatura = "\n\n🔗 Transcrito com Ouviescrevi: https://ouviescrevi.pt";
-    const shareBody = textoDaTranscricao ? `${textoDaTranscricao}${assinatura}` : assinatura;
+    const assinatura = "\\n\\n🔗 Transcrito com Ouviescrevi: https://ouviescrevi.pt";
+    const shareBody = textoDaTranscricao ? \`\${textoDaTranscricao}\${assinatura}\` : assinatura;
 
     const waUrl = "https://api.whatsapp.com/send?text=" + encodeURIComponent(shareBody);
-    window.open(waUrl, "_blank");
+    window.open(waUrl, "_blank", "noopener,noreferrer");
 
     try{
-      await fetch(`${API_BASE}/notify-whatsapp-share`, {
+      await fetch(\`\${API_BASE}/notify-whatsapp-share\`, {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
         body: JSON.stringify({
@@ -1209,11 +1471,11 @@
     }catch(err){
       const subject = encodeURIComponent("Notificação: Partilha no WhatsApp");
       const body = encodeURIComponent(
-        `Alguém clicou em "Partilhar no WhatsApp".\n\n` +
-        `Data: ${new Date().toLocaleString()}\n\n` +
-        `Pré-visualização do texto:\n${shareBody.slice(0,1000)}`
+        \`Alguém clicou em "Partilhar no WhatsApp".\\n\\n\` +
+        \`Data: \${new Date().toLocaleString()}\\n\\n\` +
+        \`Pré-visualização do texto:\\n\${shareBody.slice(0,1000)}\`
       );
-      window.open(`mailto:${ADMIN_EMAIL}?subject=${subject}&body=${body}`, "_blank");
+      window.open(\`mailto:\${ADMIN_EMAIL}?subject=\${subject}&body=\${body}\`, "_blank", "noopener,noreferrer");
     }
   }
 
@@ -1256,7 +1518,7 @@
       timer.classList.remove("hidden");
       let segundos = 0;
       timerInterval = setInterval(() => {
-        segundos++; timer.textContent = `⏱️ ${formatMMSS(segundos)}`;
+        segundos++; timer.textContent = \`⏱️ \${formatMMSS(segundos)}\`;
       }, 1000);
     };
 
@@ -1283,7 +1545,7 @@
       const blob = new Blob(audioChunks, { type: mime });
 
       const formData = new FormData();
-      formData.append("file", blob, `gravacao.${ext}`);
+      formData.append("file", blob, \`gravacao.\${ext}\`);
 
       status.textContent = "🕐 A processar o áudio...";
       loading.classList.remove("hidden");
@@ -1292,17 +1554,17 @@
       iniciarTimerTranscricao();
 
       let p = 0;
-      const anim = setInterval(() => { if (p < 90) { p += Math.random() * 5; progressBar.style.width = `${p.toFixed(1)}%`; } }, 200);
+      const anim = setInterval(() => { if (p < 90) { p += Math.random() * 5; progressBar.style.width = \`\${p.toFixed(1)}%\`; } }, 200);
 
       try{
         const controller = new AbortController();
         const to = setTimeout(() => controller.abort(), 130000);
-        const res = await fetch(`${API_BASE}/transcribe`, { method:"POST", body: formData, signal: controller.signal });
+        const res = await fetch(\`\${API_BASE}/transcribe\`, { method:"POST", body: formData, signal: controller.signal });
         clearTimeout(to);
 
         let data = {};
         let txt = await res.text();
-        try{ data = JSON.parse(txt); } catch{ data = { error: `Resposta inválida (${res.status})` }; }
+        try{ data = JSON.parse(txt); } catch{ data = { error: \`Resposta inválida (\${res.status})\` }; }
 
         transcriptionText.value = data.formatted || data.transcription || "⚠️ Erro ao transcrever.";
         output.classList.remove("hidden");
@@ -1330,13 +1592,12 @@
     form.dispatchEvent(new Event("submit", { bubbles:true, cancelable:true }));
   }
 
-  async function classificarConteudo(){
+  async function classificarConteudo(btn){
     const text = transcriptionText.value.trim();
     if (!text) return alert("⚠️ Transcrição vazia.");
-    const btn = event.target.closest("button");
     const original = btn.innerHTML; btn.innerHTML = "<span>📚 A classificar...</span>"; btn.disabled = true;
     try{
-      const res = await fetch(`${API_BASE}/classify`, {
+      const res = await fetch(\`\${API_BASE}/classify\`, {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
         body: JSON.stringify({ text, token: API_TOKEN })
@@ -1344,7 +1605,7 @@
       const data = await res.json();
       const box = document.getElementById("classificacaoBox");
       document.getElementById("classificacaoTexto").textContent =
-        data.type ? `🔎 ${data.type}` : (data.error ? `❌ Erro: ${data.error}` : "❌ Erro inesperado.");
+        data.type ? \`🔎 \${data.type}\` : (data.error ? \`❌ Erro: \${data.error}\` : "❌ Erro inesperado.");
       box.classList.remove("hidden");
     }catch{
       const box = document.getElementById("classificacaoBox");
@@ -1355,7 +1616,7 @@
     }
   }
 
-  async function corrigirTextoIA(){
+  async function corrigirTextoIA(btn){
     const text = transcriptionText.value.trim();
     if (!text) return alert("⚠️ Transcrição vazia.");
 
@@ -1391,11 +1652,10 @@
       win.document.close();
     }
 
-    const btn = event.target.closest("button");
     const original = btn.innerHTML; btn.innerHTML = "<span>📝 A corrigir...</span>"; btn.disabled = true;
 
     try{
-      const res = await fetch(`${API_BASE}/correct`, {
+      const res = await fetch(\`\${API_BASE}/correct\`, {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
         body: JSON.stringify({ text, token: API_TOKEN })
@@ -1433,13 +1693,12 @@
     }
   }
 
-  async function gerarMinuta(){
+  async function gerarMinuta(btn){
     const text = transcriptionText.value.trim();
     if (!text) return alert("⚠️ Transcrição vazia.");
-    const btn = event.target.closest("button");
     const original = btn.innerHTML; btn.innerHTML = "<span>📩 A gerar minuta...</span>"; btn.disabled = true;
     try{
-      const res = await fetch(`${API_BASE}/summarize`, {
+      const res = await fetch(\`\${API_BASE}/summarize\`, {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
         body: JSON.stringify({ text, mode:"minuta", token: API_TOKEN })
@@ -1464,7 +1723,7 @@
     const btn = e?.target?.closest("button") || document.querySelector("#btnGerarResumo");
     const original = btn.innerHTML; btn.innerHTML = "<span>🧠 A gerar resumo...</span>"; btn.disabled = true;
     try{
-      const res = await fetch(`${API_BASE}/summarize`, {
+      const res = await fetch(\`\${API_BASE}/summarize\`, {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
         body: JSON.stringify({ text, token: API_TOKEN })
@@ -1479,11 +1738,10 @@
     finally{ btn.innerHTML = original; btn.disabled = false; }
   }
 
-  async function gerarEmailIA(){
+  async function gerarEmailIA(btn){
     const text = transcriptionText.value.trim();
     if (!text) return alert("⚠️ Transcrição/Resumo vazio.");
     const tone = "formal";
-    const btn = event.target.closest("button");
     const original = btn.innerHTML; btn.innerHTML = "<span>📧 A gerar email...</span>"; btn.disabled = true;
 
     const win = window.open("", "emailGerado", "width=640,height=560");
@@ -1515,7 +1773,7 @@
     }
 
     try{
-      const res = await fetch(`${API_BASE}/generate-email`, {
+      const res = await fetch(\`\${API_BASE}/generate-email\`, {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
         body: JSON.stringify({ text, token: API_TOKEN, tone })
@@ -1551,18 +1809,18 @@
   }
 
   function aplicarLocutores(transcricao){
-    const linhas = transcricao.split('\n');
+    const linhas = transcricao.split('\\n');
     let resultado = '';
     let locutorAtual = 'João';
     for (let i = 0; i < linhas.length; i++){
       const linha = linhas[i].trim();
       if (!linha) continue;
-      const nova = linha.replace(/^\[(\d{2}:\d{2})\]/, (m, ts) => {
+      const nova = linha.replace(/^\\[(\\d{2}:\\d{2})\\]/, (m, ts) => {
         const nome = locutorAtual;
         locutorAtual = locutorAtual === 'João' ? 'Maria' : 'João';
-        return `[${ts}] ${nome}:`;
+        return \`[\${ts}] \${nome}:\`;
       });
-      resultado += nova + '\n';
+      resultado += nova + '\\n';
     }
     return resultado.trim();
   }
@@ -1573,37 +1831,36 @@
     if (e.target.id === "modalTraducao") fecharModalTraducao();
   });
 
-  async function traduzirTextoComIdioma(event, idioma){
+  async function traduzirTextoComIdioma(btn, idioma){
     fecharModalTraducao();
     const texto = transcriptionText.value.trim();
     if (!texto) return alert("⚠️ Transcrição vazia.");
     const status = document.getElementById("traducaoStatus");
-    const progressBar = document.getElementById("traducaoProgressBar");
+    const progressBar2 = document.getElementById("traducaoProgressBar");
     const progressWrapper = document.getElementById("traducaoProgressWrapper");
 
     status.classList.remove("hidden");
     status.textContent = "🌍 A traduzir... por favor aguarda";
     progressWrapper.classList.remove("hidden");
-    progressBar.style.width = "0%";
+    progressBar2.style.width = "0%";
 
     let p = 0;
     const interval = setInterval(() => {
-      if (p < 90){ p += Math.random() * 5; progressBar.style.width = `${p}%`; }
+      if (p < 90){ p += Math.random() * 5; progressBar2.style.width = \`\${p}%\`; }
     }, 200);
 
-    const btn = event.target;
     const originalText = btn.textContent || "🌍 Traduzir";
     btn.textContent = "🌍 A traduzir..."; btn.disabled = true;
 
     try{
-      const res = await fetch(`${API_BASE}/translate`, {
+      const res = await fetch(\`\${API_BASE}/translate\`, {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
         body: JSON.stringify({ text: texto, language: idioma, token: API_TOKEN })
       });
       const data = await res.json();
       clearInterval(interval);
-      progressBar.style.width = "100%";
+      progressBar2.style.width = "100%";
       if (data.translation){
         transcriptionText.value = data.translation;
         document.getElementById("traducaoTexto").textContent = data.translation;
@@ -1618,7 +1875,7 @@
       setTimeout(() => {
         status.classList.add("hidden");
         progressWrapper.classList.add("hidden");
-        progressBar.style.width = "0%";
+        progressBar2.style.width = "0%";
       }, 1200);
       btn.textContent = originalText; btn.disabled = false;
       scrollSeInvisivel("traducaoBox");
@@ -1710,7 +1967,7 @@
     });
 
     function handleFileSelected(file, labelEl){
-      labelEl.textContent = `Ficheiro: ${file.name}`;
+      labelEl.textContent = \`Ficheiro: \${file.name}\`;
       const isVid = isVideoFile(file);
       btnLegendarVideo.disabled = !isVid;
 
@@ -1735,9 +1992,9 @@
     // Ticker de atualizações com data de hoje
     const dataHoje = new Date().toLocaleDateString('pt-PT');
     const updates = [
-      `🆕 ${dataHoje} – Partilhar no WhatsApp disponível`,
-      `🆕 ${dataHoje} – Legendar vídeo (SRT + MP4)`,
-      `🆕 ${dataHoje} – Estilos de legendas + pré-visualização`
+      \`🆕 \${dataHoje} – Partilhar no WhatsApp disponível\`,
+      \`🆕 \${dataHoje} – Legendar vídeo (SRT + MP4)\`,
+      \`🆕 \${dataHoje} – Estilos de legendas + pré-visualização\`
     ];
     const track = document.getElementById("updatesTrack");
     track.innerHTML = `
@@ -1793,6 +2050,143 @@
       setTimeout(() => exportText(type), 0);
     });
   })();
+
+  // Feedback FAB logic — agora só inicializa quando o DOM existe
+  document.addEventListener('DOMContentLoaded', () => {
+    (function feedbackWidget(){
+      const fab   = document.getElementById('feedbackFab');
+      const modal = document.getElementById('feedbackModal');
+      const nudge = document.getElementById('feedbackNudge');
+      if (!fab || !modal || !nudge) return;
+
+      const overlay = modal.querySelector('.fb-overlay');
+      const closeBtns = modal.querySelectorAll('[data-close]');
+      const sendBtn = document.getElementById('fbSend');
+      const ta = document.getElementById('fbText');
+      const email = document.getElementById('fbEmail');
+      const counter = document.getElementById('fbCounter');
+      const status = document.getElementById('fbStatus');
+
+      const MAX = 500;
+      const MIN = 6;
+      const COOLDOWN_SEC = 15;
+
+      // Show one-time nudge
+      if (!localStorage.getItem('fb_nudge_seen')){
+        setTimeout(() => {
+          nudge.classList.add('fb-show');
+          setTimeout(() => {
+            nudge.classList.remove('fb-show');
+            localStorage.setItem('fb_nudge_seen','1');
+          }, 4500);
+        }, 2200);
+      }
+
+      const open = () => {
+        modal.classList.remove('fb-hidden');
+        modal.setAttribute('aria-hidden','false');
+        status.hidden = true; status.textContent = '';
+        setTimeout(() => ta.focus(), 60);
+      };
+      const close = () => {
+        modal.classList.add('fb-hidden');
+        modal.setAttribute('aria-hidden','true');
+        ta.value=''; email.value=''; counter.textContent='0/500';
+        sendBtn.disabled = false; sendBtn.textContent = '✉️ Enviar';
+        status.hidden = true; status.textContent = '';
+      };
+
+      fab.addEventListener('click', open);
+      overlay.addEventListener('click', close);
+      closeBtns.forEach(b => b.addEventListener('click', close));
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modal.classList.contains('fb-hidden')) close(); });
+
+      ta.addEventListener('input', () => {
+        if (ta.value.length > MAX) ta.value = ta.value.slice(0, MAX);
+        counter.textContent = \`\${ta.value.length}/\${MAX}\`;
+      });
+
+      async function sendFeedback(){
+        const msg = ta.value.trim();
+        if (msg.length < MIN){
+          status.hidden = false;
+          status.textContent = '⚠️ Escreve pelo menos 6 caracteres.';
+          return;
+        }
+
+        // cooldown basico
+        const last = Number(localStorage.getItem('fb_last')) || 0;
+        const now = Date.now();
+        if ((now - last)/1000 < COOLDOWN_SEC){
+          status.hidden = false;
+          status.textContent = '⏳ Um momento… já podes enviar novamente dentro de alguns segundos.';
+          return;
+        }
+
+        sendBtn.disabled = true;
+        sendBtn.textContent = 'A enviar…';
+        status.hidden = false;
+        status.textContent = '🚀 A enviar a tua sugestão… obrigado!';
+
+        try{
+          const res = await fetch(\`\${API_BASE}/api/feedback\`, {
+            method: 'POST',
+            headers: { 'Content-Type':'application/json' },
+            body: JSON.stringify({
+              token: API_TOKEN,
+              message: msg,
+              email: (email.value || '').trim(),
+              page: location.href
+            })
+          });
+          const data = await res.json();
+          if (!res.ok || !data.ok){
+            throw new Error(data.detail || data.error || \`Erro \${res.status}\`);
+          }
+
+          status.textContent = '✅ Obrigado! A tua sugestão foi enviada.';
+          localStorage.setItem('fb_last', String(Date.now()));
+          setTimeout(close, 1200);
+        }catch(err){
+          status.textContent = '❌ Não conseguimos enviar agora. Tenta novamente dentro de instantes.';
+          sendBtn.disabled = false;
+          sendBtn.textContent = '✉️ Enviar';
+        }
+      }
+
+      sendBtn.addEventListener('click', sendFeedback);
+      // Ctrl/Cmd + Enter para enviar
+      ta.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') sendFeedback();
+      });
+    })();
+  });
 </script>
+
+<!-- Feedback Floating Button + Modal -->
+<div id="feedbackFab" aria-label="Enviar sugestões" title="Envia-nos ideias ✨">
+  <span class="wave">👋</span>
+</div>
+
+<div id="feedbackNudge" role="status" aria-live="polite">Diz olá e dá-nos a tua ideia ✨</div>
+
+<div id="feedbackModal" class="fb-hidden" aria-hidden="true">
+  <div class="fb-overlay" data-close="1"></div>
+  <div class="fb-card" role="dialog" aria-modal="true" aria-labelledby="fbTitle">
+    <button class="fb-close" type="button" data-close="1" aria-label="Fechar">✖</button>
+    <h3 id="fbTitle">💬 Queremos melhorar todos os dias</h3>
+    <p class="fb-sub">Conta-nos, em 1–2 frases, o que melhorarias ou o que te fez falta. Obrigado! 🙏</p>
+    <label class="fb-label">A tua sugestão</label>
+    <textarea id="fbText" rows="5" placeholder="Ex.: Seria útil exportar para XLSX…"></textarea>
+    <div class="fb-meta"><small id="fbCounter">0/500</small></div>
+    <label class="fb-label">Email (opcional)</label>
+    <input id="fbEmail" type="email" placeholder="o.teu@email.com (opcional)"/>
+    <div class="fb-actions">
+      <button id="fbSend" type="button">✉️ Enviar</button>
+      <button type="button" class="fb-ghost" data-close="1">Cancelar</button>
+    </div>
+    <p id="fbStatus" class="fb-status" hidden></p>
+  </div>
+</div>
 </body>
 </html>
