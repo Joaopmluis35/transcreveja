@@ -1768,7 +1768,7 @@
   document.body.appendChild(footerMount);
   fetch("footer.html").then(res => res.text()).then(html => document.getElementById("footer").innerHTML = html);
 
-  // botão “Gerar Resumo”
+  // botão “Gerar Resumo”...
   document.getElementById("btnGerarResumo").addEventListener("click", gerarResumo);
 
   // ▼ Exportar: robusto para mobile (pointer events) + fecha ao selecionar opção/fora/Escape
