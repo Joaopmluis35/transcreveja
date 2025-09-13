@@ -46,7 +46,7 @@
       gap: 8px;
       margin: 0 28px;
       font-weight: 700;
-      color: #fff;
+      color: black;
       text-shadow: 0 1px 0 rgba(0,0,0,.15);
     }
     .ticker__dot {
@@ -281,6 +281,7 @@
     }
 	/* ── FAB + Painel de Sugestões ───────────────────────────── */
 #fabSugestao{
+    width: fit-content;
   position:fixed; right:18px; bottom:18px; z-index:1000;
   background:#A550F7; color:#fff; border:none; border-radius:999px;
   padding:12px 14px; font-weight:700; box-shadow:0 8px 24px rgba(0,0,0,.25);
@@ -300,7 +301,7 @@
 #sugestaoPanel.open{ transform:translateY(0) scale(1); opacity:1; pointer-events:auto; }
 #sugestaoPanel h4{ margin:0 0 8px 0; }
 #sugestaoPanel textarea{
-  width:100%; min-height:110px; padding:10px; resize:vertical;
+  width:90%; min-height:110px; padding:10px; resize:vertical;
   border:2px solid #A550F7; border-radius:10px; font:inherit; color:#333;
   background:#fdfdfd;
 }
