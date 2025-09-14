@@ -1190,7 +1190,9 @@
 
     try{
       const controller = new AbortController();
-      const to = setTimeout(() => controller.abort(), 180000); // até ~3min
+      // de 3 min → 12 min (ou o que quiseres)
+const to = setTimeout(() => controller.abort(), 12 * 60 * 1000);
+
       const res = await fetch(`${API_BASE}/video-subs`, { method:"POST", body: formData, signal: controller.signal });
       clearTimeout(to);
 
