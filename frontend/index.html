@@ -332,6 +332,82 @@
       }
       .preview-wrap{ grid-template-columns: 1fr; }
     }
+	/* Botão flutuante redondo */
+#fabSugestao {
+  position: fixed;
+  bottom: 20px; 
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #A550F7;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+/* mão sempre a acenar */
+#fabSugestao .hand {
+  display: inline-block;
+  transform-origin: 70% 70%;
+  animation: wave 1.8s infinite;
+}
+@keyframes wave {
+  0% { transform: rotate(0deg); }
+  10% { transform: rotate(14deg); }
+  20% { transform: rotate(-8deg); }
+  30% { transform: rotate(14deg); }
+  40% { transform: rotate(-4deg); }
+  50% { transform: rotate(10deg); }
+  60%,100% { transform: rotate(0deg); }
+}
+
+/* Popup sugestão */
+#sugestaoPanel {
+  position: fixed;
+  bottom: 90px; 
+  right: 20px;
+  max-width: 320px;
+  width: 90%;
+  background: #fff;
+  color: #333;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.3);
+  z-index: 1000;
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+#sugestaoPanel.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+#sugestaoPanel .sug-card textarea {
+  width: 90%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  margin: 10px 0;
+}
+#sugestaoPanel .sug-card button {
+  margin-top: 6px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+#enviarSugestao { background:#A550F7; color:#fff; font-weight:bold; }
+#fecharSugestao { background:#ddd; }
+
   </style>
 </head>
 <body>
@@ -594,6 +670,22 @@
     </div>
     <p>Começa agora gratuitamente. Simples, seguro e feito em Portugal 🇵🇹</p>
   </section>
+  <!-- Botão sugestão no canto inferior direito -->
+<button id="fabSugestao" aria-controls="sugestaoPanel" aria-expanded="false">
+  <span class="hand" aria-hidden="true">👋</span>
+</button>
+
+<!-- Painel de sugestão -->
+<div id="sugestaoPanel">
+  <div class="sug-card">
+    <h3>💡 A tua sugestão</h3>
+    <p>Queremos evoluir todos os dias. Deixa aqui a tua ideia 👇</p>
+    <textarea id="sugestaoTexto" placeholder="Escreve a tua sugestão..." rows="4"></textarea>
+    <button id="enviarSugestao">📩 Enviar</button>
+    <button id="fecharSugestao">❌ Fechar</button>
+  </div>
+</div>
+
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1793,6 +1885,28 @@
       setTimeout(() => exportText(type), 0);
     });
   })();
+  const fab = document.getElementById("fabSugestao");
+const painel = document.getElementById("sugestaoPanel");
+const enviarBtn = document.getElementById("enviarSugestao");
+const fecharBtn = document.getElementById("fecharSugestao");
+
+fab.addEventListener("click", () => {
+  painel.classList.toggle("show");
+});
+
+fecharBtn.addEventListener("click", () => painel.classList.remove("show"));
+
+enviarBtn.addEventListener("click", () => {
+  const txt = document.getElementById("sugestaoTexto").value.trim();
+  if (!txt) {
+    alert("⚠️ Escreve algo antes de enviar.");
+    return;
+  }
+  alert("✅ Obrigado pela tua sugestão!");
+  document.getElementById("sugestaoTexto").value = "";
+  painel.classList.remove("show");
+});
+
 </script>
 </body>
 </html>
