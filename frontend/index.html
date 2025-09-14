@@ -1178,16 +1178,10 @@
   // =========================
   btnLegendarVideo.addEventListener("click", legendarVideo);
 
-  async function legendarVideo(){
+ async function legendarVideo(){
   const file = document.getElementById("fileInput").files[0];
   if (!file){ return alert("⚠️ Nenhum ficheiro selecionado."); }
   if (!isVideoFile(file)){ return alert("⚠️ Esta opção é apenas para ficheiros de vídeo."); }
-
-  // 👇 Scroll automático até ao status
-  document.getElementById("transcricaoStatus")?.scrollIntoView({ 
-    behavior: "smooth", 
-    block: "center" 
-  });
 
   // evita double-clicks antes do disabled aplicar
   if (btnLegendarVideo.dataset.busy === "1") return;
@@ -1197,8 +1191,19 @@
   output.classList.add("hidden");
   document.getElementById("legendasBox").classList.add("hidden");
   document.getElementById("legendasWarn").classList.add("hidden");
+
+  // mostra primeiro o loading…
   loading.classList.remove("hidden");
   progressBar.style.width = "0%";
+
+  // …e só depois rola até ao status
+  requestAnimationFrame(() => {
+    const status = document.getElementById("transcricaoStatus");
+    const offset = document.querySelector(".ticker")?.offsetHeight || 0;
+    const y = status.getBoundingClientRect().top + window.pageYOffset - offset - 12;
+    window.scrollTo({ top: y, behavior: "smooth" });
+  });
+
   iniciarFrasesAnimadas(statusEl);
   iniciarTimerTranscricao();
 
@@ -1209,45 +1214,38 @@
   // progresso "fake"
   let p = 0;
   const interval = setInterval(() => {
-    if (p < 90){ 
-      p += Math.random() * 5; 
-      progressBar.style.width = `${p.toFixed(1)}%`; 
+    if (p < 90){
+      p += Math.random() * 5;
+      progressBar.style.width = `${p.toFixed(1)}%`;
     }
   }, 200);
 
   const formData = new FormData();
   formData.append("file", file);
-  // parâmetros de estilo (JSON)
   formData.append("style", JSON.stringify(getStyle()));
-  // opcional: token
   formData.append("token", API_TOKEN);
 
   try {
     const controller = new AbortController();
-    const to = setTimeout(() => controller.abort(), 180000); // até ~3min
-    const res = await fetch(`${API_BASE}/video-subs`, { 
-      method:"POST", 
-      body: formData, 
-      signal: controller.signal 
+    const to = setTimeout(() => controller.abort(), 180000);
+    const res = await fetch(`${API_BASE}/video-subs`, {
+      method: "POST",
+      body: formData,
+      signal: controller.signal
     });
     clearTimeout(to);
 
     let data = {};
     let raw = await res.text();
-    try { 
-      data = JSON.parse(raw); 
-    } catch { 
-      data = { error: `Resposta inválida (${res.status})` }; 
-    }
+    try { data = JSON.parse(raw); }
+    catch { data = { error: `Resposta inválida (${res.status})` }; }
 
     clearInterval(interval);
     progressBar.style.width = "100%";
     pararFrasesAnimadas(statusEl);
     pararTimerTranscricao();
 
-    if (!res.ok){
-      throw new Error(data.detail || data.error || `Erro ${res.status}`);
-    }
+    if (!res.ok) throw new Error(data.detail || data.error || `Erro ${res.status}`);
 
     const srtUrl = toAbsUrl(data.srt_url);
     const mp4Url = data.video_url ? toAbsUrl(data.video_url) : null;
@@ -1271,7 +1269,7 @@
     output.classList.remove("hidden");
     statusEl.textContent = "✅ Legendas geradas com sucesso!";
 
-  } catch(err) {
+  } catch (err) {
     clearInterval(interval);
     progressBar.style.width = "100%";
     pararFrasesAnimadas(statusEl);
@@ -1283,18 +1281,19 @@
     warn.textContent = "❌ " + (err.message || "Erro inesperado ao comunicar com a API.");
     warn.classList.remove("hidden");
   } finally {
-  setTimeout(() => { 
-    loading.classList.add("hidden"); 
-    progressBar.style.width = "0%"; 
-  }, 800);
-  btnTranscrever.disabled = false;
-  btnStartRec.disabled = false;
-  btnLegendarVideo.disabled = !isVideoFile(file);
+    setTimeout(() => {
+      loading.classList.add("hidden");
+      progressBar.style.width = "0%";
+    }, 800);
+    btnTranscrever.disabled = false;
+    btnStartRec.disabled = false;
+    btnLegendarVideo.disabled = !isVideoFile(file);
 
-  // 🔧 importante:
-  delete btnLegendarVideo.dataset.busy;
+    // 🔧 importante:
+    delete btnLegendarVideo.dataset.busy;
+  }
 }
-}
+
 
 
   function toAbsUrl(url){
