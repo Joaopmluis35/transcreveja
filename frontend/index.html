@@ -1171,95 +1171,120 @@
   btnLegendarVideo.addEventListener("click", legendarVideo);
 
   async function legendarVideo(){
-    const file = document.getElementById("fileInput").files[0];
-    if (!file){ return alert("⚠️ Nenhum ficheiro selecionado."); }
-    if (!isVideoFile(file)){ return alert("⚠️ Esta opção é apenas para ficheiros de vídeo."); }
+  const file = document.getElementById("fileInput").files[0];
+  if (!file){ return alert("⚠️ Nenhum ficheiro selecionado."); }
+  if (!isVideoFile(file)){ return alert("⚠️ Esta opção é apenas para ficheiros de vídeo."); }
 
-    // reset UI
-    output.classList.add("hidden");
-    document.getElementById("legendasBox").classList.add("hidden");
-    document.getElementById("legendasWarn").classList.add("hidden");
-    loading.classList.remove("hidden");
-    progressBar.style.width = "0%";
-    iniciarFrasesAnimadas(statusEl);
-    iniciarTimerTranscricao();
+  // 👇 Scroll automático até ao status
+  document.getElementById("transcricaoStatus")?.scrollIntoView({ 
+    behavior: "smooth", 
+    block: "center" 
+  });
 
-    btnTranscrever.disabled = true;
-    btnStartRec.disabled = true;
-    btnLegendarVideo.disabled = true;
+  // evita double-clicks antes do disabled aplicar
+  if (btnLegendarVideo.dataset.busy === "1") return;
+  btnLegendarVideo.dataset.busy = "1";
 
-    // progresso "fake"
-    let p = 0;
-    const interval = setInterval(() => {
-      if (p < 90){ p += Math.random() * 5; progressBar.style.width = `${p.toFixed(1)}%`; }
-    }, 200);
+  // reset UI
+  output.classList.add("hidden");
+  document.getElementById("legendasBox").classList.add("hidden");
+  document.getElementById("legendasWarn").classList.add("hidden");
+  loading.classList.remove("hidden");
+  progressBar.style.width = "0%";
+  iniciarFrasesAnimadas(statusEl);
+  iniciarTimerTranscricao();
 
-    const formData = new FormData();
-    formData.append("file", file);
-    // parâmetros de estilo (JSON)
-    formData.append("style", JSON.stringify(getStyle()));
-    // opcional: token
-    formData.append("token", API_TOKEN);
+  btnTranscrever.disabled = true;
+  btnStartRec.disabled = true;
+  btnLegendarVideo.disabled = true;
 
-    try{
-      const controller = new AbortController();
-      const to = setTimeout(() => controller.abort(), 180000); // até ~3min
-      const res = await fetch(`${API_BASE}/video-subs`, { method:"POST", body: formData, signal: controller.signal });
-      clearTimeout(to);
-
-      let data = {};
-      let raw = await res.text();
-      try{ data = JSON.parse(raw); } catch{ data = { error: `Resposta inválida (${res.status})` }; }
-
-      clearInterval(interval);
-      progressBar.style.width = "100%";
-      pararFrasesAnimadas(statusEl);
-      pararTimerTranscricao();
-
-      if (!res.ok){
-        throw new Error(data.detail || data.error || `Erro ${res.status}`);
-      }
-
-      const srtUrl = toAbsUrl(data.srt_url);
-      const mp4Url = data.video_url ? toAbsUrl(data.video_url) : null;
-
-      document.getElementById("srtDownload").href = srtUrl;
-      const mp4Btn = document.getElementById("mp4Download");
-      if (mp4Url){
-        mp4Btn.href = mp4Url;
-        mp4Btn.classList.remove("hidden");
-      } else {
-        mp4Btn.classList.add("hidden");
-      }
-
-      if (data.warning){
-        const warn = document.getElementById("legendasWarn");
-        warn.textContent = "ℹ️ " + data.warning;
-        warn.classList.remove("hidden");
-      }
-
-      document.getElementById("legendasBox").classList.remove("hidden");
-      output.classList.remove("hidden");
-      statusEl.textContent = "✅ Legendas geradas com sucesso!";
-
-    } catch(err){
-      clearInterval(interval);
-      progressBar.style.width = "100%";
-      pararFrasesAnimadas(statusEl);
-      pararTimerTranscricao();
-
-      output.classList.remove("hidden");
-      statusEl.textContent = "❌ Não foi possível gerar as legendas.";
-      const warn = document.getElementById("legendasWarn");
-      warn.textContent = "❌ " + (err.message || "Erro inesperado ao comunicar com a API.");
-      warn.classList.remove("hidden");
-    } finally{
-      setTimeout(() => { loading.classList.add("hidden"); progressBar.style.width = "0%"; }, 800);
-      btnTranscrever.disabled = false;
-      btnStartRec.disabled = false;
-      btnLegendarVideo.disabled = !isVideoFile(file);
+  // progresso "fake"
+  let p = 0;
+  const interval = setInterval(() => {
+    if (p < 90){ 
+      p += Math.random() * 5; 
+      progressBar.style.width = `${p.toFixed(1)}%`; 
     }
+  }, 200);
+
+  const formData = new FormData();
+  formData.append("file", file);
+  // parâmetros de estilo (JSON)
+  formData.append("style", JSON.stringify(getStyle()));
+  // opcional: token
+  formData.append("token", API_TOKEN);
+
+  try {
+    const controller = new AbortController();
+    const to = setTimeout(() => controller.abort(), 180000); // até ~3min
+    const res = await fetch(`${API_BASE}/video-subs`, { 
+      method:"POST", 
+      body: formData, 
+      signal: controller.signal 
+    });
+    clearTimeout(to);
+
+    let data = {};
+    let raw = await res.text();
+    try { 
+      data = JSON.parse(raw); 
+    } catch { 
+      data = { error: `Resposta inválida (${res.status})` }; 
+    }
+
+    clearInterval(interval);
+    progressBar.style.width = "100%";
+    pararFrasesAnimadas(statusEl);
+    pararTimerTranscricao();
+
+    if (!res.ok){
+      throw new Error(data.detail || data.error || `Erro ${res.status}`);
+    }
+
+    const srtUrl = toAbsUrl(data.srt_url);
+    const mp4Url = data.video_url ? toAbsUrl(data.video_url) : null;
+
+    document.getElementById("srtDownload").href = srtUrl;
+    const mp4Btn = document.getElementById("mp4Download");
+    if (mp4Url){
+      mp4Btn.href = mp4Url;
+      mp4Btn.classList.remove("hidden");
+    } else {
+      mp4Btn.classList.add("hidden");
+    }
+
+    if (data.warning){
+      const warn = document.getElementById("legendasWarn");
+      warn.textContent = "ℹ️ " + data.warning;
+      warn.classList.remove("hidden");
+    }
+
+    document.getElementById("legendasBox").classList.remove("hidden");
+    output.classList.remove("hidden");
+    statusEl.textContent = "✅ Legendas geradas com sucesso!";
+
+  } catch(err) {
+    clearInterval(interval);
+    progressBar.style.width = "100%";
+    pararFrasesAnimadas(statusEl);
+    pararTimerTranscricao();
+
+    output.classList.remove("hidden");
+    statusEl.textContent = "❌ Não foi possível gerar as legendas.";
+    const warn = document.getElementById("legendasWarn");
+    warn.textContent = "❌ " + (err.message || "Erro inesperado ao comunicar com a API.");
+    warn.classList.remove("hidden");
+  } finally {
+    setTimeout(() => { 
+      loading.classList.add("hidden"); 
+      progressBar.style.width = "0%"; 
+    }, 800);
+    btnTranscrever.disabled = false;
+    btnStartRec.disabled = false;
+    btnLegendarVideo.disabled = !isVideoFile(file);
   }
+}
+
 
   function toAbsUrl(url){
     if (!url) return "";
