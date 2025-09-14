@@ -264,8 +264,6 @@
   grid-template-columns: 1fr 1fr; /* controlos à esquerda | preview à direita */
   gap: 20px;
 }
-/* garante que "hidden" ganha do ID */
-#subtitlePanel.hidden { display: none !important; }
 
 #subtitlePanel h3{
   grid-column: 1 / -1;
@@ -832,12 +830,6 @@
     const ext = (file.name || "").split(".").pop().toLowerCase();
     return ["mp4","mov","m4v","mkv","avi","webm","ts","m2ts","flv"].includes(ext);
   }
-	function isMp4File(file){
-  if (!file) return false;
-  if (file.type) return file.type === "video/mp4";
-  const ext = (file.name || "").split(".").pop().toLowerCase();
-  return ext === "mp4";
-}
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -1178,123 +1170,96 @@
   // =========================
   btnLegendarVideo.addEventListener("click", legendarVideo);
 
- async function legendarVideo(){
-  const file = document.getElementById("fileInput").files[0];
-  if (!file){ return alert("⚠️ Nenhum ficheiro selecionado."); }
-  if (!isVideoFile(file)){ return alert("⚠️ Esta opção é apenas para ficheiros de vídeo."); }
+  async function legendarVideo(){
+    const file = document.getElementById("fileInput").files[0];
+    if (!file){ return alert("⚠️ Nenhum ficheiro selecionado."); }
+    if (!isVideoFile(file)){ return alert("⚠️ Esta opção é apenas para ficheiros de vídeo."); }
 
-  // evita double-clicks antes do disabled aplicar
-  if (btnLegendarVideo.dataset.busy === "1") return;
-  btnLegendarVideo.dataset.busy = "1";
+    // reset UI
+    output.classList.add("hidden");
+    document.getElementById("legendasBox").classList.add("hidden");
+    document.getElementById("legendasWarn").classList.add("hidden");
+    loading.classList.remove("hidden");
+    progressBar.style.width = "0%";
+    iniciarFrasesAnimadas(statusEl);
+    iniciarTimerTranscricao();
 
-  // reset UI
-  output.classList.add("hidden");
-  document.getElementById("legendasBox").classList.add("hidden");
-  document.getElementById("legendasWarn").classList.add("hidden");
+    btnTranscrever.disabled = true;
+    btnStartRec.disabled = true;
+    btnLegendarVideo.disabled = true;
 
-  // mostra primeiro o loading…
-  loading.classList.remove("hidden");
-  progressBar.style.width = "0%";
+    // progresso "fake"
+    let p = 0;
+    const interval = setInterval(() => {
+      if (p < 90){ p += Math.random() * 5; progressBar.style.width = `${p.toFixed(1)}%`; }
+    }, 200);
 
-  // …e só depois rola até ao status
-  requestAnimationFrame(() => {
-    const status = document.getElementById("transcricaoStatus");
-    const offset = document.querySelector(".ticker")?.offsetHeight || 0;
-    const y = status.getBoundingClientRect().top + window.pageYOffset - offset - 12;
-    window.scrollTo({ top: y, behavior: "smooth" });
-  });
+    const formData = new FormData();
+    formData.append("file", file);
+    // parâmetros de estilo (JSON)
+    formData.append("style", JSON.stringify(getStyle()));
+    // opcional: token
+    formData.append("token", API_TOKEN);
 
-  iniciarFrasesAnimadas(statusEl);
-  iniciarTimerTranscricao();
+    try{
+      const controller = new AbortController();
+      const to = setTimeout(() => controller.abort(), 180000); // até ~3min
+      const res = await fetch(`${API_BASE}/video-subs`, { method:"POST", body: formData, signal: controller.signal });
+      clearTimeout(to);
 
-  btnTranscrever.disabled = true;
-  btnStartRec.disabled = true;
-  btnLegendarVideo.disabled = true;
+      let data = {};
+      let raw = await res.text();
+      try{ data = JSON.parse(raw); } catch{ data = { error: `Resposta inválida (${res.status})` }; }
 
-  // progresso "fake"
-  let p = 0;
-  const interval = setInterval(() => {
-    if (p < 90){
-      p += Math.random() * 5;
-      progressBar.style.width = `${p.toFixed(1)}%`;
-    }
-  }, 200);
+      clearInterval(interval);
+      progressBar.style.width = "100%";
+      pararFrasesAnimadas(statusEl);
+      pararTimerTranscricao();
 
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("style", JSON.stringify(getStyle()));
-  formData.append("token", API_TOKEN);
+      if (!res.ok){
+        throw new Error(data.detail || data.error || `Erro ${res.status}`);
+      }
 
-  try {
-    const controller = new AbortController();
-    const to = setTimeout(() => controller.abort(), 180000);
-    const res = await fetch(`${API_BASE}/video-subs`, {
-      method: "POST",
-      body: formData,
-      signal: controller.signal
-    });
-    clearTimeout(to);
+      const srtUrl = toAbsUrl(data.srt_url);
+      const mp4Url = data.video_url ? toAbsUrl(data.video_url) : null;
 
-    let data = {};
-    let raw = await res.text();
-    try { data = JSON.parse(raw); }
-    catch { data = { error: `Resposta inválida (${res.status})` }; }
+      document.getElementById("srtDownload").href = srtUrl;
+      const mp4Btn = document.getElementById("mp4Download");
+      if (mp4Url){
+        mp4Btn.href = mp4Url;
+        mp4Btn.classList.remove("hidden");
+      } else {
+        mp4Btn.classList.add("hidden");
+      }
 
-    clearInterval(interval);
-    progressBar.style.width = "100%";
-    pararFrasesAnimadas(statusEl);
-    pararTimerTranscricao();
+      if (data.warning){
+        const warn = document.getElementById("legendasWarn");
+        warn.textContent = "ℹ️ " + data.warning;
+        warn.classList.remove("hidden");
+      }
 
-    if (!res.ok) throw new Error(data.detail || data.error || `Erro ${res.status}`);
+      document.getElementById("legendasBox").classList.remove("hidden");
+      output.classList.remove("hidden");
+      statusEl.textContent = "✅ Legendas geradas com sucesso!";
 
-    const srtUrl = toAbsUrl(data.srt_url);
-    const mp4Url = data.video_url ? toAbsUrl(data.video_url) : null;
+    } catch(err){
+      clearInterval(interval);
+      progressBar.style.width = "100%";
+      pararFrasesAnimadas(statusEl);
+      pararTimerTranscricao();
 
-    document.getElementById("srtDownload").href = srtUrl;
-    const mp4Btn = document.getElementById("mp4Download");
-    if (mp4Url){
-      mp4Btn.href = mp4Url;
-      mp4Btn.classList.remove("hidden");
-    } else {
-      mp4Btn.classList.add("hidden");
-    }
-
-    if (data.warning){
+      output.classList.remove("hidden");
+      statusEl.textContent = "❌ Não foi possível gerar as legendas.";
       const warn = document.getElementById("legendasWarn");
-      warn.textContent = "ℹ️ " + data.warning;
+      warn.textContent = "❌ " + (err.message || "Erro inesperado ao comunicar com a API.");
       warn.classList.remove("hidden");
+    } finally{
+      setTimeout(() => { loading.classList.add("hidden"); progressBar.style.width = "0%"; }, 800);
+      btnTranscrever.disabled = false;
+      btnStartRec.disabled = false;
+      btnLegendarVideo.disabled = !isVideoFile(file);
     }
-
-    document.getElementById("legendasBox").classList.remove("hidden");
-    output.classList.remove("hidden");
-    statusEl.textContent = "✅ Legendas geradas com sucesso!";
-
-  } catch (err) {
-    clearInterval(interval);
-    progressBar.style.width = "100%";
-    pararFrasesAnimadas(statusEl);
-    pararTimerTranscricao();
-
-    output.classList.remove("hidden");
-    statusEl.textContent = "❌ Não foi possível gerar as legendas.";
-    const warn = document.getElementById("legendasWarn");
-    warn.textContent = "❌ " + (err.message || "Erro inesperado ao comunicar com a API.");
-    warn.classList.remove("hidden");
-  } finally {
-    setTimeout(() => {
-      loading.classList.add("hidden");
-      progressBar.style.width = "0%";
-    }, 800);
-    btnTranscrever.disabled = false;
-    btnStartRec.disabled = false;
-    btnLegendarVideo.disabled = !isVideoFile(file);
-
-    // 🔧 importante:
-    delete btnLegendarVideo.dataset.busy;
   }
-}
-
-
 
   function toAbsUrl(url){
     if (!url) return "";
@@ -1861,10 +1826,6 @@
   // Drag & drop + header/footer + habilitar botão legendar conforme tipo + carregar vídeo no painel
   document.addEventListener("DOMContentLoaded", () => {
     const dropZone = document.getElementById("dropZone");
-	subEls.panel.classList.add('hidden');
-btnLegendarVideo.disabled = true;
-loadedVideoMeta = false;
-
     const fileInput = document.getElementById("fileInput");
     const fileNameDisplay = document.getElementById("fileName");
 
@@ -1889,39 +1850,27 @@ loadedVideoMeta = false;
     });
 
     function handleFileSelected(file, labelEl){
-  labelEl.textContent = `Ficheiro: ${file.name}`;
+      labelEl.textContent = `Ficheiro: ${file.name}`;
+      const isVid = isVideoFile(file);
+      btnLegendarVideo.disabled = !isVid;
 
-  const isVid  = isVideoFile(file);
-  const isMp4  = isMp4File(file);
-
-  // O botão "Legendar Vídeo" fica ativo para QUALQUER vídeo
-  btnLegendarVideo.disabled = !isVid;
-
-  // Só mostramos o painel de estilos se for MP4
-  if (isMp4){
-    if (videoObjectURL){ URL.revokeObjectURL(videoObjectURL); }
-    videoObjectURL = URL.createObjectURL(file);
-
-    const v = subEls.video;
-    v.src = videoObjectURL;
-    loadedVideoMeta = false;
-
-    v.onloadedmetadata = async () => {
-      loadedVideoMeta = true;
-      // NÃO abrir aqui – só desenhamos previews
-      await renderSubtitlePreviews();
-    };
-
-    // Abrimos o painel aqui (apenas para MP4)
-    subEls.panel.classList.remove('hidden');
-
-  } else {
-    // Qualquer coisa que não seja MP4 mantém o painel escondido
-    subEls.panel.classList.add('hidden');
-    loadedVideoMeta = false;
-  }
-}
-
+      // carregar vídeo para previews
+      if (isVid){
+        if (videoObjectURL){ URL.revokeObjectURL(videoObjectURL); }
+        videoObjectURL = URL.createObjectURL(file);
+        const v = subEls.video;
+        v.src = videoObjectURL;
+        loadedVideoMeta = false;
+        v.onloadedmetadata = async () => {
+          loadedVideoMeta = true;
+          subEls.panel.classList.remove('hidden');
+          await renderSubtitlePreviews();
+        };
+      } else {
+        subEls.panel.classList.add('hidden');
+        loadedVideoMeta = false;
+      }
+    }
 
     // Ticker de atualizações com data de hoje
     const dataHoje = new Date().toLocaleDateString('pt-PT');
