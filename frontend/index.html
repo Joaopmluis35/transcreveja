@@ -830,6 +830,12 @@
     const ext = (file.name || "").split(".").pop().toLowerCase();
     return ["mp4","mov","m4v","mkv","avi","webm","ts","m2ts","flv"].includes(ext);
   }
+	function isMp4File(file){
+  if (!file) return false;
+  if (file.type) return file.type === "video/mp4";
+  const ext = (file.name || "").split(".").pop().toLowerCase();
+  return ext === "mp4";
+}
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -1275,14 +1281,17 @@
     warn.textContent = "❌ " + (err.message || "Erro inesperado ao comunicar com a API.");
     warn.classList.remove("hidden");
   } finally {
-    setTimeout(() => { 
-      loading.classList.add("hidden"); 
-      progressBar.style.width = "0%"; 
-    }, 800);
-    btnTranscrever.disabled = false;
-    btnStartRec.disabled = false;
-    btnLegendarVideo.disabled = !isVideoFile(file);
-  }
+  setTimeout(() => { 
+    loading.classList.add("hidden"); 
+    progressBar.style.width = "0%"; 
+  }, 800);
+  btnTranscrever.disabled = false;
+  btnStartRec.disabled = false;
+  btnLegendarVideo.disabled = !isVideoFile(file);
+
+  // 🔧 importante:
+  delete btnLegendarVideo.dataset.busy;
+}
 }
 
 
@@ -1851,6 +1860,10 @@
   // Drag & drop + header/footer + habilitar botão legendar conforme tipo + carregar vídeo no painel
   document.addEventListener("DOMContentLoaded", () => {
     const dropZone = document.getElementById("dropZone");
+	subEls.panel.classList.add('hidden');
+btnLegendarVideo.disabled = true;
+loadedVideoMeta = false;
+
     const fileInput = document.getElementById("fileInput");
     const fileNameDisplay = document.getElementById("fileName");
 
@@ -1875,27 +1888,39 @@
     });
 
     function handleFileSelected(file, labelEl){
-      labelEl.textContent = `Ficheiro: ${file.name}`;
-      const isVid = isVideoFile(file);
-      btnLegendarVideo.disabled = !isVid;
+  labelEl.textContent = `Ficheiro: ${file.name}`;
 
-      // carregar vídeo para previews
-      if (isVid){
-        if (videoObjectURL){ URL.revokeObjectURL(videoObjectURL); }
-        videoObjectURL = URL.createObjectURL(file);
-        const v = subEls.video;
-        v.src = videoObjectURL;
-        loadedVideoMeta = false;
-        v.onloadedmetadata = async () => {
-          loadedVideoMeta = true;
-          subEls.panel.classList.remove('hidden');
-          await renderSubtitlePreviews();
-        };
-      } else {
-        subEls.panel.classList.add('hidden');
-        loadedVideoMeta = false;
-      }
-    }
+  const isVid  = isVideoFile(file);
+  const isMp4  = isMp4File(file);
+
+  // O botão "Legendar Vídeo" fica ativo para QUALQUER vídeo
+  btnLegendarVideo.disabled = !isVid;
+
+  // Só mostramos o painel de estilos se for MP4
+  if (isMp4){
+    if (videoObjectURL){ URL.revokeObjectURL(videoObjectURL); }
+    videoObjectURL = URL.createObjectURL(file);
+
+    const v = subEls.video;
+    v.src = videoObjectURL;
+    loadedVideoMeta = false;
+
+    v.onloadedmetadata = async () => {
+      loadedVideoMeta = true;
+      // NÃO abrir aqui – só desenhamos previews
+      await renderSubtitlePreviews();
+    };
+
+    // Abrimos o painel aqui (apenas para MP4)
+    subEls.panel.classList.remove('hidden');
+
+  } else {
+    // Qualquer coisa que não seja MP4 mantém o painel escondido
+    subEls.panel.classList.add('hidden');
+    loadedVideoMeta = false;
+  }
+}
+
 
     // Ticker de atualizações com data de hoje
     const dataHoje = new Date().toLocaleDateString('pt-PT');
