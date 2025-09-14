@@ -1190,9 +1190,7 @@
 
     try{
       const controller = new AbortController();
-      // de 3 min → 12 min (ou o que quiseres)
-const to = setTimeout(() => controller.abort(), 12 * 60 * 1000);
-
+      const to = setTimeout(() => controller.abort(), 180000); // até ~3min
       const res = await fetch(`${API_BASE}/video-subs`, { method:"POST", body: formData, signal: controller.signal });
       clearTimeout(to);
 
@@ -1865,10 +1863,11 @@ const to = setTimeout(() => controller.abort(), 12 * 60 * 1000);
     // Ticker de atualizações com data de hoje
     const dataHoje = new Date().toLocaleDateString('pt-PT');
     const updates = [
-      `🆕 ${dataHoje} – Partilhar no WhatsApp disponível`,
-      `🆕 ${dataHoje} – Legendar vídeo (SRT + MP4)`,
-      `🆕 ${dataHoje} – Estilos de legendas + pré-visualização`
-    ];
+  `🆕 ${dataHoje} – Partilhar no WhatsApp disponível`,
+  `🧪 ${dataHoje} – Legendar vídeo (SRT + MP4) — em testes (beta), pode ter algumas falhas`,
+  `🆕 ${dataHoje} – Estilos de legendas + pré-visualização`
+];
+
     const track = document.getElementById("updatesTrack");
     track.innerHTML = `
       <span class="ticker__item">${updates[0]}</span>
