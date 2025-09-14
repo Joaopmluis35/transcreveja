@@ -1228,7 +1228,8 @@
       document.getElementById("legendasBox").classList.remove("hidden");
       output.classList.remove("hidden");
       statusEl.textContent = "✅ Legendas geradas com sucesso!";
-
+		// scroll automático até à secção de legendas
+      scrollSeInvisivel("legendasBox");
     } catch(err){
       clearInterval(interval);
       progressBar.style.width = "100%";
