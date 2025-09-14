@@ -249,73 +249,118 @@
     #nichoMenu button:hover{ color:white; border-color:white; }
 
     /* ── PAINEL DE ESTILOS DE LEGENDAS ───────────────────────────────────── */
-    #subtitlePanel{
-      max-width: 900px;
-      width: 100%;
-      margin: 18px auto 0;
-      background: white;
-      color: #333;
-      border-radius: 12px;
-      box-shadow: 0 8px 24px rgba(0,0,0,.12);
-      padding: 18px;
-    }
-    #subtitlePanel h3{ margin:0 0 8px 0; color:#6b21a8; }
-    .sub-grid{
-      display:grid;
-      grid-template-columns: repeat(3, minmax(0,1fr));
-      gap: 12px;
-      align-items: end;
-    }
-    .sub-grid label{
-      display:flex; flex-direction:column; gap:6px; font-weight:600; font-size:.95em;
-    }
-    .sub-grid input[type="text"],
-    .sub-grid input[type="number"],
-    .sub-grid input[type="range"],
-    .sub-grid select{
-      width:100%;
-      padding:8px 10px;
-      border:1px solid #ddd;
-      border-radius:8px;
-      background:#fafafa;
-      font-weight:600;
-    }
-    .sub-grid small{ color:#666; font-weight:500; }
-    .preview-wrap{
-      margin-top:14px;
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:12px;
-    }
-    .preview-card{
-      background:#f7f7fb;
-      border:1px solid #e6e6f7;
-      border-radius:10px;
-      padding:10px;
-      text-align:center;
-    }
-    .preview-card h4{ margin:4px 0 8px 0; color:#444; font-size:.95em; }
-    .preview-card canvas{
-      width:100%;
-      height:auto;
-      border-radius:8px;
-      background:#222;
-    }
-    .preview-actions{
-      margin-top:10px;
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      justify-content:center;
-    }
-    .preview-actions button{
-      width:auto;
-      min-width:160px;
-    }
+   /* ── PAINEL DE ESTILOS DE LEGENDAS ───────────────────────────────────── */
+/* ── PAINEL DE ESTILOS DE LEGENDAS ───────────────────────────────────── */
+#subtitlePanel{
+  max-width: 1100px;
+  width: 100%;
+  margin: 18px auto 0;
+  background: white;
+  color: #333;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.12);
+  padding: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* controlos à esquerda | preview à direita */
+  gap: 20px;
+}
 
-    @media (max-width:1024px){
-      .sub-grid{ grid-template-columns: repeat(2, minmax(0,1fr)); }
-    }
+#subtitlePanel h3{
+  grid-column: 1 / -1;
+  margin: 0 0 12px 0;
+  color: #6b21a8;
+}
+
+/* Coluna de controlos */
+.sub-grid{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: end;
+}
+.sub-grid label{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  font-weight:600;
+  font-size:.95em;
+}
+.sub-grid input[type="text"],
+.sub-grid input[type="number"],
+.sub-grid input[type="range"],
+.sub-grid select{
+  width:100%;
+  padding:8px 10px;
+  border:1px solid #ddd;
+  border-radius:8px;
+  background:#fafafa;
+  font-weight:600;
+}
+.sub-grid small{ color:#666; font-weight:500; }
+
+/* Coluna de pré-visualização */
+.preview-wrap{
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.preview-card{
+  background:#f7f7fb;
+  border:1px solid #e6e6f7;
+  border-radius:10px;
+  padding:10px;
+  text-align:center;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+.preview-card h4{ 
+  margin:4px 0 8px 0; 
+  color:#444; 
+  font-size:.95em; 
+}
+
+/* canvas / vídeo / imagens */
+.preview-card canvas,
+.preview-card img,
+.preview-card video{
+  max-height: 320px;        /* limite p/ vídeos verticais */
+  width: auto;
+  max-width: 100%;
+  border-radius:8px;
+  background:#222;
+  object-fit: contain;       /* nunca distorce */
+}
+
+.preview-actions{
+  margin-top:10px;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+.preview-actions button{
+  width:auto;
+  min-width:160px;
+}
+
+/* Responsivo */
+@media (max-width:1024px){
+  #subtitlePanel{
+    grid-template-columns: 1fr;
+  }
+  .sub-grid{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+@media (max-width:600px){
+  .sub-grid{ grid-template-columns: 1fr; }
+  .preview-card canvas,
+  .preview-card img,
+  .preview-card video{
+    max-height: 240px;   /* reduz um pouco no mobile */
+  }
+}
+
+
     @media (max-width:640px){
       main{ padding:20px; }
       form{ padding:15px 20px; width:100%; max-width:100%; }
@@ -651,25 +696,28 @@
     </div>
   </div>
 
-  <section id="apresentacaoSEO" style="max-width: 800px; margin: 40px auto; background: white; padding: 20px; border-radius: 12px; color: #333; font-size: 1.1em; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-    <h2 style="color: #A550F7;">🧠 O que é o Ouviescrevi?</h2>
-    <p>
-      Ouviescrevi é uma ferramenta online que utiliza Inteligência Artificial (IA) para
-      <strong>transcrever áudio e vídeo automaticamente</strong>, gerar <strong>resumos inteligentes</strong>, <strong>traduzir</strong> textos,
-      <strong>corrigir erros</strong> e até <strong>converter ficheiros como Word para PDF</strong>, imagem para texto, e muito mais.
-    </p>
-    <p>Ideal para <strong>professores</strong>, <strong>jornalistas</strong>, <strong>estudantes</strong>, <strong>empresas</strong> e qualquer pessoa que precise transformar voz em texto de forma rápida e gratuita.</p>
-    <p>Não precisas instalar nada. Basta arrastar um ficheiro, gravar a tua voz ou colar o texto — e deixas o resto connosco. 🚀</p>
-    <div style="margin-top: 15px; text-align: left; display: inline-block; line-height: 1.8;">
-      <p><strong>Funcionalidades principais:</strong></p>
-      <p>🎙️ Transcrição de áudio/vídeo (com Whisper AI)</p>
-      <p>🧠 Resumo automático de texto e PDFs</p>
-      <p>🌍 Tradução para vários idiomas</p>
-      <p>📚 Classificação automática do tipo de conteúdo</p>
-      <p>📁 Conversor de Word, PDF, Imagens, etc.</p>
-    </div>
-    <p>Começa agora gratuitamente. Simples, seguro e feito em Portugal 🇵🇹</p>
-  </section>
+<section id="apresentacaoSEO" style="max-width: 800px; margin: 40px auto; background: white; padding: 20px; border-radius: 12px; color: #333; font-size: 1.1em; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+  <h2 style="color: #A550F7;">🧠 O que é o Ouviescrevi?</h2>
+  <p>
+    Ouviescrevi é uma ferramenta online que usa Inteligência Artificial (IA) para 
+    <strong>transcrever, resumir, traduzir, corrigir</strong> e <strong>classificar conteúdos</strong>, 
+    além de <strong>gerar emails</strong>, <strong>criar perguntas de estudo</strong> e até <strong>produzir vídeos com legendas automáticas</strong>.
+  </p>
+  <p>Ideal para professores, jornalistas, estudantes, empresas e qualquer pessoa que precise transformar áudio, vídeo ou texto em conhecimento útil. 🚀</p>
+  <div style="margin-top: 15px; text-align: left; display: inline-block; line-height: 1.8;">
+    <p><strong>Funcionalidades principais:</strong></p>
+    <p>🎙️ Transcrição de áudio/vídeo</p>
+    <p>🧠 Resumos automáticos</p>
+    <p>🌍 Tradução de textos</p>
+    <p>✍️ Correção e emails com IA</p>
+    <p>📚 Perguntas de estudo</p>
+    <p>💬 Vídeos com legendas automáticas</p>
+    <p>📁 Conversão de ficheiros</p>
+  </div>
+  <p>Começa já gratuitamente. Simples, rápido e feito em Portugal 🇵🇹</p>
+</section>
+
+
   <!-- Botão sugestão no canto inferior direito -->
 <button id="fabSugestao" aria-controls="sugestaoPanel" aria-expanded="false">
   <span class="hand" aria-hidden="true">👋</span>
@@ -680,7 +728,7 @@
   <div class="sug-card">
     <h3>💡 A tua sugestão</h3>
     <p>Queremos evoluir todos os dias. Deixa aqui a tua ideia 👇</p>
-    <textarea id="sugestaoTexto" placeholder="Escreve a tua sugestão..." rows="4"></textarea>
+    <textarea id="sugestaoTexto" placeholder="Sugere melhorias, ex.: legendas maiores ou novas cores" rows="4"></textarea>
     <button id="enviarSugestao">📩 Enviar</button>
     <button id="fecharSugestao">❌ Fechar</button>
   </div>
