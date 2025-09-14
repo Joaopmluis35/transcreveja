@@ -1,5 +1,5 @@
 # main.py
-from fastapi import FastAPI, File, UploadFile, Request, HTTPException, APIRouter
+from fastapi import FastAPI, File, UploadFile, Request, HTTPException, APIRouter, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -52,7 +52,7 @@ class JSONFormatter(logging.Formatter):
 
 class VercelHTTPHandler(logging.Handler):
     """Envia logs para uma Function no Vercel (aparecem no dashboard)."""
-    def __init__(self, url: str, token: str | None = None, level=logging.WARNING):
+    def __init__(self, url: str, token: str | None = None, level=logging.warning):
         super().__init__(level)
         self.url = url
         self.token = token
@@ -150,24 +150,62 @@ os.makedirs(VIDEO_DIR, exist_ok=True)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Middleware: log de request
+# Helpers logging/IO
+# ──────────────────────────────────────────────────────────────────────────────
+def _fmt_mb(nbytes: int) -> float:
+    try:
+        return round(nbytes / (1024 * 1024), 2)
+    except Exception:
+        return 0.0
+
+async def _stream_upload_to_disk(upload_file: UploadFile, dest_path: str, rid: str, tag: str, log_every_mb: int = 10) -> int:
+    """Lê o UploadFile em chunks para disco, devolvendo bytes escritos e logando progresso."""
+    bytes_written = 0
+    CHUNK = 1024 * 1024
+    logged_next = log_every_mb * 1024 * 1024
+    try:
+        await upload_file.seek(0)
+        with open(dest_path, "wb") as out:
+            while True:
+                chunk = await upload_file.read(CHUNK)
+                if not chunk:
+                    break
+                out.write(chunk)
+                bytes_written += len(chunk)
+                if bytes_written >= logged_next:
+                    logger.info("[%s] [%s] upload parcial: %0.2f MB", rid, tag, _fmt_mb(bytes_written))
+                    logged_next += log_every_mb * 1024 * 1024
+        return bytes_written
+    except Exception:
+        logger.exception("[%s] [%s] Falha ao gravar upload (parcial=%0.2f MB)", rid, tag, _fmt_mb(bytes_written))
+        raise
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Middleware: log de request (inclui headers úteis)
 # ──────────────────────────────────────────────────────────────────────────────
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     rid = str(uuid.uuid4())[:8]
     start = time.monotonic()
     extra = {"rid": rid, "path": request.url.path, "method": request.method}
-    logging.getLogger("ouviescrevi").info(f"→ {request.method} {request.url.path}", extra=extra)
     try:
+        ua = request.headers.get("user-agent", "-")
+        cl = request.headers.get("content-length", "-")
+        ct = request.headers.get("content-type", "-")
+        ref = request.headers.get("referer", "-")
+        client_ip = getattr(request.client, "host", "-") if request.client else "-"
+        logger.info("→ %s %s from=%s len=%s ct=%s ua=%s ref=%s", request.method, request.url.path, client_ip, cl, ct, ua, ref, extra=extra)
+
         response = await call_next(request)
+
         ms = round((time.monotonic() - start) * 1000, 1)
         extra |= {"status": response.status_code, "ms": ms}
-        logging.getLogger("ouviescrevi").info(f"← {request.method} {request.url.path} {response.status_code} {ms}ms", extra=extra)
+        logger.info("← %s %s %s %sms", request.method, request.url.path, response.status_code, ms, extra=extra)
         return response
     except Exception:
         ms = round((time.monotonic() - start) * 1000, 1)
         extra |= {"status": 500, "ms": ms}
-        logging.getLogger("ouviescrevi").exception(f"✖ {request.method} {request.url.path} 500 {ms}ms", extra=extra)
+        logger.exception("✖ %s %s 500 %sms", request.method, request.url.path, ms, extra=extra)
         raise
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -330,22 +368,25 @@ def _write_srt(entries: list[tuple[float, float, str]], out_path: str):
 # ──────────────────────────────────────────────────────────────────────────────
 @app.get("/debug")
 def debug():
-    return {"status": "OK", "versao": "1.4"}  # ↑ versão incrementada
+    return {"status": "OK", "versao": "1.5"}  # ↑ versão incrementada
 
 @app.post("/transcribe")
-async def transcribe(file: UploadFile = File(...)):
+async def transcribe(request: Request, file: UploadFile = File(...)):
     rid = str(uuid.uuid4())
     t_start = time.monotonic()
-    logger.info("[%s] Upload recebido: %s (%s)", rid, file.filename, file.content_type)
+    logger.info("[%s] Upload recebido (transcribe): nome=%s ct=%s cl=%s", rid, file.filename, file.content_type, request.headers.get("content-length"))
 
     orig_ext = os.path.splitext(file.filename or "")[1].lower() or ".bin"
     tmp_path = os.path.join(tempfile.gettempdir(), f"input_{uuid.uuid4()}{orig_ext}")
     try:
-        with open(tmp_path, "wb") as out:
-            await file.seek(0)
-            shutil.copyfileobj(file.file, out)
-        size_mb = os.path.getsize(tmp_path) / (1024 * 1024)
-        logger.info("[%s] Upload guardado em disco: %.2f MB", rid, size_mb)
+        written = await _stream_upload_to_disk(file, tmp_path, rid, "transcribe")
+        if written == 0:
+            logger.error("[%s] Upload vazio (0 bytes) em /transcribe", rid)
+            raise HTTPException(status_code=400, detail="Upload vazio.")
+        size_mb = _fmt_mb(written)
+        logger.info("[%s] Upload guardado em disco: %0.2f MB", rid, size_mb)
+    except HTTPException:
+        raise
     except Exception as e:
         logger.exception("[%s] Falha ao gravar upload", rid)
         return {"transcription": "", "formatted": "", "warning": f"Falha ao gravar ficheiro: {e}"}
@@ -353,7 +394,7 @@ async def transcribe(file: UploadFile = File(...)):
     if size_mb > MAX_FILE_SIZE_MB:
         try: os.remove(tmp_path)
         except: pass
-        logger.warning("[%s] Ficheiro > %dMB (%.2f MB).", rid, MAX_FILE_SIZE_MB, size_mb)
+        logger.warning("[%s] Ficheiro > %dMB (%0.2f MB).", rid, MAX_FILE_SIZE_MB, size_mb)
         return {"transcription": "", "formatted": "", "warning": f"Ficheiro > {MAX_FILE_SIZE_MB}MB. Reduz o tamanho e tenta novamente."}
 
     audio_wav_path = os.path.join(tempfile.gettempdir(), f"audio_{uuid.uuid4()}.wav")
@@ -458,26 +499,37 @@ async def transcribe(file: UploadFile = File(...)):
 
 # ── NOVO: Vídeo com legendas embutidas ───────────────────────────────────────
 @app.post("/video-subs")
-async def video_subs(file: UploadFile = File(...)):
+async def video_subs(request: Request, file: UploadFile = File(...), style: str | None = Form(None)):
     """
     Upload de vídeo → transcreve (Whisper) → gera SRT → queima legendas no vídeo.
-    Resposta: { video_url, srt_url, warning? }
+    Resposta: { video_url, srt_url, warning?, rid?, processing_ms? }
     """
     rid = str(uuid.uuid4())
     t_start = time.monotonic()
-    logger.info("[%s] [video-subs] Upload: %s (%s)", rid, file.filename, file.content_type)
 
-    # Gravar upload
+    # Log headers úteis assim que entra no handler
+    ua = request.headers.get("user-agent", "-")
+    cl = request.headers.get("content-length", "-")
+    ct = request.headers.get("content-type", "-")
+    client_ip = getattr(request.client, "host", "-") if request.client else "-"
+    logger.info("[%s] [video-subs] REQUEST from=%s len=%s ct=%s ua=%s", rid, client_ip, cl, ct, ua)
+
+    logger.info("[%s] [video-subs] Upload: %s (%s) style=%s", rid, file.filename, file.content_type, (style[:120] + "…") if style and len(style) > 120 else style)
+
+    # Gravar upload (com contagem de bytes e logs parciais)
     orig_ext = os.path.splitext(file.filename or "")[1].lower() or ".mp4"
     if orig_ext not in {".mp4", ".mov", ".mkv", ".webm", ".avi"}:
         orig_ext = ".mp4"
     tmp_video = os.path.join(tempfile.gettempdir(), f"vid_{uuid.uuid4()}{orig_ext}")
     try:
-        with open(tmp_video, "wb") as out:
-            await file.seek(0)
-            shutil.copyfileobj(file.file, out)
-        size_mb = os.path.getsize(tmp_video) / (1024 * 1024)
-        logger.info("[%s] [video-subs] Guardado: %.2f MB", rid, size_mb)
+        written = await _stream_upload_to_disk(file, tmp_video, rid, "video-subs")
+        if written == 0:
+            logger.error("[%s] [video-subs] Upload vazio (0 bytes).", rid)
+            raise HTTPException(status_code=400, detail="Upload vazio.")
+        size_mb = _fmt_mb(written)
+        logger.info("[%s] [video-subs] Guardado: %0.2f MB", rid, size_mb)
+    except HTTPException:
+        raise
     except Exception as e:
         logger.exception("[%s] [video-subs] Falha a gravar vídeo", rid)
         raise HTTPException(status_code=400, detail=f"Falha ao gravar vídeo: {e}")
@@ -577,8 +629,11 @@ async def video_subs(file: UploadFile = File(...)):
         except Exception:
             pass
 
+        processing_ms = round((time.monotonic() - t_start) * 1000)
         resp = {
             "srt_url": f"/static/videos/{os.path.basename(srt_out)}",
+            "rid": rid,
+            "processing_ms": processing_ms
         }
         if out_video:
             resp["video_url"] = f"/static/videos/{os.path.basename(out_video)}"
