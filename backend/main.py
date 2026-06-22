@@ -377,29 +377,55 @@ def _normalize_block(text: str) -> str:
 
 def filter_whisper_segments(segments, language: str | None = None):
     """Remove segmentos com sinais típicos de alucinação do Whisper (silêncio/ruído)."""
-    filtered = []
-    dropped = 0
-    for s in segments or []:
-        text = (_seg_get(s, "text", "") or "").strip()
-        if not text:
-            continue
-        no_speech = float(_seg_get(s, "no_speech_prob", 0) or 0)
-        avg_logprob = float(_seg_get(s, "avg_logprob", 0) or 0)
-        compression = float(_seg_get(s, "compression_ratio", 1) or 1)
-        if no_speech > 0.5:
-            dropped += 1
-            continue
-        if avg_logprob < -1.0:
-            dropped += 1
-            continue
-        if compression > 2.2:
-            dropped += 1
-            continue
-        if language == "pt" and _cjk_ratio(text) > 0.2:
-            dropped += 1
-            continue
-        filtered.append(s)
-    if dropped:
+    raw = list(segments or [])
+    non_empty = [s for s in raw if (_seg_get(s, "text", "") or "").strip()]
+    if not non_empty:
+        return []
+
+    def _apply(
+        items,
+        *,
+        no_speech_max: float,
+        logprob_min: float,
+        compression_max: float,
+    ):
+        filtered = []
+        dropped = 0
+        for s in items:
+            text = (_seg_get(s, "text", "") or "").strip()
+            if not text:
+                continue
+            no_speech = float(_seg_get(s, "no_speech_prob", 0) or 0)
+            avg_logprob = float(_seg_get(s, "avg_logprob", 0) or 0)
+            compression = float(_seg_get(s, "compression_ratio", 1) or 1)
+            if no_speech > no_speech_max:
+                dropped += 1
+                continue
+            if avg_logprob < logprob_min:
+                dropped += 1
+                continue
+            if compression > compression_max:
+                dropped += 1
+                continue
+            if language == "pt" and _cjk_ratio(text) > 0.2:
+                dropped += 1
+                continue
+            filtered.append(s)
+        return filtered, dropped
+
+    filtered, dropped = _apply(non_empty, no_speech_max=0.5, logprob_min=-1.0, compression_max=2.2)
+    if len(non_empty) >= 5 and len(filtered) < max(2, int(len(non_empty) * 0.2)):
+        relaxed, dropped_relaxed = _apply(
+            non_empty, no_speech_max=0.75, logprob_min=-1.4, compression_max=2.8
+        )
+        if len(relaxed) > len(filtered):
+            logger.warning(
+                "Whisper: filtros strict removeram %d/%d; relaxed mantém %d",
+                dropped, len(non_empty), len(relaxed),
+            )
+            filtered = relaxed
+            dropped = dropped_relaxed
+    elif dropped:
         logger.info("Whisper: descartados %d segmentos (ruído/alucinação)", dropped)
     return filtered
 
@@ -627,7 +653,7 @@ async def transcribe(
     rid = str(uuid.uuid4())
     t_start = time.monotonic()
     whisper_lang = resolve_whisper_language(language)
-    logger.info("[%s] Upload recebido (transcribe): nome=%s ct=%s cl=%s", rid, file.filename, file.content_type, request.headers.get("content-length"))
+    logger.info("[%s] Upload recebido (transcribe): nome=%s ct=%s cl=%s lang=%s", rid, file.filename, file.content_type, request.headers.get("content-length"), whisper_lang or "auto")
     _reject_oversized_upload(request)
 
     orig_ext = os.path.splitext(file.filename or "")[1].lower() or ".bin"
