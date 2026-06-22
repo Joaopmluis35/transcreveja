@@ -330,7 +330,7 @@ def enviar_email_assunto(mensagem: str, assunto: str = "Nova atividade no Ouvies
         if not (smtp_user and smtp_password):
             logger.warning("SMTP_USER/SMTP_PASSWORD não configurados; a notificação não será enviada.")
             return
-        with smtplib.SMTP_SSL(smtp_host, smtp_port) as smtp:
+        with smtplib.SMTP_SSL(smtp_host, smtp_port, timeout=5) as smtp:
             smtp.login(smtp_user, smtp_password)
             smtp.send_message(msg)
     except Exception as e:
@@ -719,9 +719,14 @@ async def transcribe(
             logger.warning("[%s] Falha ao registar na DB: %s", rid, e)
 
         try:
-            enviar_email_assunto(f"Nova transcrição recebida: {file.filename}", "Nova transcrição no Ouviescrevi")
+            import threading
+            threading.Thread(
+                target=enviar_email_assunto,
+                args=(f"Nova transcrição recebida: {file.filename}", "Nova transcrição no Ouviescrevi"),
+                daemon=True,
+            ).start()
         except Exception as e:
-            logger.warning("[%s] Falha ao enviar email de notificação: %s", rid, e)
+            logger.warning("[%s] Falha ao agendar email de notificação: %s", rid, e)
 
         transcription_out = clean_transcription_text("\n".join(t for t in full_text_chunks if t).strip(), whisper_lang)
         formatted_out = clean_transcription_text("\n\n".join(t for t in formatted_chunks if t).strip(), whisper_lang)
