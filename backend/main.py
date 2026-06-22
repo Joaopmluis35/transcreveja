@@ -140,12 +140,9 @@ RATE_LIMIT_AI_WINDOW = int(os.getenv("RATE_LIMIT_AI_WINDOW", "3600"))
 
 # Timeouts e parâmetros
 WHISPER_TIMEOUT = int(os.getenv("WHISPER_TIMEOUT", "110"))  # por chunk
-WHISPER_LANGUAGE = (os.getenv("WHISPER_LANGUAGE", "pt") or "").strip().lower() or None
+WHISPER_LANGUAGE = (os.getenv("WHISPER_LANGUAGE", "") or "").strip().lower() or None
 WHISPER_TEMPERATURE = float(os.getenv("WHISPER_TEMPERATURE", "0"))
-WHISPER_PROMPT = (os.getenv(
-    "WHISPER_PROMPT",
-    "Transcrição em português de Portugal de uma reunião de trabalho ou conversa.",
-) or "").strip() or None
+WHISPER_PROMPT_OVERRIDE = (os.getenv("WHISPER_PROMPT") or "").strip() or None
 FFMPEG_TIMEOUT = int(os.getenv("FFMPEG_TIMEOUT", "60"))
 TOTAL_TRANSCRIBE_TIMEOUT = int(os.getenv("TOTAL_TRANSCRIBE_TIMEOUT", "900"))  # watchdog global
 MAX_FILE_SIZE_MB = int(os.getenv("MAX_FILE_SIZE_MB", "500"))
@@ -427,6 +424,13 @@ def filter_whisper_segments(segments, language: str | None = None):
             dropped = dropped_relaxed
     elif dropped:
         logger.info("Whisper: descartados %d segmentos (ruído/alucinação)", dropped)
+
+    if len(non_empty) >= 3 and len(filtered) < max(2, int(len(non_empty) * 0.35)):
+        logger.warning(
+            "Whisper: mantendo %d/%d segmentos com filtro mínimo (muito conteúdo descartado)",
+            len(non_empty), len(non_empty),
+        )
+        return non_empty
     return filtered
 
 
@@ -486,6 +490,16 @@ def resolve_whisper_language(form_language: str | None) -> str | None:
     if not lang or lang in ("auto", "detect"):
         return None
     return lang
+
+
+def whisper_prompt_for_language(language: str | None) -> str | None:
+    if WHISPER_PROMPT_OVERRIDE:
+        return WHISPER_PROMPT_OVERRIDE
+    if language == "pt":
+        return "Transcrição em português de Portugal de uma reunião de trabalho ou conversa."
+    if language == "en":
+        return "English speech transcription of a conversation or presentation."
+    return None
 
 
 def process_whisper_result(result, language: str | None, offset_seconds: int = 0):
@@ -550,6 +564,7 @@ def transcrever_parte_c_com_retries(
 ):
     last_err = None
     lang = resolve_whisper_language(language)
+    prompt = whisper_prompt_for_language(lang)
     for attempt in range(1, retries + 1):
         t0 = time.monotonic()
         try:
@@ -560,8 +575,8 @@ def transcrever_parte_c_com_retries(
             }
             if lang:
                 kwargs["language"] = lang
-            if WHISPER_PROMPT:
-                kwargs["prompt"] = WHISPER_PROMPT
+            if prompt:
+                kwargs["prompt"] = prompt
             with open(file_path, "rb") as audio:
                 result = client.with_options(timeout=timeout).audio.transcriptions.create(
                     file=audio,
@@ -723,10 +738,13 @@ async def transcribe(
                 result = transcrever_parte_c_com_retries(
                     part, retries=3, sleep_base=1.0, timeout=WHISPER_TIMEOUT, language=whisper_lang
                 )
-                text_piece, formatted_piece, _ = process_whisper_result(result, whisper_lang, offset_seconds)
+                text_piece, formatted_piece, kept_segs = process_whisper_result(result, whisper_lang, offset_seconds)
                 full_text_chunks.append(text_piece)
                 formatted_chunks.append(formatted_piece)
-                logger.info("[%s] Chunk %d/%d transcrito. len(text)=%d", rid, idx + 1, len(parts), len(text_piece))
+                logger.info(
+                    "[%s] Chunk %d/%d transcrito. segs=%d len(text)=%d",
+                    rid, idx + 1, len(parts), len(kept_segs), len(text_piece),
+                )
             except Exception as e:
                 failed_segments += 1
                 logger.exception("[%s] Erro ao transcrever parte %d (%s)", rid, idx, os.path.basename(part))
