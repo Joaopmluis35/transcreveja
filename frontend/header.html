@@ -14,11 +14,11 @@
         <button onclick="setLanguage('en')"><img src="/icons/en.png" alt="English" /></button>
       </div>
     </div>
-
-    <button id="burgerBtn" onclick="toggleMenu()">
-      <span id="burgerIcon">☰</span>
-    </button>
   </div>
+
+  <button id="burgerBtn" type="button" onclick="toggleMenu()" aria-label="Abrir menu" aria-expanded="false" aria-controls="nichoMenu">
+    <span id="burgerIcon">☰ Menu</span>
+  </button>
 
   <nav id="nichoMenu">
     <button onclick="irParaNicho('index')"><span data-i18n="inicio">🏠 Início</span></button>
@@ -32,234 +32,6 @@
   </nav>
 </header>
 
-<style>
-  #topoOuviescrevi {
-    background: linear-gradient(135deg, #A550F7, #00C3FF);
-    color: white;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    padding: 15px 10px!important;
-    position: relative;
-  }
-
-  .logo-area {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    flex-grow: 1;
-  }
-
-  .logo-area img {
-    height: 45px;
-  }
-
-  .logo-area h1 {
-    margin: 0;
-    font-size: 1.4em;
-  }
-
-  #burgerBtn {
-    display: none;
-    background: none;
-    border: none;
-    font-size: 2em;
-    color: white;
-    cursor: pointer;
-    margin-left: auto;
-  }
-
-  nav#nichoMenu {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    justify-content: center;
-
-  }
-
-  nav#nichoMenu button {
-    position: relative;
-    overflow: hidden;
-    background-color: #e6d7fb;
-    color: #333;
-    border: 2px solid #A550F7;
-    border-radius: 50px;
-    padding: 10px 18px;
-    font-weight: bold;
-    font-size: 0.95em;
-    cursor: pointer;
-    transition: color 0.3s ease, border-color 0.3s ease;
-    z-index: 1;
-  }
-
-  nav#nichoMenu button::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    bottom: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, #A550F7, #00C3FF);
-    transition: bottom 0.4s ease;
-    z-index: 0;
-  }
-
-  nav#nichoMenu button:hover::before {
-    bottom: 0;
-  }
-
-  nav#nichoMenu button:hover {
-    color: white;
-    border-color: white;
-  }
-
-  nav#nichoMenu button span {
-    position: relative;
-    z-index: 2;
-  }
-
-  /* 🔄 Ampulheta animada */
-  .hourglass {
-    width: 32px;
-    height: 32px;
-    border: 3px solid white;
-    border-radius: 50%;
-    position: relative;
-    animation: rotateHourglass 2.5s infinite linear;
-  }
-
-  .hourglass::before,
-  .hourglass::after {
-    content: '';
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 8px;
-    height: 8px;
-    background: white;
-    border-radius: 50%;
-  }
-
-  .hourglass::before {
-    top: 7px;
-    animation: sandTop 2.5s infinite linear;
-  }
-
-  .hourglass::after {
-    bottom: 7px;
-    animation: sandBottom 2.5s infinite linear;
-  }
-
-  @keyframes rotateHourglass {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-
-  @keyframes sandTop {
-    0% { opacity: 1; }
-    50% { opacity: 0; }
-    100% { opacity: 1; }
-  }
-
-  @keyframes sandBottom {
-    0% { opacity: 0; }
-    50% { opacity: 1; }
-    100% { opacity: 0; }
-  }
-
-  /* 📱 MOBILE (até 430px) */
-  @media (max-width: 430px) {
-    #burgerBtn {
-      display: block;
-    }
-
-    nav#nichoMenu {
-      display: none;
-      flex-direction: column;
-      align-items: stretch;
-      width: 100%;
-    
-    }
-
-    nav#nichoMenu.show {
-      display: flex;
-    }
-
-    nav#nichoMenu button {
-      width: 100%;
-      font-size: 1em;
-    }
-
-    #topoOuviescrevi {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .logo-area {
-      width: 100%;
-      justify-content: space-between;
-    }
-
-    .lang-menu {
-      left: 0;
-      right: auto;
-    }
-  }
-
-  /* 🌐 Seletor de idioma */
-  .language-selector {
-    position: relative;
-    margin-left: 10px;
-  }
-
-  .language-selector button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-  }
-
-  .language-selector img {
-    width: 28px;
-    height: 20px;
-    border-radius: 4px;
-    border: 1px solid white;
-  }
-
-  .lang-menu {
-    display: none;
-    position: absolute;
-    top: 36px;
-    right: -7px!important;
-    background: white;
-    border-radius: 5px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    padding: 5px;
-    z-index: 1000;
-	width: fit-content;
-  }
-
-  .lang-menu button {
-    display: block;
-    width: 100%;
-    padding: 5px;
-    background: none;
-    border: none;
-    cursor: pointer;
-  }
-
-  .lang-menu button:hover {
-    background-color: #eee;
-  }
-
-  .lang-menu img {
-    width: 24px;
-    height: 16px;
-  }
-  
-</style>
-
 <script>
   window.irParaNicho = function(pagina) {
     window.location.href = pagina + ".html";
@@ -268,9 +40,12 @@
   window.toggleMenu = function() {
     const menu = document.getElementById("nichoMenu");
     const icon = document.getElementById("burgerIcon");
+    const btn = document.getElementById("burgerBtn");
 
     menu.classList.toggle("show");
-    icon.textContent = menu.classList.contains("show") ? "✕" : "☰";
+    const open = menu.classList.contains("show");
+    icon.textContent = open ? "✕ Fechar" : "☰ Menu";
+    if (btn) btn.setAttribute("aria-expanded", open ? "true" : "false");
   };
 
   window.toggleLanguageMenu = function () {

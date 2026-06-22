@@ -4,4 +4,14 @@ __pycache__/
 *.pyc
 log_transcricoes.json
 status.json
-.env
+
+# Python virtual environments
+backend/.venv/
+backend/venv/
+venv/
+.venv/
+
+# Runtime / generated
+backend/logs/
+backend/static/videos/
+*.log

@@ -6,126 +6,82 @@
   <meta name="description" content="Gera perguntas de escolha múltipla com IA a partir de qualquer texto. Ideal para estudar ou preparar testes.">
   <title>📘 Gerador de Perguntas com IA</title>
   <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png">
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #4e54c8, #00c6ff);
-      color: white;
-      margin: 0;
-      padding: 0;
-      text-align: center;
-    }
-    .container {
-      background: white;
-      color: #333;
-      border-radius: 20px;
-      padding: 30px;
-      max-width: 800px;
-      margin: 30px auto;
-    }
-    textarea {
-      width: 100%;
-      height: 200px;
-      border: 2px solid #a550f7;
-      border-radius: 8px;
-      padding: 10px;
-      font-size: 1em;
-      resize: vertical;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 1em;
-      margin-top: 10px;
-      border-radius: 6px;
-      border: 2px solid #a550f7;
-      background: #e6d7fb;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    button:hover {
-      background: linear-gradient(135deg, #a550f7, #00c3ff);
-      color: white;
-    }
-    #resultado {
-      margin-top: 30px;
-      background: #f4f4f4;
-      border-left: 5px solid #00c3ff;
-      padding: 20px;
-      white-space: pre-wrap;
-      border-radius: 10px;
-    }
-  </style>
+  <link rel="stylesheet" href="css/ouviescrevi.css">
+  <script src="js/ouviescrevi-ui.js" defer></script>
 </head>
-<body>
+<body class="oe-page">
+<a class="oe-skip" href="#conteudo">Saltar para o conteúdo</a>
 <div id="header"></div>
+
+<div class="oe-hero" id="conteudo">
   <h1>📘 Gerador de Perguntas com IA</h1>
-  <p>Cola aqui o teu texto e gera perguntas de escolha múltipla com respostas e explicações.</p>
+  <p class="oe-lead">Cola aqui o teu texto e gera perguntas de escolha múltipla com respostas e explicações.</p>
+</div>
 
-  <div class="container">
-    <textarea id="texto" placeholder="Cola aqui o conteúdo a estudar..."></textarea>
-	
-    <button onclick="gerarPerguntas()">🎓 Gerar Perguntas</button>
-    <div id="resultado"></div>
-  </div>
+<div class="container">
+  <textarea id="texto" placeholder="Cola aqui o conteúdo a estudar..."></textarea>
+  <button type="button" class="oe-btn oe-btn--block" id="btnPerguntas" onclick="gerarPerguntas()">🎓 Gerar Perguntas</button>
+  <div id="resultado"></div>
+</div>
 
-  <script>
-    async function gerarPerguntas() {
-      const texto = document.getElementById("texto").value.trim();
-      if (!texto) return alert("Texto vazio.");
-      const btn = event.target;
-      btn.disabled = true;
-      const original = btn.textContent;
-      btn.textContent = "🎓 A gerar...";
-
-      try {
-        const res = await fetch("https://api.ouviescrevi.pt/generate-questions", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            text: texto,
-            token: "ouviescrevi2025@resumo"
-          })
-        });
-        const data = await res.json();
-        document.getElementById("resultado").textContent = data.questions || data.error || "Erro inesperado.";
-      } catch (e) {
-        alert("Erro ao gerar perguntas.");
-        console.error(e);
-      } finally {
-        btn.textContent = original;
-        btn.disabled = false;
-      }
+<script src="js/ouviescrevi-api.js"></script>
+<script>
+  async function gerarPerguntas() {
+    const texto = document.getElementById("texto").value.trim();
+    const btn = document.getElementById("btnPerguntas");
+    if (!texto) {
+      OuviescreviUI.toast("Introduz texto para gerar perguntas.", "error");
+      return;
     }
-  </script>
-  <!-- Carregar e injetar o header -->
-<!-- No final do <body> -->
+    OuviescreviUI.setButtonLoading(btn, true, "A gerar perguntas...");
+
+    try {
+      await OuviescreviAPI.init();
+      const res = await fetch(`${OuviescreviAPI.getBase()}/generate-questions`, {
+        method: "POST",
+        headers: OuviescreviAPI.authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify(OuviescreviAPI.authJson({ text: texto }))
+      });
+      const data = await res.json();
+      const out = document.getElementById("resultado");
+      if (data.questions) {
+        out.textContent = data.questions;
+        out.classList.remove("oe-result--error");
+      } else {
+        out.textContent = data.error || data.detail || "Erro inesperado.";
+        out.classList.add("oe-result--error");
+      }
+    } catch (e) {
+      OuviescreviUI.toast("Erro ao gerar perguntas.", "error");
+      console.error(e);
+    } finally {
+      OuviescreviUI.setButtonLoading(btn, false);
+    }
+  }
+</script>
 <script>
   fetch("header.html")
     .then(response => response.text())
     .then(html => {
-      const headerDiv = document.getElementById("header");
-      headerDiv.innerHTML = html;
-
+      document.getElementById("header").innerHTML = html;
       const tempDiv = document.createElement("div");
       tempDiv.innerHTML = html;
-
       tempDiv.querySelectorAll("script").forEach(oldScript => {
         const newScript = document.createElement("script");
         if (oldScript.src) newScript.src = oldScript.src;
         else newScript.textContent = oldScript.textContent;
         document.body.appendChild(newScript);
       });
-
-      tempDiv.querySelectorAll("style").forEach(style => {
-        document.head.appendChild(style.cloneNode(true));
-      });
+      if (window.OuviescreviUI) OuviescreviUI.markCurrentNav();
     });
-</script>
-<div id="footer"></div>
-<script>
   fetch("footer.html")
     .then(res => res.text())
-    .then(html => document.getElementById("footer").innerHTML = html);
+    .then(html => {
+      const f = document.createElement("div");
+      f.id = "footer";
+      f.innerHTML = html;
+      document.body.appendChild(f);
+    });
 </script>
 </body>
 </html>

@@ -8,113 +8,51 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Send Suggestions – Ouviescrevi</title>
   <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png">
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #A550F7, #00C3FF);
-      color: white;
-      text-align: center;
-    }
-    .suggestions {
-      background: white;
-      color: #333;
-      max-width: 600px;
-      margin: 60px auto;
-      padding: 40px;
-      border-radius: 20px;
-    }
-    .suggestions input, .suggestions textarea {
-      width: 90%;
-      max-width: 400px;
-      padding: 10px;
-      margin-top: 10px;
-      font-size: 1em;
-    }
-    .btn-main {
-      background-color: #e6d7fb;
-      color: #333;
-      font-weight: bold;
-      padding: 12px 25px;
-      border: 2px solid #A550F7;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 20px;
-    }
-    footer {
-      margin-top: 60px;
-      padding: 20px;
-      font-size: 0.9em;
-      color: #eee;
-    }
-  </style>
+  <link rel="stylesheet" href="../css/ouviescrevi.css">
+  <script src="../js/ouviescrevi-ui.js" defer></script>
 </head>
-<body>
-
+<body class="oe-page">
+<a class="oe-skip" href="#conteudo">Skip to content</a>
 <div id="header"></div>
 
+<div class="oe-hero" id="conteudo">
+  <h1>💡 Suggestions</h1>
+  <p class="oe-lead">Your feedback helps us improve Ouviescrevi.</p>
+</div>
+
 <section class="suggestions">
-  <h2>💡 Got a suggestion?</h2>
-  <p>Send us ideas for improvement, new features or general feedback!</p>
   <form id="formSuggestion">
     <input type="hidden" name="_captcha" value="false">
-    <input type="text" name="name" placeholder="Your name (optional)"><br>
-    <textarea name="message" placeholder="Your suggestion..." required rows="6"></textarea><br>
-    <button type="submit" class="btn-main">Send suggestion</button>
+    <label for="name" style="font-weight:600;">Name (optional)</label>
+    <input type="text" id="name" name="name" placeholder="Your name">
+    <label for="message" style="font-weight:600;margin-top:12px;display:block;">Suggestion</label>
+    <textarea id="message" name="message" placeholder="Your suggestion..." required rows="6"></textarea>
+    <button type="submit" class="btn-main oe-btn--block" id="btnSuggest">Send suggestion</button>
   </form>
 </section>
+
+<div id="footer"></div>
 
 <script>
 document.getElementById("formSuggestion").addEventListener("submit", function(e) {
   e.preventDefault();
-  const form = e.target;
-  const formData = new FormData(form);
-
-  fetch("https://formsubmit.co/ouviescrevi@gmail.com", {
-    method: "POST",
-    body: formData
-  })
-  .then(response => {
-    if (response.ok) {
-      alert("✅ Thank you for your suggestion!");
-      form.reset();
-    } else {
-      alert("Error sending message. Please try again.");
-    }
-  })
-  .catch(() => alert("Connection error. Please check your internet."));
+  const btn = document.getElementById("btnSuggest");
+  OuviescreviUI.setButtonLoading(btn, true, "Sending...");
+  const formData = new FormData(e.target);
+  fetch("https://formsubmit.co/ouviescrevi@gmail.com", { method: "POST", body: formData })
+    .then(function(r) {
+      if (r.ok) {
+        OuviescreviUI.toast("Thank you for your suggestion!", "success");
+        e.target.reset();
+      } else {
+        OuviescreviUI.toast("Error sending message. Please try again.", "error");
+      }
+    })
+    .catch(function() { OuviescreviUI.toast("Connection error.", "error"); })
+    .finally(function() { OuviescreviUI.setButtonLoading(btn, false); });
 });
-</script>
-
-<!-- Load and inject header -->
-<script>
-  fetch("header.html")
-    .then(response => response.text())
-    .then(html => {
-      const headerDiv = document.getElementById("header");
-      headerDiv.innerHTML = html;
-
-      const tempDiv = document.createElement("div");
-      tempDiv.innerHTML = html;
-
-      tempDiv.querySelectorAll("script").forEach(oldScript => {
-        const newScript = document.createElement("script");
-        if (oldScript.src) newScript.src = oldScript.src;
-        else newScript.textContent = oldScript.textContent;
-        document.body.appendChild(newScript);
-      });
-
-      tempDiv.querySelectorAll("style").forEach(style => {
-        document.head.appendChild(style.cloneNode(true));
-      });
-    });
-</script>
-
-<div id="footer"></div>
-<script>
-  fetch("footer.html")
-    .then(res => res.text())
-    .then(html => document.getElementById("footer").innerHTML = html);
+OuviescreviUI.loadHeader();
+OuviescreviUI.loadFooter();
 </script>
 </body>
 </html>

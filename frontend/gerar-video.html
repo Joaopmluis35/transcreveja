@@ -2,166 +2,112 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
-  <title>Gerar Vídeo com Voz</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerar Vídeo com Voz — Ouviescrevi</title>
+  <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png">
+  <link rel="stylesheet" href="css/ouviescrevi.css">
+  <script src="js/ouviescrevi-ui.js" defer></script>
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #A550F7, #00C3FF);
-      color: #fff;
-      text-align: center;
-      padding: 40px;
-    }
-    textarea {
-      width: 90%;
-      max-width: 600px;
-      height: 150px;
-      padding: 10px;
-      font-size: 1rem;
-      border-radius: 10px;
-      border: none;
-      margin-bottom: 20px;
-      resize: vertical;
-    }
-    button {
-      padding: 12px 25px;
-      font-size: 1rem;
-      font-weight: bold;
-      color: white;
-      background: #A550F7;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-    button:hover {
-      background: #7e38c7;
-    }
-    video {
-      margin-top: 30px;
-      max-width: 100%;
-      border: 4px solid #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    body.oe-page video {
+      margin: 24px auto 0;
+      max-width: min(100%, 480px);
+      border-radius: var(--oe-radius);
+      box-shadow: var(--oe-shadow);
       display: none;
     }
-    #status {
-      margin-top: 20px;
-      font-weight: bold;
-      font-size: 1.1em;
-    }
-    .progress-container {
-      margin-top: 20px;
-      width: 80%;
-      max-width: 500px;
-      background: rgba(255,255,255,0.2);
-      border-radius: 20px;
-      overflow: hidden;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    .progress-bar {
-      height: 20px;
-      background: #fff;
-      width: 0%;
-      transition: width 0.4s ease;
-      color: #000;
-      font-weight: bold;
-      text-align: center;
-      line-height: 20px;
-    }
+    #status { margin-top: 16px; font-weight: 600; min-height: 1.5em; }
   </style>
 </head>
-<body>
+<body class="oe-page">
+<a class="oe-skip" href="#conteudo">Saltar para o conteúdo</a>
+<div id="header"></div>
 
+<div class="oe-hero" id="conteudo">
   <h1>🎥 Gerar Vídeo com Voz</h1>
-  <p>Escreve um texto e cria um vídeo com voz automaticamente usando IA.</p>
+  <p class="oe-lead">Escreve um texto e cria um vídeo com narração automática — funciona sem OpenAI.</p>
+</div>
 
-  <textarea id="texto" placeholder="Escreve aqui o texto para o vídeo..."></textarea><br>
-  <button onclick="gerarVideo()">🎬 Gerar Vídeo</button>
+<div class="container">
+  <textarea id="texto" placeholder="Escreve aqui o texto para o vídeo..."></textarea>
+  <button type="button" class="oe-btn oe-btn--block" id="btnVideo" onclick="gerarVideo()">🎬 Gerar Vídeo</button>
 
   <div id="status"></div>
   <div class="progress-container" id="progressContainer" style="display: none;">
-    <div class="progress-bar" id="progressBar">0%</div>
+    <div class="progress-bar" id="progressBar"></div>
   </div>
   <video id="videoPlayer" controls></video>
+</div>
 
-  <script>
-    const frasesLoading = [
-      "🧠 A pensar nas palavras certas...",
-      "🎙️ A gravar a narração com IA...",
-      "🖼️ A processar imagem...",
-      "🎞️ A criar o vídeo final...",
-      "🚀 Quase pronto!"
-    ];
+<script src="js/ouviescrevi-api.js"></script>
+<script>
+  async function gerarVideo() {
+    const texto = document.getElementById("texto").value.trim();
+    const btn = document.getElementById("btnVideo");
+    const status = document.getElementById("status");
+    const progressContainer = document.getElementById("progressContainer");
+    const progressBar = document.getElementById("progressBar");
+    const video = document.getElementById("videoPlayer");
 
-    function simularProgresso(callback) {
-      const barra = document.getElementById("progressBar");
-      const container = document.getElementById("progressContainer");
-      container.style.display = "block";
-
-      let progresso = 0;
-      let i = 0;
-      const intervalo = setInterval(() => {
-        if (progresso < 95) {
-          progresso += Math.floor(Math.random() * 10) + 1;
-          if (progresso > 95) progresso = 95;
-          barra.style.width = progresso + "%";
-          barra.textContent = progresso + "%";
-          if (frasesLoading[i]) {
-            document.getElementById("status").textContent = frasesLoading[i];
-            i++;
-          }
-        } else {
-          clearInterval(intervalo);
-          callback(); // chama a função final para gerar o vídeo
-        }
-      }, 800);
+    if (!texto) {
+      OuviescreviUI.toast("Escreve um texto para o vídeo.", "error");
+      return;
     }
 
-    async function gerarVideo() {
-      const texto = document.getElementById("texto").value.trim();
-      const status = document.getElementById("status");
-      const video = document.getElementById("videoPlayer");
-      const barra = document.getElementById("progressBar");
+    OuviescreviUI.setButtonLoading(btn, true, "A gerar vídeo...");
+    status.textContent = "A preparar áudio e imagem...";
+    video.style.display = "none";
+    progressContainer.style.display = "block";
+    progressBar.style.width = "15%";
 
-      if (!texto) {
-        alert("⚠️ Por favor escreve um texto primeiro.");
-        return;
-      }
-
-      // Reset
-      status.textContent = "⏳ A iniciar geração de vídeo...";
-      video.style.display = "none";
-      barra.style.width = "0%";
-      barra.textContent = "0%";
-
-      simularProgresso(async () => {
-        try {
-          const res = await fetch("https://api.ouviescrevi.pt/generate-video", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text: texto })
-          });
-
-          const data = await res.json();
-          if (data.video_url) {
-            barra.style.width = "100%";
-            barra.textContent = "100%";
-            status.textContent = "✅ Vídeo gerado com sucesso!";
-            video.src = data.video_url;
-            video.style.display = "block";
-          } else {
-            status.textContent = "❌ Erro ao gerar o vídeo.";
-          }
-
-        } catch (err) {
-          console.error(err);
-          status.textContent = "❌ Erro ao comunicar com a API.";
-        }
+    try {
+      await OuviescreviAPI.init();
+      progressBar.style.width = "45%";
+      const res = await fetch(`${OuviescreviAPI.getBase()}/generate-video`, {
+        method: "POST",
+        headers: OuviescreviAPI.authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify(OuviescreviAPI.authJson({
+          text: texto,
+          voice_lang: "pt",
+          image_url: "https://placehold.co/720x1280/7c3aed/ffffff?text=Ouviescrevi"
+        }))
       });
-    }
-  </script>
+      progressBar.style.width = "85%";
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || data.error || "Erro ao gerar vídeo");
 
+      const url = OuviescreviAPI.toAbsUrl(data.video_url || data.url);
+      video.src = url;
+      video.style.display = "block";
+      status.textContent = "✅ Vídeo pronto!";
+      progressBar.style.width = "100%";
+      OuviescreviUI.toast("Vídeo gerado com sucesso!", "success");
+    } catch (err) {
+      status.textContent = "❌ " + (err.message || "Erro ao gerar vídeo");
+      OuviescreviUI.toast(err.message || "Erro ao gerar vídeo", "error");
+    } finally {
+      OuviescreviUI.setButtonLoading(btn, false);
+      setTimeout(() => { progressContainer.style.display = "none"; }, 1000);
+    }
+  }
+</script>
+<script>
+  fetch("header.html").then(r => r.text()).then(html => {
+    document.getElementById("header").innerHTML = html;
+    const t = document.createElement("div");
+    t.innerHTML = html;
+    t.querySelectorAll("script").forEach(s => {
+      const n = document.createElement("script");
+      if (s.src) n.src = s.src; else n.textContent = s.textContent;
+      document.body.appendChild(n);
+    });
+    if (window.OuviescreviUI) OuviescreviUI.markCurrentNav();
+  });
+  fetch("footer.html").then(r => r.text()).then(html => {
+    const f = document.createElement("div");
+    f.id = "footer";
+    f.innerHTML = html;
+    document.body.appendChild(f);
+  });
+</script>
 </body>
 </html>

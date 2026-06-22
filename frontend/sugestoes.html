@@ -3,120 +3,65 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="description" content="Tens uma sugestão para o Ouviescrevi? Envia-nos ideias para melhorar ainda mais a nossa plataforma.">
-<meta name="keywords" content="sugestões Ouviescrevi, dar feedback, ideias para IA, melhorar plataforma, contribuir com sugestões">
-<meta name="robots" content="index, follow">
+  <meta name="keywords" content="sugestões Ouviescrevi, dar feedback, ideias para IA, melhorar plataforma, contribuir com sugestões">
+  <meta name="robots" content="index, follow">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Enviar Sugestões – Ouviescrevi</title>
   <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png">
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #A550F7, #00C3FF);
-      color: white;
-      text-align: center;
-    }
-    .sugestoes {
-      background: white;
-      color: #333;
-      max-width: 600px;
-      margin: 60px auto;
-      padding: 40px;
-      border-radius: 20px;
-    }
-    .sugestoes input, .sugestoes textarea {
-      width: 90%;
-      max-width: 400px;
-      padding: 10px;
-      margin-top: 10px;
-      font-size: 1em;
-    }
-    .btn-main {
-      background-color: #e6d7fb;
-      color: #333;
-      font-weight: bold;
-      padding: 12px 25px;
-      border: 2px solid #A550F7;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 20px;
-    }
-    footer {
-      margin-top: 60px;
-      padding: 20px;
-      font-size: 0.9em;
-      color: #eee;
-    }
-  </style>
+  <link rel="stylesheet" href="css/ouviescrevi.css">
+  <script src="js/ouviescrevi-ui.js" defer></script>
 </head>
-<body>
-
+<body class="oe-page">
+<a class="oe-skip" href="#conteudo">Saltar para o conteúdo</a>
 <div id="header"></div>
 
+<div class="oe-hero" id="conteudo">
+  <h1>💡 Sugestões</h1>
+  <p class="oe-lead">A tua ideia ajuda-nos a melhorar o Ouviescrevi.</p>
+</div>
+
 <section class="sugestoes">
-  <h2>💡 Tens uma sugestão?</h2>
-  <p>Envia-nos ideias de melhoria, novas funcionalidades ou feedback!</p>
   <form id="formSugestao">
     <input type="hidden" name="_captcha" value="false">
-    <input type="text" name="nome" placeholder="O teu nome (opcional)"><br>
-    <textarea name="mensagem" placeholder="A tua sugestão..." required rows="6"></textarea><br>
-    <button type="submit" class="btn-main">Enviar sugestão</button>
+    <label for="nome" style="font-weight:600;">Nome (opcional)</label>
+    <input type="text" id="nome" name="nome" placeholder="O teu nome">
+    <label for="mensagem" style="font-weight:600;margin-top:12px;display:block;">Sugestão</label>
+    <textarea id="mensagem" name="mensagem" placeholder="A tua sugestão..." required rows="6"></textarea>
+    <button type="submit" class="btn-main oe-btn--block" id="btnSugestao">Enviar sugestão</button>
   </form>
 </section>
 
-
+<div id="footer"></div>
 
 <script>
 document.getElementById("formSugestao").addEventListener("submit", function(e) {
   e.preventDefault();
-  const form = e.target;
-  const formData = new FormData(form);
+  const btn = document.getElementById("btnSugestao");
+  OuviescreviUI.setButtonLoading(btn, true, "A enviar...");
+  const formData = new FormData(e.target);
 
   fetch("https://formsubmit.co/ouviescrevi@gmail.com", {
     method: "POST",
     body: formData
   })
-  .then(response => {
+  .then(function(response) {
     if (response.ok) {
-      alert("✅ Obrigado pela tua sugestão!");
-      form.reset();
+      OuviescreviUI.toast("Obrigado pela tua sugestão!", "success");
+      e.target.reset();
     } else {
-      alert("Erro ao enviar. Tenta novamente.");
+      OuviescreviUI.toast("Erro ao enviar. Tenta novamente.", "error");
     }
   })
-  .catch(() => alert("Erro de ligação. Verifica tua internet."));
+  .catch(function() {
+    OuviescreviUI.toast("Erro de ligação. Verifica a internet.", "error");
+  })
+  .finally(function() {
+    OuviescreviUI.setButtonLoading(btn, false);
+  });
 });
-</script>
 
-<!-- Carregar e injetar o header -->
-<!-- No final do <body> -->
-<script>
-  fetch("header.html")
-    .then(response => response.text())
-    .then(html => {
-      const headerDiv = document.getElementById("header");
-      headerDiv.innerHTML = html;
-
-      const tempDiv = document.createElement("div");
-      tempDiv.innerHTML = html;
-
-      tempDiv.querySelectorAll("script").forEach(oldScript => {
-        const newScript = document.createElement("script");
-        if (oldScript.src) newScript.src = oldScript.src;
-        else newScript.textContent = oldScript.textContent;
-        document.body.appendChild(newScript);
-      });
-
-      tempDiv.querySelectorAll("style").forEach(style => {
-        document.head.appendChild(style.cloneNode(true));
-      });
-    });
-</script>
-<div id="footer"></div>
-<script>
-  fetch("footer.html")
-    .then(res => res.text())
-    .then(html => document.getElementById("footer").innerHTML = html);
+OuviescreviUI.loadHeader();
+OuviescreviUI.loadFooter();
 </script>
 </body>
 </html>

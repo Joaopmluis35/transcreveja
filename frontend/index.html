@@ -3,457 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="css/ouviescrevi.css?v=3">
+  <link rel="stylesheet" href="css/index-home.css?v=3">
   <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png" />
   <title>Ouviescrevi – Conversor Inteligente</title>
   <meta name="description" content="Converte ficheiros com IA. Word para PDF, imagens para PDF, e muito mais!">
   <meta name="keywords" content="converter Word para PDF, PDF para texto, imagem para PDF, conversor de ficheiros online, transcrição de áudio, transcrição automática, Ouviescrevi">
   <meta name="robots" content="index, follow">
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #A550F7, #00C3FF);
-      background-repeat: no-repeat;
-      background-attachment: fixed;
-      background-size: 100% 100%;
-      color: white;
-      text-align: center;
-    }
-	/* Garante que o painel fica oculto quando tem a classe hidden */
-#subtitlePanel.hidden {
-  display: none !important;
-}
-
-    #adminContent{ place-items:center; }
-    header{ padding:20px; }
-    header h1{ margin:0; font-size:2em; }
-
-    /* ── Ticker de atualizações ───────────────────────────────────────────── */
-    .ticker {
-      width: 100%;
-      overflow: hidden;
-      position: sticky;
-      top: 0;
-      z-index: 999;
-      background: rgba(255,255,255,0.12);
-      backdrop-filter: blur(4px);
-      border-bottom: 1px solid rgba(255,255,255,0.2);
-    }
-    .ticker__inner {
-      display: inline-block;
-      white-space: nowrap;
-      padding: 8px 0;
-      animation: ticker-scroll 24s linear infinite;
-    }
-    .ticker__item {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      margin: 0 28px;
-      font-weight: 700;
-      color: black;
-      text-shadow: 0 1px 0 rgba(0,0,0,.15);
-    }
-    .ticker__dot { opacity: .7; }
-    @keyframes ticker-scroll {
-      0%   { transform: translateX(100%); }
-      100% { transform: translateX(-100%); }
-    }
-    @media (prefers-reduced-motion: reduce) { .ticker__inner { animation: none; } }
-
-    main{
-      padding:40px;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-    }
-
-    form{
-      background:white; color:#333;
-      padding:20px 30px;
-      border-radius:10px;
-      box-shadow:0 5px 15px rgba(0,0,0,0.1);
-      margin-top:20px;
-      max-width:600px;
-      width:100%;
-      text-align:left;
-    }
-
-    input,button{
-      margin:10px 0;
-      padding:10px;
-      font-size:1em;
-      width:100%;
-      cursor:pointer;
-    }
-
-    button{
-      background-color:#e6d7fb;
-      color:#333;
-      border:2px solid #A550F7;
-      border-radius:8px;
-      font-weight:bold;
-      transition:all 0.3s ease;
-    }
-    button:hover{ background:linear-gradient(135deg,#A550F7,#00C3FF); color:white; border-color:transparent; }
-    button[disabled]{ opacity:.55; cursor:not-allowed; }
-
-    .hidden{ display:none; }
-
-    /* output/areas alinhados à largura do form */
-    #loading, #output { width:100%;  }
-
-    #output textarea{
-      width:100%;
-      min-height:200px;
-      margin-top:10px;
-      padding:15px;
-      font-family:'Segoe UI', sans-serif;
-      font-size:1rem;
-      color:#333;
-      background:#fdfdfd;
-      border:2px solid #A550F7;
-      border-radius:10px;
-      box-shadow:0 2px 5px rgba(0,0,0,0.05);
-      line-height:1.6;
-      resize:vertical;
-      transition:border-color 0.3s, box-shadow 0.3s;
-    }
-    #output textarea:focus{ outline:none; border-color:#00C3FF; box-shadow:0 0 0 4px rgba(0,195,255,0.15); }
-
-    .btn-group{
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      justify-content:center;
-      margin-top:10px;
-    }
-    .btn-group button{
-      flex:1 1 auto;
-      min-width:130px;
-      max-width:220px;
-      padding:12px 18px;
-      font-size:1em;
-      font-weight:bold;
-      border:2px solid #A550F7;
-      border-radius:8px;
-      background-color:#e6d7fb;
-      color:#333;
-      cursor:pointer;
-      position:relative;
-      overflow:hidden;
-      transition:color 0.3s ease, border-color 0.3s ease;
-    }
-    .btn-group button::before{
-      content:"";
-      position:absolute; left:0; bottom:-100%;
-      width:100%; height:100%;
-      background:linear-gradient(135deg,#A550F7,#00C3FF);
-      transition:all 0.4s ease; z-index:0;
-    }
-    .btn-group button:hover::before{ bottom:0; }
-    .btn-group button:hover{ color:white; border-color:transparent; }
-    .btn-group button span{ position:relative; z-index:2; }
-
-    #dropZone{
-      border:2px dashed #A550F7;
-      padding:20px;
-      text-align:center;
-      cursor:pointer;
-      border-radius:10px;
-      margin-bottom:15px;
-      background-color:#fafafa; color:#333;
-      position:relative;
-    }
-    #dropZone:hover{ background-color:#f0f0f0; }
-    #dropZone input[type="file"]{ display:none; }
-    #fileName{ display:block; margin-top:10px; color:#555; font-size:14px; font-style:italic; }
-
-    .switch-container{
-      display:flex; align-items:center; gap:10px; margin-top:10px; font-size:14px;
-    }
-    .switch-container input[type="checkbox"]{
-      appearance:none; width:40px; height:20px; background:#ccc; border-radius:20px; position:relative; cursor:pointer; outline:none; transition:background 0.3s;
-    }
-    .switch-container input[type="checkbox"]::before{
-      content:""; position:absolute; top:2px; left:2px; width:16px; height:16px; background:white; border-radius:50%; transition:transform 0.3s;
-    }
-    .switch-container input[type="checkbox"]:checked{ background:#4caf50; }
-    .switch-container input[type="checkbox"]:checked::before{ transform:translateX(20px); }
-    .switch-label{ user-select:none; }
-
-    /* barra de progresso com largura constante */
-    #loading p{ margin:8px 0; }
-    #transcricaoStatus{ min-height:46px; display:flex; align-items:center; justify-content:center; }
-    #progressWrap{ background:#ddd; border-radius:8px; width:100%; height:20px; }
-    #progressBar{ height:100%; width:0%; background:#4caf50; border-radius:8px; transition:width .2s ease; }
-
-    /* status banners */
-    .status{
-      background:#fff3cd; color:#856404; border-left:5px solid #ffc107;
-      padding:12px 18px; margin:15px 0; border-radius:5px; font-weight:bold;
-    }
-
-    /* temporizador transcrição */
-    #timerTranscricao{
-      color:#333; font-weight:bold; background:#e9f7ff;
-      border-left:5px solid #00C3FF; padding:8px 12px; border-radius:5px; display:inline-block;
-    }
-
-    /* caixas secundárias */
-    #resumoTexto, #minutaTexto, #traducaoTexto, #classificacaoTexto { color:#222; }
-
-    /* caixa de resultados de legendas */
-    #legendasBox a {
-      display:inline-block; margin-right:8px; margin-top:6px;
-      background:#e6d7fb; border:2px solid #A550F7; color:#333;
-      padding:8px 12px; border-radius:8px; font-weight:700; text-decoration:none;
-      transition:all .3s ease;
-    }
-    #legendasBox a:hover { background:linear-gradient(135deg,#A550F7,#00C3FF); color:#fff; border-color:transparent; }
-
-    /* modal tradução */
-    #modalTraducao{ display:none !important; }
-    #modalTraducao.show{ display:flex !important; }
-    #modalTraducao .card{ background:white; padding:20px; border-radius:10px; text-align:center; max-width:400px; color:#333; }
-
-    /* dropdown export */
-    .dropdown-export{ position:relative; display:inline-block; flex:1 1 auto; min-width:130px; max-width:220px; }
-    .dropdown-content{
-      display:none;
-      flex-direction:column;
-      position:absolute;
-      background:white;
-      min-width:200px;
-      box-shadow:0 8px 16px rgba(0,0,0,.2);
-      z-index:10;
-      border-radius:8px;
-      top:95%; left:0;
-      padding:6px 0;
-    }
-    .dropdown-export.open .dropdown-content{ display:flex !important; }
-    @media (hover:hover) and (pointer:fine){ .dropdown-export:hover .dropdown-content{ display:flex; } }
-    .dropdown-content button{
-      background:none; border:none; padding:10px 20px; text-align:left; font-size:.95em; color:#333; cursor:pointer; width:100%;
-    }
-    .dropdown-content button:hover{ background:#f0f0f0; }
-
-    /* nav nichos */
-    #nichoMenu{ display:flex; flex-wrap:wrap; justify-content:center; gap:12px; position:sticky; top:0; z-index:998; }
-    #nichoMenu button{
-      position:relative; overflow:hidden; background:#e6d7fb; color:#333; border:2px solid #A550F7; border-radius:50px;
-      padding:10px 20px; font-weight:bold; font-size:.95em; cursor:pointer; transition:color .3s, border-color .3s;
-      box-shadow:0 2px 4px rgba(0,0,0,.1); flex:0 0 auto; white-space:nowrap; width:max-content; z-index:1;
-    }
-    #nichoMenu button::before{
-      content:""; position:absolute; left:0; bottom:-100%; width:100%; height:100%;
-      background:linear-gradient(135deg,#A550F7,#00C3FF); transition:bottom .6s cubic-bezier(.25,1,.5,1); z-index:0;
-    }
-    #nichoMenu button:hover::before{ bottom:0; }
-    #nichoMenu button span{ position:relative; z-index:2; }
-    #nichoMenu button:hover{ color:white; border-color:white; }
-
-    /* ── PAINEL DE ESTILOS DE LEGENDAS ───────────────────────────────────── */
-/* ── PAINEL DE ESTILOS DE LEGENDAS ───────────────────────────────────── */
-#subtitlePanel{
-  max-width: 1100px;
-  width: 100%;
-  margin: 18px auto 0;
-  background: white;
-  color: #333;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0,0,0,.12);
-  padding: 20px;
-  display: grid;
-  grid-template-columns: 1fr 1fr; /* controlos à esquerda | preview à direita */
-  gap: 20px;
-}
-
-#subtitlePanel h3{
-  grid-column: 1 / -1;
-  margin: 0 0 12px 0;
-  color: #6b21a8;
-}
-
-/* Coluna de controlos */
-.sub-grid{
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  align-items: end;
-}
-.sub-grid label{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-  font-weight:600;
-  font-size:.95em;
-}
-.sub-grid input[type="text"],
-.sub-grid input[type="number"],
-.sub-grid input[type="range"],
-.sub-grid select{
-  width:100%;
-  padding:8px 10px;
-  border:1px solid #ddd;
-  border-radius:8px;
-  background:#fafafa;
-  font-weight:600;
-}
-.sub-grid small{ color:#666; font-weight:500; }
-
-/* Coluna de pré-visualização */
-.preview-wrap{
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-.preview-card{
-  background:#f7f7fb;
-  border:1px solid #e6e6f7;
-  border-radius:10px;
-  padding:10px;
-  text-align:center;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-}
-.preview-card h4{ 
-  margin:4px 0 8px 0; 
-  color:#444; 
-  font-size:.95em; 
-}
-
-/* canvas / vídeo / imagens */
-.preview-card canvas,
-.preview-card img,
-.preview-card video{
-  max-height: 320px;        /* limite p/ vídeos verticais */
-  width: auto;
-  max-width: 100%;
-  border-radius:8px;
-  background:#222;
-  object-fit: contain;       /* nunca distorce */
-}
-
-.preview-actions{
-  margin-top:10px;
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  justify-content:center;
-}
-.preview-actions button{
-  width:auto;
-  min-width:160px;
-}
-
-/* Responsivo */
-@media (max-width:1024px){
-  #subtitlePanel{
-    grid-template-columns: 1fr;
-  }
-  .sub-grid{ grid-template-columns: repeat(2, minmax(0,1fr)); }
-}
-@media (max-width:600px){
-  .sub-grid{ grid-template-columns: 1fr; }
-  .preview-card canvas,
-  .preview-card img,
-  .preview-card video{
-    max-height: 240px;   /* reduz um pouco no mobile */
-  }
-}
-
-	/* Botão flutuante redondo */
-#fabSugestao {
-  position: fixed;
-  bottom: 20px; 
-  right: 20px;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: #A550F7;
-  color: #fff;
-  border: none;
-  cursor: pointer;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 26px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-}
-
-/* mão sempre a acenar */
-#fabSugestao .hand {
-  display: inline-block;
-  transform-origin: 70% 70%;
-  animation: wave 1.8s infinite;
-}
-@keyframes wave {
-  0% { transform: rotate(0deg); }
-  10% { transform: rotate(14deg); }
-  20% { transform: rotate(-8deg); }
-  30% { transform: rotate(14deg); }
-  40% { transform: rotate(-4deg); }
-  50% { transform: rotate(10deg); }
-  60%,100% { transform: rotate(0deg); }
-}
-
-/* Popup sugestão */
-#sugestaoPanel {
-  position: fixed;
-  bottom: 90px; 
-  right: 20px;
-  max-width: 320px;
-  width: 90%;
-  background: #fff;
-  color: #333;
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 6px 20px rgba(0,0,0,.3);
-  z-index: 1000;
-  opacity: 0;
-  transform: translateY(20px) scale(0.95);
-  pointer-events: none;
-  transition: all 0.3s ease;
-}
-#sugestaoPanel.show {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-  pointer-events: auto;
-}
-#sugestaoPanel .sug-card textarea {
-  width: 90%;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  margin: 10px 0;
-}
-#sugestaoPanel .sug-card button {
-  margin-top: 6px;
-  padding: 8px 12px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-#enviarSugestao { background:#A550F7; color:#fff; font-weight:bold; }
-#fecharSugestao { background:#ddd; }
-
-  </style>
 </head>
-<body>
+<body class="oe-page oe-page--home">
+<a class="oe-skip" href="#mainContent">Saltar para o conteúdo</a>
 
 <div id="header"></div>
 
-<!-- Ticker de Atualizações -->
-<div class="ticker" aria-live="polite">
-  <div class="ticker__inner" id="updatesTrack">
-    <!-- preenchido via JS com a data de hoje -->
-  </div>
-</div>
-
-<main>
+<main id="mainContent">
   <div id="adminContent">
     <p>
       <strong>🧠 Ouviescrevi</strong> é o teu assistente com IA para
@@ -466,15 +29,16 @@
         <p>📁 <strong>Arrasta o ficheiro aqui</strong> ou clica para escolher</p>
         <input type="file" id="fileInput" accept="audio/*,video/*" required>
         <span id="fileName">Nenhum ficheiro selecionado</span>
+        <small class="oe-file-hint">Limite: 500 MB — para ficheiros maiores, extrai só o áudio.</small>
       </div>
 
       <button type="submit" id="btnTranscrever">Transcrever</button>
       <button type="button" id="btnLegendarVideo" disabled>🎬 Legendar Vídeo (SRT + MP4)</button>
       <button type="button" id="btnStartRec">🎤 Gravar Áudio</button>
-      <button type="button" id="btnStopRecording" class="hidden" style="background:#ff4c4c; color:white; font-weight:bold; margin-bottom:10px;">🛑 Parar Gravação</button>
-      <button type="button" onclick="limparTudo()" style="background:#ffffff; border:2px solid #A550F7; color:#A550F7; font-weight:bold; margin-bottom:10px;">🧹 Limpar Tudo</button>
+      <button type="button" id="btnStopRecording" class="hidden">🛑 Parar Gravação</button>
+      <button type="button" id="btnLimparTudo" onclick="limparTudo()">🧹 Limpar Tudo</button>
 
-      <p id="timerGravacao" class="hidden" style="font-weight:bold; margin-top: 10px;">⏱️ 00:00</p>
+      <p id="timerGravacao" class="hidden">⏱️ 00:00</p>
 
       <label class="switch-container">
         <input type="checkbox" id="identificarLocutores">
@@ -482,8 +46,108 @@
         <span class="switch-label">Identificar falas com nomes de locutores</span>
       </label>
 
+      <label class="oe-lang-select" for="transcribeLanguage">
+        <span class="switch-label">Idioma do áudio</span>
+        <select id="transcribeLanguage">
+          <option value="pt" selected>Português</option>
+          <option value="en">Inglês</option>
+          <option value="es">Espanhol</option>
+          <option value="fr">Francês</option>
+          <option value="auto">Deteção automática</option>
+        </select>
+      </label>
+
       <p id="recordingStatus"></p>
     </form>
+
+    <div id="loading" class="hidden">
+      <p class="status" id="transcricaoStatus">🔄 A preparar...</p>
+      <p id="timerTranscricao" class="hidden">⏳ 00:00</p>
+
+      <div id="progressWrap">
+        <div id="progressBar"></div>
+      </div>
+    </div>
+
+    <div id="uploadAlert" class="oe-upload-alert hidden" role="alert"></div>
+
+    <div id="output" class="hidden">
+      <h3>Transcrição:</h3>
+      <textarea id="transcriptionText" readonly></textarea>
+      <div class="oe-copy-row">
+        <button type="button" class="oe-copy-btn" onclick="copiarTranscricao()">📋 Copiar Tudo</button>
+      </div>
+
+      <button id="btnRetry" class="hidden" onclick="tentarNovamente()"><span>🔁 Tentar novamente</span></button>
+
+      <p id="traducaoStatus" class="status hidden">🌍 A traduzir... por favor aguarde</p>
+      <div id="traducaoProgressWrapper" class="hidden">
+        <div id="traducaoProgressBar"></div>
+      </div>
+
+      <div id="resumoBox" class="hidden">
+        <h3>📌 Resumo:</h3>
+        <div id="resumoTexto" class="oe-result-box"></div>
+        <div class="oe-copy-row">
+          <button type="button" class="oe-copy-btn" onclick="copiarTextoBox('resumoTexto', this)">📋 Copiar Tudo</button>
+        </div>
+      </div>
+
+      <div id="minutaBox" class="hidden">
+        <h3>📩 Minuta da Reunião:</h3>
+        <div id="minutaTexto" class="oe-result-box"></div>
+        <div class="oe-copy-row">
+          <button type="button" class="oe-copy-btn" onclick="copiarTextoBox('minutaTexto', this)">📋 Copiar Tudo</button>
+        </div>
+      </div>
+
+      <div id="traducaoBox" class="hidden">
+        <h3>🌍 Tradução:</h3>
+        <div id="traducaoTexto" class="oe-result-box"></div>
+        <div class="oe-copy-row">
+          <button type="button" class="oe-copy-btn" onclick="copiarTextoBox('traducaoTexto', this)">📋 Copiar Tudo</button>
+        </div>
+      </div>
+
+      <div id="classificacaoBox" class="hidden">
+        <h3>📚 Tipo de Conteúdo:</h3>
+        <div id="classificacaoTexto" class="oe-result-box"></div>
+      </div>
+
+      <!-- Resultados de legendas/vídeo legendado -->
+      <div id="legendasBox" class="hidden">
+        <h3>🎞️ Legendas / Vídeo Legendado</h3>
+        <div id="legendasInfo">
+          <p id="legendasMsg">Pronto! Escolhe o que queres descarregar:</p>
+          <div>
+            <a id="srtDownload" href="#" download>⬇️ Download SRT</a>
+            <a id="mp4Download" class="hidden" href="#" download>⬇️ Download Vídeo (MP4)</a>
+          </div>
+          <p id="legendasWarn" class="hidden"></p>
+        </div>
+      </div>
+
+      <div class="btn-group">
+        <button id="btnGerarResumo"><span>🧠 Gerar Resumo</span></button>
+        <button onclick="partilharWhatsapp()"><span>📲 Partilhar no WhatsApp</span></button>
+        <button onclick="gerarMinuta()"><span>📩 Gerar Minuta</span></button>
+        <button onclick="corrigirTextoIA()"><span>📝 Corrigir Texto</span></button>
+        <button onclick="abrirModalTraducao()"><span>🌍 Traduzir</span></button>
+        <button onclick="classificarConteudo()"><span>📚 Classificar Tipo</span></button>
+        <button onclick="gerarEmailIA()"><span>📧 Gerar Email</span></button>
+
+        <div class="dropdown-export" id="exportDropdown">
+          <button id="exportBtn" aria-haspopup="true" aria-expanded="false"><span>📁 Exportar ▼</span></button>
+          <div class="dropdown-content" id="exportOptions">
+            <button data-export="pdf"><span>📄 Exportar PDF</span></button>
+            <button data-export="doc"><span>📝 Exportar DOC</span></button>
+            <button data-export="txt"><span>📃 Exportar TXT</span></button>
+            <button data-export="srt"><span>🎞️ Exportar SRT</span></button>
+            <button data-export="json"><span>🔢 Exportar JSON</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Painel de estilos + pré-visualização -->
     <section id="subtitlePanel" class="hidden" aria-live="polite">
@@ -516,10 +180,10 @@
         </label>
 
         <label>Caixa de fundo
-          <div style="display:flex; gap:8px; align-items:center;">
+          <div class="sub-bg-row">
             <input id="subBg" type="checkbox" checked />
             <small>opacidade</small>
-            <input id="subBgOpacity" type="range" min="0" max="0.9" step="0.05" value="0.35" style="flex:1;" />
+            <input id="subBgOpacity" type="range" min="0" max="0.9" step="0.05" value="0.35" />
             <small id="subBgOpacityVal">0.35</small>
           </div>
         </label>
@@ -575,103 +239,16 @@
         </div>
       </div>
     </section>
-    <video id="hiddenVideo" style="display:none;" crossorigin="anonymous" playsinline></video>
+    <video id="hiddenVideo" class="hidden" crossorigin="anonymous" playsinline></video>
     <!-- /Painel de estilos -->
 
-    <div id="loading" class="hidden">
-      <p class="status" id="transcricaoStatus">🔄 A preparar...</p>
-      <p id="timerTranscricao" class="hidden">⏳ 00:00</p>
-
-      <div id="progressWrap">
-        <div id="progressBar"></div>
-      </div>
-    </div>
-
-    <div id="output" class="hidden">
-      <h3>Transcrição:</h3>
-      <textarea id="transcriptionText" readonly></textarea>
-      <div style="text-align:right; margin-top:5px;">
-        <button onclick="copiarTranscricao()" style="background:#e6d7fb; border:2px solid #A550F7; border-radius:6px; padding:5px 12px; font-size:.9em; cursor:pointer; color:#333; font-weight:bold;">📋 Copiar Tudo</button>
-      </div>
-
-      <button id="btnRetry" class="hidden" onclick="tentarNovamente()"><span>🔁 Tentar novamente</span></button>
-
-      <p id="traducaoStatus" class="status hidden">🌍 A traduzir... por favor aguarde</p>
-      <div id="traducaoProgressWrapper" class="hidden" style="background:#ddd; border-radius:8px; width:100%; height:20px; margin-top:10px;">
-        <div id="traducaoProgressBar" style="height:100%; width:0%; background:#A550F7; border-radius:8px;"></div>
-      </div>
-
-      <div id="resumoBox" class="hidden">
-        <h3>📌 Resumo:</h3>
-        <div id="resumoTexto" style="background:#f0f0f0; color:#222; padding:15px; border-radius:8px; white-space:pre-wrap;"></div>
-        <div style="text-align:right; margin-top:5px;">
-          <button onclick="copiarTextoBox('resumoTexto', this)" style="background:#e6d7fb; border:2px solid #A550F7; border-radius:6px; padding:5px 12px; font-size:.9em; cursor:pointer; color:#333; font-weight:bold;">📋 Copiar Tudo</button>
-        </div>
-      </div>
-
-      <div id="minutaBox" class="hidden">
-        <h3>📩 Minuta da Reunião:</h3>
-        <div id="minutaTexto" style="background:#f0f0f0; color:#222; padding:15px; border-radius:8px; white-space:pre-wrap;"></div>
-        <div style="text-align:right; margin-top:5px;">
-          <button onclick="copiarTextoBox('minutaTexto', this)" style="background:#e6d7fb; border:2px solid #A550F7; border-radius:6px; padding:5px 12px; font-size:.9em; cursor:pointer; color:#333; font-weight:bold;">📋 Copiar Tudo</button>
-        </div>
-      </div>
-
-      <div id="traducaoBox" class="hidden">
-        <h3>🌍 Tradução:</h3>
-        <div id="traducaoTexto" style="background:#f0f0f0; color:#222; padding:15px; border-radius:8px; white-space:pre-wrap;"></div>
-        <div style="text-align:right; margin-top:5px;">
-          <button onclick="copiarTextoBox('traducaoTexto', this)" style="background:#e6d7fb; border:2px solid #A550F7; border-radius:6px; padding:5px 12px; font-size:.9em; cursor:pointer; color:#333; font-weight:bold;">📋 Copiar Tudo</button>
-        </div>
-      </div>
-
-      <div id="classificacaoBox" class="hidden">
-        <h3>📚 Tipo de Conteúdo:</h3>
-        <div id="classificacaoTexto" style="background:#f0f0f0; color:#222; padding:10px; border-radius:8px; white-space:pre-wrap;"></div>
-      </div>
-
-      <!-- Resultados de legendas/vídeo legendado -->
-      <div id="legendasBox" class="hidden">
-        <h3>🎞️ Legendas / Vídeo Legendado</h3>
-        <div id="legendasInfo" style="background:#f0f0f0; color:#222; padding:15px; border-radius:8px;">
-          <p id="legendasMsg" style="margin:0 0 8px 0;">Pronto! Escolhe o que queres descarregar:</p>
-          <div>
-            <a id="srtDownload" href="#" download>⬇️ Download SRT</a>
-            <a id="mp4Download" class="hidden" href="#" download>⬇️ Download Vídeo (MP4)</a>
-          </div>
-          <p id="legendasWarn" class="hidden" style="margin-top:10px; background:#fff3cd; color:#856404; border-left:5px solid #ffc107; padding:8px 12px; border-radius:5px; font-weight:600;"></p>
-        </div>
-      </div>
-
-      <div class="btn-group">
-        <button id="btnGerarResumo"><span>🧠 Gerar Resumo</span></button>
-        <button onclick="partilharWhatsapp()"><span>📲 Partilhar no WhatsApp</span></button>
-        <button onclick="gerarMinuta()"><span>📩 Gerar Minuta</span></button>
-        <button onclick="corrigirTextoIA()"><span>📝 Corrigir Texto</span></button>
-        <button onclick="abrirModalTraducao()"><span>🌍 Traduzir</span></button>
-        <button onclick="classificarConteudo()"><span>📚 Classificar Tipo</span></button>
-        <button onclick="gerarEmailIA()"><span>📧 Gerar Email</span></button>
-
-        <div class="dropdown-export" id="exportDropdown">
-          <button id="exportBtn" aria-haspopup="true" aria-expanded="false"><span>📁 Exportar ▼</span></button>
-          <div class="dropdown-content" id="exportOptions">
-            <button data-export="pdf"><span>📄 Exportar PDF</span></button>
-            <button data-export="doc"><span>📝 Exportar DOC</span></button>
-            <button data-export="txt"><span>📃 Exportar TXT</span></button>
-            <button data-export="srt"><span>🎞️ Exportar SRT</span></button>
-            <button data-export="json"><span>🔢 Exportar JSON</span></button>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 
   <!-- Modal de tradução -->
-  <div id="modalTraducao" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%;
-    background:rgba(0,0,0,.6); display:flex; justify-content:center; align-items:center; z-index:9999;">
+  <div id="modalTraducao" class="hidden">
     <div class="card">
-      <h3 style="margin-bottom:10px;">🌍 Seleciona o idioma de destino:</h3>
-      <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center;">
+      <h3>🌍 Seleciona o idioma de destino:</h3>
+      <div class="oe-lang-grid">
         <button onclick="traduzirTextoComIdioma(event, 'português')">Português</button>
         <button onclick="traduzirTextoComIdioma(event, 'inglês')">Inglês</button>
         <button onclick="traduzirTextoComIdioma(event, 'espanhol')">Espanhol</button>
@@ -683,15 +260,15 @@
     </div>
   </div>
 
-<section id="apresentacaoSEO" style="max-width: 800px; margin: 40px auto; background: white; padding: 20px; border-radius: 12px; color: #333; font-size: 1.1em; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-  <h2 style="color: #A550F7;">🧠 O que é o Ouviescrevi?</h2>
+<section id="apresentacaoSEO" class="oe-seo-block">
+  <h2>🧠 O que é o Ouviescrevi?</h2>
   <p>
     Ouviescrevi é uma ferramenta online que usa Inteligência Artificial (IA) para 
     <strong>transcrever, resumir, traduzir, corrigir</strong> e <strong>classificar conteúdos</strong>, 
     além de <strong>gerar emails</strong>, <strong>criar perguntas de estudo</strong> e até <strong>produzir vídeos com legendas automáticas</strong>.
   </p>
   <p>Ideal para professores, jornalistas, estudantes, empresas e qualquer pessoa que precise transformar áudio, vídeo ou texto em conhecimento útil. 🚀</p>
-  <div style="margin-top: 15px; text-align: left; display: inline-block; line-height: 1.8;">
+  <div class="oe-seo-features">
     <p><strong>Funcionalidades principais:</strong></p>
     <p>🎙️ Transcrição de áudio/vídeo</p>
     <p>🧠 Resumos automáticos</p>
@@ -723,14 +300,18 @@
 
 </main>
 
+<script src="js/ouviescrevi-ui.js"></script>
+<script src="js/ouviescrevi-api.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
-  // =========================
-  // Estado global
-  // =========================
-  const API_BASE = "https://api.ouviescrevi.pt";
-  const API_TOKEN = "ouviescrevi2025@resumo"; // o mesmo usado no backend
-  const ADMIN_EMAIL = "admin@ouviescrevi.pt"; // fallback mailto se a API falhar
+  const ADMIN_EMAIL = "admin@ouviescrevi.pt";
+  let API_BASE = "";
+  let API_TOKEN = "";
+  async function ensureApi() {
+    await OuviescreviAPI.init();
+    API_BASE = OuviescreviAPI.getBase();
+    API_TOKEN = OuviescreviAPI.getToken();
+  }
 
   let mediaRecorder;
   let audioChunks = [];
@@ -797,6 +378,69 @@
     document.getElementById("timerTranscricao").classList.add("hidden");
   }
 
+  function transcricaoRecebidaComSucesso(data){
+    const texto = (data.transcription || data.text || "").trim();
+    if (texto) return true;
+    const formatado = (data.formatted || "").trim();
+    if (!formatado) return false;
+    if (/\[Falha no segmento\]/i.test(formatado)) return false;
+    return true;
+  }
+
+  function mensagemErroTranscricao(data, file){
+    const hint = [data.warning, data.error, data.detail].filter(Boolean).join(" ");
+    if (/insufficient_quota|exceeded your current quota|sem créditos/i.test(hint)) {
+      return "💳 A conta OpenAI não tem créditos ativos. Adiciona um método de pagamento em https://platform.openai.com/settings/organization/billing e tenta novamente.";
+    }
+    if (/>\s*\d+\s*MB|tamanho|413/i.test(hint)) {
+      return mensagemFicheiroGrande(file, hint);
+    }
+    if (data.warning) return "⚠️ " + data.warning;
+    return "❌ Não foi possível obter a transcrição. Tenta novamente mais tarde.";
+  }
+
+  function fileSizeMb(file){
+    return file.size / (1024 * 1024);
+  }
+
+  function formatMb(mb){
+    return mb >= 100 ? Math.round(mb) : mb.toFixed(1);
+  }
+
+  function getMaxFileMb(){
+    return OuviescreviAPI.getMaxFileSizeMb ? OuviescreviAPI.getMaxFileSizeMb() : 500;
+  }
+
+  function isFileTooLarge(file){
+    return file && file.size > getMaxFileMb() * 1024 * 1024;
+  }
+
+  function mensagemFicheiroGrande(file, serverHint){
+    const limite = getMaxFileMb();
+    const tamanho = file ? formatMb(fileSizeMb(file)) : "?";
+    const base = `📦 Ficheiro demasiado grande (${tamanho} MB). O limite é ${limite} MB.`;
+    const dica = " Extrai só o áudio (MP3), comprime o vídeo ou divide em partes mais pequenas.";
+    if (serverHint && !/>\s*\d+\s*MB/.test(serverHint)) return base + dica;
+    return base + dica;
+  }
+
+  function mostrarAlertaUpload(msg){
+    const alertEl = document.getElementById("uploadAlert");
+    if (!alertEl) return;
+    alertEl.textContent = msg;
+    alertEl.classList.remove("hidden");
+    alertEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  function limparAlertaUpload(){
+    const alertEl = document.getElementById("uploadAlert");
+    if (alertEl) alertEl.classList.add("hidden");
+  }
+
+  function erroDeTamanho(msg){
+    return /📦|demasiado grande|>\s*\d+\s*MB/i.test(msg || "");
+  }
+
   // =========================
   // Upload/Transcrever
   // =========================
@@ -820,8 +464,15 @@
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
+    await ensureApi();
     const file = document.getElementById("fileInput").files[0];
     if (!file) return;
+
+    if (isFileTooLarge(file)) {
+      mostrarAlertaUpload(mensagemFicheiroGrande(file));
+      return;
+    }
+    limparAlertaUpload();
 
     // reset UI
     output.classList.add("hidden");
@@ -852,6 +503,8 @@
     // pedido com retries
     const formData = new FormData();
     formData.append("file", file);
+    const lang = document.getElementById("transcribeLanguage").value;
+    if (lang && lang !== "auto") formData.append("language", lang);
 
     let sucesso = false;
     let data = {};
@@ -868,13 +521,24 @@
 
         const controller = new AbortController();
         const to = setTimeout(() => controller.abort(), 130000);
-        const res = await fetch(`${API_BASE}/transcribe`, { method:"POST", body: formData, signal: controller.signal });
+        const res = await fetch(`${API_BASE}/transcribe`, {
+          method:"POST",
+          body: formData,
+          headers: OuviescreviAPI.authHeaders(),
+          signal: controller.signal
+        });
         clearTimeout(to);
 
         let jsonText = await res.text();
         try{ data = JSON.parse(jsonText); } catch{ data = { error: `Resposta inválida do servidor (${res.status})` }; }
-        if (!res.ok) throw new Error(data.error || `Erro ${res.status}`);
-        sucesso = !!(data.formatted || data.transcription || data.text);
+        if (!res.ok) {
+          if (res.status === 413) {
+            data = { detail: data.detail || data.error || `Ficheiro > ${getMaxFileMb()}MB.` };
+            break;
+          }
+          throw new Error(data.error || data.detail || `Erro ${res.status}`);
+        }
+        sucesso = transcricaoRecebidaComSucesso(data);
       }catch(err){
         if (err.name === "AbortError"){
           data = { error: "Tempo limite atingido. Tentaremos novamente…" };
@@ -897,9 +561,15 @@
       output.classList.remove("hidden");
       statusEl.textContent = "✅ Transcrição concluída com sucesso!";
     } else {
-      const warn = data.warning ? `\n\nℹ️ ${data.warning}` : "";
-      transcriptionText.value = ("❌ Não foi possível obter a transcrição. Tenta novamente mais tarde." + warn).trim();
-      output.classList.remove("hidden");
+      const msg = mensagemErroTranscricao(data, file);
+      if (erroDeTamanho(msg)) {
+        mostrarAlertaUpload(msg);
+        output.classList.add("hidden");
+      } else {
+        limparAlertaUpload();
+        transcriptionText.value = msg;
+        output.classList.remove("hidden");
+      }
       statusEl.textContent = "⚠️ Não conseguimos transcrever desta vez.";
       document.getElementById("btnRetry").classList.remove("hidden");
       ultimaTentativaFalhada = true;
@@ -1158,6 +828,7 @@
   btnLegendarVideo.addEventListener("click", legendarVideo);
 
   async function legendarVideo(){
+    await ensureApi();
     const file = document.getElementById("fileInput").files[0];
     if (!file){ return alert("⚠️ Nenhum ficheiro selecionado."); }
     if (!isVideoFile(file)){ return alert("⚠️ Esta opção é apenas para ficheiros de vídeo."); }
@@ -1183,6 +854,8 @@
 
     const formData = new FormData();
     formData.append("file", file);
+    const lang = document.getElementById("transcribeLanguage").value;
+    if (lang && lang !== "auto") formData.append("language", lang);
     // parâmetros de estilo (JSON)
     formData.append("style", JSON.stringify(getStyle()));
     // opcional: token
@@ -1191,7 +864,12 @@
     try{
       const controller = new AbortController();
       const to = setTimeout(() => controller.abort(), 180000); // até ~3min
-      const res = await fetch(`${API_BASE}/video-subs`, { method:"POST", body: formData, signal: controller.signal });
+      const res = await fetch(`${API_BASE}/video-subs`, {
+        method:"POST",
+        body: formData,
+        headers: OuviescreviAPI.authHeaders(),
+        signal: controller.signal
+      });
       clearTimeout(to);
 
       let data = {};
@@ -1317,6 +995,7 @@
   // Partilhar WhatsApp + notificar backend (com token)
   // =========================
   async function partilharWhatsapp(){
+    await ensureApi();
     const textoDaTranscricao = (document.getElementById("transcriptionText").value || "").trim();
     const assinatura = "\n\n🔗 Transcrito com Ouviescrevi: https://ouviescrevi.pt";
     const shareBody = textoDaTranscricao ? `${textoDaTranscricao}${assinatura}` : assinatura;
@@ -1327,12 +1006,11 @@
     try{
       await fetch(`${API_BASE}/notify-whatsapp-share`, {
         method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({
-          token: API_TOKEN,
+        headers: OuviescreviAPI.authHeaders({ "Content-Type":"application/json" }),
+        body: JSON.stringify(OuviescreviAPI.authJson({
           page: location.href,
           note: "Partilha via botão principal",
-        })
+        }))
       });
     }catch(err){
       const subject = encodeURIComponent("Notificação: Partilha no WhatsApp");
@@ -1392,6 +1070,7 @@
     mediaRecorder.onerror = () => { status.textContent = "❌ Erro do gravador. Tenta de novo."; };
 
     mediaRecorder.onstop = async () => {
+      await ensureApi();
       clearInterval(timerInterval);
       timer.classList.add("hidden"); timer.textContent = "⏱️ 00:00";
       stream.getTracks().forEach(t => t.stop());
@@ -1425,7 +1104,12 @@
       try{
         const controller = new AbortController();
         const to = setTimeout(() => controller.abort(), 130000);
-        const res = await fetch(`${API_BASE}/transcribe`, { method:"POST", body: formData, signal: controller.signal });
+        const res = await fetch(`${API_BASE}/transcribe`, {
+          method:"POST",
+          body: formData,
+          headers: OuviescreviAPI.authHeaders(),
+          signal: controller.signal
+        });
         clearTimeout(to);
 
         let data = {};
@@ -1459,6 +1143,7 @@
   }
 
   async function classificarConteudo(){
+    await ensureApi();
     const text = transcriptionText.value.trim();
     if (!text) return alert("⚠️ Transcrição vazia.");
     const btn = event.target.closest("button");
@@ -1466,8 +1151,8 @@
     try{
       const res = await fetch(`${API_BASE}/classify`, {
         method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ text, token: API_TOKEN })
+        headers: OuviescreviAPI.authHeaders({ "Content-Type":"application/json" }),
+        body: JSON.stringify(OuviescreviAPI.authJson({ text }))
       });
       const data = await res.json();
       const box = document.getElementById("classificacaoBox");
@@ -1484,6 +1169,7 @@
   }
 
   async function corrigirTextoIA(){
+    await ensureApi();
     const text = transcriptionText.value.trim();
     if (!text) return alert("⚠️ Transcrição vazia.");
 
@@ -1525,8 +1211,8 @@
     try{
       const res = await fetch(`${API_BASE}/correct`, {
         method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ text, token: API_TOKEN })
+        headers: OuviescreviAPI.authHeaders({ "Content-Type":"application/json" }),
+        body: JSON.stringify(OuviescreviAPI.authJson({ text }))
       });
       const data = await res.json();
 
@@ -1562,6 +1248,7 @@
   }
 
   async function gerarMinuta(){
+    await ensureApi();
     const text = transcriptionText.value.trim();
     if (!text) return alert("⚠️ Transcrição vazia.");
     const btn = event.target.closest("button");
@@ -1569,8 +1256,8 @@
     try{
       const res = await fetch(`${API_BASE}/summarize`, {
         method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ text, mode:"minuta", token: API_TOKEN })
+        headers: OuviescreviAPI.authHeaders({ "Content-Type":"application/json" }),
+        body: JSON.stringify(OuviescreviAPI.authJson({ text, mode:"minuta" }))
       });
       const data = await res.json();
       const box = document.getElementById("minutaBox");
@@ -1587,6 +1274,7 @@
   }
 
   async function gerarResumo(e){
+    await ensureApi();
     const text = transcriptionText.value.trim();
     if (!text) return alert("⚠️ Transcrição vazia.");
     const btn = e?.target?.closest("button") || document.querySelector("#btnGerarResumo");
@@ -1594,8 +1282,8 @@
     try{
       const res = await fetch(`${API_BASE}/summarize`, {
         method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ text, token: API_TOKEN })
+        headers: OuviescreviAPI.authHeaders({ "Content-Type":"application/json" }),
+        body: JSON.stringify(OuviescreviAPI.authJson({ text }))
       });
       const data = await res.json();
       const box = document.getElementById("resumoBox");
@@ -1608,6 +1296,7 @@
   }
 
   async function gerarEmailIA(){
+    await ensureApi();
     const text = transcriptionText.value.trim();
     if (!text) return alert("⚠️ Transcrição/Resumo vazio.");
     const tone = "formal";
@@ -1645,8 +1334,8 @@
     try{
       const res = await fetch(`${API_BASE}/generate-email`, {
         method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ text, token: API_TOKEN, tone })
+        headers: OuviescreviAPI.authHeaders({ "Content-Type":"application/json" }),
+        body: JSON.stringify(OuviescreviAPI.authJson({ text, tone }))
       });
       const data = await res.json();
       if (data.email){
@@ -1702,6 +1391,7 @@
   });
 
   async function traduzirTextoComIdioma(event, idioma){
+    await ensureApi();
     fecharModalTraducao();
     const texto = transcriptionText.value.trim();
     if (!texto) return alert("⚠️ Transcrição vazia.");
@@ -1726,8 +1416,8 @@
     try{
       const res = await fetch(`${API_BASE}/translate`, {
         method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ text: texto, language: idioma, token: API_TOKEN })
+        headers: OuviescreviAPI.authHeaders({ "Content-Type":"application/json" }),
+        body: JSON.stringify(OuviescreviAPI.authJson({ text: texto, language: idioma }))
       });
       const data = await res.json();
       clearInterval(interval);
@@ -1773,6 +1463,7 @@
     if (videoObjectURL){ URL.revokeObjectURL(videoObjectURL); videoObjectURL=null; }
     fileInput.value = "";
     document.getElementById("fileName").textContent = "Nenhum ficheiro selecionado";
+    limparAlertaUpload();
     transcriptionText.value = "";
     output.classList.add("hidden");
 
@@ -1813,6 +1504,13 @@
 
   // Drag & drop + header/footer + habilitar botão legendar conforme tipo + carregar vídeo no painel
   document.addEventListener("DOMContentLoaded", () => {
+    ensureApi().then(() => {
+      const hint = document.querySelector(".oe-file-hint");
+      if (hint) {
+        hint.textContent = `Limite: ${getMaxFileMb()} MB — para ficheiros maiores, extrai só o áudio.`;
+      }
+    });
+
     const dropZone = document.getElementById("dropZone");
     const fileInput = document.getElementById("fileInput");
     const fileNameDisplay = document.getElementById("fileName");
@@ -1838,64 +1536,42 @@
     });
 
     function handleFileSelected(file, labelEl){
-      labelEl.textContent = `Ficheiro: ${file.name}`;
-      const isVid = isVideoFile(file);
-      btnLegendarVideo.disabled = !isVid;
+      ensureApi().then(() => {
+        const mb = formatMb(fileSizeMb(file));
+        labelEl.textContent = `Ficheiro: ${file.name} (${mb} MB)`;
+        const isVid = isVideoFile(file);
 
-      // carregar vídeo para previews
-      if (isVid){
-        if (videoObjectURL){ URL.revokeObjectURL(videoObjectURL); }
-        videoObjectURL = URL.createObjectURL(file);
-        const v = subEls.video;
-        v.src = videoObjectURL;
-        loadedVideoMeta = false;
-        v.onloadedmetadata = async () => {
-          loadedVideoMeta = true;
-          subEls.panel.classList.remove('hidden');
-          await renderSubtitlePreviews();
-        };
-      } else {
-        subEls.panel.classList.add('hidden');
-        loadedVideoMeta = false;
-      }
+        if (isFileTooLarge(file)) {
+          mostrarAlertaUpload(mensagemFicheiroGrande(file));
+          btnTranscrever.disabled = true;
+          btnLegendarVideo.disabled = true;
+          subEls.panel.classList.add('hidden');
+          return;
+        }
+
+        limparAlertaUpload();
+        btnTranscrever.disabled = false;
+        btnLegendarVideo.disabled = !isVid;
+
+        if (isVid){
+          if (videoObjectURL){ URL.revokeObjectURL(videoObjectURL); }
+          videoObjectURL = URL.createObjectURL(file);
+          const v = subEls.video;
+          v.src = videoObjectURL;
+          loadedVideoMeta = false;
+          v.onloadedmetadata = async () => {
+            loadedVideoMeta = true;
+            subEls.panel.classList.remove('hidden');
+            await renderSubtitlePreviews();
+          };
+        } else {
+          subEls.panel.classList.add('hidden');
+          loadedVideoMeta = false;
+        }
+      });
     }
 
-    // Ticker de atualizações com data de hoje
-    const dataHoje = new Date().toLocaleDateString('pt-PT');
-    const updates = [
-  `🆕 ${dataHoje} – Partilhar no WhatsApp disponível`,
-  `🧪 ${dataHoje} – Legendar vídeo (SRT + MP4) — em testes (beta), pode ter algumas falhas`,
-  `🆕 ${dataHoje} – Estilos de legendas + pré-visualização`
-];
-
-    const track = document.getElementById("updatesTrack");
-    track.innerHTML = `
-      <span class="ticker__item">${updates[0]}</span>
-      <span class="ticker__dot">•</span>
-      <span class="ticker__item">${updates[1]}</span>
-      <span class="ticker__dot">•</span>
-      <span class="ticker__item">${updates[2]}</span>
-      <span class="ticker__dot">•</span>
-      <span class="ticker__item">${updates[1]}</span>
-    `;
   });
-
-  // Header/Footer inject
-  fetch("header.html").then(r => r.text()).then(html => {
-    const headerDiv = document.getElementById("header");
-    headerDiv.innerHTML = html;
-    const tempDiv = document.createElement("div"); tempDiv.innerHTML = html;
-    tempDiv.querySelectorAll("script").forEach(oldScript => {
-      const s = document.createElement("script");
-      if (oldScript.src) s.src = oldScript.src; else s.textContent = oldScript.textContent;
-      document.body.appendChild(s);
-    });
-    tempDiv.querySelectorAll("style").forEach(style => document.head.appendChild(style.cloneNode(true)));
-  });
-  const footerMount = document.createElement("div");
-  footerMount.id = "footer";
-  document.body.appendChild(footerMount);
-  fetch("footer.html").then(res => res.text()).then(html => document.getElementById("footer").innerHTML = html);
 
   // botão “Gerar Resumo”...
   document.getElementById("btnGerarResumo").addEventListener("click", gerarResumo);

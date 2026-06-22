@@ -2,34 +2,27 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
-  <title>Jornalistas | Ouviescrevi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Ferramentas para jornalistas: transcreve entrevistas, cria resumos e exporta com IA. Poupa tempo e melhora a produtividade.">
-<meta name="keywords" content="transcrição de entrevistas, IA para jornalistas, resumo automático, exportar entrevistas, Ouviescrevi jornalistas">
-<meta name="robots" content="index, follow">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-     body {
-  margin: 0;
-  font-family: 'Segoe UI', sans-serif;
-  background: linear-gradient(135deg, #A550F7, #00C3FF);
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  background-size: 100% 100%;
-  color: white;
-  text-align: center;
-}
-    h1 { font-size: 2.5rem; margin-bottom: 20px; }
-    p { max-width: 700px; margin: 0 auto; font-size: 1.2rem; line-height: 1.6; }
-  </style>
+  <meta name="keywords" content="transcrição de entrevistas, IA para jornalistas, resumo automático, exportar entrevistas, Ouviescrevi jornalistas">
+  <meta name="robots" content="index, follow">
+  <title>Jornalistas | Ouviescrevi</title>
+  <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png">
+  <link rel="stylesheet" href="css/ouviescrevi.css">
+  <script src="js/ouviescrevi-ui.js" defer></script>
 </head>
-<body>
+<body class="oe-page">
+<a class="oe-skip" href="#conteudo">Saltar para o conteúdo</a>
+<div id="header"></div>
+<main class="oe-content oe-landing" id="conteudo">
   <h1>📰 Jornalistas</h1>
   <p>Transcreve entrevistas, conferências de imprensa ou reportagens com precisão e rapidez. Facilita a produção de conteúdos e permite focar no que realmente importa: contar histórias.</p>
-  <div id="footer"></div>
-<script>
-  fetch("footer.html")
-    .then(res => res.text())
-    .then(html => document.getElementById("footer").innerHTML = html);
-</script>
+  <div class="oe-landing-actions">
+    <a href="index.html" class="oe-btn">🎙️ Transcrever entrevista</a>
+    <a href="corretor.html" class="oe-btn">✍️ Corrigir texto</a>
+  </div>
+</main>
+<div id="footer"></div>
+<script>OuviescreviUI.loadHeader(); OuviescreviUI.loadFooter();</script>
 </body>
 </html>

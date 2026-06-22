@@ -1,0 +1,8 @@
+# Redirecionamentos (Cloudflare Pages)
+# https://developers.cloudflare.com/pages/configuration/redirects/
+
+/index2.html   /index.html   301
+/admin.html    /index.html   301
+
+# Pedidos /api/* no domínio do site → API em subdomínio
+/api/*         https://api.ouviescrevi.pt/api/:splat   302

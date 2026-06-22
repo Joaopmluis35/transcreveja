@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="../css/ouviescrevi.css">
+  <script src="../js/ouviescrevi-ui.js" defer></script>
   <title>Ouviescrevi – Smart Converter</title>
   <meta name="description" content="Convert files with AI. Word to PDF, images to PDF, and much more!">
   <meta name="keywords" content="convert Word to PDF, PDF to text, image to PDF, online file converter, audio transcription, automatic transcription, Ouviescrevi">
@@ -172,7 +174,8 @@
     }
   </style>
 </head>
-<body>
+<body class="oe-page oe-page--home">
+<a class="oe-skip" href="#mainContent">Skip to content</a>
 
 <div id="header"></div>
 
@@ -181,7 +184,7 @@
   <div class="ticker__inner" id="updatesTrack"></div>
 </div>
 
-<main>
+<main id="mainContent">
   <div id="adminContent">
     <p>
       <strong>🧠 Ouviescrevi</strong> is your AI assistant to
@@ -331,11 +334,17 @@
   </section>
 </main>
 
+<script src="../js/ouviescrevi-api.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
-  const API_BASE = "https://api.ouviescrevi.pt";
-  const API_TOKEN = "ouviescrevi2025@resumo";
   const ADMIN_EMAIL = "admin@ouviescrevi.pt";
+  let API_BASE = "";
+  let API_TOKEN = "";
+  async function ensureApi() {
+    await OuviescreviAPI.init();
+    API_BASE = OuviescreviAPI.getBase();
+    API_TOKEN = OuviescreviAPI.getToken();
+  }
 
   let mediaRecorder, audioChunks = [];
   let recordTimerInterval, trxTimerInterval, statusInterval;
@@ -384,6 +393,7 @@
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
+    await ensureApi();
     const file = document.getElementById("fileInput").files[0];
     if (!file) return;
 
@@ -417,7 +427,7 @@
 
         const controller=new AbortController();
         const to=setTimeout(()=>controller.abort(),130000);
-        const res=await fetch(`${API_BASE}/transcribe`,{ method:"POST", body:formData, signal:controller.signal });
+        const res=await fetch(`${API_BASE}/transcribe`,{ method:"POST", body:formData, headers:OuviescreviAPI.authHeaders(), signal:controller.signal });
         clearTimeout(to);
 
         let txt=await res.text(); try{ data=JSON.parse(txt); }catch{ data={ error:`Invalid server response (${res.status})` }; }
@@ -489,7 +499,7 @@
     try{
       const controller=new AbortController();
       const to=setTimeout(()=>controller.abort(),180000);
-      const res=await fetch(`${API_BASE}/video-subs`,{ method:"POST", body:formData, signal:controller.signal });
+      const res=await fetch(`${API_BASE}/video-subs`,{ method:"POST", body:formData, headers:OuviescreviAPI.authHeaders(), signal:controller.signal });
       clearTimeout(to);
 
       let data={}; let raw=await res.text(); try{ data=JSON.parse(raw); }catch{ data={ error:`Invalid response (${res.status})` }; }
@@ -580,7 +590,7 @@
     const waUrl="https://api.whatsapp.com/send?text="+encodeURIComponent(shareBody);
     window.open(waUrl,"_blank");
     try{
-      await fetch(`${API_BASE}/notify-whatsapp-share`, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ token:API_TOKEN, page:location.href, note:"Share via main button (EN)" }) });
+      await fetch(`${API_BASE}/notify-whatsapp-share`, { method:"POST", headers:OuviescreviAPI.authHeaders({ "Content-Type":"application/json" }), body: JSON.stringify(OuviescreviAPI.authJson({ page:location.href, note:"Share via main button (EN)" })) });
     }catch(err){
       const subject=encodeURIComponent("Notification: WhatsApp Share");
       const body=encodeURIComponent(`Someone clicked "Share on WhatsApp".\n\nDate: ${new Date().toLocaleString()}\n\nPreview:\n${shareBody.slice(0,1000)}`);
@@ -648,7 +658,7 @@
       try{
         const controller=new AbortController();
         const to=setTimeout(()=>controller.abort(),130000);
-        const res=await fetch(`${API_BASE}/transcribe`,{ method:"POST", body:formData, signal:controller.signal });
+        const res=await fetch(`${API_BASE}/transcribe`,{ method:"POST", body:formData, headers:OuviescreviAPI.authHeaders(), signal:controller.signal });
         clearTimeout(to);
 
         let data={}; let txt=await res.text(); try{ data=JSON.parse(txt); }catch{ data={ error:`Invalid response (${res.status})` }; }
@@ -681,7 +691,7 @@
     if (!text) return alert("⚠️ Empty transcription.");
     const btn=event.target.closest("button"); const original=btn.innerHTML; btn.innerHTML="<span>📚 Classifying...</span>"; btn.disabled=true;
     try{
-      const res=await fetch(`${API_BASE}/classify`,{ method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ text, token:API_TOKEN, lang:"en" }) });
+      const res=await fetch(`${API_BASE}/classify`,{ method:"POST", headers:OuviescreviAPI.authHeaders({ "Content-Type":"application/json" }), body:JSON.stringify(OuviescreviAPI.authJson({ text, lang:"en" })) });
       const data=await res.json();
       const box=document.getElementById("classificationBox");
       document.getElementById("classificationText").textContent=data.type?`🔎 ${data.type}`:(data.error?`❌ Error: ${data.error}`:"❌ Unexpected error.");
@@ -698,7 +708,7 @@
     if (!text) return alert("⚠️ Empty transcription.");
     const btn=event.target.closest("button"); const original=btn.innerHTML; btn.innerHTML="<span>📝 Correcting...</span>"; btn.disabled=true;
     try{
-      const res=await fetch(`${API_BASE}/correct`,{ method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ text, token:API_TOKEN }) });
+      const res=await fetch(`${API_BASE}/correct`,{ method:"POST", headers:OuviescreviAPI.authHeaders({ "Content-Type":"application/json" }), body:JSON.stringify(OuviescreviAPI.authJson({ text })) });
       const data=await res.json();
       if (data.corrected){ transcriptionText.value=data.corrected; alert("✅ Text corrected!"); }
       else{ alert("❌ Error: "+(data.error||"Invalid response.")); }
@@ -711,7 +721,7 @@
     if (!text) return alert("⚠️ Empty transcription.");
     const btn=event.target.closest("button"); const original=btn.innerHTML; btn.innerHTML="<span>📩 Generating minutes...</span>"; btn.disabled=true;
     try{
-      const res=await fetch(`${API_BASE}/summarize`,{ method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ text, mode:"minuta", token:API_TOKEN, lang:"en" }) });
+      const res=await fetch(`${API_BASE}/summarize`,{ method:"POST", headers:OuviescreviAPI.authHeaders({ "Content-Type":"application/json" }), body:JSON.stringify(OuviescreviAPI.authJson({ text, mode:"minuta", lang:"en" })) });
       const data=await res.json();
       const box=document.getElementById("minutesBox");
       document.getElementById("minutesText").textContent=data.summary||"❌ Error generating minutes.";
@@ -729,7 +739,7 @@
     const btn=e?.target?.closest("button")||document.querySelector("#btnGenerateSummary");
     const original=btn.innerHTML; btn.innerHTML="<span>🧠 Generating summary...</span>"; btn.disabled=true;
     try{
-      const res=await fetch(`${API_BASE}/summarize`,{ method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ text, token:API_TOKEN, lang:"en" }) });
+      const res=await fetch(`${API_BASE}/summarize`,{ method:"POST", headers:OuviescreviAPI.authHeaders({ "Content-Type":"application/json" }), body:JSON.stringify(OuviescreviAPI.authJson({ text, lang:"en" })) });
       const data=await res.json();
       const box=document.getElementById("summaryBox");
       document.getElementById("summaryText").textContent=data.summary?data.summary:("❌ Error: "+(data.error||"Invalid response."));
@@ -744,7 +754,7 @@
     const tone=confirm("Use informal tone?")?"informal":"formal";
     const btn=event.target.closest("button"); const original=btn.innerHTML; btn.innerHTML="<span>📧 Generating email...</span>"; btn.disabled=true;
     try{
-      const res=await fetch(`${API_BASE}/generate-email`,{ method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ text, token:API_TOKEN, tone, lang:"en" }) });
+      const res=await fetch(`${API_BASE}/generate-email`,{ method:"POST", headers:OuviescreviAPI.authHeaders({ "Content-Type":"application/json" }), body:JSON.stringify(OuviescreviAPI.authJson({ text, tone, lang:"en" })) });
       const data=await res.json();
       if (data.email){ alert("📨 Email generated successfully!\n\n"+data.email); }
       else{ alert("❌ Error generating email: "+(data.error||"Invalid response.")); }
@@ -782,7 +792,7 @@
     if (btn){ btn.textContent="🌍 Translating..."; btn.disabled=true; }
 
     try{
-      const res=await fetch(`${API_BASE}/translate`,{ method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ text, language:lang, token:API_TOKEN }) });
+      const res=await fetch(`${API_BASE}/translate`,{ method:"POST", headers:OuviescreviAPI.authHeaders({ "Content-Type":"application/json" }), body:JSON.stringify(OuviescreviAPI.authJson({ text, language:lang })) });
       const data=await res.json(); clearInterval(interval); pBar.style.width="100%";
       if (data.translation){
         transcriptionText.value=data.translation;

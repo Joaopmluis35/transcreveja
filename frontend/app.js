@@ -1,4 +1,3 @@
-
 document.getElementById('uploadForm').addEventListener('submit', async function(e) {
   e.preventDefault();
   const fileInput = document.getElementById('audioFile');
@@ -15,13 +14,18 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
   output.innerHTML = 'A transcrever...';
 
   try {
-    const response = await fetch('https://api.ouviescrevi.pt/transcribe', {
-
+    await OuviescreviAPI.init();
+    const response = await fetch(`${OuviescreviAPI.getBase()}/transcribe`, {
       method: 'POST',
-      body: formData
+      body: formData,
+      headers: OuviescreviAPI.authHeaders()
     });
 
     const data = await response.json();
+    if (!response.ok) {
+      output.innerHTML = data.detail || data.error || 'Erro ao transcrever.';
+      return;
+    }
     output.innerHTML = '<strong>Transcrição:</strong><br>' + data.transcription;
   } catch (error) {
     output.innerHTML = 'Erro ao transcrever.';

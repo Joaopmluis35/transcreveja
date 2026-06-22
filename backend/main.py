@@ -18,11 +18,21 @@ import textwrap
 import shutil
 import time
 import math
+import re
 
 import requests
 from bs4 import BeautifulSoup
 from gtts import gTTS
 from openai import OpenAI
+
+from security import (
+    RateLimiter,
+    client_ip,
+    origin_is_allowed,
+    parse_csv_env,
+    safe_http_get,
+    validate_public_http_url,
+)
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Setup
@@ -107,11 +117,38 @@ ADMIN_TOKEN = os.getenv("ADMIN_TOKEN")
 if not ADMIN_TOKEN:
     raise RuntimeError("Falta ADMIN_TOKEN no .env")
 
+API_TOKEN = os.getenv("API_TOKEN") or ADMIN_TOKEN
+BACKOFFICE_PASSWORD = os.getenv("BACKOFFICE_PASSWORD")
+if not BACKOFFICE_PASSWORD:
+    raise RuntimeError("Falta BACKOFFICE_PASSWORD no .env")
+
+APP_ENV = os.getenv("APP_ENV", "development").lower()
+ENABLE_DEBUG_ENDPOINTS = os.getenv("ENABLE_DEBUG_ENDPOINTS", "true" if APP_ENV == "development" else "false").lower() in ("1", "true", "yes")
+ALLOWED_ORIGINS = parse_csv_env(os.getenv(
+    "ALLOWED_ORIGINS",
+    "http://127.0.0.1:5500,http://localhost:5500,https://ouviescrevi.pt,https://www.ouviescrevi.pt",
+))
+PUBLIC_API_BASE = os.getenv("PUBLIC_API_BASE", "https://api.ouviescrevi.pt").rstrip("/")
+
+RATE_LIMITER = RateLimiter()
+RATE_LIMIT_TRANSCRIBE = int(os.getenv("RATE_LIMIT_TRANSCRIBE", "20"))
+RATE_LIMIT_TRANSCRIBE_WINDOW = int(os.getenv("RATE_LIMIT_TRANSCRIBE_WINDOW", "3600"))
+RATE_LIMIT_VIDEO_SUBS = int(os.getenv("RATE_LIMIT_VIDEO_SUBS", "10"))
+RATE_LIMIT_VIDEO_SUBS_WINDOW = int(os.getenv("RATE_LIMIT_VIDEO_SUBS_WINDOW", "3600"))
+RATE_LIMIT_AI = int(os.getenv("RATE_LIMIT_AI", "60"))
+RATE_LIMIT_AI_WINDOW = int(os.getenv("RATE_LIMIT_AI_WINDOW", "3600"))
+
 # Timeouts e parâmetros
 WHISPER_TIMEOUT = int(os.getenv("WHISPER_TIMEOUT", "110"))  # por chunk
+WHISPER_LANGUAGE = (os.getenv("WHISPER_LANGUAGE", "pt") or "").strip().lower() or None
+WHISPER_TEMPERATURE = float(os.getenv("WHISPER_TEMPERATURE", "0"))
+WHISPER_PROMPT = (os.getenv(
+    "WHISPER_PROMPT",
+    "Transcrição em português de Portugal de uma reunião de trabalho ou conversa.",
+) or "").strip() or None
 FFMPEG_TIMEOUT = int(os.getenv("FFMPEG_TIMEOUT", "60"))
-TOTAL_TRANSCRIBE_TIMEOUT = int(os.getenv("TOTAL_TRANSCRIBE_TIMEOUT", "170"))  # watchdog global
-MAX_FILE_SIZE_MB = int(os.getenv("MAX_FILE_SIZE_MB", "300"))
+TOTAL_TRANSCRIBE_TIMEOUT = int(os.getenv("TOTAL_TRANSCRIBE_TIMEOUT", "900"))  # watchdog global
+MAX_FILE_SIZE_MB = int(os.getenv("MAX_FILE_SIZE_MB", "500"))
 SEGMENT_DURATION = int(os.getenv("SEGMENT_DURATION", "600"))  # 10 min
 SUBS_TIMEOUT = int(os.getenv("SUBS_TIMEOUT", "900"))  # tempo p/ queimar legendas
 
@@ -138,9 +175,10 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=ALLOWED_ORIGINS if "*" not in ALLOWED_ORIGINS else ["*"],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-API-Token"],
 )
 
 # estáticos
@@ -158,7 +196,7 @@ def _fmt_mb(nbytes: int) -> float:
     except Exception:
         return 0.0
 
-async def _stream_upload_to_disk(upload_file: UploadFile, dest_path: str, rid: str, tag: str, log_every_mb: int = 10) -> int:
+async def _stream_upload_to_disk(upload_file: UploadFile, dest_path: str, rid: str, tag: str, log_every_mb: int = 10, max_bytes: int | None = None) -> int:
     """Lê o UploadFile em chunks para disco, devolvendo bytes escritos e logando progresso."""
     bytes_written = 0
     CHUNK = 1024 * 1024
@@ -170,19 +208,49 @@ async def _stream_upload_to_disk(upload_file: UploadFile, dest_path: str, rid: s
                 chunk = await upload_file.read(CHUNK)
                 if not chunk:
                     break
+                if max_bytes and (bytes_written + len(chunk)) > max_bytes:
+                    raise HTTPException(
+                        status_code=413,
+                        detail=f"Ficheiro > {MAX_FILE_SIZE_MB}MB. Reduz o tamanho e tenta novamente.",
+                    )
                 out.write(chunk)
                 bytes_written += len(chunk)
                 if bytes_written >= logged_next:
                     logger.info("[%s] [%s] upload parcial: %0.2f MB", rid, tag, _fmt_mb(bytes_written))
                     logged_next += log_every_mb * 1024 * 1024
         return bytes_written
+    except HTTPException:
+        try:
+            if os.path.exists(dest_path):
+                os.remove(dest_path)
+        except OSError:
+            pass
+        raise
     except Exception:
         logger.exception("[%s] [%s] Falha ao gravar upload (parcial=%0.2f MB)", rid, tag, _fmt_mb(bytes_written))
+        try:
+            if os.path.exists(dest_path):
+                os.remove(dest_path)
+        except OSError:
+            pass
         raise
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Middleware: log de request (inclui headers úteis)
-# ──────────────────────────────────────────────────────────────────────────────
+def _max_upload_bytes() -> int:
+    return MAX_FILE_SIZE_MB * 1024 * 1024
+
+def _reject_oversized_upload(request: Request) -> None:
+    cl = request.headers.get("content-length")
+    if not cl:
+        return
+    try:
+        if int(cl) > _max_upload_bytes() + (5 * 1024 * 1024):
+            raise HTTPException(
+                status_code=413,
+                detail=f"Ficheiro > {MAX_FILE_SIZE_MB}MB. Reduz o tamanho e tenta novamente.",
+            )
+    except ValueError:
+        return
+
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     rid = str(uuid.uuid4())[:8]
@@ -209,11 +277,42 @@ async def log_requests(request: Request, call_next):
         raise
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Helpers
+# Helpers — autenticação e limites
 # ──────────────────────────────────────────────────────────────────────────────
-def require_token(token: str):
-    if token != ADMIN_TOKEN:
+def extract_api_token(request: Request, body_token: str | None = None) -> str:
+    auth = request.headers.get("authorization", "")
+    if auth.lower().startswith("bearer "):
+        return auth[7:].strip()
+    if body_token:
+        return body_token.strip()
+    return (request.headers.get("x-api-token") or "").strip()
+
+
+def require_api_token(request: Request, body_token: str | None = None) -> None:
+    token = extract_api_token(request, body_token)
+    if token != API_TOKEN:
         raise HTTPException(status_code=403, detail="Token inválido.")
+
+
+def require_admin_token(request: Request) -> None:
+    token = extract_api_token(request)
+    if token != ADMIN_TOKEN:
+        raise HTTPException(status_code=403, detail="Acesso administrativo negado.")
+
+
+def require_token(token: str):
+    """Compatibilidade com rotas que recebem token no corpo JSON."""
+    if token != API_TOKEN:
+        raise HTTPException(status_code=403, detail="Token inválido.")
+
+
+def enforce_rate_limit(request: Request, bucket: str, limit: int, window: int) -> None:
+    RATE_LIMITER.check(client_ip(request), bucket, limit, window)
+
+
+def require_debug_enabled() -> None:
+    if not ENABLE_DEBUG_ENDPOINTS:
+        raise HTTPException(status_code=404, detail="Não encontrado.")
 
 def enviar_email_assunto(mensagem: str, assunto: str = "Nova atividade no Ouviescrevi"):
     import smtplib
@@ -263,6 +362,115 @@ def format_segments_with_offset(segments, offset_seconds: int = 0):
             formatted.append(f"{_format_time(start + offset_seconds)} {text}")
     return "\n\n".join(formatted).strip()
 
+
+def _cjk_ratio(text: str) -> float:
+    if not text:
+        return 0.0
+    cjk = sum(1 for c in text if "\u3040" <= c <= "\u9fff" or "\u30a0" <= c <= "\u30ff")
+    return cjk / max(len(text), 1)
+
+
+def _normalize_block(text: str) -> str:
+    text = re.sub(r"^\[\d{2}:\d{2}\]\s*", "", text.strip(), flags=re.MULTILINE)
+    return re.sub(r"\s+", " ", text).strip().lower()
+
+
+def filter_whisper_segments(segments, language: str | None = None):
+    """Remove segmentos com sinais típicos de alucinação do Whisper (silêncio/ruído)."""
+    filtered = []
+    dropped = 0
+    for s in segments or []:
+        text = (_seg_get(s, "text", "") or "").strip()
+        if not text:
+            continue
+        no_speech = float(_seg_get(s, "no_speech_prob", 0) or 0)
+        avg_logprob = float(_seg_get(s, "avg_logprob", 0) or 0)
+        compression = float(_seg_get(s, "compression_ratio", 1) or 1)
+        if no_speech > 0.5:
+            dropped += 1
+            continue
+        if avg_logprob < -1.0:
+            dropped += 1
+            continue
+        if compression > 2.2:
+            dropped += 1
+            continue
+        if language == "pt" and _cjk_ratio(text) > 0.2:
+            dropped += 1
+            continue
+        filtered.append(s)
+    if dropped:
+        logger.info("Whisper: descartados %d segmentos (ruído/alucinação)", dropped)
+    return filtered
+
+
+def dedupe_consecutive_blocks(text: str) -> str:
+    blocks = [b.strip() for b in text.split("\n\n") if b.strip()]
+    out, prev_norm = [], None
+    for block in blocks:
+        norm = _normalize_block(block)
+        if norm and norm == prev_norm:
+            continue
+        prev_norm = norm or prev_norm
+        out.append(block)
+    return "\n\n".join(out)
+
+
+def collapse_repeated_phrases(text: str, min_chars: int = 18, max_keep: int = 1) -> str:
+    """Frases longas repetidas 3+ vezes (padrão de alucinação) ficam só uma vez."""
+    blocks = [b.strip() for b in text.split("\n\n") if b.strip()]
+    counts: dict[str, int] = {}
+    for block in blocks:
+        norm = _normalize_block(block)
+        if len(norm) >= min_chars:
+            counts[norm] = counts.get(norm, 0) + 1
+    noisy = {n for n, c in counts.items() if c >= 3}
+    if not noisy:
+        return text
+    seen: dict[str, int] = {}
+    out = []
+    for block in blocks:
+        norm = _normalize_block(block)
+        if norm in noisy:
+            seen[norm] = seen.get(norm, 0) + 1
+            if seen[norm] > max_keep:
+                continue
+        out.append(block)
+    return "\n\n".join(out)
+
+
+def remove_cjk_blocks(text: str) -> str:
+    blocks = [b.strip() for b in text.split("\n\n") if b.strip()]
+    kept = [b for b in blocks if _cjk_ratio(_normalize_block(b)) <= 0.2]
+    return "\n\n".join(kept)
+
+
+def clean_transcription_text(text: str, language: str | None = None) -> str:
+    if not text:
+        return ""
+    text = dedupe_consecutive_blocks(text)
+    text = collapse_repeated_phrases(text)
+    if language == "pt":
+        text = remove_cjk_blocks(text)
+    return text.strip()
+
+
+def resolve_whisper_language(form_language: str | None) -> str | None:
+    lang = (form_language or WHISPER_LANGUAGE or "").strip().lower()
+    if not lang or lang in ("auto", "detect"):
+        return None
+    return lang
+
+
+def process_whisper_result(result, language: str | None, offset_seconds: int = 0):
+    raw_segs = getattr(result, "segments", []) or []
+    segs = filter_whisper_segments(raw_segs, language)
+    text = " ".join((_seg_get(s, "text", "") or "").strip() for s in segs).strip()
+    formatted = format_segments_with_offset(segs, offset_seconds)
+    text = clean_transcription_text(text, language)
+    formatted = clean_transcription_text(formatted, language)
+    return text, formatted, segs
+
 def safe_run_ffmpeg(cmd: list, desc: str, timeout: int = FFMPEG_TIMEOUT):
     t0 = time.monotonic()
     try:
@@ -307,17 +515,34 @@ def registar_transcricao(nome_ficheiro: str):
     finally:
         conn.close()
 
-def transcrever_parte_c_com_retries(file_path: str, retries: int = 3, sleep_base: float = 1.0, timeout: int = WHISPER_TIMEOUT):
+def transcrever_parte_c_com_retries(
+    file_path: str,
+    retries: int = 3,
+    sleep_base: float = 1.0,
+    timeout: int = WHISPER_TIMEOUT,
+    language: str | None = None,
+):
     last_err = None
+    lang = resolve_whisper_language(language)
     for attempt in range(1, retries + 1):
         t0 = time.monotonic()
         try:
+            kwargs = {
+                "model": "whisper-1",
+                "response_format": "verbose_json",
+                "temperature": WHISPER_TEMPERATURE,
+            }
+            if lang:
+                kwargs["language"] = lang
+            if WHISPER_PROMPT:
+                kwargs["prompt"] = WHISPER_PROMPT
             with open(file_path, "rb") as audio:
                 result = client.with_options(timeout=timeout).audio.transcriptions.create(
-                    model="whisper-1", file=audio, response_format="verbose_json"
+                    file=audio,
+                    **kwargs,
                 )
             dur = time.monotonic() - t0
-            logger.info("Whisper OK (%s) tentativa %d em %.2fs", os.path.basename(file_path), attempt, dur)
+            logger.info("Whisper OK (%s) tentativa %d em %.2fs lang=%s", os.path.basename(file_path), attempt, dur, lang or "auto")
             return result
         except Exception as e:
             dur = time.monotonic() - t0
@@ -364,22 +589,51 @@ def _write_srt(entries: list[tuple[float, float, str]], out_path: str):
         f.write("\n".join(lines))
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Rotas
+# Rotas — configuração e admin
 # ──────────────────────────────────────────────────────────────────────────────
+@app.get("/api/frontend-config")
+def frontend_config(request: Request):
+    if not origin_is_allowed(request, ALLOWED_ORIGINS):
+        raise HTTPException(status_code=403, detail="Origem não autorizada.")
+    return {"apiBase": PUBLIC_API_BASE, "token": API_TOKEN, "maxFileSizeMb": MAX_FILE_SIZE_MB}
+
+
+class AdminLoginRequest(BaseModel):
+    password: str
+
+
+@app.post("/api/admin/login")
+def admin_login(req: AdminLoginRequest):
+    if req.password != BACKOFFICE_PASSWORD:
+        raise HTTPException(status_code=403, detail="Credenciais inválidas.")
+    return {"ok": True, "adminToken": ADMIN_TOKEN}
+
+
 @app.get("/debug")
 def debug():
-    return {"status": "OK", "versao": "1.5"}  # ↑ versão incrementada
+    require_debug_enabled()
+    return {"status": "OK", "versao": "1.6"}
+
 
 @app.post("/transcribe")
-async def transcribe(request: Request, file: UploadFile = File(...)):
+async def transcribe(
+    request: Request,
+    file: UploadFile = File(...),
+    token: str | None = Form(None),
+    language: str | None = Form(None),
+):
+    require_api_token(request, token)
+    enforce_rate_limit(request, "transcribe", RATE_LIMIT_TRANSCRIBE, RATE_LIMIT_TRANSCRIBE_WINDOW)
     rid = str(uuid.uuid4())
     t_start = time.monotonic()
+    whisper_lang = resolve_whisper_language(language)
     logger.info("[%s] Upload recebido (transcribe): nome=%s ct=%s cl=%s", rid, file.filename, file.content_type, request.headers.get("content-length"))
+    _reject_oversized_upload(request)
 
     orig_ext = os.path.splitext(file.filename or "")[1].lower() or ".bin"
     tmp_path = os.path.join(tempfile.gettempdir(), f"input_{uuid.uuid4()}{orig_ext}")
     try:
-        written = await _stream_upload_to_disk(file, tmp_path, rid, "transcribe")
+        written = await _stream_upload_to_disk(file, tmp_path, rid, "transcribe", max_bytes=_max_upload_bytes())
         if written == 0:
             logger.error("[%s] Upload vazio (0 bytes) em /transcribe", rid)
             raise HTTPException(status_code=400, detail="Upload vazio.")
@@ -395,7 +649,7 @@ async def transcribe(request: Request, file: UploadFile = File(...)):
         try: os.remove(tmp_path)
         except: pass
         logger.warning("[%s] Ficheiro > %dMB (%0.2f MB).", rid, MAX_FILE_SIZE_MB, size_mb)
-        return {"transcription": "", "formatted": "", "warning": f"Ficheiro > {MAX_FILE_SIZE_MB}MB. Reduz o tamanho e tenta novamente."}
+        return {"transcription": "", "formatted": "", "warning": f"Ficheiro demasiado grande ({size_mb:.0f} MB). O limite é {MAX_FILE_SIZE_MB} MB."}
 
     audio_wav_path = os.path.join(tempfile.gettempdir(), f"audio_{uuid.uuid4()}.wav")
     converted_ok = False
@@ -431,6 +685,7 @@ async def transcribe(request: Request, file: UploadFile = File(...)):
         offset_seconds = 0
         failed_segments = 0
         processed_segments = 0
+        quota_exceeded = False
 
         for idx, part in enumerate(parts):
             if (time.monotonic() - t_start) > TOTAL_TRANSCRIBE_TIMEOUT:
@@ -439,16 +694,20 @@ async def transcribe(request: Request, file: UploadFile = File(...)):
                              rid, time.monotonic() - t_start)
                 break
             try:
-                result = transcrever_parte_c_com_retries(part, retries=3, sleep_base=1.0, timeout=WHISPER_TIMEOUT)
-                text_piece = getattr(result, "text", "") or ""
-                segs = getattr(result, "segments", []) or []
+                result = transcrever_parte_c_com_retries(
+                    part, retries=3, sleep_base=1.0, timeout=WHISPER_TIMEOUT, language=whisper_lang
+                )
+                text_piece, formatted_piece, _ = process_whisper_result(result, whisper_lang, offset_seconds)
                 full_text_chunks.append(text_piece)
-                formatted_chunks.append(format_segments_with_offset(segs, offset_seconds))
+                formatted_chunks.append(formatted_piece)
                 logger.info("[%s] Chunk %d/%d transcrito. len(text)=%d", rid, idx + 1, len(parts), len(text_piece))
-            except Exception:
+            except Exception as e:
                 failed_segments += 1
                 logger.exception("[%s] Erro ao transcrever parte %d (%s)", rid, idx, os.path.basename(part))
                 formatted_chunks.append(f"{_format_time(offset_seconds)} [Falha no segmento]")
+                err_msg = str(e).lower()
+                if "insufficient_quota" in err_msg or "exceeded your current quota" in err_msg:
+                    quota_exceeded = True
             finally:
                 processed_segments += 1
                 if len(parts) > 1:
@@ -464,11 +723,13 @@ async def transcribe(request: Request, file: UploadFile = File(...)):
         except Exception as e:
             logger.warning("[%s] Falha ao enviar email de notificação: %s", rid, e)
 
-        transcription_out = "\n".join(t for t in full_text_chunks if t).strip()
-        formatted_out = "\n\n".join(t for t in formatted_chunks if t).strip()
+        transcription_out = clean_transcription_text("\n".join(t for t in full_text_chunks if t).strip(), whisper_lang)
+        formatted_out = clean_transcription_text("\n\n".join(t for t in formatted_chunks if t).strip(), whisper_lang)
 
         payload = {"transcription": transcription_out, "formatted": formatted_out}
-        if failed_segments > 0:
+        if quota_exceeded:
+            payload["warning"] = "Conta OpenAI sem créditos (insufficient_quota). Adiciona billing em platform.openai.com."
+        elif failed_segments > 0:
             payload["warning"] = f"{failed_segments} de {processed_segments} segmentos falharam (aplicado retry/fallback)."
         if watchdog_hit:
             payload["warning"] = (payload.get("warning", "") + " " if payload.get("warning") else "") + "Tempo total excedido (parcial devolvido)."
@@ -499,7 +760,16 @@ async def transcribe(request: Request, file: UploadFile = File(...)):
 
 # ── NOVO: Vídeo com legendas embutidas ───────────────────────────────────────
 @app.post("/video-subs")
-async def video_subs(request: Request, file: UploadFile = File(...), style: str | None = Form(None)):
+async def video_subs(
+    request: Request,
+    file: UploadFile = File(...),
+    style: str | None = Form(None),
+    token: str | None = Form(None),
+    language: str | None = Form(None),
+):
+    require_api_token(request, token)
+    enforce_rate_limit(request, "video-subs", RATE_LIMIT_VIDEO_SUBS, RATE_LIMIT_VIDEO_SUBS_WINDOW)
+    whisper_lang = resolve_whisper_language(language)
     """
     Upload de vídeo → transcreve (Whisper) → gera SRT → queima legendas no vídeo.
     Resposta: { video_url, srt_url, warning?, rid?, processing_ms? }
@@ -515,6 +785,7 @@ async def video_subs(request: Request, file: UploadFile = File(...), style: str 
     logger.info("[%s] [video-subs] REQUEST from=%s len=%s ct=%s ua=%s", rid, client_ip, cl, ct, ua)
 
     logger.info("[%s] [video-subs] Upload: %s (%s) style=%s", rid, file.filename, file.content_type, (style[:120] + "…") if style and len(style) > 120 else style)
+    _reject_oversized_upload(request)
 
     # Gravar upload (com contagem de bytes e logs parciais)
     orig_ext = os.path.splitext(file.filename or "")[1].lower() or ".mp4"
@@ -522,7 +793,7 @@ async def video_subs(request: Request, file: UploadFile = File(...), style: str 
         orig_ext = ".mp4"
     tmp_video = os.path.join(tempfile.gettempdir(), f"vid_{uuid.uuid4()}{orig_ext}")
     try:
-        written = await _stream_upload_to_disk(file, tmp_video, rid, "video-subs")
+        written = await _stream_upload_to_disk(file, tmp_video, rid, "video-subs", max_bytes=_max_upload_bytes())
         if written == 0:
             logger.error("[%s] [video-subs] Upload vazio (0 bytes).", rid)
             raise HTTPException(status_code=400, detail="Upload vazio.")
@@ -568,8 +839,10 @@ async def video_subs(request: Request, file: UploadFile = File(...), style: str 
                 logger.error("[%s] [video-subs] Watchdog TOTAL timeout", rid)
                 break
             try:
-                result = transcrever_parte_c_com_retries(part, retries=3, sleep_base=1.0, timeout=WHISPER_TIMEOUT)
-                segs = getattr(result, "segments", []) or []
+                result = transcrever_parte_c_com_retries(
+                    part, retries=3, sleep_base=1.0, timeout=WHISPER_TIMEOUT, language=whisper_lang
+                )
+                segs = filter_whisper_segments(getattr(result, "segments", []) or [], whisper_lang)
                 for s in segs:
                     st = float(_seg_get(s, "start", 0.0)) + offset_seconds
                     en = float(_seg_get(s, "end", st + 0.01)) + offset_seconds
@@ -680,8 +953,9 @@ class SummarizeRequest(BaseModel):
     lang: str = "pt"
 
 @app.post("/summarize")
-async def summarize(req: SummarizeRequest):
+async def summarize(req: SummarizeRequest, request: Request):
     require_token(req.token)
+    enforce_rate_limit(request, "ai", RATE_LIMIT_AI, RATE_LIMIT_AI_WINDOW)
     if req.lang == "en":
         if req.mode == "minuta":
             prompt = ("Based on the transcript below, create clear bullet-point minutes including:\n"
@@ -722,6 +996,7 @@ async def translate_text(request: Request):
     language = (data.get("language") or "").lower()
     token = data.get("token") or ""
     require_token(token)
+    enforce_rate_limit(request, "ai", RATE_LIMIT_AI, RATE_LIMIT_AI_WINDOW)
     idiomas = {"inglês": "English", "espanhol": "Spanish", "francês": "French", "alemão": "German", "italiano": "Italian", "português": "Portuguese"}
     if language not in idiomas:
         raise HTTPException(status_code=400, detail=f"Idioma não suportado: {language}")
@@ -744,8 +1019,9 @@ class ClassifyRequest(BaseModel):
     token: str
 
 @app.post("/classify")
-async def classify_content(req: ClassifyRequest):
+async def classify_content(req: ClassifyRequest, request: Request):
     require_token(req.token)
+    enforce_rate_limit(request, "ai", RATE_LIMIT_AI, RATE_LIMIT_AI_WINDOW)
     prompt = ("Classifica o texto como uma das opções:\n"
               "- Entrevista\n- Aula\n- Podcast\n- Reunião\n- Apresentação\n- Testemunho\n- Conversa informal\n\n"
               f"Texto:\n{req.text}\n\nResponde só com uma etiqueta.")
@@ -765,6 +1041,7 @@ async def correct_text(req: Request):
     text = data.get("text", "")
     token = data.get("token", "")
     require_token(token)
+    enforce_rate_limit(req, "ai", RATE_LIMIT_AI, RATE_LIMIT_AI_WINDOW)
     try:
         resp = client.chat.completions.create(
             model=COR_MODEL,
@@ -786,8 +1063,9 @@ class EmailRequest(BaseModel):
     tone: str = "formal"
 
 @app.post("/generate-email")
-async def generate_email(req: EmailRequest):
+async def generate_email(req: EmailRequest, request: Request):
     require_token(req.token)
+    enforce_rate_limit(request, "ai", RATE_LIMIT_AI, RATE_LIMIT_AI_WINDOW)
     prompt = (f"Gera um email em tom {req.tone} a partir do seguinte resumo/transcrição de uma reunião:\n\n{req.text}\n\n"
               "O email deve ser claro, direto e adequado para enviar após a reunião.")
     try:
@@ -819,6 +1097,7 @@ def get_status():
 
 @app.post("/api/status")
 async def update_status(request: Request):
+    require_admin_token(request)
     data = await request.json()
     manutencao = bool(data.get("manutencao", False))
     conn = sqlite3.connect("ouviescrevi.db")
@@ -833,7 +1112,8 @@ async def update_status(request: Request):
         conn.close()
 
 @app.get("/transcricoes-hoje")
-def contar_transcricoes_hoje():
+def contar_transcricoes_hoje(request: Request):
+    require_admin_token(request)
     conn = sqlite3.connect("ouviescrevi.db")
     try:
         cur = conn.cursor()
@@ -845,7 +1125,8 @@ def contar_transcricoes_hoje():
         conn.close()
 
 @app.get("/api/logs")
-def get_logs():
+def get_logs(request: Request):
+    require_admin_token(request)
     try:
         conn = sqlite3.connect("ouviescrevi.db")
         cur = conn.cursor()
@@ -867,8 +1148,9 @@ class QuestionRequest(BaseModel):
     num_questions: int = 3
 
 @app.post("/generate-questions")
-async def generate_questions(req: QuestionRequest):
+async def generate_questions(req: QuestionRequest, request: Request):
     require_token(req.token)
+    enforce_rate_limit(request, "ai", RATE_LIMIT_AI, RATE_LIMIT_AI_WINDOW)
     if req.lang == "en":
         prompt = (f"Generate {req.num_questions} multiple-choice questions based on the text. "
                   "For each: question, four options (A–D), correct answer, short explanation.\n\n"
@@ -902,10 +1184,13 @@ async def summarize_url(req: Request):
     mode = data.get("mode", "normal")
     lang = data.get("lang", "pt")
     require_token(token)
+    enforce_rate_limit(req, "ai", RATE_LIMIT_AI, RATE_LIMIT_AI_WINDOW)
+    if not url:
+        raise HTTPException(status_code=400, detail="URL em falta.")
+    validate_public_http_url(url)
     try:
         headers = {"User-Agent": "OuviescreviBot/1.0 (+https://ouviescrevi.pt)"}
-        r = requests.get(url, headers=headers, timeout=12)
-        r.raise_for_status()
+        r = safe_http_get(url, timeout=12)
         soup = BeautifulSoup(r.content, "html.parser")
         paragraphs = soup.find_all("p")
         full_text = " ".join(p.get_text(strip=True) for p in paragraphs if len(p.get_text()) > 40)
@@ -954,8 +1239,9 @@ class WhatsAppNotify(BaseModel):
 
 @app.post("/notify-whatsapp-share")
 @app.post("/notify/whatsapp")
-async def notify_whatsapp(req: WhatsAppNotify):
+async def notify_whatsapp(req: WhatsAppNotify, request: Request):
     require_token(req.token)
+    enforce_rate_limit(request, "ai", RATE_LIMIT_AI, RATE_LIMIT_AI_WINDOW)
     try:
         msg = f"Partilha no WhatsApp usada.\nPágina: {req.page or '-'}\nNota: {req.note or '-'}\nData: {datetime.now().isoformat()}"
         enviar_email_assunto(msg, "WhatsApp share usado no Ouviescrevi")
@@ -975,13 +1261,15 @@ class VideoRequest(BaseModel):
     token: str
 
 @router.post("/generate-video")
-async def generate_video(req: VideoRequest):
+async def generate_video(req: VideoRequest, request: Request):
     require_token(req.token)
+    enforce_rate_limit(request, "ai", RATE_LIMIT_AI, RATE_LIMIT_AI_WINDOW)
     try:
         audio_tmp = os.path.join(tempfile.gettempdir(), f"{uuid.uuid4()}.mp3")
         gTTS(text=req.text, lang=req.voice_lang).save(audio_tmp)
         img_tmp = os.path.join(tempfile.gettempdir(), f"{uuid.uuid4()}.jpg")
-        rr = requests.get(req.image_url, timeout=10)
+        validate_public_http_url(req.image_url)
+        rr = safe_http_get(req.image_url, timeout=10, max_bytes=5_000_000)
         ct = rr.headers.get("Content-Type", "")
         if rr.status_code == 200 and "image" in ct:
             with open(img_tmp, "wb") as f:
@@ -1009,6 +1297,7 @@ app.include_router(router)
 # ── util ──────────────────────────────────────────────────────────────────────
 @app.get("/")
 def root():
+    require_debug_enabled()
     routes = []
     for route in app.routes:
         info = {"path": route.path, "name": route.name}
@@ -1018,9 +1307,12 @@ def root():
 
 @app.get("/rotas")
 def rotas():
+    require_debug_enabled()
     return [route.path for route in app.routes]
 
 @app.get("/test-email")
-def test_email():
+def test_email(request: Request):
+    require_debug_enabled()
+    require_admin_token(request)
     enviar_email_assunto("Teste de envio", "Teste SMTP Ouviescrevi")
     return {"status": "ok"}

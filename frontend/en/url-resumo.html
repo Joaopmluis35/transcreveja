@@ -8,213 +8,104 @@
   <meta name="robots" content="index, follow">
   <title>URL Summary - Ouviescrevi</title>
   <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png">
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #4e54c8, #00c6ff);
-      color: white;
-      margin: 0;
-      padding: 0;
-      text-align: center;
-    }
-
-    h1 {
-      font-size: 2em;
-      margin-top: 20px;
-    }
-
-    .container {
-      background: white;
-      color: #333;
-      border-radius: 20px;
-      padding: 30px;
-      max-width: 800px;
-      margin: 30px auto;
-    }
-
-    input[type="text"] {
-      width: 100%;
-      padding: 12px;
-      font-size: 1em;
-      border-radius: 8px;
-      border: 2px solid #a550f7;
-      margin-top: 10px;
-    }
-
-    .container button {
-      padding: 12px 20px;
-      background: #e6d7fb;
-      font-weight: bold;
-      border: 2px solid #a550f7;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 20px;
-      transition: all 0.3s ease;
-    }
-
-    button:hover {
-      background: linear-gradient(135deg, #a550f7, #00c3ff);
-      color: white;
-      border-color: transparent;
-    }
-
-    #resultado {
-      margin-top: 30px;
-      background: #f4f4f4;
-      border-left: 5px solid #00c3ff;
-      padding: 20px;
-      white-space: pre-wrap;
-      border-radius: 10px;
-      color: #222;
-    }
-
-    #loadingBar {
-      width: 100%;
-      background: #ddd;
-      border-radius: 8px;
-      overflow: hidden;
-      height: 20px;
-      margin-top: 20px;
-      display: none;
-    }
-
-    #loadingProgress {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(135deg, #a550f7, #00c3ff);
-      transition: width 0.2s ease;
-    }
-
-    #loadingPhrase {
-      font-style: italic;
-      margin-top: 10px;
-    }
-  </style>
+  <link rel="stylesheet" href="../css/ouviescrevi.css">
+  <script src="../js/ouviescrevi-ui.js" defer></script>
 </head>
-<body>
+<body class="oe-page">
+<a class="oe-skip" href="#conteudo">Skip to content</a>
+<div id="header"></div>
 
-  <div id="header"></div>
-
+<div class="oe-hero" id="conteudo">
   <h1>🔗 Smart Summary from URL</h1>
-  <p>Paste the link of an online article below to generate an automatic summary using AI.</p>
+  <p class="oe-lead">Paste an article link to generate an automatic AI summary.</p>
+</div>
 
-  <div class="container">
-    <input type="text" id="urlInput" placeholder="https://example.com/article" />
-    <button onclick="summarizeArticleFromURL()">Generate Summary</button>
-
-    <div id="loadingBar"><div id="loadingProgress"></div></div>
-    <div id="loadingPhrase"></div>
-
-    <pre id="resultado"></pre>
+<div class="container">
+  <input type="url" id="urlInput" placeholder="https://example.com/article" autocomplete="url" />
+  <button type="button" class="oe-btn oe-btn--block" id="btnUrlResumo" onclick="summarizeArticleFromURL()">Generate Summary</button>
+  <div class="progress-container" id="progressContainer" style="display: none;">
+    <div class="progress-bar" id="progressBar"></div>
   </div>
+  <div class="loading-phrase" id="loadingPhrase"></div>
+  <pre id="resultado" class="oe-result"></pre>
+</div>
 
-  <script>
-    const phrases = [
-      "🧠 Reading the article...",
-      "✍️ Summarizing important points...",
-      "📚 Organizing the content...",
-      "💡 Creating smart summary...",
-      "⏳ Please wait, it’s almost done..."
-    ];
+<script src="../js/ouviescrevi-api.js"></script>
+<script>
+  const frases = [
+    "🧠 Reading the article...",
+    "✍️ Summarizing key points...",
+    "📚 Organizing content...",
+    "💡 Creating smart summary...",
+    "⏳ Almost done..."
+  ];
 
-    function startLoadingAnimation() {
-      let index = 0;
-      const phraseDiv = document.getElementById("loadingPhrase");
-      const progressBar = document.getElementById("loadingProgress");
-      const bar = document.getElementById("loadingBar");
+  async function summarizeArticleFromURL() {
+    const url = document.getElementById("urlInput").value.trim();
+    const btn = document.getElementById("btnUrlResumo");
+    const output = document.getElementById("resultado");
+    const progressBar = document.getElementById("progressBar");
+    const progressContainer = document.getElementById("progressContainer");
+    const loadingPhrase = document.getElementById("loadingPhrase");
 
-      bar.style.display = "block";
-      progressBar.style.width = "0%";
-      phraseDiv.textContent = phrases[0];
-
-      let progress = 0;
-      const interval = setInterval(() => {
-        progress += Math.random() * 5;
-        if (progress > 100) progress = 100;
-        progressBar.style.width = progress + "%";
-
-        if (progress < 100) {
-          index = (index + 1) % phrases.length;
-          phraseDiv.textContent = phrases[index];
-        } else {
-          clearInterval(interval);
-        }
-      }, 1200);
-
-      return interval;
+    if (!url) {
+      OuviescreviUI.toast("Enter a valid URL.", "error");
+      return;
     }
 
-    function stopLoadingAnimation(interval) {
+    OuviescreviUI.setButtonLoading(btn, true, "Summarizing...");
+    output.textContent = "";
+    output.classList.remove("oe-result--error");
+    progressContainer.style.display = "block";
+    progressBar.style.width = "0%";
+
+    let percent = 0;
+    let fraseIndex = 0;
+    const interval = setInterval(() => {
+      if (percent >= 92) return;
+      percent += Math.floor(Math.random() * 5) + 1;
+      progressBar.style.width = percent + "%";
+      loadingPhrase.textContent = frases[fraseIndex];
+      fraseIndex = (fraseIndex + 1) % frases.length;
+    }, 700);
+
+    await OuviescreviAPI.init();
+    fetch(`${OuviescreviAPI.getBase()}/summarize-url`, {
+      method: "POST",
+      headers: OuviescreviAPI.authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify(OuviescreviAPI.authJson({ url: url, lang: "en" }))
+    })
+    .then(res => res.json())
+    .then(data => {
       clearInterval(interval);
-      document.getElementById("loadingBar").style.display = "none";
-      document.getElementById("loadingPhrase").textContent = "";
-    }
-
-    function summarizeArticleFromURL() {
-      const url = document.getElementById("urlInput").value.trim();
-      const output = document.getElementById("resultado");
-
-      if (!url) {
-        alert("Please enter a valid URL.");
-        return;
+      progressBar.style.width = "100%";
+      loadingPhrase.textContent = "";
+      if (data.summary) {
+        output.textContent = data.summary;
+      } else {
+        output.textContent = data.error || data.detail || "An unexpected error occurred.";
+        output.classList.add("oe-result--error");
       }
+    })
+    .catch(err => {
+      clearInterval(interval);
+      progressBar.style.width = "100%";
+      loadingPhrase.textContent = "";
+      console.error(err);
+      output.textContent = "Failed to contact the server.";
+      output.classList.add("oe-result--error");
+    })
+    .finally(() => {
+      OuviescreviUI.setButtonLoading(btn, false);
+      setTimeout(() => { progressContainer.style.display = "none"; }, 800);
+    });
+  }
+</script>
 
-      output.textContent = "";
-      const loading = startLoadingAnimation();
-
-      fetch("https://api.ouviescrevi.pt/summarize-url", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          url: url,
-          token: "ouviescrevi2025@resumo",
-          lang: "en"
-        })
-      })
-      .then(res => res.json())
-      .then(data => {
-        stopLoadingAnimation(loading);
-        output.textContent = data.summary || data.error || "❌ An unexpected error occurred.";
-      })
-      .catch(err => {
-        stopLoadingAnimation(loading);
-        console.error(err);
-        output.textContent = "❌ Failed to contact the server.";
-      });
-    }
-  </script>
-
-  <script>
-    fetch("/en/header.html")
-      .then(response => response.text())
-      .then(html => {
-        const headerDiv = document.getElementById("header");
-        headerDiv.innerHTML = html;
-
-        const tempDiv = document.createElement("div");
-        tempDiv.innerHTML = html;
-
-        tempDiv.querySelectorAll("script").forEach(oldScript => {
-          const newScript = document.createElement("script");
-          if (oldScript.src) newScript.src = oldScript.src;
-          else newScript.textContent = oldScript.textContent;
-          document.body.appendChild(newScript);
-        });
-
-        tempDiv.querySelectorAll("style").forEach(style => {
-          document.head.appendChild(style.cloneNode(true));
-        });
-      });
-  </script>
-
-  <div id="footer"></div>
-  <script>
-    fetch("/en/footer.html")
-      .then(res => res.text())
-      .then(html => document.getElementById("footer").innerHTML = html);
-  </script>
-
+<div id="footer"></div>
+<script>
+  OuviescreviUI.loadHeader("header.html");
+  OuviescreviUI.loadFooter("footer.html");
+</script>
 </body>
 </html>

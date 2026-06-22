@@ -3,91 +3,30 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Converte ficheiros com IA. Word para PDF, imagens para PDF, e muito mais. Rápido, simples e gratuito.">
+  <meta name="keywords" content="converter Word para PDF, PDF para texto, imagem para PDF, conversor de ficheiros online, Ouviescrevi">
+  <meta name="robots" content="index, follow">
   <title>Conversor de Ficheiros | Ouviescrevi</title>
   <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png">
-<meta name="description" content="Converte ficheiros com IA. Word para PDF, imagens para PDF, e muito mais. Rápido, simples e gratuito.">
-<meta name="keywords" content="converter Word para PDF, PDF para texto, imagem para PDF, conversor de ficheiros online, Ouviescrevi">
-<meta name="robots" content="index, follow">
-  <!-- Bibliotecas -->
+  <link rel="stylesheet" href="css/ouviescrevi.css">
+  <script src="js/ouviescrevi-ui.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
   <script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #A550F7, #00C3FF);
-      color: white;
-      text-align: center;
-    }
-    header {
-      background: linear-gradient(135deg, #A550F7, #00C3FF);
-      padding: 15px 30px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    header img {
-      height: 50px;
-    }
-    nav a {
-      color: white;
-      text-decoration: none;
-      margin-left: 20px;
-    }
-    .converter {
-      background: white;
-      color: #333;
-      margin: 60px auto;
-      max-width: 700px;
-      padding: 40px;
-      border-radius: 20px;
-    }
-    .converter select,
-    .converter input[type="file"],
-    .converter button {
-      padding: 10px;
-      margin-top: 20px;
-      font-size: 1em;
-    }
-    .btn-main {
-      background-color: #e6d7fb;
-      color: #333;
-      font-weight: bold;
-      border: 2px solid #A550F7;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    .btn-main:hover {
-      background: linear-gradient(135deg, #A550F7, #00C3FF);
-      color: white;
-      border-color: transparent;
-    }
-    #wordStatus {
-      margin-top: 20px;
-      color: #333;
-    }
-    footer {
-      margin-top: 60px;
-      padding: 20px;
-      font-size: 0.9em;
-      color: #eee;
-    }
-  </style>
 </head>
-<body>
-
+<body class="oe-page">
+<a class="oe-skip" href="#conteudo">Saltar para o conteúdo</a>
   <div id="header"></div>
 
-  <section class="converter">
-    <p style="background: #e0f7e9; padding: 10px; border-left: 5px solid #2e7d32; font-weight: bold;">
-      💡 Aproveita esta funcionalidade gratuita de conversão de ficheiros enquanto a funcionalidade com IA ainda não está disponível.
-    </p>
+  <div class="oe-hero" id="conteudo">
+    <h1>📁 Conversor de Ficheiros</h1>
+    <p class="oe-lead">Converte Word, PDF e imagens — gratuito e no browser.</p>
+  </div>
 
-    <h2>📁 Conversor de Ficheiros</h2>
-    <p>Escolhe o tipo de conversão que queres fazer:</p>
+  <section class="converter">
+    <p class="oe-notice">
+      💡 Aproveita esta funcionalidade gratuita enquanto a versão com IA evolui.
+    </p>
 
     <select id="conversionType" onchange="updateInput()">
       <option value="word2pdf">Word (.docx) → PDF</option>
@@ -104,8 +43,8 @@
       <p id="wordStatus"></p>
     </div>
   </section>
-<section id="apresentacaoConversorSEO" style="max-width: 800px; margin: 40px auto; background: white; padding: 20px; border-radius: 12px; color: #333; font-size: 1.1em; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-  <h2 style="color: #A550F7;">🔄 Conversor Inteligente de Ficheiros</h2>
+<section id="apresentacaoConversorSEO" class="oe-seo-block">
+  <h2>🔄 Conversor Inteligente de Ficheiros</h2>
   <p>
     O <strong>Ouviescrevi</strong> também funciona como um <strong>conversor gratuito de ficheiros online</strong>, rápido e simples de usar. Converte ficheiros entre <strong>Word (.docx)</strong>, <strong>PDF</strong>, <strong>TXT</strong>, <strong>JSON</strong>, <strong>SRT</strong> e até imagens em texto com apoio de Inteligência Artificial.
   </p>
@@ -306,34 +245,10 @@
       reader.readAsArrayBuffer(input.files[0]);
     }
   </script>
-<!-- No final do <body> -->
-<script>
-  fetch("header.html")
-    .then(response => response.text())
-    .then(html => {
-      const headerDiv = document.getElementById("header");
-      headerDiv.innerHTML = html;
-
-      const tempDiv = document.createElement("div");
-      tempDiv.innerHTML = html;
-
-      tempDiv.querySelectorAll("script").forEach(oldScript => {
-        const newScript = document.createElement("script");
-        if (oldScript.src) newScript.src = oldScript.src;
-        else newScript.textContent = oldScript.textContent;
-        document.body.appendChild(newScript);
-      });
-
-      tempDiv.querySelectorAll("style").forEach(style => {
-        document.head.appendChild(style.cloneNode(true));
-      });
-    });
-</script>
 <div id="footer"></div>
 <script>
-  fetch("footer.html")
-    .then(res => res.text())
-    .then(html => document.getElementById("footer").innerHTML = html);
+  OuviescreviUI.loadHeader();
+  OuviescreviUI.loadFooter();
 </script>
 </body>
 </html>

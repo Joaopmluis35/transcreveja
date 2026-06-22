@@ -2,34 +2,27 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
-  <title>Podcasts | Ouviescrevi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Transcreve episódios de podcast automaticamente com IA. Ideal para criadores de conteúdo, bloggers e ouvintes.">
-<meta name="keywords" content="transcrever podcast, podcast em texto, criar resumo de podcast, Ouviescrevi podcast">
-<meta name="robots" content="index, follow">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-     body {
-  margin: 0;
-  font-family: 'Segoe UI', sans-serif;
-  background: linear-gradient(135deg, #A550F7, #00C3FF);
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  background-size: 100% 100%;
-  color: white;
-  text-align: center;
-}
-    h1 { font-size: 2.5rem; margin-bottom: 20px; }
-    p { max-width: 700px; margin: 0 auto; font-size: 1.2rem; line-height: 1.6; }
-  </style>
+  <meta name="keywords" content="transcrever podcast, podcast em texto, criar resumo de podcast, Ouviescrevi podcast">
+  <meta name="robots" content="index, follow">
+  <title>Podcasts | Ouviescrevi</title>
+  <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png">
+  <link rel="stylesheet" href="css/ouviescrevi.css">
+  <script src="js/ouviescrevi-ui.js" defer></script>
 </head>
-<body>
+<body class="oe-page">
+<a class="oe-skip" href="#conteudo">Saltar para o conteúdo</a>
+<div id="header"></div>
+<main class="oe-content oe-landing" id="conteudo">
   <h1>🎙️ Podcasts</h1>
   <p>Converte episódios de podcast em texto com um clique. Melhora o SEO, partilha transcrições com o público e reutiliza os conteúdos em newsletters, artigos ou redes sociais.</p>
-  <div id="footer"></div>
-<script>
-  fetch("footer.html")
-    .then(res => res.text())
-    .then(html => document.getElementById("footer").innerHTML = html);
-</script>
+  <div class="oe-landing-actions">
+    <a href="index.html" class="oe-btn">🎙️ Transcrever episódio</a>
+    <a href="resumo.html" class="oe-btn">📌 Resumir conteúdo</a>
+  </div>
+</main>
+<div id="footer"></div>
+<script>OuviescreviUI.loadHeader(); OuviescreviUI.loadFooter();</script>
 </body>
 </html>

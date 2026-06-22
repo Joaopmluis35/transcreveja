@@ -2,203 +2,166 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Backoffice | Ouviescrevi</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #f5f5f5;
-      padding: 40px;
-      text-align: center;
-    }
-    form, .painel {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      max-width: 400px;
-      margin: auto;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    button, input[type="password"] {
-      padding: 10px;
-      font-size: 1em;
-      margin-top: 10px;
-      width: 100%;
-    }
-    label {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 20px;
-    }
-    #statusTexto {
-      margin-top: 15px;
-      font-weight: bold;
-      font-size: 0.95em;
-    }
-  </style>
+  <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png">
+  <link rel="stylesheet" href="css/ouviescrevi.css">
+  <script src="js/ouviescrevi-ui.js" defer></script>
 </head>
-<body>
+<body class="oe-backoffice">
+<a class="oe-skip" href="#painel">Saltar para o painel</a>
 
 <h2>Backoffice Ouviescrevi</h2>
 
-<form id="loginForm">
-  <p>Acesso restrito</p>
-  <input type="password" id="password" placeholder="Palavra-chave">
-  <button type="submit">Entrar</button>
+<form id="loginForm" class="oe-card oe-card--narrow">
+  <p style="margin-top:0;color:var(--oe-text-muted);">Acesso restrito a administradores</p>
+  <label for="password" style="display:block;text-align:left;font-weight:600;margin-top:12px;">Palavra-chave</label>
+  <input type="password" id="password" placeholder="Palavra-chave" autocomplete="current-password">
+  <button type="submit" class="oe-btn oe-btn--block">Entrar</button>
 </form>
 
-<div class="painel" id="painel" style="display:none">
-  <p>Bem-vindo, admin.</p>
-	<p id="contadorHoje">🔄 A carregar transcrições de hoje...</p>
+<div class="painel oe-card" id="painel" style="display:none">
+  <p style="margin-top:0;"><strong>Bem-vindo, admin.</strong></p>
+  <p id="contadorHoje">🔄 A carregar transcrições de hoje...</p>
 
   <label>
-    🛑 Modo Manutenção:
+    <span>🛑 Modo Manutenção</span>
     <input type="checkbox" id="manutencaoToggle">
   </label>
 
   <p id="statusTexto"></p>
 
+  <button type="button" class="oe-btn oe-btn--block" onclick="carregarLogs()">📊 Ver Estatísticas</button>
+  <div id="tabelaLogs"></div>
 
-	<button onclick="carregarLogs()">📊 Ver Estatísticas</button>
-<div id="tabelaLogs" style="margin-top: 20px;"></div>
-
-  <button onclick="logout()">Sair</button>
+  <button type="button" class="oe-btn oe-btn--block" onclick="logout()" style="margin-top:20px;background:#fee2e2;border-color:#fca5a5;">Sair</button>
 </div>
 
+<script src="js/ouviescrevi-api.js"></script>
 <script>
   const form = document.getElementById("loginForm");
   const painel = document.getElementById("painel");
   const toggle = document.getElementById("manutencaoToggle");
   const statusTexto = document.getElementById("statusTexto");
 
-  // Verifica se está autenticado
-  if (localStorage.getItem("adminAutorizado") === "true") {
+  function apiBase() {
+    return OuviescreviAPI.getBase() || OuviescreviAPI.detectApiBase();
+  }
+
+  function mostrarPainel() {
     form.style.display = "none";
     painel.style.display = "block";
+    painel.id = "painel";
     carregarEstado();
   }
 
-  // Login
-  form.addEventListener("submit", e => {
+  if (OuviescreviUI && OuviescreviAPI.isAdminSession()) {
+    mostrarPainel();
+  }
+
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (document.getElementById("password").value === "admin123.") {
-      localStorage.setItem("adminAutorizado", "true");
-      form.style.display = "none";
-      painel.style.display = "block";
-      carregarEstado();
-    } else {
-      alert("Palavra-chave incorreta.");
+    const password = document.getElementById("password").value;
+    try {
+      await OuviescreviAPI.adminLogin(password);
+      OuviescreviUI.toast("Sessão iniciada.", "success");
+      mostrarPainel();
+    } catch {
+      OuviescreviUI.toast("Palavra-chave incorreta.", "error");
     }
   });
 
-  function atualizarTextoEstado(ativo) {
-    statusTexto.textContent = ativo ? "🔴 Em manutenção" : "🟢 Online";
-    statusTexto.style.color = ativo ? "#C62828" : "#2E7D32";
+  async function carregarEstado() {
+    try {
+      const res = await fetch(`${apiBase()}/api/status`);
+      const data = await res.json();
+      toggle.checked = !!data.manutencao;
+      statusTexto.textContent = data.manutencao ? "🛑 Site em manutenção" : "✅ Site operacional";
+      statusTexto.style.color = data.manutencao ? "#b91c1c" : "#047857";
+    } catch {
+      statusTexto.textContent = "⚠️ Não foi possível carregar o estado.";
+    }
+
+    try {
+      const res = await fetch(`${apiBase()}/transcricoes-hoje`, {
+        headers: OuviescreviAPI.adminAuthHeaders()
+      });
+      const data = await res.json();
+      document.getElementById("contadorHoje").textContent =
+        "📊 Transcrições hoje: " + (data.total ?? data.count ?? "—");
+    } catch {
+      document.getElementById("contadorHoje").textContent = "📊 Transcrições hoje: —";
+    }
   }
 
-  // Carrega estado atual da API
-  function carregarEstado() {
-  fetch("https://api.ouviescrevi.pt/api/status?t=" + Date.now())
-    .then(res => res.json())
-    .then(data => {
-      toggle.checked = data.manutencao === true;
-      atualizarTextoEstado(data.manutencao);
-      carregarContadorHoje(); // primeira contagem imediata
-      setInterval(carregarContadorHoje, 60000); // atualiza a cada 60s
-
-      console.log("[🟢] Estado atual carregado:", data.manutencao);
-    })
-    .catch((err) => {
-      console.error("[❌] Erro ao carregar estado:", err);
-      alert("Erro ao carregar estado de manutenção");
-    });
-}
-
-
-  // Ao mudar o estado do toggle
-  toggle.addEventListener("change", () => {
-    const ativo = toggle.checked;
-    console.log("[⚙️] A enviar atualização de estado para:", ativo);
-
-    fetch("https://api.ouviescrevi.pt/api/status", {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ manutencao: ativo })
-})
-
-    .then(res => res.json())
-    .then(data => {
-      console.log("[✅] Estado atualizado com sucesso:", data);
-      atualizarTextoEstado(data.manutencao);
-      mostrarToast("Estado atualizado com sucesso!");
-    })
-    .catch(err => {
-      console.error("[❌] Erro ao atualizar estado:", err);
-      alert("Erro ao alterar estado de manutenção.");
-      toggle.checked = !ativo; // Reverte visualmente
-    });
+  toggle.addEventListener("change", async () => {
+    try {
+      const res = await fetch(`${apiBase()}/api/status`, {
+        method: "POST",
+        headers: OuviescreviAPI.adminAuthHeaders(),
+        body: JSON.stringify({ manutencao: toggle.checked })
+      });
+      const data = await res.json();
+      statusTexto.textContent = data.manutencao ? "🛑 Modo manutenção ativado" : "✅ Modo manutenção desativado";
+      statusTexto.style.color = data.manutencao ? "#b91c1c" : "#047857";
+      OuviescreviUI.toast(statusTexto.textContent, "success");
+    } catch {
+      OuviescreviUI.toast("Erro ao atualizar estado.", "error");
+      toggle.checked = !toggle.checked;
+    }
   });
 
-  // Toast visual
-  function mostrarToast(msg) {
-    const toast = document.createElement("div");
-    toast.textContent = msg;
-    toast.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #4CAF50;
-      color: white;
-      padding: 12px 20px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-      z-index: 9999;
-      font-size: 0.9em;
-      opacity: 1;
-      transition: opacity 0.5s ease;
-    `;
-    document.body.appendChild(toast);
-    setTimeout(() => {
-      toast.style.opacity = 0;
-      setTimeout(() => document.body.removeChild(toast), 500);
-    }, 2500);
+  async function carregarLogs() {
+    const div = document.getElementById("tabelaLogs");
+    div.textContent = "A carregar...";
+    try {
+      const res = await fetch(`${apiBase()}/api/logs`, {
+        headers: OuviescreviAPI.adminAuthHeaders()
+      });
+      const data = await res.json();
+      const logs = Array.isArray(data) ? data : (data.logs || []);
+      if (!logs.length) {
+        div.textContent = "Sem registos.";
+        return;
+      }
+      const table = document.createElement("table");
+      table.className = "logs";
+      const thead = document.createElement("thead");
+      const hr = document.createElement("tr");
+      ["Ficheiro", "Data"].forEach(t => {
+        const th = document.createElement("th");
+        th.textContent = t;
+        hr.appendChild(th);
+      });
+      thead.appendChild(hr);
+      table.appendChild(thead);
+      const tbody = document.createElement("tbody");
+      logs.slice().reverse().slice(0, 50).forEach(row => {
+        const tr = document.createElement("tr");
+        const td1 = document.createElement("td");
+        const td2 = document.createElement("td");
+        td1.textContent = row.ficheiro || row.file || "—";
+        td2.textContent = row.data || row.date || "—";
+        tr.appendChild(td1);
+        tr.appendChild(td2);
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      div.textContent = "";
+      div.appendChild(table);
+    } catch {
+      div.textContent = "Erro ao carregar logs.";
+      OuviescreviUI.toast("Erro ao carregar logs.", "error");
+    }
   }
 
   function logout() {
-    localStorage.removeItem("adminAutorizado");
-    location.reload();
+    OuviescreviAPI.adminLogout();
+    painel.style.display = "none";
+    form.style.display = "block";
+    document.getElementById("password").value = "";
+    OuviescreviUI.toast("Sessão terminada.");
   }
-  
-  function carregarLogs() {
-  fetch('/api/logs?t=' + Date.now())
-    .then(res => res.json())
-    .then(data => {
-      let html = `<table border="1" style="margin:auto; border-collapse: collapse; width:100%; max-width:500px;">
-        <tr><th>Ficheiro</th><th>Data</th></tr>`;
-      data.reverse().forEach(item => {
-        html += `<tr><td>${item.ficheiro}</td><td>${new Date(item.data).toLocaleString()}</td></tr>`;
-      });
-      html += `</table>`;
-      document.getElementById("tabelaLogs").innerHTML = html;
-    })
-    .catch(err => alert("Erro ao carregar logs"));
-}
-function carregarContadorHoje() {
-  fetch("https://api.ouviescrevi.pt/transcricoes-hoje?t=" + Date.now())
-    .then(res => res.json())
-    .then(data => {
-      document.getElementById("contadorHoje").textContent =
-        `📈 Transcrições hoje: ${data.total}`;
-    })
-    .catch(err => {
-      console.error("Erro ao carregar contador de hoje", err);
-      document.getElementById("contadorHoje").textContent =
-        "❌ Erro ao carregar total de hoje.";
-    });
-}
-
 </script>
-
 </body>
 </html>
