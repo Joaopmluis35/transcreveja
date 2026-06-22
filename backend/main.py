@@ -1295,20 +1295,32 @@ async def generate_video(req: VideoRequest, request: Request):
 app.include_router(router)
 
 # ── util ──────────────────────────────────────────────────────────────────────
+def _route_entries() -> list[dict]:
+    entries = []
+    for route in app.routes:
+        path = getattr(route, "path", None)
+        if not path:
+            continue
+        methods = getattr(route, "methods", None) or set()
+        entries.append({
+            "path": path,
+            "name": getattr(route, "name", None),
+            "method": sorted(methods)[0] if methods else None,
+        })
+    return entries
+
+
 @app.get("/")
 def root():
-    require_debug_enabled()
-    routes = []
-    for route in app.routes:
-        info = {"path": route.path, "name": route.name}
-        info["method"] = list(getattr(route, "methods", []) or [None])[0]
-        routes.append(info)
-    return {"routes": routes}
+    if ENABLE_DEBUG_ENDPOINTS:
+        return {"routes": _route_entries()}
+    return {"status": "ok", "service": "ouviescrevi-api"}
+
 
 @app.get("/rotas")
 def rotas():
     require_debug_enabled()
-    return [route.path for route in app.routes]
+    return [entry["path"] for entry in _route_entries()]
 
 @app.get("/test-email")
 def test_email(request: Request):
