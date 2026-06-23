@@ -1,3 +1,8 @@
 User-agent: *
 Allow: /
-Sitemap: https://ouviescrevi.pt/sitemap.xml
+Disallow: /backoffice.html
+Disallow: /archive/
+Disallow: /index2.html
+Disallow: /admin.html
+
+Sitemap: https://www.ouviescrevi.pt/sitemap.xml

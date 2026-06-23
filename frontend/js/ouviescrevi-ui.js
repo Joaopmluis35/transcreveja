@@ -282,6 +282,7 @@
   }
 
   function bootLayout() {
+    if (global.OuviescreviSEO) global.OuviescreviSEO.apply();
     autoLoadLayout();
     setTimeout(markCurrentNav, 400);
     trackPageView();

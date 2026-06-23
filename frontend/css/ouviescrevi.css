@@ -68,6 +68,18 @@ body.oe-page--home {
   box-shadow: var(--oe-focus);
 }
 
+.oe-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* ── Header ───────────────────────────────────────────────────────────── */
 #header {
   width: 100%;
@@ -102,7 +114,8 @@ body.oe-page--home {
 }
 
 .logo-area img { height: 42px; width: auto; }
-.logo-area h1 { margin: 0; font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em; }
+.logo-area h1,
+.logo-area .oe-site-name { margin: 0; font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em; }
 
 #burgerBtn {
   display: none;
@@ -270,6 +283,7 @@ nav#nichoMenu button span { position: relative; z-index: 1; }
   nav#nichoMenu.show { display: flex; }
   nav#nichoMenu button { width: 100%; font-size: 0.95rem; }
   .logo-area h1,
+  .logo-area .oe-site-name,
   .logo-area .hourglass {
     display: none;
   }
