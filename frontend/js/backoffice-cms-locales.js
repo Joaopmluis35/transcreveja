@@ -79,6 +79,36 @@
           { key: p + "_cookies_intro", label: "Introdução (secção 1)", type: "rich" },
         ],
       },
+      {
+        id: "resumo_" + lang,
+        label: "Resumo (" + langLabel + ")",
+        lang: lang,
+        path: base + "/resumo.html",
+        fields: [
+          { key: p + "_resumo_title", label: "Título", type: "text" },
+          { key: p + "_resumo_lead", label: "Subtítulo", type: "text" },
+        ],
+      },
+      {
+        id: "url_resumo_" + lang,
+        label: "Resumo URL (" + langLabel + ")",
+        lang: lang,
+        path: base + "/url-resumo.html",
+        fields: [
+          { key: p + "_url_resumo_title", label: "Título", type: "text" },
+          { key: p + "_url_resumo_lead", label: "Subtítulo", type: "text" },
+        ],
+      },
+      {
+        id: "perguntas_" + lang,
+        label: "Perguntas (" + langLabel + ")",
+        lang: lang,
+        path: base + "/perguntas.html",
+        fields: [
+          { key: p + "_perguntas_title", label: "Título", type: "text" },
+          { key: p + "_perguntas_lead", label: "Subtítulo", type: "text" },
+        ],
+      },
     ];
   }
 
@@ -295,6 +325,10 @@
         if (LOCALE_HOME_INTRO[lang]) out[homeKey] = LOCALE_HOME_INTRO[lang];
         else if (out.home_intro_html) out[homeKey] = out.home_intro_html;
       }
+      ["resumo_title", "resumo_lead", "url_resumo_title", "url_resumo_lead", "perguntas_title", "perguntas_lead"].forEach(function (suffix) {
+        var k = lang + "_" + suffix;
+        if (!out[k] && out["en_" + suffix]) out[k] = out["en_" + suffix];
+      });
     });
     return out;
   }

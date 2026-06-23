@@ -979,3 +979,51 @@ table.oe-admin-table td code {
 #cardSugestoes {
   cursor: pointer;
 }
+
+.oe-admin-char-count {
+  display: block;
+  margin-top: 4px;
+  color: var(--bo-muted);
+  font-size: 12px;
+}
+
+.oe-admin-char-count--warn {
+  color: var(--bo-warning);
+  font-weight: 600;
+}
+
+body.oe-admin.oe-admin--dark {
+  --bo-sidebar: #0f0d1a;
+  --bo-sidebar-hover: #1e1b4b;
+  --bo-sidebar-active: #4c1d95;
+  --bo-bg: #111827;
+  --bo-card: #1f2937;
+  --bo-border: #374151;
+  --bo-text: #f3f4f6;
+  --bo-muted: #9ca3af;
+}
+
+body.oe-admin.oe-admin--dark .oe-admin-login-card,
+body.oe-admin.oe-admin--dark .oe-admin-modal__box {
+  background: var(--bo-card);
+  color: var(--bo-text);
+}
+
+body.oe-admin.oe-admin--dark .oe-admin-table th {
+  background: #111827;
+}
+
+body.oe-admin.oe-admin--dark input,
+body.oe-admin.oe-admin--dark select,
+body.oe-admin.oe-admin--dark textarea {
+  background: #111827;
+  color: var(--bo-text);
+  border-color: var(--bo-border);
+}
+
+body.oe-admin.oe-admin--dark .ql-toolbar,
+body.oe-admin.oe-admin--dark .ql-container {
+  background: #111827;
+  color: var(--bo-text);
+  border-color: var(--bo-border);
+}

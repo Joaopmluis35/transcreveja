@@ -298,6 +298,8 @@ def list_transcriptions(
     *,
     q: str | None = None,
     status: str | None = None,
+    language: str | None = None,
+    duplicates_only: bool = False,
     day_from: str | None = None,
     day_to: str | None = None,
     limit: int = 50,
@@ -305,7 +307,9 @@ def list_transcriptions(
 ) -> list[dict]:
     limit = max(1, min(limit, 500))
     offset = max(0, offset)
-    clauses, params = _transcription_filters(q, status, day_from, day_to)
+    clauses, params = _transcription_filters(
+        q, status, language, duplicates_only, day_from, day_to
+    )
     params.extend([limit, offset])
     conn = get_connection()
     try:
@@ -353,6 +357,8 @@ def list_transcriptions(
 def _transcription_filters(
     q: str | None,
     status: str | None,
+    language: str | None,
+    duplicates_only: bool,
     day_from: str | None,
     day_to: str | None,
 ) -> tuple[list[str], list[Any]]:
@@ -364,6 +370,17 @@ def _transcription_filters(
     if status:
         clauses.append("COALESCE(status, 'ok') = ?")
         params.append(status)
+    if language:
+        clauses.append("COALESCE(language, 'auto') = ?")
+        params.append(language)
+    if duplicates_only:
+        clauses.append(
+            """ficheiro IN (
+                SELECT ficheiro FROM transcricoes
+                WHERE ficheiro IS NOT NULL AND TRIM(ficheiro) != ''
+                GROUP BY ficheiro HAVING COUNT(*) > 1
+            )"""
+        )
     if day_from:
         clauses.append("substr(data, 1, 10) >= ?")
         params.append(day_from)
@@ -377,10 +394,14 @@ def count_transcriptions(
     *,
     q: str | None = None,
     status: str | None = None,
+    language: str | None = None,
+    duplicates_only: bool = False,
     day_from: str | None = None,
     day_to: str | None = None,
 ) -> int:
-    clauses, params = _transcription_filters(q, status, day_from, day_to)
+    clauses, params = _transcription_filters(
+        q, status, language, duplicates_only, day_from, day_to
+    )
     conn = get_connection()
     try:
         row = conn.execute(
@@ -396,10 +417,14 @@ def transcription_stats(
     *,
     q: str | None = None,
     status: str | None = None,
+    language: str | None = None,
+    duplicates_only: bool = False,
     day_from: str | None = None,
     day_to: str | None = None,
 ) -> dict[str, Any]:
-    clauses, params = _transcription_filters(q, status, day_from, day_to)
+    clauses, params = _transcription_filters(
+        q, status, language, duplicates_only, day_from, day_to
+    )
     conn = get_connection()
     try:
         row = conn.execute(
@@ -452,14 +477,26 @@ def add_suggestion(nome: str | None, mensagem: str, lang: str = "pt") -> int:
         conn.close()
 
 
-def list_suggestions(unread_only: bool = False, limit: int = 100) -> list[dict]:
+def list_suggestions(
+    unread_only: bool = False,
+    lang: str | None = None,
+    limit: int = 100,
+) -> list[dict]:
     conn = get_connection()
     try:
-        q = "SELECT * FROM sugestoes"
+        clauses = []
+        params: list[Any] = []
         if unread_only:
-            q += " WHERE lida = 0"
+            clauses.append("lida = 0")
+        if lang:
+            clauses.append("COALESCE(lang, 'pt') = ?")
+            params.append(lang)
+        q = "SELECT * FROM sugestoes"
+        if clauses:
+            q += " WHERE " + " AND ".join(clauses)
         q += " ORDER BY id DESC LIMIT ?"
-        rows = conn.execute(q, (max(1, min(limit, 200)),)).fetchall()
+        params.append(max(1, min(limit, 200)))
+        rows = conn.execute(q, params).fetchall()
         return [dict(r) for r in rows]
     finally:
         conn.close()
@@ -472,6 +509,47 @@ def mark_suggestion_read(suggestion_id: int) -> None:
         conn.commit()
     finally:
         conn.close()
+
+
+def delete_suggestion(suggestion_id: int) -> None:
+    conn = get_connection()
+    try:
+        conn.execute("DELETE FROM sugestoes WHERE id = ?", (suggestion_id,))
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def send_test_alert_email(actor: str = "admin") -> dict[str, str]:
+    import smtplib
+    from email.message import EmailMessage
+
+    cfg = get_config()
+    to = cfg.get("alert_email_to") or os.getenv("SMTP_TO", "")
+    if not to:
+        return {"ok": False, "error": "Configure o email de alertas em Sistema."}
+    smtp_user = os.getenv("SMTP_USER")
+    smtp_password = os.getenv("SMTP_PASSWORD")
+    if not (smtp_user and smtp_password):
+        return {"ok": False, "error": "SMTP_USER/SMTP_PASSWORD não configurados no servidor."}
+    try:
+        msg = EmailMessage()
+        msg["Subject"] = "Teste de alertas — Ouviescrevi"
+        msg["From"] = os.getenv("SMTP_FROM", "notificacoes@ouviescrevi.pt")
+        msg["To"] = to
+        msg.set_content(
+            f"Email de teste enviado pelo backoffice ({actor}). "
+            "Se recebeste isto, os alertas por email estão configurados corretamente."
+        )
+        smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
+        smtp_port = int(os.getenv("SMTP_PORT", "465"))
+        with smtplib.SMTP_SSL(smtp_host, smtp_port, timeout=10) as smtp:
+            smtp.login(smtp_user, smtp_password)
+            smtp.send_message(msg)
+        log_audit(actor, "alert_email_test", to)
+        return {"ok": True, "to": to}
+    except Exception as exc:
+        return {"ok": False, "error": str(exc)[:200]}
 
 
 def get_active_banner() -> dict | None:

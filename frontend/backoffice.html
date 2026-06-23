@@ -7,7 +7,7 @@
   <title>Backoffice | Ouviescrevi</title>
   <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png">
   <link rel="stylesheet" href="css/ouviescrevi.css">
-  <link rel="stylesheet" href="css/backoffice.css?v=9">
+  <link rel="stylesheet" href="css/backoffice.css?v=10">
   <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
   <script src="js/ouviescrevi-ui.js" defer></script>
 </head>
@@ -70,6 +70,7 @@
       <div class="oe-admin-topbar-actions">
         <span id="adminUserLabel" class="oe-admin-user-label hidden"></span>
         <span id="statusPill" class="oe-admin-status-pill oe-admin-status-pill--ok">Operacional</span>
+        <button type="button" id="btnThemeToggle" class="oe-admin-btn oe-admin-btn--secondary" title="Modo escuro">🌙</button>
         <button type="button" id="btnRefresh" class="oe-admin-btn oe-admin-btn--secondary">🔄 Atualizar</button>
         <button type="button" id="btnLogoutTop" class="oe-admin-btn oe-admin-btn--secondary">Sair</button>
       </div>
@@ -123,8 +124,22 @@
 
         <div class="oe-admin-panel">
           <div class="oe-admin-panel__head">Cloudflare <span style="font-weight:400;color:var(--bo-muted)">(pedidos HTTP, 7 dias)</span></div>
-          <div class="oe-admin-panel__body" id="cloudflareStats">
-            <p class="oe-admin-empty">Configura Zone ID e API Token em Sistema para ver tráfego.</p>
+          <div class="oe-admin-panel__body">
+            <div class="oe-admin-chart-wrap oe-admin-chart-wrap--short">
+              <canvas id="chartCloudflare" aria-label="Gráfico Cloudflare"></canvas>
+            </div>
+            <div id="cloudflareStats" style="margin-top:12px">
+              <p class="oe-admin-empty">Configura Zone ID e API Token em Sistema para ver tráfego.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="oe-admin-panel">
+          <div class="oe-admin-panel__head">Taxa de sucesso — transcrições (14 dias)</div>
+          <div class="oe-admin-panel__body">
+            <div class="oe-admin-chart-wrap oe-admin-chart-wrap--short">
+              <canvas id="chartTransSuccess" aria-label="Gráfico taxa sucesso transcrições"></canvas>
+            </div>
           </div>
         </div>
 
@@ -264,6 +279,7 @@
                 <label for="seoPageSelect">Página</label>
                 <select id="seoPageSelect"></select>
               </div>
+              <a id="seoPagePreview" class="oe-admin-btn oe-admin-btn--secondary" href="index.html" target="_blank" rel="noopener">↗ Ver no site</a>
             </div>
             <form id="seoForm" class="oe-admin-form">
               <div id="seoFields"></div>
@@ -285,6 +301,16 @@
                 <option value="ok">OK</option>
                 <option value="error">Erro</option>
               </select>
+              <select id="transLanguage" title="Idioma">
+                <option value="">Todos os idiomas</option>
+                <option value="auto">Auto</option>
+                <option value="pt">PT</option>
+                <option value="en">EN</option>
+                <option value="es">ES</option>
+                <option value="fr">FR</option>
+                <option value="de">DE</option>
+              </select>
+              <label class="oe-admin-check-inline"><input type="checkbox" id="transDupOnly"> Só duplicados</label>
               <input type="date" id="transDayFrom" title="Desde">
               <input type="date" id="transDayTo" title="Até">
               <button type="button" id="btnTransFilter" class="oe-admin-btn oe-admin-btn--secondary">Filtrar</button>
@@ -313,7 +339,17 @@
         <div class="oe-admin-panel">
           <div class="oe-admin-panel__head oe-admin-panel__head--row">
             <span>Sugestões dos visitantes</span>
-            <label class="oe-admin-check-inline"><input type="checkbox" id="sugUnreadOnly"> Só não lidas</label>
+            <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+              <select id="sugLangFilter" title="Idioma">
+                <option value="">Todos</option>
+                <option value="pt">PT</option>
+                <option value="en">EN</option>
+                <option value="es">ES</option>
+                <option value="fr">FR</option>
+                <option value="de">DE</option>
+              </select>
+              <label class="oe-admin-check-inline"><input type="checkbox" id="sugUnreadOnly"> Só não lidas</label>
+            </div>
           </div>
           <div class="oe-admin-panel__body oe-admin-table-wrap" id="tabelaSugestoes">
             <p class="oe-admin-empty">A carregar...</p>
@@ -362,7 +398,10 @@
               <div class="oe-admin-field"><label>Custo Whisper USD/min</label><input name="whisper_cost_per_minute_usd" id="cfgWhisperCost"></div>
               <div class="oe-admin-field"><label>Cloudflare Zone ID</label><input name="cloudflare_zone_id" id="cfgCfZone"></div>
               <div class="oe-admin-field"><label>Cloudflare API Token</label><input name="cloudflare_api_token" id="cfgCfToken" type="password"></div>
-              <button type="submit" class="oe-admin-btn oe-admin-btn--primary">Guardar configurações</button>
+              <div class="oe-admin-form-actions">
+                <button type="submit" class="oe-admin-btn oe-admin-btn--primary">Guardar configurações</button>
+                <button type="button" id="btnTestAlertEmail" class="oe-admin-btn oe-admin-btn--secondary">✉️ Testar email de alerta</button>
+              </div>
             </form>
           </div>
         </div>
@@ -402,8 +441,8 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 <script src="js/ouviescrevi-api.js"></script>
-<script src="js/backoffice-cms-locales.js?v=4"></script>
-<script src="js/backoffice.js?v=9"></script>
-<script src="js/backoffice-admin.js?v=9"></script>
+<script src="js/backoffice-cms-locales.js?v=5"></script>
+<script src="js/backoffice.js?v=10"></script>
+<script src="js/backoffice-admin.js?v=10"></script>
 </body>
 </html>

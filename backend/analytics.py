@@ -171,6 +171,42 @@ def get_daily_transcription_series(days: int = 14) -> list[dict]:
         conn.close()
 
 
+def get_daily_transcription_outcomes(days: int = 14) -> list[dict]:
+    days = max(1, min(days, 90))
+    since = (date.today() - timedelta(days=days - 1)).isoformat()
+    conn = get_connection()
+    try:
+        rows = conn.execute(
+            """
+            SELECT substr(data, 1, 10) AS day,
+                   SUM(CASE WHEN COALESCE(status, 'ok') = 'ok' THEN 1 ELSE 0 END) AS ok,
+                   SUM(CASE WHEN COALESCE(status, 'ok') != 'ok' THEN 1 ELSE 0 END) AS erros
+            FROM transcricoes
+            WHERE substr(data, 1, 10) >= ?
+            GROUP BY day ORDER BY day
+            """,
+            (since,),
+        ).fetchall()
+        by_day = {r["day"]: {"ok": int(r["ok"] or 0), "erros": int(r["erros"] or 0)} for r in rows}
+        out: list[dict] = []
+        for i in range(days):
+            d = (date.today() - timedelta(days=days - 1 - i)).isoformat()
+            item = by_day.get(d, {"ok": 0, "erros": 0})
+            total = item["ok"] + item["erros"]
+            out.append(
+                {
+                    "day": d,
+                    "ok": item["ok"],
+                    "erros": item["erros"],
+                    "total": total,
+                    "taxa_ok_pct": round(100 * item["ok"] / total, 1) if total else 0,
+                }
+            )
+        return out
+    finally:
+        conn.close()
+
+
 def get_top_pages(limit: int = 8) -> list[dict]:
     conn = get_connection()
     try:

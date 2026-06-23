@@ -500,6 +500,36 @@ def _locale_cms_pages(lang: str, lang_label: str) -> list[dict[str, Any]]:
                 {"key": f"{p}_cookies_intro", "label": "Introdução (secção 1)", "type": "rich"},
             ],
         },
+        {
+            "id": f"resumo_{lang}",
+            "label": f"Resumo ({lang_label})",
+            "lang": lang,
+            "path": f"{base}/resumo.html",
+            "fields": [
+                {"key": f"{p}_resumo_title", "label": "Título", "type": "text"},
+                {"key": f"{p}_resumo_lead", "label": "Subtítulo", "type": "text"},
+            ],
+        },
+        {
+            "id": f"url_resumo_{lang}",
+            "label": f"Resumo URL ({lang_label})",
+            "lang": lang,
+            "path": f"{base}/url-resumo.html",
+            "fields": [
+                {"key": f"{p}_url_resumo_title", "label": "Título", "type": "text"},
+                {"key": f"{p}_url_resumo_lead", "label": "Subtítulo", "type": "text"},
+            ],
+        },
+        {
+            "id": f"perguntas_{lang}",
+            "label": f"Perguntas ({lang_label})",
+            "lang": lang,
+            "path": f"{base}/perguntas.html",
+            "fields": [
+                {"key": f"{p}_perguntas_title", "label": "Título", "type": "text"},
+                {"key": f"{p}_perguntas_lead", "label": "Subtítulo", "type": "text"},
+            ],
+        },
     ]
 
 
@@ -837,6 +867,18 @@ for _lc_lang in ("es", "fr", "de"):
         f"{_lc_lang}_home_intro_html",
         DEFAULT_SITE_CONTENT.get("home_intro_html", ""),
     )
+    for _suffix in (
+        "resumo_title",
+        "resumo_lead",
+        "url_resumo_title",
+        "url_resumo_lead",
+        "perguntas_title",
+        "perguntas_lead",
+    ):
+        DEFAULT_SITE_CONTENT.setdefault(
+            f"{_lc_lang}_{_suffix}",
+            DEFAULT_SITE_CONTENT.get(f"en_{_suffix}", ""),
+        )
 
 CONTENT_KEYS = frozenset(DEFAULT_SITE_CONTENT.keys())
 _PAGE_KEYS: dict[str, list[str]] = {

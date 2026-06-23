@@ -23,6 +23,7 @@
   var seoAllPages = [];
   var seoContent = {};
   var seoCurrentPage = null;
+  var chartCloudflare = null;
 
   function initExports() {
     var base = apiBase();
@@ -150,15 +151,18 @@
     var div = document.getElementById("cloudflareStats");
     if (!div) return;
     if (!raw) {
+      if (chartCloudflare) { chartCloudflare.destroy(); chartCloudflare = null; }
       div.innerHTML = '<p class="oe-admin-empty">Configura Zone ID e API Token em Sistema para ver tráfego.</p>';
       return;
     }
     if (raw.errors && raw.errors.length) {
+      if (chartCloudflare) { chartCloudflare.destroy(); chartCloudflare = null; }
       div.innerHTML = '<p class="oe-admin-empty">Erro Cloudflare: ' + String((raw.errors[0] || {}).message || "token inválido") + "</p>";
       return;
     }
     var rows = parseCloudflareRows(raw);
     if (!rows.length) {
+      if (chartCloudflare) { chartCloudflare.destroy(); chartCloudflare = null; }
       div.innerHTML = '<p class="oe-admin-empty">Sem dados de tráfego nos últimos 7 dias.</p>';
       return;
     }
@@ -172,6 +176,46 @@
       ["Data", "Pedidos"],
       rows.map(function (r) { return [r.date, String(r.requests)]; })
     ));
+    var ctx = document.getElementById("chartCloudflare");
+    if (ctx && global.Chart) {
+      if (chartCloudflare) chartCloudflare.destroy();
+      chartCloudflare = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: rows.map(function (r) { return r.date; }),
+          datasets: [{
+            label: "Pedidos HTTP",
+            data: rows.map(function (r) { return r.requests; }),
+            backgroundColor: "rgba(37, 99, 235, 0.75)",
+            borderRadius: 4,
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+        },
+      });
+    }
+  }
+
+  function destroyCharts() {
+    if (chartCloudflare) { chartCloudflare.destroy(); chartCloudflare = null; }
+  }
+
+  async function testAlertEmail() {
+    try {
+      var res = await fetch(apiBase() + "/api/admin/test-alert-email", {
+        method: "POST",
+        headers: authHeaders(),
+      });
+      var data = await res.json().catch(function () { return {}; });
+      if (!res.ok) throw new Error(data.detail || "Falha no envio");
+      global.OuviescreviUI.toast("Email de teste enviado para " + (data.to || "destinatário") + ".", "success");
+    } catch (e) {
+      global.OuviescreviUI.toast(e.message || "Erro ao enviar email de teste.", "error");
+    }
   }
 
   async function saveMaintenanceMessage() {
@@ -244,7 +288,14 @@
       seoCurrentPage = page;
       sel.value = page.id;
       renderSeoFields(page);
+      updateSeoPreview(page);
     }
+  }
+
+  function updateSeoPreview(page) {
+    var link = document.getElementById("seoPagePreview");
+    if (!link || !page || !page.path) return;
+    link.href = page.path.replace(/^\//, "");
   }
 
   function setupSeo(pages, content) {
@@ -269,10 +320,30 @@
         if (page) {
           seoCurrentPage = page;
           renderSeoFields(page);
+          updateSeoPreview(page);
         }
       };
     }
     populateSeoPageSelect();
+  }
+
+  function seoCharLimit(key) {
+    if (key.indexOf("title") !== -1) return 60;
+    if (key.indexOf("description") !== -1) return 160;
+    return 0;
+  }
+
+  function attachSeoCounter(input, limit) {
+    var counter = document.createElement("small");
+    counter.className = "oe-admin-char-count";
+    function refresh() {
+      var len = (input.value || "").length;
+      counter.textContent = len + " / " + limit;
+      counter.classList.toggle("oe-admin-char-count--warn", len > limit);
+    }
+    input.addEventListener("input", refresh);
+    refresh();
+    input.parentNode.appendChild(counter);
   }
 
   function renderSeoFields(page) {
@@ -290,8 +361,11 @@
       input.name = field.key;
       input.value = seoContent[field.key] || "";
       wrap.appendChild(input);
+      var limit = seoCharLimit(field.key);
+      if (limit) attachSeoCounter(input, limit);
       box.appendChild(wrap);
     });
+    updateSeoPreview(page);
   }
 
   async function saveSeo(e) {
@@ -319,9 +393,13 @@
     var div = document.getElementById("tabelaSugestoes");
     if (!div) return;
     var unreadOnly = !!(document.getElementById("sugUnreadOnly") || {}).checked;
+    var lang = (document.getElementById("sugLangFilter") || {}).value || "";
     try {
+      var qs = [];
+      if (unreadOnly) qs.push("unread_only=true");
+      if (lang) qs.push("lang=" + encodeURIComponent(lang));
       var res = await fetch(
-        apiBase() + "/api/admin/sugestoes" + (unreadOnly ? "?unread_only=true" : ""),
+        apiBase() + "/api/admin/sugestoes" + (qs.length ? "?" + qs.join("&") : ""),
         { headers: authHeaders() }
       );
       var data = await res.json();
@@ -332,7 +410,7 @@
       }
       div.innerHTML = "";
       var table = buildTable(
-        ["Nome", "Mensagem", "Idioma", "Data", "Estado", ""],
+        ["Nome", "Mensagem", "Idioma", "Data", "Estado", "Ações"],
         items.map(function (s) {
           return [
             s.nome || "—",
@@ -340,29 +418,56 @@
             s.lang || "pt",
             (s.created_at || "").replace("T", " ").replace("Z", "").slice(0, 19),
             s.lida ? "Lida" : "Nova",
-            s.lida ? "" : "mark",
+            "",
           ];
         })
       );
       table.querySelectorAll("tbody tr").forEach(function (tr, i) {
         var s = items[i];
-        if (!s || s.lida) return;
+        if (!s) return;
+        if (!s.lida) {
+          tr.cells[4].innerHTML = '<span class="oe-admin-badge oe-admin-badge--warn">Nova</span>';
+        }
+        if (s.mensagem && s.mensagem.length > 100) tr.cells[1].title = s.mensagem;
         var td = tr.cells[5];
         if (!td) return;
-        var btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "oe-admin-btn oe-admin-btn--secondary oe-admin-btn--sm";
-        btn.textContent = "Marcar lida";
-        btn.addEventListener("click", function () {
-          markSugestaoRead(s.id);
-        });
-        td.appendChild(btn);
-        tr.cells[4].innerHTML = '<span class="oe-admin-badge oe-admin-badge--warn">Nova</span>';
-        if (s.mensagem && s.mensagem.length > 100) tr.cells[1].title = s.mensagem;
+        if (!s.lida) {
+          var readBtn = document.createElement("button");
+          readBtn.type = "button";
+          readBtn.className = "oe-admin-btn oe-admin-btn--secondary oe-admin-btn--sm";
+          readBtn.textContent = "Marcar lida";
+          readBtn.addEventListener("click", function () { markSugestaoRead(s.id); });
+          td.appendChild(readBtn);
+        }
+        var delBtn = document.createElement("button");
+        delBtn.type = "button";
+        delBtn.className = "oe-admin-btn oe-admin-btn--danger oe-admin-btn--sm";
+        delBtn.textContent = "Apagar";
+        delBtn.style.marginLeft = "6px";
+        delBtn.addEventListener("click", function () { deleteSugestao(s.id); });
+        td.appendChild(delBtn);
       });
       div.appendChild(table);
     } catch (e) {
       div.innerHTML = '<p class="oe-admin-empty">Erro ao carregar.</p>';
+    }
+  }
+
+  async function deleteSugestao(id) {
+    if (!confirm("Apagar esta sugestão?")) return;
+    try {
+      var res = await fetch(apiBase() + "/api/admin/sugestoes/" + id, {
+        method: "DELETE",
+        headers: authHeaders(),
+      });
+      if (!res.ok) throw new Error();
+      global.OuviescreviUI.toast("Sugestão apagada.", "success");
+      loadSugestoes();
+      if (global.OuviescreviAdmin && global.OuviescreviAdmin.carregarDashboard) {
+        global.OuviescreviAdmin.carregarDashboard();
+      }
+    } catch (e) {
+      global.OuviescreviUI.toast("Erro ao apagar.", "error");
     }
   }
 
@@ -702,6 +807,10 @@
     if (userForm) userForm.addEventListener("submit", addUser);
     var sugUnread = document.getElementById("sugUnreadOnly");
     if (sugUnread) sugUnread.addEventListener("change", loadSugestoes);
+    var sugLang = document.getElementById("sugLangFilter");
+    if (sugLang) sugLang.addEventListener("change", loadSugestoes);
+    var btnTestEmail = document.getElementById("btnTestAlertEmail");
+    if (btnTestEmail) btnTestEmail.addEventListener("click", testAlertEmail);
     var btnSys = document.getElementById("btnRefreshSystem");
     if (btnSys) btnSys.addEventListener("click", loadSystem);
   }
@@ -715,6 +824,7 @@
   global.OuviescreviAdminExt = {
     setupSeo: setupSeo,
     renderReferrersAndDevices: renderReferrersAndDevices,
+    destroyCharts: destroyCharts,
     onTab: onTab,
     loadSugestoes: loadSugestoes,
     loadSystem: loadSystem,

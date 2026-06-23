@@ -9,7 +9,14 @@ from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel
 
 import admin_store as store
-from analytics import get_daily_transcription_series, get_daily_visit_series, get_recent_visits, get_top_pages, get_visit_stats
+from analytics import (
+    get_daily_transcription_outcomes,
+    get_daily_transcription_series,
+    get_daily_visit_series,
+    get_recent_visits,
+    get_top_pages,
+    get_visit_stats,
+)
 from cms import get_all_content, get_page_schema, get_seo_overrides, keys_for_page, reset_content, update_content
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -37,6 +44,7 @@ def admin_dashboard(request: Request):
         "charts": {
             "visitas_diarias": get_daily_visit_series(14),
             "transcricoes_diarias": get_daily_transcription_series(14),
+            "transcricoes_resultados": get_daily_transcription_outcomes(14),
             "horas_pico": store.peak_hours(7),
         },
         "top_paginas": get_top_pages(8),
@@ -80,12 +88,21 @@ def admin_transcricoes(
     request: Request,
     q: str | None = None,
     status: str | None = None,
+    language: str | None = None,
+    duplicates_only: bool = False,
     day_from: str | None = None,
     day_to: str | None = None,
     limit: int = 50,
     offset: int = 0,
 ):
-    filters = {"q": q, "status": status, "day_from": day_from, "day_to": day_to}
+    filters = {
+        "q": q,
+        "status": status,
+        "language": language,
+        "duplicates_only": duplicates_only,
+        "day_from": day_from,
+        "day_to": day_to,
+    }
     return {
         "items": store.list_transcriptions(**filters, limit=limit, offset=offset),
         "total": store.count_transcriptions(**filters),
@@ -96,8 +113,8 @@ def admin_transcricoes(
 
 
 @router.get("/sugestoes")
-def admin_sugestoes(request: Request, unread_only: bool = False):
-    return {"items": store.list_suggestions(unread_only=unread_only)}
+def admin_sugestoes(request: Request, unread_only: bool = False, lang: str | None = None):
+    return {"items": store.list_suggestions(unread_only=unread_only, lang=lang)}
 
 
 class SuggestionReadRequest(BaseModel):
@@ -109,6 +126,23 @@ def admin_sugestao_read(request: Request, body: SuggestionReadRequest):
     store.require_role(getattr(request.state, "admin_session", None), "editor")
     store.mark_suggestion_read(body.id)
     return {"ok": True}
+
+
+@router.delete("/sugestoes/{suggestion_id}")
+def admin_sugestao_delete(request: Request, suggestion_id: int):
+    store.require_role(getattr(request.state, "admin_session", None), "editor")
+    store.delete_suggestion(suggestion_id)
+    store.log_audit(_actor(request), "suggestion_delete", str(suggestion_id))
+    return {"ok": True}
+
+
+@router.post("/test-alert-email")
+def admin_test_alert_email(request: Request):
+    store.require_role(getattr(request.state, "admin_session", None), "admin")
+    result = store.send_test_alert_email(_actor(request))
+    if not result.get("ok"):
+        raise HTTPException(status_code=400, detail=result.get("error", "Falha no envio"))
+    return result
 
 
 @router.get("/config")

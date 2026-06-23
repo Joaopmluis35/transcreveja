@@ -5,6 +5,7 @@
   let chartVisitas = null;
   let chartTranscricoes = null;
   let chartPeakHours = null;
+  let chartTransSuccess = null;
   let cmsPages = [];
   let cmsAllPages = [];
   let cmsContent = {};
@@ -206,6 +207,75 @@
             y: { beginAtZero: true, ticks: { precision: 0 } },
           },
         },
+      });
+    }
+    renderTransSuccessChart((charts && charts.transcricoes_resultados) || []);
+  }
+
+  function renderTransSuccessChart(rows) {
+    if (!global.Chart) return;
+    var ctx = document.getElementById("chartTransSuccess");
+    if (!ctx) return;
+    if (chartTransSuccess) chartTransSuccess.destroy();
+    var labels = (rows || []).map(function (d) { return formatDay(d.day); });
+    chartTransSuccess = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: "OK",
+            data: (rows || []).map(function (d) { return d.ok || 0; }),
+            borderColor: "#00a32a",
+            backgroundColor: "rgba(0, 163, 42, 0.15)",
+            fill: true,
+            tension: 0.35,
+            pointRadius: 2,
+          },
+          {
+            label: "Erros",
+            data: (rows || []).map(function (d) { return d.erros || 0; }),
+            borderColor: "#d63638",
+            backgroundColor: "rgba(214, 54, 56, 0.1)",
+            fill: true,
+            tension: 0.35,
+            pointRadius: 2,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: "bottom" } },
+        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+      },
+    });
+  }
+
+  function applyTheme(theme) {
+    var dark = theme === "dark";
+    document.body.classList.toggle("oe-admin--dark", dark);
+    var btn = document.getElementById("btnThemeToggle");
+    if (btn) {
+      btn.textContent = dark ? "☀️" : "🌙";
+      btn.title = dark ? "Modo claro" : "Modo escuro";
+    }
+    try {
+      localStorage.setItem("oe_admin_theme", theme);
+    } catch (e) {}
+  }
+
+  function initTheme() {
+    var saved = "light";
+    try {
+      saved = localStorage.getItem("oe_admin_theme") || "light";
+    } catch (e) {}
+    applyTheme(saved);
+    var btn = document.getElementById("btnThemeToggle");
+    if (btn) {
+      btn.addEventListener("click", function () {
+        var next = document.body.classList.contains("oe-admin--dark") ? "light" : "dark";
+        applyTheme(next);
       });
     }
   }
@@ -555,11 +625,15 @@
   function transQueryParams() {
     var q = (document.getElementById("transSearch") || {}).value || "";
     var status = (document.getElementById("transStatus") || {}).value || "";
+    var language = (document.getElementById("transLanguage") || {}).value || "";
+    var dupOnly = !!(document.getElementById("transDupOnly") || {}).checked;
     var dayFrom = (document.getElementById("transDayFrom") || {}).value || "";
     var dayTo = (document.getElementById("transDayTo") || {}).value || "";
     var qs = "?limit=" + TRANS_PAGE + "&offset=" + transOffset;
     if (q) qs += "&q=" + encodeURIComponent(q);
     if (status) qs += "&status=" + encodeURIComponent(status);
+    if (language) qs += "&language=" + encodeURIComponent(language);
+    if (dupOnly) qs += "&duplicates_only=true";
     if (dayFrom) qs += "&day_from=" + encodeURIComponent(dayFrom);
     if (dayTo) qs += "&day_to=" + encodeURIComponent(dayTo);
     return qs;
@@ -726,10 +800,15 @@
     if (chartVisitas) { chartVisitas.destroy(); chartVisitas = null; }
     if (chartTranscricoes) { chartTranscricoes.destroy(); chartTranscricoes = null; }
     if (chartPeakHours) { chartPeakHours.destroy(); chartPeakHours = null; }
+    if (chartTransSuccess) { chartTransSuccess.destroy(); chartTransSuccess = null; }
+    if (global.OuviescreviAdminExt && global.OuviescreviAdminExt.destroyCharts) {
+      global.OuviescreviAdminExt.destroyCharts();
+    }
     global.OuviescreviUI.toast("Sessão terminada.");
   }
 
   function init() {
+    initTheme();
     document.getElementById("loginForm").addEventListener("submit", async function (e) {
       e.preventDefault();
       try {
