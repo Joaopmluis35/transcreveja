@@ -218,11 +218,77 @@
     document.body.appendChild(banner);
   }
 
+  function cmsApiBase() {
+    if (global.OuviescreviAPI && global.OuviescreviAPI.detectApiBase) {
+      return global.OuviescreviAPI.detectApiBase();
+    }
+    if (global.OUVIESCREVI_API_BASE) {
+      return global.OUVIESCREVI_API_BASE.replace(/\/$/, "");
+    }
+    var meta = document.querySelector('meta[name="ouviescrevi-api-base"]');
+    if (meta && meta.content) return meta.content.replace(/\/$/, "");
+    var host = global.location && global.location.hostname;
+    if (host === "localhost" || host === "127.0.0.1") return "http://127.0.0.1:8000";
+    return "https://api.ouviescrevi.pt";
+  }
+
+  function applyCmsContent(content) {
+    if (!content) return;
+    document.querySelectorAll("[data-cms-key]").forEach(function (el) {
+      var key = el.getAttribute("data-cms-key");
+      var mode = el.getAttribute("data-cms-mode") || "html";
+      var val = content[key];
+      if (val == null || val === "") return;
+      if (mode === "text") {
+        el.textContent = val;
+      } else if (mode === "lines") {
+        var lines = val.split("\n").filter(Boolean);
+        el.innerHTML = "<p><strong>Funcionalidades principais:</strong></p>" +
+          lines.map(function () { return "<p></p>"; }).join("");
+        var ps = el.querySelectorAll("p");
+        lines.forEach(function (line, i) {
+          if (ps[i + 1]) ps[i + 1].textContent = line;
+        });
+      } else {
+        el.innerHTML = val;
+      }
+    });
+  }
+
+  function loadCms(onLoaded) {
+    if ((global.location.pathname || "").indexOf("backoffice") !== -1) {
+      return Promise.resolve(null);
+    }
+    if (!document.querySelector("[data-cms-key]")) {
+      return Promise.resolve(null);
+    }
+    var base = cmsApiBase();
+    if (!base) return Promise.resolve(null);
+    return fetch(base + "/api/site-content", { credentials: "omit" })
+      .then(function (res) {
+        if (!res.ok) return null;
+        return res.json();
+      })
+      .then(function (data) {
+        if (!data) return null;
+        applyCmsContent(data.content || {});
+        if (typeof onLoaded === "function") onLoaded(data);
+        return data;
+      })
+      .catch(function (err) {
+        console.warn("OuviescreviUI: CMS indisponível", err);
+        return null;
+      });
+  }
+
   function bootLayout() {
     autoLoadLayout();
     setTimeout(markCurrentNav, 400);
     trackPageView();
     maybeShowCookieBanner();
+    if (document.body && document.body.dataset.cmsAuto !== "false") {
+      loadCms();
+    }
   }
 
   if (document.readyState === "loading") {
@@ -237,5 +303,7 @@
     markCurrentNav: markCurrentNav,
     loadHeader: loadHeader,
     loadFooter: loadFooter,
+    applyCmsContent: applyCmsContent,
+    loadCms: loadCms,
   };
 })(window);

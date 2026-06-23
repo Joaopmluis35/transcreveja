@@ -8,6 +8,7 @@
   <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png">
   <link rel="stylesheet" href="css/ouviescrevi.css">
   <link rel="stylesheet" href="css/backoffice.css">
+  <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
   <script src="js/ouviescrevi-ui.js" defer></script>
 </head>
 <body class="oe-admin" data-oe-auto-footer="false">
@@ -144,37 +145,21 @@
       <!-- Conteúdo -->
       <div data-panel="conteudo" class="hidden">
         <div class="oe-admin-panel">
-          <div class="oe-admin-panel__head">Editar homepage</div>
+          <div class="oe-admin-panel__head">Editar conteúdo do site</div>
           <div class="oe-admin-panel__body">
-            <p style="margin-top:0;color:var(--bo-muted)">HTML simples permitido (ex. <code>&lt;strong&gt;</code>). Guarda e atualiza o site para ver.</p>
+            <div class="oe-admin-cms-toolbar">
+              <div class="oe-admin-field" style="margin:0;flex:1;min-width:200px">
+                <label for="cmsPageSelect">Página</label>
+                <select id="cmsPageSelect"></select>
+              </div>
+              <a id="cmsPagePreview" class="oe-admin-btn oe-admin-btn--secondary" href="index.html" target="_blank" rel="noopener">↗ Ver no site</a>
+            </div>
+            <p class="oe-admin-cms-hint">Usa a barra de ferramentas para <strong>negrito</strong>, títulos e listas — sem escrever HTML à mão.</p>
             <form id="contentForm" class="oe-admin-form">
-              <div class="oe-admin-field">
-                <label>Texto de boas-vindas (topo)</label>
-                <textarea name="home_intro_html" rows="4"></textarea>
-              </div>
-              <div class="oe-admin-field">
-                <label>Título «O que é o Ouviescrevi?»</label>
-                <input type="text" name="seo_title">
-              </div>
-              <div class="oe-admin-field">
-                <label>Parágrafo 1</label>
-                <textarea name="seo_p1" rows="3"></textarea>
-              </div>
-              <div class="oe-admin-field">
-                <label>Parágrafo 2</label>
-                <textarea name="seo_p2" rows="2"></textarea>
-              </div>
-              <div class="oe-admin-field">
-                <label>Funcionalidades <small>(uma por linha)</small></label>
-                <textarea name="seo_features" rows="7"></textarea>
-              </div>
-              <div class="oe-admin-field">
-                <label>Texto de fecho</label>
-                <input type="text" name="seo_closing">
-              </div>
+              <div id="contentFields"></div>
               <div class="oe-admin-form-actions">
                 <button type="submit" class="oe-admin-btn oe-admin-btn--primary">💾 Guardar alterações</button>
-                <button type="button" id="btnReporConteudo" class="oe-admin-btn oe-admin-btn--secondary">↩️ Repor originais</button>
+                <button type="button" id="btnReporConteudo" class="oe-admin-btn oe-admin-btn--secondary">↩️ Repor esta página</button>
               </div>
             </form>
           </div>
@@ -196,6 +181,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 <script src="js/ouviescrevi-api.js"></script>
 <script src="js/backoffice.js"></script>
 </body>

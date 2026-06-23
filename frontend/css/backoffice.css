@@ -524,6 +524,59 @@ table.oe-admin-table td code {
   border-top: 1px solid var(--bo-border);
 }
 
+.oe-admin-cms-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--bo-border);
+}
+
+.oe-admin-cms-toolbar select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--bo-border);
+  border-radius: 4px;
+  font-size: 0.95rem;
+  background: #fff;
+}
+
+.oe-admin-cms-hint {
+  margin: 0 0 16px;
+  color: var(--bo-muted);
+  font-size: 0.88rem;
+}
+
+.oe-admin-rich-editor {
+  background: #fff;
+  border: 1px solid var(--bo-border);
+  border-radius: 4px;
+}
+
+.oe-admin-rich-editor .ql-toolbar {
+  border: none;
+  border-bottom: 1px solid var(--bo-border);
+  border-radius: 4px 4px 0 0;
+  font-family: inherit;
+}
+
+.oe-admin-rich-editor .ql-container {
+  border: none;
+  font-family: inherit;
+  font-size: 0.95rem;
+  min-height: 120px;
+}
+
+.oe-admin-rich-editor .ql-editor {
+  min-height: 120px;
+}
+
+.oe-admin-rich-editor--tall .ql-editor {
+  min-height: 220px;
+}
+
 .oe-admin-empty {
   color: var(--bo-muted);
   text-align: center;

@@ -4,6 +4,17 @@
 (function (global) {
   let chartVisitas = null;
   let chartTranscricoes = null;
+  let cmsPages = [];
+  let cmsContent = {};
+  let cmsCurrentPage = null;
+  let cmsEditors = {};
+  const QUILL_TOOLBAR = [
+    [{ header: [2, 3, false] }],
+    ["bold", "italic", "underline"],
+    [{ list: "ordered" }, { list: "bullet" }],
+    ["link"],
+    ["clean"],
+  ];
 
   function apiBase() {
     return global.OuviescreviAPI.getBase() || global.OuviescreviAPI.detectApiBase();
@@ -62,7 +73,13 @@
       panel.classList.toggle("hidden", panel.dataset.panel !== tab);
     });
     var titles = { dashboard: "Painel", conteudo: "Conteúdo do site", transcricoes: "Transcrições" };
-    setPageTitle(titles[tab] || "Backoffice");
+    if (tab !== "conteudo") {
+      setPageTitle(titles[tab] || "Backoffice");
+    } else if (cmsCurrentPage) {
+      setPageTitle("Conteúdo — " + cmsCurrentPage.label);
+    } else {
+      setPageTitle(titles.conteudo);
+    }
     document.getElementById("adminSidebar").classList.remove("is-open");
     if (tab === "transcricoes") carregarLogs();
   }
@@ -213,30 +230,135 @@
     }
   }
 
+  function destroyCmsEditors() {
+    Object.keys(cmsEditors).forEach(function (key) {
+      delete cmsEditors[key];
+    });
+    var fields = document.getElementById("contentFields");
+    if (fields) fields.innerHTML = "";
+  }
+
+  function isEmptyQuillHtml(html) {
+    var t = (html || "").replace(/\s/g, "");
+    return !t || t === "<p><br></p>" || t === "<p></p>";
+  }
+
+  function setQuillHtml(quill, html) {
+    quill.setText("");
+    if (html) quill.clipboard.dangerouslyPasteHTML(html);
+  }
+
+  function renderCmsFields(page) {
+    destroyCmsEditors();
+    var container = document.getElementById("contentFields");
+    if (!container || !page) return;
+
+    page.fields.forEach(function (field) {
+      var wrap = document.createElement("div");
+      wrap.className = "oe-admin-field";
+      var label = document.createElement("label");
+      label.textContent = field.label;
+      wrap.appendChild(label);
+
+      if (field.type === "rich") {
+        var editorWrap = document.createElement("div");
+        editorWrap.className = "oe-admin-rich-editor";
+        if (field.key.indexOf("faq") !== -1 || field.key.indexOf("seo") !== -1) {
+          editorWrap.classList.add("oe-admin-rich-editor--tall");
+        }
+        var editorEl = document.createElement("div");
+        editorEl.id = "cmsEditor_" + field.key;
+        editorWrap.appendChild(editorEl);
+        wrap.appendChild(editorWrap);
+        container.appendChild(wrap);
+
+        if (global.Quill) {
+          var quill = new Quill(editorEl, {
+            theme: "snow",
+            modules: { toolbar: QUILL_TOOLBAR },
+          });
+          var value = cmsContent[field.key] || "";
+          setQuillHtml(quill, value);
+          cmsEditors[field.key] = quill;
+        }
+      } else if (field.type === "lines") {
+        var ta = document.createElement("textarea");
+        ta.name = field.key;
+        ta.rows = 7;
+        ta.value = cmsContent[field.key] || "";
+        wrap.appendChild(ta);
+        container.appendChild(wrap);
+      } else {
+        var input = document.createElement("input");
+        input.type = "text";
+        input.name = field.key;
+        input.value = cmsContent[field.key] || "";
+        wrap.appendChild(input);
+        container.appendChild(wrap);
+      }
+    });
+  }
+
+  function selectCmsPage(pageId) {
+    var page = cmsPages.find(function (p) { return p.id === pageId; });
+    if (!page) return;
+    cmsCurrentPage = page;
+    var select = document.getElementById("cmsPageSelect");
+    if (select) select.value = pageId;
+    var preview = document.getElementById("cmsPagePreview");
+    if (preview) preview.href = page.path.replace(/^\//, "");
+    renderCmsFields(page);
+    setPageTitle("Conteúdo — " + page.label);
+  }
+
+  function populateCmsPageSelect() {
+    var select = document.getElementById("cmsPageSelect");
+    if (!select) return;
+    select.innerHTML = "";
+    cmsPages.forEach(function (page) {
+      var opt = document.createElement("option");
+      opt.value = page.id;
+      opt.textContent = page.label + (page.lang === "en" ? " (EN)" : "");
+      select.appendChild(opt);
+    });
+    if (cmsPages.length) selectCmsPage(cmsPages[0].id);
+  }
+
   async function carregarConteudo() {
-    var form = document.getElementById("contentForm");
-    if (!form) return;
     try {
       var res = await fetch(apiBase() + "/api/admin/site-content", {
         headers: global.OuviescreviAPI.adminAuthHeaders(),
       });
       var data = await res.json();
-      var c = data.content || {};
-      form.querySelectorAll("[name]").forEach(function (el) {
-        if (c[el.name] != null) el.value = c[el.name];
-      });
+      cmsContent = data.content || {};
+      cmsPages = data.pages || [];
+      populateCmsPageSelect();
     } catch (e) {
       global.OuviescreviUI.toast("Erro ao carregar conteúdo.", "error");
     }
   }
 
+  function collectCmsUpdates() {
+    var updates = {};
+    if (!cmsCurrentPage) return updates;
+    cmsCurrentPage.fields.forEach(function (field) {
+      if (field.type === "rich") {
+        var quill = cmsEditors[field.key];
+        if (quill) {
+          var html = quill.root.innerHTML;
+          updates[field.key] = isEmptyQuillHtml(html) ? "" : html;
+        }
+      } else {
+        var el = document.querySelector('#contentFields [name="' + field.key + '"]');
+        if (el) updates[field.key] = el.value;
+      }
+    });
+    return updates;
+  }
+
   async function guardarConteudo(e) {
     e.preventDefault();
-    var form = document.getElementById("contentForm");
-    var updates = {};
-    form.querySelectorAll("[name]").forEach(function (el) {
-      updates[el.name] = el.value;
-    });
+    var updates = collectCmsUpdates();
     try {
       var res = await fetch(apiBase() + "/api/admin/site-content", {
         method: "PUT",
@@ -244,6 +366,8 @@
         body: JSON.stringify({ updates: updates }),
       });
       if (!res.ok) throw new Error("HTTP " + res.status);
+      var data = await res.json();
+      cmsContent = data.content || cmsContent;
       global.OuviescreviUI.toast("Conteúdo guardado.", "success");
     } catch (e) {
       global.OuviescreviUI.toast("Erro ao guardar.", "error");
@@ -251,17 +375,17 @@
   }
 
   async function reporConteudo() {
-    if (!confirm("Repor todos os textos da homepage aos valores originais?")) return;
+    if (!cmsCurrentPage) return;
+    if (!confirm("Repor os textos de «" + cmsCurrentPage.label + "» aos valores originais?")) return;
     try {
       var res = await fetch(apiBase() + "/api/admin/site-content/reset", {
         method: "POST",
         headers: global.OuviescreviAPI.adminAuthHeaders(),
+        body: JSON.stringify({ page: cmsCurrentPage.id }),
       });
       var data = await res.json();
-      var c = data.content || {};
-      document.getElementById("contentForm").querySelectorAll("[name]").forEach(function (el) {
-        if (c[el.name] != null) el.value = c[el.name];
-      });
+      cmsContent = data.content || {};
+      renderCmsFields(cmsCurrentPage);
       global.OuviescreviUI.toast("Textos repostos.", "success");
     } catch (e) {
       global.OuviescreviUI.toast("Erro ao repor.", "error");
@@ -355,6 +479,9 @@
 
     document.getElementById("contentForm").addEventListener("submit", guardarConteudo);
     document.getElementById("btnReporConteudo").addEventListener("click", reporConteudo);
+    document.getElementById("cmsPageSelect").addEventListener("change", function () {
+      selectCmsPage(this.value);
+    });
     document.getElementById("btnRefresh").addEventListener("click", carregarDashboard);
     document.getElementById("btnLogoutSide").addEventListener("click", logout);
     document.getElementById("btnLogoutTop").addEventListener("click", logout);

@@ -33,7 +33,14 @@ from security import (
     safe_http_get,
     validate_public_http_url,
 )
-from cms import get_all_content, update_content, reset_content, CONTENT_KEYS
+from cms import (
+    get_all_content,
+    update_content,
+    reset_content,
+    get_page_schema,
+    keys_for_page,
+    CONTENT_KEYS,
+)
 from analytics import record_visit, get_visit_stats, get_recent_visits, get_daily_visit_series, get_daily_transcription_series, get_top_pages
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -726,7 +733,11 @@ def admin_dashboard(request: Request):
 @app.get("/api/admin/site-content")
 def admin_get_site_content(request: Request):
     require_admin_token(request)
-    return {"content": get_all_content(), "keys": sorted(CONTENT_KEYS)}
+    return {
+        "content": get_all_content(),
+        "keys": sorted(CONTENT_KEYS),
+        "pages": get_page_schema(),
+    }
 
 
 @app.put("/api/admin/site-content")
@@ -738,10 +749,19 @@ def admin_put_site_content(request: Request, body: SiteContentUpdateRequest):
     return {"ok": True, "content": content}
 
 
+class SiteContentResetRequest(BaseModel):
+    page: str | None = None
+
+
 @app.post("/api/admin/site-content/reset")
-def admin_reset_site_content(request: Request):
+def admin_reset_site_content(request: Request, body: SiteContentResetRequest | None = None):
     require_admin_token(request)
-    content = reset_content()
+    keys = None
+    if body and body.page:
+        keys = keys_for_page(body.page)
+        if not keys:
+            raise HTTPException(status_code=400, detail="Página desconhecida.")
+    content = reset_content(keys)
     return {"ok": True, "content": content}
 
 

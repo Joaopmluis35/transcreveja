@@ -11,7 +11,7 @@
   <meta name="keywords" content="converter Word para PDF, PDF para texto, imagem para PDF, conversor de ficheiros online, transcrição de áudio, transcrição automática, Ouviescrevi">
   <meta name="robots" content="index, follow">
 </head>
-<body class="oe-page oe-page--home">
+<body class="oe-page oe-page--home" data-cms-auto="false">
 <a class="oe-skip" href="#mainContent">Saltar para o conteúdo</a>
 
 <div id="header"></div>
@@ -22,7 +22,7 @@
 
 <main id="mainContent">
   <div id="adminContent">
-    <p id="cmsHomeIntro">
+    <p id="cmsHomeIntro" data-cms-key="home_intro_html" data-cms-mode="html">
       <strong>🧠 Ouviescrevi</strong> é o teu assistente com IA para
       <br><strong>transcrever</strong> 🎙️, <strong>traduzir</strong> 🌍, <strong>resumir</strong> 📌 e <strong>converter ficheiros</strong> 📄
       <br>— simples, rápido e gratuito.
@@ -265,14 +265,14 @@
   </div>
 
 <section id="apresentacaoSEO" class="oe-seo-block">
-  <h2 id="cmsSeoTitle">🧠 O que é o Ouviescrevi?</h2>
-  <p id="cmsSeoP1">
+  <h2 id="cmsSeoTitle" data-cms-key="seo_title" data-cms-mode="text">🧠 O que é o Ouviescrevi?</h2>
+  <p id="cmsSeoP1" data-cms-key="seo_p1" data-cms-mode="html">
     Ouviescrevi é uma ferramenta online que usa Inteligência Artificial (IA) para 
     <strong>transcrever, resumir, traduzir, corrigir</strong> e <strong>classificar conteúdos</strong>, 
     além de <strong>gerar emails</strong>, <strong>criar perguntas de estudo</strong> e até <strong>produzir vídeos com legendas automáticas</strong>.
   </p>
-  <p id="cmsSeoP2">Ideal para professores, jornalistas, estudantes, empresas e qualquer pessoa que precise transformar áudio, vídeo ou texto em conhecimento útil. 🚀</p>
-  <div class="oe-seo-features" id="cmsSeoFeatures">
+  <p id="cmsSeoP2" data-cms-key="seo_p2" data-cms-mode="html">Ideal para professores, jornalistas, estudantes, empresas e qualquer pessoa que precise transformar áudio, vídeo ou texto em conhecimento útil. 🚀</p>
+  <div class="oe-seo-features" id="cmsSeoFeatures" data-cms-key="seo_features" data-cms-mode="lines">
     <p><strong>Funcionalidades principais:</strong></p>
     <p>🎙️ Transcrição de áudio/vídeo</p>
     <p>🧠 Resumos automáticos</p>
@@ -282,7 +282,7 @@
     <p>💬 Vídeos com legendas automáticas</p>
     <p>📁 Conversão de ficheiros</p>
   </div>
-  <p id="cmsSeoClosing">Começa já gratuitamente. Simples, rápido e feito em Portugal 🇵🇹</p>
+  <p id="cmsSeoClosing" data-cms-key="seo_closing" data-cms-mode="text">Começa já gratuitamente. Simples, rápido e feito em Portugal 🇵🇹</p>
 </section>
 
 
@@ -320,40 +320,8 @@
   async function loadSiteContent() {
     try {
       await ensureApi();
-      const res = await fetch(`${API_BASE}/api/site-content`, { credentials: "omit" });
-      if (!res.ok) return;
-      const data = await res.json();
-      const c = data.content || {};
-      if (c.home_intro_html) {
-        const el = document.getElementById("cmsHomeIntro");
-        if (el) el.innerHTML = c.home_intro_html;
-      }
-      if (c.seo_title) {
-        const t = document.getElementById("cmsSeoTitle");
-        if (t) t.textContent = c.seo_title;
-      }
-      if (c.seo_p1) {
-        const p = document.getElementById("cmsSeoP1");
-        if (p) p.innerHTML = c.seo_p1;
-      }
-      if (c.seo_p2) {
-        const p = document.getElementById("cmsSeoP2");
-        if (p) p.textContent = c.seo_p2;
-      }
-      if (c.seo_features) {
-        const box = document.getElementById("cmsSeoFeatures");
-        if (box) {
-          const lines = c.seo_features.split("\n").filter(Boolean);
-          box.innerHTML = "<p><strong>Funcionalidades principais:</strong></p>" +
-            lines.map((line) => "<p></p>").join("");
-          const ps = box.querySelectorAll("p");
-          lines.forEach((line, i) => { if (ps[i + 1]) ps[i + 1].textContent = line; });
-        }
-      }
-      if (c.seo_closing) {
-        const cl = document.getElementById("cmsSeoClosing");
-        if (cl) cl.textContent = c.seo_closing;
-      }
+      const data = await OuviescreviUI.loadCms();
+      if (!data) return;
       if (data.manutencao) {
         const banner = document.getElementById("cmsMaintenanceBanner");
         if (banner) banner.classList.remove("hidden");
