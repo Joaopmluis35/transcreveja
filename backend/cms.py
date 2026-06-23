@@ -6,6 +6,8 @@ import sqlite3
 from datetime import datetime
 from typing import Any
 
+from database import get_connection
+
 _AJUDA_FAQ_PT = """<h2>1. O que é o Ouviescrevi?</h2>
 <p>É uma ferramenta automática que converte ficheiros de áudio, vídeo ou texto em transcrições, resumos, traduções e muito mais, usando inteligência artificial.</p>
 <h2>2. Que formatos de ficheiros são suportados?</h2>
@@ -163,6 +165,147 @@ PAGE_SCHEMA: list[dict[str, Any]] = [
             {"key": "en_sugestoes_lead", "label": "Subtitle", "type": "text"},
         ],
     },
+    {
+        "id": "aulas",
+        "label": "Landing — Aulas",
+        "lang": "pt",
+        "path": "/aulas.html",
+        "fields": [
+            {"key": "aulas_title", "label": "Título", "type": "text"},
+            {"key": "aulas_body", "label": "Texto", "type": "rich"},
+        ],
+    },
+    {
+        "id": "professores",
+        "label": "Landing — Professores",
+        "lang": "pt",
+        "path": "/professores.html",
+        "fields": [
+            {"key": "professores_title", "label": "Título", "type": "text"},
+            {"key": "professores_body", "label": "Texto", "type": "rich"},
+        ],
+    },
+    {
+        "id": "jornalistas",
+        "label": "Landing — Jornalistas",
+        "lang": "pt",
+        "path": "/jornalistas.html",
+        "fields": [
+            {"key": "jornalistas_title", "label": "Título", "type": "text"},
+            {"key": "jornalistas_body", "label": "Texto", "type": "rich"},
+        ],
+    },
+    {
+        "id": "podcasts",
+        "label": "Landing — Podcasts",
+        "lang": "pt",
+        "path": "/podcasts.html",
+        "fields": [
+            {"key": "podcasts_title", "label": "Título", "type": "text"},
+            {"key": "podcasts_body", "label": "Texto", "type": "rich"},
+        ],
+    },
+    {
+        "id": "reunioes",
+        "label": "Landing — Reuniões",
+        "lang": "pt",
+        "path": "/reunioes.html",
+        "fields": [
+            {"key": "reunioes_title", "label": "Título", "type": "text"},
+            {"key": "reunioes_body", "label": "Texto", "type": "rich"},
+        ],
+    },
+    {
+        "id": "testemunhos",
+        "label": "Landing — Testemunhos",
+        "lang": "pt",
+        "path": "/testemunhos.html",
+        "fields": [
+            {"key": "testemunhos_title", "label": "Título", "type": "text"},
+            {"key": "testemunhos_body", "label": "Texto", "type": "rich"},
+        ],
+    },
+    {
+        "id": "privacidade",
+        "label": "Legal — Privacidade",
+        "lang": "pt",
+        "path": "/privacidade.html",
+        "fields": [
+            {"key": "privacidade_disclaimer", "label": "Aviso introdutório", "type": "rich"},
+        ],
+    },
+    {
+        "id": "termos",
+        "label": "Legal — Termos",
+        "lang": "pt",
+        "path": "/termos.html",
+        "fields": [
+            {"key": "termos_intro", "label": "Introdução", "type": "rich"},
+        ],
+    },
+    {
+        "id": "cookies",
+        "label": "Legal — Cookies",
+        "lang": "pt",
+        "path": "/cookies.html",
+        "fields": [
+            {"key": "cookies_intro", "label": "Introdução", "type": "rich"},
+        ],
+    },
+    {
+        "id": "site_global",
+        "label": "Site — Global",
+        "lang": "pt",
+        "path": "/index.html",
+        "fields": [
+            {"key": "maintenance_message", "label": "Mensagem de manutenção", "type": "rich"},
+            {"key": "home_testimonials", "label": "Testemunhos homepage (HTML)", "type": "rich"},
+        ],
+    },
+    {
+        "id": "seo_home",
+        "label": "SEO — Homepage",
+        "lang": "pt",
+        "path": "/index.html",
+        "category": "seo",
+        "fields": [
+            {"key": "meta_home_title", "label": "Meta title", "type": "text"},
+            {"key": "meta_home_description", "label": "Meta description", "type": "text"},
+        ],
+    },
+    {
+        "id": "seo_conversor",
+        "label": "SEO — Conversor",
+        "lang": "pt",
+        "path": "/conversor.html",
+        "category": "seo",
+        "fields": [
+            {"key": "meta_conversor_title", "label": "Meta title", "type": "text"},
+            {"key": "meta_conversor_description", "label": "Meta description", "type": "text"},
+        ],
+    },
+    {
+        "id": "seo_resumo",
+        "label": "SEO — Resumo",
+        "lang": "pt",
+        "path": "/resumo.html",
+        "category": "seo",
+        "fields": [
+            {"key": "meta_resumo_title", "label": "Meta title", "type": "text"},
+            {"key": "meta_resumo_description", "label": "Meta description", "type": "text"},
+        ],
+    },
+    {
+        "id": "seo_ajuda",
+        "label": "SEO — Ajuda",
+        "lang": "pt",
+        "path": "/ajuda.html",
+        "category": "seo",
+        "fields": [
+            {"key": "meta_ajuda_title", "label": "Meta title", "type": "text"},
+            {"key": "meta_ajuda_description", "label": "Meta description", "type": "text"},
+        ],
+    },
 ]
 
 DEFAULT_SITE_CONTENT: dict[str, str] = {
@@ -226,6 +369,38 @@ DEFAULT_SITE_CONTENT: dict[str, str] = {
     "en_conversor_seo": _CONVERSOR_SEO_EN,
     "en_sugestoes_title": "💡 Suggestions",
     "en_sugestoes_lead": "Your feedback helps us improve Ouviescrevi.",
+    "aulas_title": "🎥 Aulas",
+    "aulas_body": "<p>Transforma vídeos de aulas em texto claro, bem formatado e pronto a partilhar. Útil para estudantes, professores, tutores e plataformas educativas.</p>",
+    "professores_title": "👩‍🏫 Professores",
+    "professores_body": "<p>Ferramentas de IA para educadores: transcrição de aulas, resumos automáticos e preparação de materiais didáticos.</p>",
+    "jornalistas_title": "📰 Jornalistas",
+    "jornalistas_body": "<p>Transcreve entrevistas de áudio e vídeo com IA. Poupa horas de trabalho e exporta texto pronto a editar.</p>",
+    "podcasts_title": "🎧 Podcasts",
+    "podcasts_body": "<p>Converte episódios de podcast em transcrições e resumos com inteligência artificial. Grátis e online.</p>",
+    "reunioes_title": "💼 Reuniões",
+    "reunioes_body": "<p>Grava e transcreve reuniões automaticamente. Gera minutas e resumos para equipas e empresas.</p>",
+    "testemunhos_title": "⚖️ Testemunhos",
+    "testemunhos_body": "<p>Transcreve testemunhos, declarações e gravações com precisão. Útil em contextos jurídicos e administrativos.</p>",
+    "privacidade_disclaimer": (
+        "<p>Este documento descreve como o serviço <strong>Ouviescrevi</strong> trata dados pessoais.</p>"
+    ),
+    "termos_intro": "<p>Condições gerais de utilização do serviço <strong>Ouviescrevi</strong>.</p>",
+    "cookies_intro": "<p>Informação sobre cookies e armazenamento local no website Ouviescrevi.</p>",
+    "maintenance_message": (
+        "<p>🛑 O serviço está temporariamente em manutenção. Novas transcrições estão indisponíveis.</p>"
+    ),
+    "home_testimonials": "",
+    "meta_home_title": "Ouviescrevi — Transcrição de Áudio e Vídeo com IA Grátis",
+    "meta_home_description": (
+        "Transcreve áudio e vídeo online com inteligência artificial, grátis e sem registo. "
+        "Resumos, tradução, legendas SRT e conversão de ficheiros. Feito em Portugal."
+    ),
+    "meta_conversor_title": "Conversor de Ficheiros Online Grátis — Word, PDF, Imagem | Ouviescrevi",
+    "meta_conversor_description": "Converte Word para PDF, PDF para texto e imagens para PDF no browser. Gratuito e sem instalação.",
+    "meta_resumo_title": "Resumo Automático com IA — PDF, Word e Texto | Ouviescrevi",
+    "meta_resumo_description": "Gera resumos inteligentes com IA a partir de PDF, Word ou texto.",
+    "meta_ajuda_title": "Ajuda e FAQ — Como Usar o Ouviescrevi",
+    "meta_ajuda_description": "Respostas às perguntas frequentes sobre transcrição com IA e funcionalidades do Ouviescrevi.",
 }
 
 CONTENT_KEYS = frozenset(DEFAULT_SITE_CONTENT.keys())
@@ -242,8 +417,23 @@ def keys_for_page(page_id: str) -> list[str]:
     return list(_PAGE_KEYS.get(page_id, []))
 
 
-def _db_path() -> str:
-    return "ouviescrevi.db"
+def get_seo_overrides() -> dict[str, dict[str, str]]:
+    content = get_all_content()
+    mapping = {
+        "/index.html": ("meta_home_title", "meta_home_description"),
+        "/conversor.html": ("meta_conversor_title", "meta_conversor_description"),
+        "/resumo.html": ("meta_resumo_title", "meta_resumo_description"),
+        "/ajuda.html": ("meta_ajuda_title", "meta_ajuda_description"),
+    }
+    out: dict[str, dict[str, str]] = {}
+    for path, (tk, dk) in mapping.items():
+        if content.get(tk) or content.get(dk):
+            out[path] = {"title": content.get(tk, ""), "description": content.get(dk, "")}
+    return out
+
+
+def _db_conn():
+    return get_connection()
 
 
 def _sanitize_html(value: str) -> str:
@@ -271,7 +461,7 @@ def _normalize_value(key: str, value: str) -> str:
 
 def get_all_content() -> dict[str, str]:
     out = dict(DEFAULT_SITE_CONTENT)
-    conn = sqlite3.connect(_db_path())
+    conn = _db_conn()
     try:
         cur = conn.cursor()
         cur.execute("SELECT key, value FROM site_content")
@@ -285,7 +475,7 @@ def get_all_content() -> dict[str, str]:
 
 def update_content(updates: dict[str, str]) -> dict[str, str]:
     now = datetime.utcnow().isoformat(timespec="seconds") + "Z"
-    conn = sqlite3.connect(_db_path())
+    conn = _db_conn()
     try:
         cur = conn.cursor()
         for key, value in updates.items():
@@ -307,7 +497,7 @@ def update_content(updates: dict[str, str]) -> dict[str, str]:
 
 def reset_content(keys: list[str] | None = None) -> dict[str, str]:
     to_drop = keys if keys else list(CONTENT_KEYS)
-    conn = sqlite3.connect(_db_path())
+    conn = _db_conn()
     try:
         cur = conn.cursor()
         for key in to_drop:

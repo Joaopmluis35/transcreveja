@@ -1,5 +1,5 @@
 # main.py
-from fastapi import FastAPI, File, UploadFile, Request, HTTPException, APIRouter, Form
+from fastapi import FastAPI, File, UploadFile, Request, HTTPException, APIRouter, Form, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -33,15 +33,10 @@ from security import (
     safe_http_get,
     validate_public_http_url,
 )
-from cms import (
-    get_all_content,
-    update_content,
-    reset_content,
-    get_page_schema,
-    keys_for_page,
-    CONTENT_KEYS,
-)
-from analytics import record_visit, get_visit_stats, get_recent_visits, get_daily_visit_series, get_daily_transcription_series, get_top_pages
+from cms import get_all_content, get_seo_overrides
+from analytics import record_visit, get_visit_stats
+import admin_store
+from admin_routes import router as admin_router
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Setup
@@ -130,6 +125,7 @@ API_TOKEN = os.getenv("API_TOKEN") or ADMIN_TOKEN
 BACKOFFICE_PASSWORD = os.getenv("BACKOFFICE_PASSWORD")
 if not BACKOFFICE_PASSWORD:
     raise RuntimeError("Falta BACKOFFICE_PASSWORD no .env")
+admin_store.ensure_default_admin(BACKOFFICE_PASSWORD)
 
 APP_ENV = os.getenv("APP_ENV", "development").lower()
 ENABLE_DEBUG_ENDPOINTS = os.getenv("ENABLE_DEBUG_ENDPOINTS", "true" if APP_ENV == "development" else "false").lower() in ("1", "true", "yes")
@@ -185,7 +181,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS if "*" not in ALLOWED_ORIGINS else ["*"],
     allow_credentials=False,
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "X-API-Token"],
 )
 
@@ -194,6 +190,27 @@ STATIC_DIR = os.path.abspath("static")
 VIDEO_DIR = os.path.join(STATIC_DIR, "videos")
 os.makedirs(VIDEO_DIR, exist_ok=True)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+
+@app.middleware("http")
+async def admin_error_logger(request: Request, call_next):
+    try:
+        response = await call_next(request)
+        if response.status_code >= 400 and request.url.path.startswith("/api/"):
+            admin_store.log_api_error(
+                request.url.path,
+                response.status_code,
+                "HTTP error",
+                client_ip(request),
+            )
+        return response
+    except HTTPException as exc:
+        if request.url.path.startswith("/api/"):
+            admin_store.log_api_error(request.url.path, exc.status_code, str(exc.detail), client_ip(request))
+        raise
+    except Exception as exc:
+        admin_store.log_api_error(request.url.path, 500, str(exc)[:500], client_ip(request))
+        raise
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Helpers logging/IO
@@ -304,8 +321,16 @@ def require_api_token(request: Request, body_token: str | None = None) -> None:
 
 def require_admin_token(request: Request) -> None:
     token = extract_api_token(request)
-    if token != ADMIN_TOKEN:
-        raise HTTPException(status_code=403, detail="Acesso administrativo negado.")
+    if token == ADMIN_TOKEN:
+        request.state.admin_session = {"username": "env", "role": "admin"}
+        request.state.admin_user = "env"
+        return
+    session = admin_store.resolve_session(token)
+    if session:
+        request.state.admin_session = session
+        request.state.admin_user = session["username"]
+        return
+    raise HTTPException(status_code=403, detail="Acesso administrativo negado.")
 
 
 def require_token(token: str):
@@ -323,19 +348,24 @@ def require_debug_enabled() -> None:
         raise HTTPException(status_code=404, detail="Não encontrado.")
 
 
+def admin_guard(request: Request) -> None:
+    require_admin_token(request)
+
+
+app.include_router(admin_router, dependencies=[Depends(admin_guard)])
+
+
 def get_manutencao() -> bool:
-    conn = sqlite3.connect("ouviescrevi.db")
-    try:
-        cur = conn.cursor()
-        cur.execute("SELECT manutencao FROM status WHERE id = 1")
-        row = cur.fetchone()
-        return bool(row[0]) if row else False
-    finally:
-        conn.close()
+    return admin_store.get_maintenance()["manutencao"]
+
+
+def get_maintenance_payload() -> dict:
+    return admin_store.get_maintenance()
 
 
 def require_not_maintenance() -> None:
-    if get_manutencao():
+    maint = admin_store.get_maintenance()
+    if maint["manutencao"] and maint.get("block_transcribe_only", True):
         raise HTTPException(status_code=503, detail="Serviço temporariamente em manutenção. Tenta mais tarde.")
 
 def enviar_email_assunto(mensagem: str, assunto: str = "Nova atividade no Ouviescrevi"):
@@ -573,14 +603,35 @@ def split_audio(input_path, output_dir, segment_duration=SEGMENT_DURATION):
     segments = sorted(os.path.join(output_dir, f) for f in os.listdir(output_dir) if f.endswith(".wav"))
     return segments
 
-def registar_transcricao(nome_ficheiro: str):
-    conn = sqlite3.connect("ouviescrevi.db")
+def registar_transcricao(
+    nome_ficheiro: str,
+    *,
+    language: str | None = None,
+    size_bytes: int | None = None,
+    duration_sec: float | None = None,
+    processing_sec: float | None = None,
+    status: str = "ok",
+    error_message: str | None = None,
+):
+    admin_store.record_transcription(
+        nome_ficheiro,
+        language=language,
+        size_bytes=size_bytes,
+        duration_sec=duration_sec,
+        processing_sec=processing_sec,
+        status=status,
+        error_message=error_message,
+    )
     try:
-        cur = conn.cursor()
-        cur.execute("INSERT INTO transcricoes (ficheiro, data) VALUES (?, ?)", (nome_ficheiro, datetime.now().isoformat()))
-        conn.commit()
-    finally:
-        conn.close()
+        stats = admin_store.estimate_costs()
+        visits = get_visit_stats()
+        admin_store.maybe_send_alerts(
+            stats["transcricoes_hoje"],
+            visits["visitas_hoje"],
+            enviar_email_assunto,
+        )
+    except Exception:
+        pass
 
 def transcrever_parte_c_com_retries(
     file_path: str,
@@ -668,17 +719,28 @@ def frontend_config(request: Request):
 
 class AdminLoginRequest(BaseModel):
     password: str
+    username: str | None = None
 
 
 @app.post("/api/admin/login")
 def admin_login(req: AdminLoginRequest):
-    if req.password != BACKOFFICE_PASSWORD:
-        raise HTTPException(status_code=403, detail="Credenciais inválidas.")
-    return {"ok": True, "adminToken": ADMIN_TOKEN}
+    if req.username:
+        user = admin_store.authenticate_user(req.username, req.password)
+        if not user:
+            raise HTTPException(status_code=403, detail="Credenciais inválidas.")
+        token = admin_store.create_session(user["username"], user["role"])
+        admin_store.log_audit(user["username"], "login")
+        return {"ok": True, "adminToken": token, "role": user["role"], "username": user["username"]}
+    if req.password == BACKOFFICE_PASSWORD:
+        token = admin_store.create_session("admin", "admin")
+        admin_store.log_audit("admin", "login")
+        return {"ok": True, "adminToken": token, "role": "admin", "username": "admin"}
+    raise HTTPException(status_code=403, detail="Credenciais inválidas.")
 
 
 class TrackVisitRequest(BaseModel):
     path: str = "/"
+    referrer: str | None = None
 
 
 @app.post("/api/track-visit")
@@ -687,82 +749,44 @@ def track_visit(request: Request, body: TrackVisitRequest):
         raise HTTPException(status_code=403, detail="Origem não autorizada.")
     enforce_rate_limit(request, "track", RATE_LIMIT_TRACK, RATE_LIMIT_TRACK_WINDOW)
     path = (body.path or "/").strip()[:500] or "/"
-    record_visit(path, client_ip(request))
+    record_visit(
+        path,
+        client_ip(request),
+        referrer=body.referrer or request.headers.get("referer"),
+        user_agent=request.headers.get("user-agent"),
+    )
     return {"ok": True}
+
+
+class SuggestionRequest(BaseModel):
+    nome: str | None = None
+    mensagem: str
+    lang: str = "pt"
+
+
+@app.post("/api/suggestions")
+def public_suggestion(request: Request, body: SuggestionRequest):
+    if not origin_is_allowed(request, ALLOWED_ORIGINS):
+        raise HTTPException(status_code=403, detail="Origem não autorizada.")
+    if not (body.mensagem or "").strip():
+        raise HTTPException(status_code=400, detail="Mensagem vazia.")
+    sid = admin_store.add_suggestion(body.nome, body.mensagem.strip(), body.lang or "pt")
+    return {"ok": True, "id": sid}
 
 
 @app.get("/api/site-content")
 def site_content(request: Request):
     if not origin_is_allowed(request, ALLOWED_ORIGINS):
         raise HTTPException(status_code=403, detail="Origem não autorizada.")
-    return {"content": get_all_content(), "manutencao": get_manutencao()}
-
-
-class SiteContentUpdateRequest(BaseModel):
-    updates: dict[str, str]
-
-
-@app.get("/api/admin/dashboard")
-def admin_dashboard(request: Request):
-    require_admin_token(request)
-    conn = sqlite3.connect("ouviescrevi.db")
-    try:
-        cur = conn.cursor()
-        hoje = date.today().isoformat()
-        cur.execute("SELECT COUNT(*) FROM transcricoes WHERE substr(data,1,10) = ?", (hoje,))
-        transcricoes_hoje = int(cur.fetchone()[0])
-        cur.execute("SELECT COUNT(*) FROM transcricoes")
-        transcricoes_total = int(cur.fetchone()[0])
-    finally:
-        conn.close()
-    stats = get_visit_stats()
-    return {
-        "manutencao": get_manutencao(),
-        "transcricoes_hoje": transcricoes_hoje,
-        "transcricoes_total": transcricoes_total,
-        "visitas": stats,
-        "visitas_recentes": get_recent_visits(15),
-        "charts": {
-            "visitas_diarias": get_daily_visit_series(14),
-            "transcricoes_diarias": get_daily_transcription_series(14),
-        },
-        "top_paginas": get_top_pages(8),
-    }
-
-
-@app.get("/api/admin/site-content")
-def admin_get_site_content(request: Request):
-    require_admin_token(request)
+    maint = get_maintenance_payload()
     return {
         "content": get_all_content(),
-        "keys": sorted(CONTENT_KEYS),
-        "pages": get_page_schema(),
+        "manutencao": maint["manutencao"],
+        "maintenance_message": maint.get("maintenance_message") or "",
+        "block_transcribe_only": maint.get("block_transcribe_only", True),
+        "banner": admin_store.get_active_banner(),
+        "seo": get_seo_overrides(),
     }
-
-
-@app.put("/api/admin/site-content")
-def admin_put_site_content(request: Request, body: SiteContentUpdateRequest):
-    require_admin_token(request)
-    if not body.updates:
-        raise HTTPException(status_code=400, detail="Nenhuma alteração enviada.")
-    content = update_content(body.updates)
-    return {"ok": True, "content": content}
-
-
-class SiteContentResetRequest(BaseModel):
-    page: str | None = None
-
-
-@app.post("/api/admin/site-content/reset")
-def admin_reset_site_content(request: Request, body: SiteContentResetRequest | None = None):
-    require_admin_token(request)
-    keys = None
-    if body and body.page:
-        keys = keys_for_page(body.page)
-        if not keys:
-            raise HTTPException(status_code=400, detail="Página desconhecida.")
-    content = reset_content(keys)
-    return {"ok": True, "content": content}
 
 
 @app.get("/debug")
@@ -874,7 +898,17 @@ async def transcribe(
                     offset_seconds += SEGMENT_DURATION
 
         try:
-            registar_transcricao(file.filename or "sem_nome")
+            duration_sec = float(len(parts) * SEGMENT_DURATION) if parts else None
+            processing_sec = time.monotonic() - t_start
+            registar_transcricao(
+                file.filename or "sem_nome",
+                language=whisper_lang,
+                size_bytes=written,
+                duration_sec=duration_sec,
+                processing_sec=round(processing_sec, 2),
+                status="ok",
+                error_message=None if not quota_exceeded else "insufficient_quota",
+            )
         except Exception as e:
             logger.warning("[%s] Falha ao registar na DB: %s", rid, e)
 
@@ -1251,30 +1285,19 @@ async def generate_email(req: EmailRequest, request: Request):
 
 @app.get("/api/status")
 def get_status():
-    conn = sqlite3.connect("ouviescrevi.db")
-    try:
-        cur = conn.cursor()
-        cur.execute("SELECT manutencao FROM status WHERE id = 1")
-        row = cur.fetchone()
-        return {"manutencao": bool(row[0]) if row else False}
-    finally:
-        conn.close()
+    return get_maintenance_payload()
+
 
 @app.post("/api/status")
 async def update_status(request: Request):
     require_admin_token(request)
     data = await request.json()
-    manutencao = bool(data.get("manutencao", False))
-    conn = sqlite3.connect("ouviescrevi.db")
-    try:
-        cur = conn.cursor()
-        cur.execute("UPDATE status SET manutencao = ? WHERE id = 1", (manutencao,))
-        if cur.rowcount == 0:
-            cur.execute("INSERT INTO status (id, manutencao) VALUES (1, ?)", (manutencao,))
-        conn.commit()
-        return {"message": "Estado atualizado com sucesso", "manutencao": manutencao}
-    finally:
-        conn.close()
+    return admin_store.set_maintenance(
+        bool(data.get("manutencao", False)),
+        data.get("maintenance_message"),
+        data.get("block_transcribe_only"),
+        getattr(request.state, "admin_user", "admin"),
+    )
 
 @app.get("/transcricoes-hoje")
 def contar_transcricoes_hoje(request: Request):
@@ -1290,21 +1313,9 @@ def contar_transcricoes_hoje(request: Request):
         conn.close()
 
 @app.get("/api/logs")
-def get_logs(request: Request):
+def get_logs(request: Request, q: str | None = None, status: str | None = None, limit: int = 100):
     require_admin_token(request)
-    try:
-        conn = sqlite3.connect("ouviescrevi.db")
-        cur = conn.cursor()
-        cur.execute("SELECT ficheiro, data FROM transcricoes ORDER BY data DESC")
-        rows = cur.fetchall()
-        return [{"ficheiro": r[0], "data": r[1]} for r in rows]
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro ao ler logs: {e}")
-    finally:
-        try:
-            conn.close()
-        except:
-            pass
+    return {"logs": admin_store.list_transcriptions(q=q, status=status, limit=limit)}
 
 class QuestionRequest(BaseModel):
     text: str

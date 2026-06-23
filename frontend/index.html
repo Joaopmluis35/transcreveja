@@ -326,7 +326,10 @@
       if (!data) return;
       if (data.manutencao) {
         const banner = document.getElementById("cmsMaintenanceBanner");
-        if (banner) banner.classList.remove("hidden");
+        if (banner) {
+          banner.classList.remove("hidden");
+          if (data.maintenance_message) banner.innerHTML = data.maintenance_message;
+        }
         const form = document.getElementById("uploadForm");
         if (form) form.querySelectorAll("button, input[type=file]").forEach((el) => { el.disabled = true; });
       }

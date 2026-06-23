@@ -114,12 +114,14 @@
     return fetch(url, opts);
   }
 
-  async function adminLogin(password) {
+  async function adminLogin(password, username) {
     const base = detectApiBase();
+    const body = { password };
+    if (username && String(username).trim()) body.username = String(username).trim();
     const res = await fetch(`${base}/api/admin/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password }),
+      body: JSON.stringify(body),
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
@@ -127,6 +129,7 @@
     }
     sessionStorage.setItem(ADMIN_KEY, data.adminToken);
     sessionStorage.setItem("ouviescrevi_admin_ok", "true");
+    if (data.role) sessionStorage.setItem("ouviescrevi_admin_role", data.role);
     apiBase = base;
     return data;
   }

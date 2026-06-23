@@ -577,6 +577,33 @@ table.oe-admin-table td code {
   min-height: 220px;
 }
 
+.oe-admin-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.oe-admin-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.oe-admin-filters input,
+.oe-admin-filters select {
+  padding: 8px 10px;
+  border: 1px solid var(--bo-border);
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .oe-admin-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
 .oe-admin-empty {
   color: var(--bo-muted);
   text-align: center;

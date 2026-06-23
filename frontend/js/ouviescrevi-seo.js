@@ -351,5 +351,16 @@
     }
   }
 
-  global.OuviescreviSEO = { apply: apply, pagePath: pagePath };
+  function applyOverrides(seoMap) {
+    if (!seoMap) return;
+    var path = pagePath();
+    var o = seoMap[path];
+    if (!o) return;
+    if (o.title) document.title = o.title;
+    if (o.description) upsertMeta("name", "description", o.description);
+    if (o.title) upsertMeta("property", "og:title", o.title);
+    if (o.description) upsertMeta("property", "og:description", o.description);
+  }
+
+  global.OuviescreviSEO = { apply: apply, pagePath: pagePath, applyOverrides: applyOverrides };
 })(window);

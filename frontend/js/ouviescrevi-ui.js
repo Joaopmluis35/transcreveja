@@ -174,7 +174,10 @@
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "omit",
-      body: JSON.stringify({ path: global.location.pathname || "/" }),
+      body: JSON.stringify({
+        path: global.location.pathname || "/",
+        referrer: document.referrer || "",
+      }),
     }).catch(function () {});
   }
 
@@ -272,6 +275,8 @@
       .then(function (data) {
         if (!data) return null;
         applyCmsContent(data.content || {});
+        if (data.banner && data.banner.texto) showSiteBanner(data.banner);
+        if (global.OuviescreviSEO && data.seo) global.OuviescreviSEO.applyOverrides(data.seo);
         if (typeof onLoaded === "function") onLoaded(data);
         return data;
       })
@@ -279,6 +284,20 @@
         console.warn("OuviescreviUI: CMS indisponível", err);
         return null;
       });
+  }
+
+  function showSiteBanner(banner) {
+    if (!banner || !banner.texto) return;
+    if (document.getElementById("oe-site-banner")) return;
+    var el = document.createElement("div");
+    el.id = "oe-site-banner";
+    el.className = "oe-site-banner";
+    if (banner.link) {
+      el.innerHTML = '<a href="' + banner.link + '">' + banner.texto + "</a>";
+    } else {
+      el.textContent = banner.texto;
+    }
+    document.body.prepend(el);
   }
 
   function bootLayout() {

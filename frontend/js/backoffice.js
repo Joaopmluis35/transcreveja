@@ -72,7 +72,7 @@
     document.querySelectorAll("[data-panel]").forEach(function (panel) {
       panel.classList.toggle("hidden", panel.dataset.panel !== tab);
     });
-    var titles = { dashboard: "Painel", conteudo: "Conteúdo do site", transcricoes: "Transcrições" };
+    var titles = { dashboard: "Painel", conteudo: "Conteúdo do site", seo: "SEO", transcricoes: "Transcrições", sugestoes: "Sugestões", sistema: "Sistema" };
     if (tab !== "conteudo") {
       setPageTitle(titles[tab] || "Backoffice");
     } else if (cmsCurrentPage) {
@@ -82,6 +82,7 @@
     }
     document.getElementById("adminSidebar").classList.remove("is-open");
     if (tab === "transcricoes") carregarLogs();
+    if (global.OuviescreviAdminExt) global.OuviescreviAdminExt.onTab(tab);
   }
 
   function atualizarStatusManutencao(on) {
@@ -225,6 +226,7 @@
       renderCharts(data.charts);
       renderTopPages(data.top_paginas);
       renderVisitasRecentes(data.visitas_recentes || []);
+      if (global.OuviescreviAdminExt) global.OuviescreviAdminExt.renderReferrersAndDevices(data);
     } catch (e) {
       global.OuviescreviUI.toast("Erro ao carregar painel.", "error");
     }
@@ -331,8 +333,11 @@
       });
       var data = await res.json();
       cmsContent = data.content || {};
-      cmsPages = data.pages || [];
+      cmsPages = (data.pages || []).filter(function (p) { return p.category !== "seo"; });
       populateCmsPageSelect();
+      if (global.OuviescreviAdminExt) {
+        global.OuviescreviAdminExt.setupSeo(data.pages || [], cmsContent);
+      }
     } catch (e) {
       global.OuviescreviUI.toast("Erro ao carregar conteúdo.", "error");
     }
@@ -396,12 +401,15 @@
     var div = document.getElementById("tabelaLogs");
     if (!div) return;
     div.innerHTML = '<p class="oe-admin-empty">A carregar...</p>';
+    var q = (document.getElementById("transSearch") || {}).value || "";
+    var status = (document.getElementById("transStatus") || {}).value || "";
+    var qs = "?limit=100" + (q ? "&q=" + encodeURIComponent(q) : "") + (status ? "&status=" + encodeURIComponent(status) : "");
     try {
-      var res = await fetch(apiBase() + "/api/logs", {
+      var res = await fetch(apiBase() + "/api/admin/transcricoes" + qs, {
         headers: global.OuviescreviAPI.adminAuthHeaders(),
       });
       var data = await res.json();
-      var logs = Array.isArray(data) ? data : data.logs || [];
+      var logs = data.items || [];
       if (!logs.length) {
         div.innerHTML = '<p class="oe-admin-empty">Sem transcrições registadas.</p>';
         return;
@@ -409,19 +417,22 @@
       div.innerHTML = "";
       div.appendChild(
         buildTable(
-          ["Ficheiro", "Data"],
-          logs
-            .slice()
-            .reverse()
-            .slice(0, 100)
-            .map(function (row) {
-              return [row.ficheiro || row.file || "—", row.data || row.date || "—"];
-            })
+          ["Ficheiro", "Idioma", "MB", "Duração s", "Proc. s", "Estado", "Data"],
+          logs.map(function (row) {
+            return [
+              row.ficheiro || "—",
+              row.language || "—",
+              row.size_bytes ? (row.size_bytes / 1048576).toFixed(1) : "—",
+              row.duration_sec != null ? String(Math.round(row.duration_sec)) : "—",
+              row.processing_sec != null ? String(row.processing_sec) : "—",
+              row.status || "ok",
+              row.data || "—",
+            ];
+          })
         )
       );
     } catch (e) {
       div.innerHTML = '<p class="oe-admin-empty">Erro ao carregar.</p>';
-      global.OuviescreviUI.toast("Erro ao carregar transcrições.", "error");
     }
   }
 
@@ -446,7 +457,10 @@
     document.getElementById("loginForm").addEventListener("submit", async function (e) {
       e.preventDefault();
       try {
-        await global.OuviescreviAPI.adminLogin(document.getElementById("password").value);
+        await global.OuviescreviAPI.adminLogin(
+          document.getElementById("password").value,
+          (document.getElementById("adminUsername") || {}).value
+        );
         global.OuviescreviUI.toast("Sessão iniciada.", "success");
         mostrarApp();
       } catch (err) {
@@ -503,5 +517,6 @@
   global.OuviescreviAdmin = {
     carregarDashboard: carregarDashboard,
     carregarLogs: carregarLogs,
+    buildTable: buildTable,
   };
 })(window);

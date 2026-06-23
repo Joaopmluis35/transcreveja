@@ -39,11 +39,15 @@ document.getElementById("formSugestao").addEventListener("submit", function(e) {
   e.preventDefault();
   const btn = document.getElementById("btnSugestao");
   OuviescreviUI.setButtonLoading(btn, true, "A enviar...");
-  const formData = new FormData(e.target);
+  const nome = document.getElementById("nome").value;
+  const mensagem = document.getElementById("mensagem").value;
+  const base = (window.OuviescreviAPI && OuviescreviAPI.detectApiBase) ? OuviescreviAPI.detectApiBase() : "https://api.ouviescrevi.pt";
 
-  fetch("https://formsubmit.co/ouviescrevi@gmail.com", {
+  fetch(base + "/api/suggestions", {
     method: "POST",
-    body: formData
+    headers: { "Content-Type": "application/json" },
+    credentials: "omit",
+    body: JSON.stringify({ nome: nome, mensagem: mensagem, lang: "pt" })
   })
   .then(function(response) {
     if (response.ok) {
