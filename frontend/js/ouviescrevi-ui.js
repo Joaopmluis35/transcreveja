@@ -185,6 +185,7 @@
 
   function maybeShowCookieBanner() {
     try {
+      if ((global.location.pathname || "").indexOf("backoffice") !== -1) return;
       if (localStorage.getItem("oe_cookies_ack")) return;
       if (document.getElementById("oe-cookie-banner")) return;
     } catch (e) {

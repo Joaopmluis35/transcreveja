@@ -7,315 +7,196 @@
   <title>Backoffice | Ouviescrevi</title>
   <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png">
   <link rel="stylesheet" href="css/ouviescrevi.css">
+  <link rel="stylesheet" href="css/backoffice.css">
   <script src="js/ouviescrevi-ui.js" defer></script>
 </head>
-<body class="oe-backoffice" data-oe-auto-footer="false">
-<a class="oe-skip" href="#painel">Saltar para o painel</a>
+<body class="oe-admin" data-oe-auto-footer="false">
 
-<div class="oe-bo-wrap">
-  <h2>Backoffice Ouviescrevi</h2>
-
-  <form id="loginForm" class="oe-card oe-card--narrow oe-bo-login">
-    <p style="margin-top:0;color:var(--oe-text-muted);">Acesso restrito a administradores</p>
-    <label for="password" class="oe-bo-label">Palavra-chave</label>
-    <input type="password" id="password" placeholder="Palavra-chave" autocomplete="current-password">
-    <button type="submit" class="oe-btn oe-btn--block">Entrar</button>
+<!-- Login -->
+<div id="loginScreen" class="oe-admin-login-wrap">
+  <form id="loginForm" class="oe-admin-login-card">
+    <h1>Ouviescrevi</h1>
+    <p>Painel de administração</p>
+    <label for="password">Palavra-chave</label>
+    <input type="password" id="password" placeholder="Palavra-chave" autocomplete="current-password" required>
+    <button type="submit" class="oe-admin-btn oe-admin-btn--primary">Entrar</button>
   </form>
+</div>
 
-  <div class="painel oe-bo-panel" id="painel" style="display:none">
-    <div class="oe-bo-topbar">
-      <p class="oe-bo-welcome"><strong>Bem-vindo, admin.</strong></p>
-      <button type="button" class="oe-btn oe-btn--ghost" onclick="logout()">Sair</button>
+<!-- App -->
+<div id="adminApp" class="oe-admin-app hidden">
+
+  <aside id="adminSidebar" class="oe-admin-sidebar">
+    <div class="oe-admin-brand">
+      <img src="/logos/ouviescreviicon.png" alt="">
+      <span>Ouviescrevi</span>
     </div>
-
-    <nav class="oe-bo-tabs" role="tablist" aria-label="Secções do backoffice">
-      <button type="button" class="oe-bo-tab is-active" data-tab="dashboard" role="tab" aria-selected="true">📊 Painel</button>
-      <button type="button" class="oe-bo-tab" data-tab="conteudo" role="tab" aria-selected="false">✏️ Conteúdo</button>
-      <button type="button" class="oe-bo-tab" data-tab="transcricoes" role="tab" aria-selected="false">🎙️ Transcrições</button>
+    <nav class="oe-admin-nav" role="tablist" aria-label="Menu admin">
+      <button type="button" data-tab="dashboard" class="is-active" aria-selected="true">
+        <span class="oe-admin-nav-icon">📊</span> Painel
+      </button>
+      <button type="button" data-tab="conteudo" aria-selected="false">
+        <span class="oe-admin-nav-icon">✏️</span> Conteúdo
+      </button>
+      <button type="button" data-tab="transcricoes" aria-selected="false">
+        <span class="oe-admin-nav-icon">🎙️</span> Transcrições
+      </button>
     </nav>
+    <div class="oe-admin-sidebar-footer">
+      <a href="index.html" target="_blank" rel="noopener">↗ Ver site público</a>
+      <button type="button" id="btnLogoutSide" class="oe-admin-btn oe-admin-btn--danger" style="width:100%">Sair</button>
+    </div>
+  </aside>
 
-    <!-- Dashboard -->
-    <section id="tab-dashboard" class="oe-bo-section" role="tabpanel">
-      <div class="oe-bo-stats" id="statsGrid">
-        <div class="oe-bo-stat"><span class="oe-bo-stat__label">Visitas hoje</span><strong id="statVisitasHoje">—</strong></div>
-        <div class="oe-bo-stat"><span class="oe-bo-stat__label">Visitantes únicos hoje</span><strong id="statUnicosHoje">—</strong></div>
-        <div class="oe-bo-stat"><span class="oe-bo-stat__label">Visitas (7 dias)</span><strong id="statVisitas7">—</strong></div>
-        <div class="oe-bo-stat"><span class="oe-bo-stat__label">Visitas (30 dias)</span><strong id="statVisitas30">—</strong></div>
-        <div class="oe-bo-stat"><span class="oe-bo-stat__label">Transcrições hoje</span><strong id="statTransHoje">—</strong></div>
-        <div class="oe-bo-stat"><span class="oe-bo-stat__label">Transcrições total</span><strong id="statTransTotal">—</strong></div>
+  <div class="oe-admin-main">
+    <header class="oe-admin-topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button type="button" id="adminBurger" class="oe-admin-burger" aria-label="Menu">☰</button>
+        <h1 id="adminPageTitle">Painel</h1>
+      </div>
+      <div class="oe-admin-topbar-actions">
+        <span id="statusPill" class="oe-admin-status-pill oe-admin-status-pill--ok">Operacional</span>
+        <button type="button" id="btnRefresh" class="oe-admin-btn oe-admin-btn--secondary">🔄 Atualizar</button>
+        <button type="button" id="btnLogoutTop" class="oe-admin-btn oe-admin-btn--secondary">Sair</button>
+      </div>
+    </header>
+
+    <div class="oe-admin-content">
+
+      <!-- Dashboard -->
+      <div data-panel="dashboard">
+        <div class="oe-admin-cards">
+          <div class="oe-admin-card oe-admin-card--purple">
+            <div class="oe-admin-card__label">Visitas hoje</div>
+            <div class="oe-admin-card__value" id="statVisitasHoje">0</div>
+          </div>
+          <div class="oe-admin-card oe-admin-card--blue">
+            <div class="oe-admin-card__label">Visitantes únicos</div>
+            <div class="oe-admin-card__value" id="statUnicosHoje">0</div>
+            <div class="oe-admin-card__sub">Hoje</div>
+          </div>
+          <div class="oe-admin-card oe-admin-card--purple">
+            <div class="oe-admin-card__label">Visitas 7 dias</div>
+            <div class="oe-admin-card__value" id="statVisitas7">0</div>
+          </div>
+          <div class="oe-admin-card oe-admin-card--blue">
+            <div class="oe-admin-card__label">Visitas 30 dias</div>
+            <div class="oe-admin-card__value" id="statVisitas30">0</div>
+          </div>
+          <div class="oe-admin-card oe-admin-card--green">
+            <div class="oe-admin-card__label">Transcrições hoje</div>
+            <div class="oe-admin-card__value" id="statTransHoje">0</div>
+          </div>
+          <div class="oe-admin-card oe-admin-card--amber">
+            <div class="oe-admin-card__label">Transcrições total</div>
+            <div class="oe-admin-card__value" id="statTransTotal">0</div>
+          </div>
+        </div>
+
+        <div class="oe-admin-charts">
+          <div class="oe-admin-panel">
+            <div class="oe-admin-panel__head">Visitas — últimos 14 dias</div>
+            <div class="oe-admin-panel__body">
+              <div class="oe-admin-chart-wrap">
+                <canvas id="chartVisitas" aria-label="Gráfico de visitas"></canvas>
+              </div>
+            </div>
+          </div>
+          <div class="oe-admin-panel">
+            <div class="oe-admin-panel__head">Transcrições — últimos 14 dias</div>
+            <div class="oe-admin-panel__body">
+              <div class="oe-admin-chart-wrap">
+                <canvas id="chartTranscricoes" aria-label="Gráfico de transcrições"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="oe-admin-panel">
+          <div class="oe-admin-panel__head">Modo manutenção</div>
+          <div class="oe-admin-toggle-row">
+            <div>
+              <strong>Bloquear novas transcrições</strong>
+              <small>Os visitantes veem um aviso na homepage.</small>
+            </div>
+            <label class="oe-admin-switch">
+              <input type="checkbox" id="manutencaoToggle">
+              <span></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="oe-admin-panel">
+          <div class="oe-admin-panel__head">Páginas mais visitadas <span style="font-weight:400;color:var(--bo-muted)">(30 dias)</span></div>
+          <div class="oe-admin-panel__body oe-admin-table-wrap" id="topPaginas">
+            <p class="oe-admin-empty">A carregar...</p>
+          </div>
+        </div>
+
+        <div class="oe-admin-panel">
+          <div class="oe-admin-panel__head">Visitas recentes</div>
+          <div class="oe-admin-panel__body oe-admin-table-wrap" id="visitasRecentes">
+            <p class="oe-admin-empty">A carregar...</p>
+          </div>
+        </div>
       </div>
 
-      <label class="oe-bo-maint">
-        <span>🛑 Modo manutenção <small>(bloqueia novas transcrições)</small></span>
-        <input type="checkbox" id="manutencaoToggle">
-      </label>
-      <p id="statusTexto" class="oe-bo-status"></p>
-
-      <h3 class="oe-bo-subtitle">Visitas recentes</h3>
-      <div id="visitasRecentes" class="oe-bo-table-wrap">A carregar...</div>
-      <button type="button" class="oe-btn" onclick="carregarDashboard()">🔄 Atualizar painel</button>
-    </section>
-
-    <!-- Conteúdo -->
-    <section id="tab-conteudo" class="oe-bo-section hidden" role="tabpanel">
-      <p class="oe-bo-hint">Altera textos da página inicial. HTML simples permitido em parágrafos (ex.: <code>&lt;strong&gt;</code>).</p>
-      <form id="contentForm" class="oe-bo-form">
-        <label class="oe-bo-field">
-          <span>Texto de boas-vindas (topo)</span>
-          <textarea name="home_intro_html" rows="4"></textarea>
-        </label>
-        <label class="oe-bo-field">
-          <span>Título «O que é o Ouviescrevi?»</span>
-          <input type="text" name="seo_title">
-        </label>
-        <label class="oe-bo-field">
-          <span>Parágrafo 1 (SEO)</span>
-          <textarea name="seo_p1" rows="3"></textarea>
-        </label>
-        <label class="oe-bo-field">
-          <span>Parágrafo 2 (SEO)</span>
-          <textarea name="seo_p2" rows="2"></textarea>
-        </label>
-        <label class="oe-bo-field">
-          <span>Funcionalidades <small>(uma por linha)</small></span>
-          <textarea name="seo_features" rows="7"></textarea>
-        </label>
-        <label class="oe-bo-field">
-          <span>Texto de fecho</span>
-          <input type="text" name="seo_closing">
-        </label>
-        <div class="oe-bo-actions">
-          <button type="submit" class="oe-btn">💾 Guardar alterações</button>
-          <button type="button" class="oe-btn oe-btn--ghost" onclick="reporConteudo()">↩️ Repor textos originais</button>
+      <!-- Conteúdo -->
+      <div data-panel="conteudo" class="hidden">
+        <div class="oe-admin-panel">
+          <div class="oe-admin-panel__head">Editar homepage</div>
+          <div class="oe-admin-panel__body">
+            <p style="margin-top:0;color:var(--bo-muted)">HTML simples permitido (ex. <code>&lt;strong&gt;</code>). Guarda e atualiza o site para ver.</p>
+            <form id="contentForm" class="oe-admin-form">
+              <div class="oe-admin-field">
+                <label>Texto de boas-vindas (topo)</label>
+                <textarea name="home_intro_html" rows="4"></textarea>
+              </div>
+              <div class="oe-admin-field">
+                <label>Título «O que é o Ouviescrevi?»</label>
+                <input type="text" name="seo_title">
+              </div>
+              <div class="oe-admin-field">
+                <label>Parágrafo 1</label>
+                <textarea name="seo_p1" rows="3"></textarea>
+              </div>
+              <div class="oe-admin-field">
+                <label>Parágrafo 2</label>
+                <textarea name="seo_p2" rows="2"></textarea>
+              </div>
+              <div class="oe-admin-field">
+                <label>Funcionalidades <small>(uma por linha)</small></label>
+                <textarea name="seo_features" rows="7"></textarea>
+              </div>
+              <div class="oe-admin-field">
+                <label>Texto de fecho</label>
+                <input type="text" name="seo_closing">
+              </div>
+              <div class="oe-admin-form-actions">
+                <button type="submit" class="oe-admin-btn oe-admin-btn--primary">💾 Guardar alterações</button>
+                <button type="button" id="btnReporConteudo" class="oe-admin-btn oe-admin-btn--secondary">↩️ Repor originais</button>
+              </div>
+            </form>
+          </div>
         </div>
-      </form>
-    </section>
+      </div>
 
-    <!-- Transcrições -->
-    <section id="tab-transcricoes" class="oe-bo-section hidden" role="tabpanel">
-      <button type="button" class="oe-btn" onclick="carregarLogs()">📋 Carregar últimas transcrições</button>
-      <div id="tabelaLogs" class="oe-bo-table-wrap"></div>
-    </section>
+      <!-- Transcrições -->
+      <div data-panel="transcricoes" class="hidden">
+        <div class="oe-admin-panel">
+          <div class="oe-admin-panel__head">Histórico de transcrições</div>
+          <div class="oe-admin-panel__body oe-admin-table-wrap" id="tabelaLogs">
+            <p class="oe-admin-empty">A carregar...</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="js/ouviescrevi-api.js"></script>
-<script>
-  const form = document.getElementById("loginForm");
-  const painel = document.getElementById("painel");
-  const toggle = document.getElementById("manutencaoToggle");
-  const statusTexto = document.getElementById("statusTexto");
-  const contentForm = document.getElementById("contentForm");
-
-  function apiBase() {
-    return OuviescreviAPI.getBase() || OuviescreviAPI.detectApiBase();
-  }
-
-  function mostrarPainel() {
-    form.style.display = "none";
-    painel.style.display = "block";
-    carregarDashboard();
-    carregarConteudo();
-  }
-
-  if (OuviescreviAPI.isAdminSession()) {
-    OuviescreviAPI.init().then(mostrarPainel);
-  }
-
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    try {
-      await OuviescreviAPI.adminLogin(document.getElementById("password").value);
-      OuviescreviUI.toast("Sessão iniciada.", "success");
-      mostrarPainel();
-    } catch {
-      OuviescreviUI.toast("Palavra-chave incorreta.", "error");
-    }
-  });
-
-  document.querySelectorAll(".oe-bo-tab").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll(".oe-bo-tab").forEach((b) => {
-        b.classList.remove("is-active");
-        b.setAttribute("aria-selected", "false");
-      });
-      btn.classList.add("is-active");
-      btn.setAttribute("aria-selected", "true");
-      const tab = btn.dataset.tab;
-      document.querySelectorAll(".oe-bo-section").forEach((sec) => sec.classList.add("hidden"));
-      document.getElementById("tab-" + tab).classList.remove("hidden");
-    });
-  });
-
-  toggle.addEventListener("change", async () => {
-    try {
-      const res = await fetch(`${apiBase()}/api/status`, {
-        method: "POST",
-        headers: OuviescreviAPI.adminAuthHeaders(),
-        body: JSON.stringify({ manutencao: toggle.checked })
-      });
-      const data = await res.json();
-      atualizarStatusManutencao(!!data.manutencao);
-      OuviescreviUI.toast(statusTexto.textContent, "success");
-    } catch {
-      OuviescreviUI.toast("Erro ao atualizar estado.", "error");
-      toggle.checked = !toggle.checked;
-    }
-  });
-
-  function atualizarStatusManutencao(on) {
-    statusTexto.textContent = on ? "🛑 Site em manutenção" : "✅ Site operacional";
-    statusTexto.style.color = on ? "#b91c1c" : "#047857";
-  }
-
-  async function carregarDashboard() {
-    try {
-      const res = await fetch(`${apiBase()}/api/admin/dashboard`, {
-        headers: OuviescreviAPI.adminAuthHeaders()
-      });
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      const data = await res.json();
-      const v = data.visitas || {};
-      document.getElementById("statVisitasHoje").textContent = v.visitas_hoje ?? "—";
-      document.getElementById("statUnicosHoje").textContent = v.visitantes_unicos_hoje ?? "—";
-      document.getElementById("statVisitas7").textContent = v.visitas_7_dias ?? "—";
-      document.getElementById("statVisitas30").textContent = v.visitas_30_dias ?? "—";
-      document.getElementById("statTransHoje").textContent = data.transcricoes_hoje ?? "—";
-      document.getElementById("statTransTotal").textContent = data.transcricoes_total ?? "—";
-      toggle.checked = !!data.manutencao;
-      atualizarStatusManutencao(!!data.manutencao);
-      renderVisitasRecentes(data.visitas_recentes || []);
-    } catch {
-      OuviescreviUI.toast("Erro ao carregar painel.", "error");
-    }
-  }
-
-  function renderVisitasRecentes(rows) {
-    const div = document.getElementById("visitasRecentes");
-    if (!rows.length) {
-      div.textContent = "Ainda sem visitas registadas.";
-      return;
-    }
-    div.innerHTML = "";
-    div.appendChild(buildTable(["Página", "Dia", "Hora"], rows.map((r) => [
-      r.path || "—",
-      r.day || "—",
-      (r.created_at || "").replace("T", " ").replace("Z", "")
-    ])));
-  }
-
-  async function carregarConteudo() {
-    try {
-      const res = await fetch(`${apiBase()}/api/admin/site-content`, {
-        headers: OuviescreviAPI.adminAuthHeaders()
-      });
-      const data = await res.json();
-      const c = data.content || {};
-      contentForm.querySelectorAll("[name]").forEach((el) => {
-        if (c[el.name] != null) el.value = c[el.name];
-      });
-    } catch {
-      OuviescreviUI.toast("Erro ao carregar conteúdo.", "error");
-    }
-  }
-
-  contentForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const updates = {};
-    contentForm.querySelectorAll("[name]").forEach((el) => {
-      updates[el.name] = el.value;
-    });
-    try {
-      const res = await fetch(`${apiBase()}/api/admin/site-content`, {
-        method: "PUT",
-        headers: OuviescreviAPI.adminAuthHeaders(),
-        body: JSON.stringify({ updates })
-      });
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      OuviescreviUI.toast("Conteúdo guardado. Atualiza a homepage para ver.", "success");
-    } catch {
-      OuviescreviUI.toast("Erro ao guardar.", "error");
-    }
-  });
-
-  async function reporConteudo() {
-    if (!confirm("Repor todos os textos da homepage aos valores originais?")) return;
-    try {
-      const res = await fetch(`${apiBase()}/api/admin/site-content/reset`, {
-        method: "POST",
-        headers: OuviescreviAPI.adminAuthHeaders()
-      });
-      const data = await res.json();
-      const c = data.content || {};
-      contentForm.querySelectorAll("[name]").forEach((el) => {
-        if (c[el.name] != null) el.value = c[el.name];
-      });
-      OuviescreviUI.toast("Textos repostos.", "success");
-    } catch {
-      OuviescreviUI.toast("Erro ao repor.", "error");
-    }
-  }
-
-  function buildTable(headers, rows) {
-    const table = document.createElement("table");
-    table.className = "logs";
-    const thead = document.createElement("thead");
-    const hr = document.createElement("tr");
-    headers.forEach((t) => {
-      const th = document.createElement("th");
-      th.textContent = t;
-      hr.appendChild(th);
-    });
-    thead.appendChild(hr);
-    table.appendChild(thead);
-    const tbody = document.createElement("tbody");
-    rows.forEach((row) => {
-      const tr = document.createElement("tr");
-      row.forEach((cell) => {
-        const td = document.createElement("td");
-        td.textContent = cell;
-        tr.appendChild(td);
-      });
-      tbody.appendChild(tr);
-    });
-    table.appendChild(tbody);
-    return table;
-  }
-
-  async function carregarLogs() {
-    const div = document.getElementById("tabelaLogs");
-    div.textContent = "A carregar...";
-    try {
-      const res = await fetch(`${apiBase()}/api/logs`, {
-        headers: OuviescreviAPI.adminAuthHeaders()
-      });
-      const data = await res.json();
-      const logs = Array.isArray(data) ? data : (data.logs || []);
-      if (!logs.length) {
-        div.textContent = "Sem registos.";
-        return;
-      }
-      div.innerHTML = "";
-      div.appendChild(buildTable(
-        ["Ficheiro", "Data"],
-        logs.slice().reverse().slice(0, 80).map((row) => [
-          row.ficheiro || row.file || "—",
-          row.data || row.date || "—"
-        ])
-      ));
-    } catch {
-      div.textContent = "Erro ao carregar.";
-      OuviescreviUI.toast("Erro ao carregar transcrições.", "error");
-    }
-  }
-
-  function logout() {
-    OuviescreviAPI.adminLogout();
-    painel.style.display = "none";
-    form.style.display = "block";
-    document.getElementById("password").value = "";
-    OuviescreviUI.toast("Sessão terminada.");
-  }
-</script>
+<script src="js/backoffice.js"></script>
 </body>
 </html>

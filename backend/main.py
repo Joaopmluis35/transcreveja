@@ -34,7 +34,7 @@ from security import (
     validate_public_http_url,
 )
 from cms import get_all_content, update_content, reset_content, CONTENT_KEYS
-from analytics import record_visit, get_visit_stats, get_recent_visits
+from analytics import record_visit, get_visit_stats, get_recent_visits, get_daily_visit_series, get_daily_transcription_series, get_top_pages
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Setup
@@ -715,6 +715,11 @@ def admin_dashboard(request: Request):
         "transcricoes_total": transcricoes_total,
         "visitas": stats,
         "visitas_recentes": get_recent_visits(15),
+        "charts": {
+            "visitas_diarias": get_daily_visit_series(14),
+            "transcricoes_diarias": get_daily_transcription_series(14),
+        },
+        "top_paginas": get_top_pages(8),
     }
 
 
