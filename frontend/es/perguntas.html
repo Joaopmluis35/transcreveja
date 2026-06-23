@@ -1,0 +1,67 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Generate multiple-choice questions with AI from any text. Perfect for studying or preparing tests.">
+  <title>📘 AI Question Generator</title>
+  <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
+  <link rel="stylesheet" href="../css/ouviescrevi.css">
+  <script src="/js/ouviescrevi-seo.js" defer></script>
+  <script src="../js/ouviescrevi-ui.js" defer></script>
+</head>
+<body class="oe-page oe-pro">
+<a class="oe-skip" href="#conteudo">Saltar al contenido</a>
+<div id="header"></div>
+
+<div class="oe-hero" id="conteudo">
+  <h1>📘 AI Question Generator</h1>
+  <p class="oe-lead">Paste your text and generate multiple-choice questions with answers.</p>
+</div>
+
+<div class="container">
+  <textarea id="texto" placeholder="Paste the content to study here..."></textarea>
+  <button type="button" class="oe-btn oe-btn--block" id="btnPerguntas" onclick="gerarPerguntas()">🎓 Generate Preguntas</button>
+  <div id="resultado"></div>
+</div>
+
+<div id="footer"></div>
+
+<script src="../js/ouviescrevi-api.js"></script>
+<script>
+  async function gerarPerguntas() {
+    const texto = document.getElementById("texto").value.trim();
+    const btn = document.getElementById("btnPerguntas");
+    if (!texto) {
+      OuviescreviUI.toast("Paste some text first.", "error");
+      return;
+    }
+    OuviescreviUI.setButtonLoading(btn, true, "Generating...");
+    try {
+      await OuviescreviAPI.init();
+      const res = await fetch(`${OuviescreviAPI.getBase()}/generate-questions`, {
+        method: "POST",
+        headers: OuviescreviAPI.authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify(OuviescreviAPI.authJson({ text: texto, lang: "en", num_questions: 3 }))
+      });
+      const data = await res.json();
+      const out = document.getElementById("resultado");
+      if (data.questions) {
+        out.textContent = data.questions;
+        out.classList.remove("oe-result--error");
+      } else {
+        out.textContent = data.error || data.detail || "Unexpected error.";
+        out.classList.add("oe-result--error");
+      }
+    } catch (e) {
+      OuviescreviUI.toast("Error generating questions.", "error");
+      console.error(e);
+    } finally {
+      OuviescreviUI.setButtonLoading(btn, false);
+    }
+  }
+  OuviescreviUI.loadHeader();
+  OuviescreviUI.loadFooter();
+</script>
+</body>
+</html>

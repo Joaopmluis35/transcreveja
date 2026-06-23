@@ -1,0 +1,199 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Generate smart summaries with AI from audio, video or text transcripts. Ideal for studying and work.">
+  <meta name="keywords" content="automatic summary generator, AI summary, summarize files, Ouviescrevi summary">
+  <meta name="description" content="Generate smart summaries with AI from audio, video or text transcripts — now supports PDF and Word files.">
+
+  <meta name="robots" content="index, follow">
+  <title>📌 Smart Summary</title>
+  <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
+  <link rel="stylesheet" href="../css/ouviescrevi.css">
+  <script src="/js/ouviescrevi-seo.js" defer></script>
+  <script src="../js/ouviescrevi-ui.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+</head>
+<body class="oe-page oe-pro">
+<a class="oe-skip" href="#conteudo">Saltar al contenido</a>
+
+<div id="header"></div>
+
+<div class="oe-hero" id="conteudo">
+<h1>📌 Smart Summary</h1>
+<p class="oe-lead">Paste your text or upload a PDF or Word file, then choose a summary style.</p>
+</div>
+
+<div class="container">
+  <div id="dropZone" onclick="document.getElementById('pdfInput').click()">
+    📂 Drag a PDF or Word file here or click to upload
+    <input type="file" id="pdfInput" accept=".pdf,.docx" style="display: none">
+
+  </div>
+
+  <textarea id="texto"></textarea>
+
+  <p>Select summary style:</p>
+  <select id="modo">
+    <option value="normal">Classic and direct</option>
+    <option value="minuta">Meeting minutes (bullet points)</option>
+    <option value="informal">Simple / informal</option>
+    <option value="email">Email format</option>
+  </select>
+
+  <br>
+  <button type="button" class="oe-btn oe-btn--block" id="btnResumo" onclick="gerarResumo()">🔍 Generate Summary</button>
+
+  <div id="resultado"></div>
+</div>
+
+<section id="apresentacaoResumoSEO" class="oe-seo-block">
+  <h2>📌 Smart Summary Generator</h2>
+  <p>
+    The <strong>automatic summary</strong> tool from <strong>Ouviescrevi</strong> allows you to turn long texts or PDFs into clear and fast summaries. Just paste the content or upload a file — our AI does the rest.
+  </p>
+  <p>
+    Ideal for <strong>students</strong> studying efficiently, <strong>teachers</strong> preparing content, and <strong>professionals</strong> extracting key points from documents quickly.
+  </p>
+  <p>
+    The AI identifies the main ideas and generates shorter versions of your content, with options like simple, formal, bullet point style or even an email format.
+  </p>
+
+  <div style="margin-top: 15px; text-align: left; display: inline-block;">
+    <p><strong>Available features:</strong></p>
+    <div style="line-height: 1.8;">
+      <p>📄 Resumir pasted or uploaded text (Word, PDF, etc.)</p>
+      <p>🧠 Summary styles: simple, formal, bullet points, email</p>
+      <p>🌍 Translate content before or after summarizing</p>
+      <p>🔁 Automatic correction before summarizing</p>
+      <p>📥 Export to multiple formats: PDF, DOCX, TXT</p>
+    </div>
+  </div>
+
+  <p>
+    All online, free and made with ❤️ in Portugal 🇵🇹
+  </p>
+</section>
+
+<script src="../js/ouviescrevi-api.js"></script>
+<script>
+  const dropZone = document.getElementById("dropZone");
+  const pdfInput = document.getElementById("pdfInput");
+  const textarea = document.getElementById("texto");
+
+  dropZone.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    dropZone.style.background = "#eee";
+  });
+
+  dropZone.addEventListener("dragleave", () => {
+    dropZone.style.background = "#f9f9f9";
+  });
+
+  dropZone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    dropZone.style.background = "#f9f9f9";
+    if (e.dataTransfer.files.length > 0) {
+      pdfInput.files = e.dataTransfer.files;
+      extrairTextoPDF(e.dataTransfer.files[0]);
+    }
+  });
+
+  pdfInput.addEventListener("change", () => {
+  const file = pdfInput.files[0];
+  if (file) {
+    if (file.name.endsWith(".pdf")) {
+      extrairTextoPDF(file);
+    } else if (file.name.endsWith(".docx")) {
+      extrairTextoDOCX(file);
+    } else {
+      alert("Unsupported format. Please use PDF or DOCX.");
+    }
+  }
+});
+
+
+  function extrairTextoPDF(file) {
+    const reader = new FileReader();
+    reader.onload = function () {
+      const typedarray = new Uint8Array(reader.result);
+      pdfjsLib.getDocument({ data: typedarray }).promise.then(function (pdf) {
+        let textoFinal = "";
+        let total = pdf.numPages;
+        let processadas = 0;
+
+        for (let i = 1; i <= total; i++) {
+          pdf.getPage(i).then(function (page) {
+            page.getTextContent().then(function (content) {
+              const strings = content.items.map(item => item.str).join(" ");
+              textoFinal += strings + "\n\n";
+              processadas++;
+              if (processadas === total) {
+                textarea.value = textoFinal.trim();
+              }
+            });
+          });
+        }
+      });
+    };
+    reader.readAsArrayBuffer(file);
+  }
+function extrairTextoDOCX(file) {
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    const arrayBuffer = reader.result;
+    mammoth.extractRawText({ arrayBuffer: arrayBuffer })
+      .then(function(result) {
+        document.getElementById("texto").value = result.value.trim();
+      })
+      .catch(function(err) {
+        alert("Error reading Word file");
+        console.error(err);
+      });
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+  async function gerarResumo() {
+    const text = textarea.value.trim();
+    const btn = document.getElementById("btnResumo");
+    if (!text) {
+      OuviescreviUI.toast("Enter text or upload a file.", "error");
+      return;
+    }
+    const modo = document.getElementById("modo").value;
+    OuviescreviUI.setButtonLoading(btn, true, "Generating...");
+    try {
+      await OuviescreviAPI.init();
+      const res = await fetch(`${OuviescreviAPI.getBase()}/summarize`, {
+        method: "POST",
+        headers: OuviescreviAPI.authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify(OuviescreviAPI.authJson({ text: text, mode: modo, lang: "en" }))
+      });
+      const data = await res.json();
+      const out = document.getElementById("resultado");
+      if (data.summary) {
+        out.textContent = data.summary;
+        out.classList.remove("oe-result--error");
+      } else {
+        out.textContent = data.error || data.detail || "Unexpected error";
+        out.classList.add("oe-result--error");
+      }
+    } catch (err) {
+      OuviescreviUI.toast("Error generating summary.", "error");
+      console.error(err);
+    } finally {
+      OuviescreviUI.setButtonLoading(btn, false);
+    }
+  }
+</script>
+<div id="footer"></div>
+<script>
+  OuviescreviUI.loadHeader("header.html");
+  OuviescreviUI.loadFooter("footer.html");
+</script>
+<script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
+
+</body>
+</html>

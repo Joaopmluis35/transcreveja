@@ -192,20 +192,114 @@
     }
   }
 
+  function statusClass(value) {
+    var v = String(value || "").toLowerCase();
+    if (v === "ok") return "oe-admin-health-card--ok";
+    if (v.indexOf("erro") !== -1) return "oe-admin-health-card--err";
+    if (v === "warn" || v === "unknown") return "oe-admin-health-card--warn";
+    return "oe-admin-health-card--warn";
+  }
+
+  function formatBytes(bytes) {
+    if (bytes == null || isNaN(bytes)) return "—";
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / 1048576).toFixed(2) + " MB";
+  }
+
+  function formatDateTime(iso) {
+    if (!iso) return "—";
+    return String(iso).replace("T", " ").replace("Z", "").slice(0, 19);
+  }
+
+  function shortDbHost(path) {
+    if (!path) return "—";
+    if (path.indexOf("libsql://") === 0) {
+      return path.replace("libsql://", "").split("/")[0];
+    }
+    return path;
+  }
+
+  function renderHealthCards(h) {
+    var grid = document.getElementById("systemHealthCards");
+    if (!grid) return;
+    var dbLabel = h.database_backend === "turso" ? "Turso Cloud" : "SQLite local";
+    var persistLabel = h.database_persistent ? "Persistente" : "Efémera";
+    var persistStatus = h.database_persistent ? "ok" : "warn";
+    var cards = [
+      { title: "API", value: h.api === "ok" ? "Operacional" : h.api, status: h.api },
+      { title: "Base de dados", value: dbLabel, status: h.database },
+      { title: "OpenAI", value: h.openai === "ok" ? "Ligada" : h.openai, status: h.openai },
+      { title: "Persistência", value: persistLabel, status: persistStatus },
+    ];
+    grid.innerHTML = cards.map(function (c) {
+      return (
+        '<div class="oe-admin-health-card ' + statusClass(c.status) + '">' +
+        '<div class="oe-admin-health-card__title">' + c.title + "</div>" +
+        '<div class="oe-admin-health-card__value">' + c.value + "</div>" +
+        "</div>"
+      );
+    }).join("");
+  }
+
+  function renderSystemDetails(h) {
+    var health = document.getElementById("systemHealth");
+    if (!health) return;
+
+    health.innerHTML =
+      '<div class="oe-admin-kv-grid">' +
+      kvRow("Ambiente", h.app_env || "—") +
+      kvRow("API pública", h.public_api_base || "—") +
+      kvRow("Backend BD", h.database_backend === "turso" ? "Turso (libSQL)" : "Ficheiro SQLite") +
+      kvRow("Host / ficheiro", '<code class="oe-admin-code">' + shortDbHost(h.database_path) + "</code>") +
+      kvRow("Latência BD", h.database_latency_ms != null ? h.database_latency_ms + " ms" : "—") +
+      kvRow("Tamanho ficheiro", formatBytes(h.database_bytes)) +
+      kvRow("Disco livre (servidor)", h.disk_free_mb != null ? h.disk_free_mb + " MB" : "—") +
+      kvRow("Última transcrição", formatDateTime(h.last_transcription_at)) +
+      kvRow("Verificado às", formatDateTime(h.checked_at)) +
+      "</div>" +
+      '<div class="oe-admin-alert ' + (h.database_persistent ? "oe-admin-alert--ok" : "oe-admin-alert--warn") + '" style="margin-top:16px">' +
+      "<strong>" + (h.database_persistent ? "✓ Dados persistentes" : "⚠ Risco de perda de dados") + "</strong><br>" +
+      (h.persistence_note || "") +
+      "</div>";
+
+    var statsDiv = document.getElementById("databaseStats");
+    if (statsDiv) {
+      var counts = h.table_counts || {};
+      var labels = {
+        transcricoes: "Transcrições",
+        visitas: "Visitas",
+        site_content: "Blocos CMS",
+        sugestoes: "Sugestões",
+        admin_users: "Utilizadores",
+        audit_log: "Auditoria",
+      };
+      var rows = Object.keys(labels).map(function (key) {
+        return [labels[key], counts[key] != null ? String(counts[key]) : "—"];
+      });
+      statsDiv.innerHTML = "";
+      statsDiv.appendChild(buildTable(["Tabela", "Registos"], rows));
+    }
+  }
+
+  function kvRow(label, value) {
+    return (
+      '<div class="oe-admin-kv">' +
+      '<span class="oe-admin-kv__label">' + label + "</span>" +
+      '<span class="oe-admin-kv__value">' + value + "</span>" +
+      "</div>"
+    );
+  }
+
   async function loadSystem() {
     var health = document.getElementById("systemHealth");
+    var grid = document.getElementById("systemHealthCards");
+    if (grid) grid.innerHTML = '<p class="oe-admin-empty">A verificar serviços...</p>';
     try {
       var hres = await fetch(apiBase() + "/api/admin/health", { headers: authHeaders() });
       var h = await hres.json();
-      if (health) {
-        health.innerHTML =
-          "<ul style='margin:0;padding-left:20px;line-height:1.8'>" +
-          "<li><strong>API:</strong> " + h.api + "</li>" +
-          "<li><strong>Base de dados:</strong> " + h.database + " (" + Math.round((h.database_bytes || 0) / 1024) + " KB)</li>" +
-          "<li><strong>OpenAI:</strong> " + h.openai + "</li>" +
-          "<li><strong>Disco livre:</strong> " + (h.disk_free_mb != null ? h.disk_free_mb + " MB" : "—") + "</li>" +
-          "</ul>";
-      }
+      renderHealthCards(h);
+      renderSystemDetails(h);
       var cres = await fetch(apiBase() + "/api/admin/config", { headers: authHeaders() });
       var cdata = await cres.json();
       var cfg = cdata.config || {};
@@ -266,7 +360,10 @@
         );
       }
     } catch (e) {
+      if (grid) grid.innerHTML = "";
       if (health) health.innerHTML = '<p class="oe-admin-empty">Erro ao carregar sistema.</p>';
+      var statsDiv = document.getElementById("databaseStats");
+      if (statsDiv) statsDiv.innerHTML = '<p class="oe-admin-empty">—</p>';
     }
   }
 
@@ -354,6 +451,8 @@
     if (bannerForm) bannerForm.addEventListener("submit", saveBanner);
     var userForm = document.getElementById("userForm");
     if (userForm) userForm.addEventListener("submit", addUser);
+    var btnSys = document.getElementById("btnRefreshSystem");
+    if (btnSys) btnSys.addEventListener("click", loadSystem);
   }
 
   if (document.readyState === "loading") {

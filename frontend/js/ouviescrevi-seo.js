@@ -6,28 +6,51 @@
   var OG_IMAGE = SITE + "/logos/ouviescrevi-logo-pro.png";
   var ORG_ID = SITE + "/#organization";
 
-  var HREFLANG = {
-    "/index.html": { pt: "/index.html", en: "/en/index.html" },
-    "/en/index.html": { pt: "/index.html", en: "/en/index.html" },
-    "/ajuda.html": { pt: "/ajuda.html", en: "/en/ajuda.html" },
-    "/en/ajuda.html": { pt: "/ajuda.html", en: "/en/ajuda.html" },
-    "/conversor.html": { pt: "/conversor.html", en: "/en/conversor.html" },
-    "/en/conversor.html": { pt: "/conversor.html", en: "/en/conversor.html" },
-    "/sugestoes.html": { pt: "/sugestoes.html", en: "/en/sugestoes.html" },
-    "/en/sugestoes.html": { pt: "/sugestoes.html", en: "/en/sugestoes.html" },
-    "/resumo.html": { pt: "/resumo.html", en: "/en/resumo.html" },
-    "/en/resumo.html": { pt: "/resumo.html", en: "/en/resumo.html" },
-    "/url-resumo.html": { pt: "/url-resumo.html", en: "/en/url-resumo.html" },
-    "/en/url-resumo.html": { pt: "/url-resumo.html", en: "/en/url-resumo.html" },
-    "/perguntas.html": { pt: "/perguntas.html", en: "/en/perguntas.html" },
-    "/en/perguntas.html": { pt: "/perguntas.html", en: "/en/perguntas.html" },
-    "/privacidade.html": { pt: "/privacidade.html", en: "/en/privacy.html" },
-    "/en/privacy.html": { pt: "/privacidade.html", en: "/en/privacy.html" },
-    "/termos.html": { pt: "/termos.html", en: "/en/terms.html" },
-    "/en/terms.html": { pt: "/termos.html", en: "/en/terms.html" },
-    "/cookies.html": { pt: "/cookies.html", en: "/en/cookies.html" },
-    "/en/cookies.html": { pt: "/cookies.html", en: "/en/cookies.html" },
+  var HREFLANG_LOCALES = ["pt", "en", "es", "fr", "de"];
+  var HREFLANG_SLUGS = {
+    index: { pt: "index.html", en: "index.html", es: "index.html", fr: "index.html", de: "index.html" },
+    ajuda: { pt: "ajuda.html", en: "ajuda.html", es: "ajuda.html", fr: "ajuda.html", de: "ajuda.html" },
+    conversor: { pt: "conversor.html", en: "conversor.html", es: "conversor.html", fr: "conversor.html", de: "conversor.html" },
+    sugestoes: { pt: "sugestoes.html", en: "sugestoes.html", es: "sugestoes.html", fr: "sugestoes.html", de: "sugestoes.html" },
+    resumo: { pt: "resumo.html", en: "resumo.html", es: "resumo.html", fr: "resumo.html", de: "resumo.html" },
+    "url-resumo": { pt: "url-resumo.html", en: "url-resumo.html", es: "url-resumo.html", fr: "url-resumo.html", de: "url-resumo.html" },
+    perguntas: { pt: "perguntas.html", en: "perguntas.html", es: "perguntas.html", fr: "perguntas.html", de: "perguntas.html" },
+    cookies: { pt: "cookies.html", en: "cookies.html", es: "cookies.html", fr: "cookies.html", de: "cookies.html" },
+    privacy: { pt: "privacidade.html", en: "privacy.html", es: "privacy.html", fr: "privacy.html", de: "privacy.html" },
+    terms: { pt: "termos.html", en: "terms.html", es: "terms.html", fr: "terms.html", de: "terms.html" },
   };
+
+  function hrefPath(locale, slug) {
+    var file = HREFLANG_SLUGS[slug][locale];
+    return (locale === "pt" ? "" : "/" + locale) + "/" + file;
+  }
+
+  function slugFromPath(path) {
+    path = (path || "").replace(/\/$/, "");
+    var file = path.split("/").pop() || "index.html";
+    if (file === "index.html") return "index";
+    var name = file.replace(".html", "");
+    if (HREFLANG_SLUGS[name]) return name;
+    if (name === "privacidade" || name === "privacy") return "privacy";
+    if (name === "termos" || name === "terms") return "terms";
+    return null;
+  }
+
+  function buildHreflangMap() {
+    var map = {};
+    Object.keys(HREFLANG_SLUGS).forEach(function (slug) {
+      var group = {};
+      HREFLANG_LOCALES.forEach(function (loc) {
+        group[loc] = hrefPath(loc, slug);
+      });
+      HREFLANG_LOCALES.forEach(function (loc) {
+        map[group[loc]] = group;
+      });
+    });
+    return map;
+  }
+
+  var HREFLANG = buildHreflangMap();
 
   var PAGES = {
     "/index.html": {
@@ -42,6 +65,27 @@
         "Transcribe audio and video online with AI for free. Summaries, translation, SRT subtitles and file conversion. No sign-up required.",
       type: "home",
       lang: "en",
+    },
+    "/es/index.html": {
+      title: "Ouviescrevi — Transcripción de audio y vídeo con IA gratis",
+      description:
+        "Transcribe audio y vídeo online con inteligencia artificial, gratis y sin registro. Resúmenes, traducción, subtítulos SRT y conversión de archivos.",
+      type: "home",
+      lang: "es",
+    },
+    "/fr/index.html": {
+      title: "Ouviescrevi — Transcription audio et vidéo IA gratuite",
+      description:
+        "Transcrivez audio et vidéo en ligne avec l'IA, gratuitement et sans inscription. Résumés, traduction, sous-titres SRT et conversion de fichiers.",
+      type: "home",
+      lang: "fr",
+    },
+    "/de/index.html": {
+      title: "Ouviescrevi — Kostenlose KI-Audio- und Video-Transkription",
+      description:
+        "Transkribiere Audio und Video online mit KI, kostenlos und ohne Anmeldung. Zusammenfassungen, Übersetzung, SRT-Untertitel und Dateikonvertierung.",
+      type: "home",
+      lang: "de",
     },
     "/conversor.html": {
       title: "Conversor de Ficheiros Online Grátis — Word, PDF, Imagem | Ouviescrevi",
@@ -262,7 +306,13 @@
       cfg.description ||
       (document.querySelector('meta[name="description"]') || {}).content ||
       "Transcrição de áudio e vídeo com IA — Ouviescrevi";
-    var lang = cfg.lang || (path.indexOf("/en/") === 0 ? "en" : "pt");
+    var lang = cfg.lang;
+    if (!lang) {
+      var localeMatch = path.match(/^\/(en|es|fr|de)(\/|$)/);
+      lang = localeMatch ? localeMatch[1] : "pt";
+    }
+    var OG_LOCALES = { pt: "pt_PT", en: "en_GB", es: "es_ES", fr: "fr_FR", de: "de_DE" };
+    var IN_LANG = { pt: "pt-PT", en: "en", es: "es", fr: "fr", de: "de" };
     var canonical = SITE + path;
 
     document.title = title;
@@ -277,7 +327,7 @@
     upsertMeta("property", "og:description", desc);
     upsertMeta("property", "og:url", canonical);
     upsertMeta("property", "og:image", OG_IMAGE);
-    upsertMeta("property", "og:locale", lang === "en" ? "en_GB" : "pt_PT");
+    upsertMeta("property", "og:locale", OG_LOCALES[lang] || "pt_PT");
 
     upsertMeta("name", "twitter:card", "summary_large_image");
     upsertMeta("name", "twitter:title", title);
@@ -286,8 +336,9 @@
 
     var alternates = HREFLANG[path];
     if (alternates) {
-      upsertLink("alternate", SITE + alternates.pt, { hreflang: "pt" });
-      upsertLink("alternate", SITE + alternates.en, { hreflang: "en" });
+      HREFLANG_LOCALES.forEach(function (loc) {
+        upsertLink("alternate", SITE + alternates[loc], { hreflang: loc });
+      });
       upsertLink("alternate", SITE + alternates.pt, { hreflang: "x-default" });
     }
 
@@ -298,7 +349,7 @@
       name: title,
       description: desc,
       url: canonical,
-      inLanguage: lang === "en" ? "en" : "pt-PT",
+      inLanguage: IN_LANG[lang] || "pt-PT",
       isPartOf: { "@id": SITE + "/#website" },
     });
 
@@ -310,7 +361,7 @@
         name: "Ouviescrevi",
         url: SITE + "/",
         description: desc,
-        inLanguage: ["pt-PT", "en"],
+        inLanguage: ["pt-PT", "en", "es", "fr", "de"],
         publisher: { "@id": ORG_ID },
       });
       injectJsonLd({

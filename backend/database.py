@@ -1,17 +1,51 @@
-"""Esquema SQLite e migrações incrementais."""
+"""Esquema SQLite e migrações incrementais (ficheiro local ou Turso Cloud)."""
 from __future__ import annotations
 
+import logging
 import os
 import sqlite3
+from typing import Any
+
+logger = logging.getLogger(__name__)
 
 DB_PATH = os.getenv("DATABASE_PATH", "ouviescrevi.db")
+TURSO_DATABASE_URL = os.getenv("TURSO_DATABASE_URL", "").strip()
+TURSO_AUTH_TOKEN = os.getenv("TURSO_AUTH_TOKEN", "").strip()
+
+
+def use_turso() -> bool:
+    return bool(TURSO_DATABASE_URL and TURSO_AUTH_TOKEN)
+
+
+def database_backend() -> str:
+    return "turso" if use_turso() else "local"
 
 
 def db_path() -> str:
+    if use_turso():
+        return TURSO_DATABASE_URL
     return DB_PATH
 
 
-def get_connection() -> sqlite3.Connection:
+def _ensure_db_dir() -> None:
+    if use_turso():
+        return
+    parent = os.path.dirname(os.path.abspath(DB_PATH))
+    if parent:
+        os.makedirs(parent, exist_ok=True)
+
+
+def get_connection() -> Any:
+    if use_turso():
+        import libsql
+
+        conn = libsql.connect(
+            database=TURSO_DATABASE_URL,
+            auth_token=TURSO_AUTH_TOKEN,
+        )
+        conn.row_factory = sqlite3.Row
+        return conn
+    _ensure_db_dir()
     conn = sqlite3.connect(db_path())
     conn.row_factory = sqlite3.Row
     return conn
@@ -55,6 +89,12 @@ def _migrate_visitas(cur: sqlite3.Cursor) -> None:
 
 
 def criar_base() -> None:
+    if os.getenv("APP_ENV") == "production" and not use_turso():
+        logger.warning(
+            "APP_ENV=production sem TURSO_DATABASE_URL/TURSO_AUTH_TOKEN: "
+            "a base SQLite no Render Free é efémera e perde-se em cada redeploy."
+        )
+
     conn = get_connection()
     try:
         cur = conn.cursor()

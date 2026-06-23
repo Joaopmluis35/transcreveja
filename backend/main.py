@@ -1302,7 +1302,8 @@ async def update_status(request: Request):
 @app.get("/transcricoes-hoje")
 def contar_transcricoes_hoje(request: Request):
     require_admin_token(request)
-    conn = sqlite3.connect("ouviescrevi.db")
+    from database import get_connection
+    conn = get_connection()
     try:
         cur = conn.cursor()
         hoje = date.today().isoformat()

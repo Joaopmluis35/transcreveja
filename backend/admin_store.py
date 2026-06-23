@@ -11,7 +11,7 @@ import sqlite3
 from datetime import date, datetime, timedelta
 from typing import Any
 
-from database import db_path, get_connection
+from database import database_backend, db_path, get_connection, use_turso
 
 ROLE_LEVEL = {"viewer": 1, "editor": 2, "admin": 3}
 
@@ -623,25 +623,80 @@ def backup_json() -> dict:
 
 
 def system_health(openai_client=None) -> dict:
+    import time
+
     health: dict[str, Any] = {
         "api": "ok",
         "database": "ok",
+        "database_backend": database_backend(),
         "database_path": db_path(),
-        "database_bytes": 0,
+        "database_persistent": use_turso(),
+        "database_bytes": None,
+        "database_latency_ms": None,
         "openai": "unknown",
         "disk_free_mb": None,
+        "app_env": os.getenv("APP_ENV", "development"),
+        "public_api_base": os.getenv("PUBLIC_API_BASE", "").rstrip("/"),
+        "checked_at": _now(),
+        "table_counts": {},
+        "last_transcription_at": None,
     }
-    try:
-        if os.path.exists(db_path()):
-            health["database_bytes"] = os.path.getsize(db_path())
-    except OSError:
-        health["database"] = "warn"
-    try:
-        import shutil
 
-        health["disk_free_mb"] = round(shutil.disk_usage(os.path.dirname(os.path.abspath(db_path()))).free / 1_048_576, 1)
-    except OSError:
-        pass
+    if use_turso():
+        health["persistence_note"] = "Turso Cloud — os dados sobrevivem a redeploys no Render."
+    else:
+        health["persistence_note"] = (
+            "SQLite local — no Render Free os dados podem perder-se em cada redeploy. "
+            "Configura TURSO_DATABASE_URL + TURSO_AUTH_TOKEN ou faz backup regular."
+        )
+
+    try:
+        t0 = time.monotonic()
+        conn = get_connection()
+        try:
+            conn.execute("SELECT 1").fetchone()
+            health["database_latency_ms"] = round((time.monotonic() - t0) * 1000, 1)
+            for table in (
+                "transcricoes",
+                "visitas",
+                "site_content",
+                "sugestoes",
+                "admin_users",
+                "audit_log",
+            ):
+                try:
+                    row = conn.execute(f"SELECT COUNT(*) AS c FROM {table}").fetchone()
+                    health["table_counts"][table] = int(row["c"] if hasattr(row, "keys") else row[0])
+                except sqlite3.Error:
+                    health["table_counts"][table] = None
+            try:
+                row = conn.execute("SELECT MAX(data) AS last FROM transcricoes").fetchone()
+                last = row["last"] if hasattr(row, "keys") else row[0]
+                health["last_transcription_at"] = last
+            except sqlite3.Error:
+                pass
+        finally:
+            conn.close()
+    except Exception as exc:
+        health["database"] = f"erro: {str(exc)[:120]}"
+
+    if not use_turso():
+        try:
+            if os.path.exists(db_path()):
+                health["database_bytes"] = os.path.getsize(db_path())
+        except OSError:
+            if health["database"] == "ok":
+                health["database"] = "warn"
+        try:
+            import shutil
+
+            health["disk_free_mb"] = round(
+                shutil.disk_usage(os.path.dirname(os.path.abspath(db_path()))).free / 1_048_576,
+                1,
+            )
+        except OSError:
+            pass
+
     if openai_client:
         try:
             openai_client.models.list(timeout=8)

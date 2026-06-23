@@ -1,0 +1,76 @@
+<footer class="oe-pro-footer" id="rodapeOuviescrevi">
+  <div class="oe-pro-footer__glow" aria-hidden="true"></div>
+  <div class="oe-pro-footer__inner">
+    <div class="oe-pro-footer__top">
+      <div class="oe-pro-footer__brand">
+        <a class="oe-pro-footer__logo" href="index.html">
+          <span class="oe-pro-brand__icon-wrap oe-pro-brand__icon-wrap--footer" aria-hidden="true">
+            <img src="/logos/ouviescrevi-icon-pro.png" alt="" class="oe-pro-brand__icon">
+          </span>
+          <span>Ouviescrevi</span>
+        </a>
+        <p class="oe-pro-footer__tagline">Transcrivez, résumez et traduisez avec l'IA — gratuit et fait au Portugal.</p>
+        <a class="oe-pro-footer__email" href="mailto:ouviescrevi@gmail.com">ouviescrevi@gmail.com</a>
+      </div>
+
+      <div class="oe-pro-footer__cols">
+        <nav class="oe-pro-footer__col" aria-label="Outils">
+          <h3>Outils</h3>
+          <a href="resumo.html">Résumer</a>
+          <a href="url-resumo.html">Résumé par URL</a>
+          <a href="perguntas.html">Questions</a>
+          <a href="conversor.html">Convertisseur</a>
+        </nav>
+        <nav class="oe-pro-footer__col" aria-label="Legal">
+          <h3>Legal</h3>
+          <a href="privacy.html">Privacy</a>
+          <a href="terms.html">Terms</a>
+          <a href="cookies.html">Cookies</a>
+          <a href="ajuda.html">Aide</a>
+          <a href="sugestoes.html">Suggestions</a>
+        </nav>
+      </div>
+    </div>
+
+    <div class="oe-pro-footer__bottom">
+      <p>© 2026 Ouviescrevi · Fait au Portugal</p>
+      <div class="oe-pro-footer__bottom-actions">
+        <div class="oe-pro-footer__social-icons" aria-label="Share on social media">
+          <a href="https://api.whatsapp.com/send?text=Check%20out%20Ouviescrevi.pt%20https://www.ouviescrevi.pt" target="_blank" rel="noopener noreferrer" title="WhatsApp">
+            <img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" alt="WhatsApp" width="20" height="20">
+          </a>
+          <a href="https://www.facebook.com/sharer/sharer.php?u=https://www.ouviescrevi.pt" target="_blank" rel="noopener noreferrer" title="Facebook">
+            <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" width="20" height="20">
+          </a>
+          <a href="https://t.me/share/url?url=https://www.ouviescrevi.pt" target="_blank" rel="noopener noreferrer" title="Telegram">
+            <img src="https://cdn-icons-png.flaticon.com/512/2111/2111646.png" alt="Telegram" width="20" height="20">
+          </a>
+          <a href="mailto:?subject=Ouviescrevi&amp;body=Check%20out%20Ouviescrevi.pt%20https://www.ouviescrevi.pt" title="Email">
+            <img src="https://cdn-icons-png.flaticon.com/512/732/732200.png" alt="Email" width="20" height="20">
+          </a>
+          <a href="https://www.linkedin.com/sharing/share-offsite/?url=https://www.ouviescrevi.pt" target="_blank" rel="noopener noreferrer" title="LinkedIn">
+            <img src="https://cdn-icons-png.flaticon.com/512/145/145807.png" alt="LinkedIn" width="20" height="20">
+          </a>
+          <a href="https://twitter.com/intent/tweet?text=Check%20out%20Ouviescrevi.pt%20https://www.ouviescrevi.pt" target="_blank" rel="noopener noreferrer" title="Twitter">
+            <img src="https://cdn-icons-png.flaticon.com/512/733/733579.png" alt="Twitter" width="20" height="20">
+          </a>
+        </div>
+        <button type="button" class="oe-pro-footer__social oe-pro-footer__social--copy" onclick="typeof partilharSite==='function'&&partilharSite()">Copy link</button>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+function partilharSite() {
+  var url = "https://www.ouviescrevi.pt";
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(function () {
+      if (window.OuviescreviUI) OuviescreviUI.toast("Link copied!", "success");
+      else alert("Link copied!");
+    });
+  } else {
+    prompt("Copy link:", url);
+  }
+}
+</script>

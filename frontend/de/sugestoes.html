@@ -1,0 +1,59 @@
+﻿<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="description" content="Do you have a suggestion for Ouviescrevi? Send us your ideas to help improve the platform.">
+  <meta name="keywords" content="Ouviescrevi suggestions, give feedback, AI ideas, improve platform, contribute suggestions">
+  <meta name="robots" content="index, follow">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Send Vorschläge – Ouviescrevi</title>
+  <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
+  <link rel="stylesheet" href="../css/ouviescrevi.css">
+  <script src="/js/ouviescrevi-seo.js" defer></script>
+  <script src="../js/ouviescrevi-ui.js" defer></script>
+</head>
+<body class="oe-page oe-pro">
+<a class="oe-skip" href="#conteudo">Zum Inhalt springen</a>
+<div id="header"></div>
+
+<div class="oe-hero" id="conteudo">
+  <h1 data-cms-key="de_sugestoes_title" data-cms-mode="text">💡 Vorschläge</h1>
+  <p class="oe-lead" data-cms-key="de_sugestoes_lead" data-cms-mode="text">Your feedback helps us improve Ouviescrevi.</p>
+</div>
+
+<section class="suggestions">
+  <form id="formSuggestion">
+    <input type="hidden" name="_captcha" value="false">
+    <label for="name" style="font-weight:600;">Name (optional)</label>
+    <input type="text" id="name" name="name" placeholder="Your name">
+    <label for="message" style="font-weight:600;margin-top:12px;display:block;">Suggestion</label>
+    <textarea id="message" name="message" placeholder="Your suggestion..." required rows="6"></textarea>
+    <button type="submit" class="btn-main oe-btn--block" id="btnSuggest">Send suggestion</button>
+  </form>
+</section>
+
+<div id="footer"></div>
+
+<script>
+document.getElementById("formSuggestion").addEventListener("submit", function(e) {
+  e.preventDefault();
+  const btn = document.getElementById("btnSuggest");
+  OuviescreviUI.setButtonLoading(btn, true, "Sending...");
+  const formData = new FormData(e.target);
+  fetch("https://formsubmit.co/ouviescrevi@gmail.com", { method: "POST", body: formData })
+    .then(function(r) {
+      if (r.ok) {
+        OuviescreviUI.toast("Thank you for your suggestion!", "success");
+        e.target.reset();
+      } else {
+        OuviescreviUI.toast("Error sending message. Please try again.", "error");
+      }
+    })
+    .catch(function() { OuviescreviUI.toast("Connection error.", "error"); })
+    .finally(function() { OuviescreviUI.setButtonLoading(btn, false); });
+});
+OuviescreviUI.loadHeader();
+OuviescreviUI.loadFooter();
+</script>
+</body>
+</html>

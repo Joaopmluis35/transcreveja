@@ -392,7 +392,7 @@ body.oe-nav-open { overflow: hidden; }
   background: var(--pro-surface);
   cursor: pointer;
 }
-.oe-pro-lang__btn img { display: block; border-radius: 2px; }
+.oe-pro-lang__btn img { display: block; border-radius: 2px; width: 22px; height: 16px; object-fit: cover; }
 .oe-pro-lang__menu {
   display: none;
   position: absolute;
@@ -422,7 +422,7 @@ body.oe-nav-open { overflow: hidden; }
   color: var(--pro-text-secondary);
 }
 .oe-pro-lang__menu button:hover { background: var(--pro-accent-muted); color: var(--pro-accent); }
-.oe-pro-lang__menu img { width: 20px; height: auto; }
+.oe-pro-lang__menu img { width: 22px; height: 16px; object-fit: cover; border-radius: 2px; flex-shrink: 0; }
 
 .oe-pro-header__actions {
   display: flex;

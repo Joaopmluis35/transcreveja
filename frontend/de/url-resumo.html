@@ -1,0 +1,112 @@
+﻿<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Generate automatic summaries from online article links using AI.">
+  <meta name="keywords" content="url summary, article summary, AI summary, smart summary, Ouviescrevi">
+  <meta name="robots" content="index, follow">
+  <title>URL-Zusammenfassung - Ouviescrevi</title>
+  <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
+  <link rel="stylesheet" href="../css/ouviescrevi.css">
+  <script src="/js/ouviescrevi-seo.js" defer></script>
+  <script src="../js/ouviescrevi-ui.js" defer></script>
+</head>
+<body class="oe-page oe-pro">
+<a class="oe-skip" href="#conteudo">Zum Inhalt springen</a>
+<div id="header"></div>
+
+<div class="oe-hero" id="conteudo">
+  <h1>🔗 Smart Summary from URL</h1>
+  <p class="oe-lead">Paste an article link to generate an automatic AI summary.</p>
+</div>
+
+<div class="container">
+  <input type="url" id="urlInput" placeholder="https://example.com/article" autocomplete="url" />
+  <button type="button" class="oe-btn oe-btn--block" id="btnUrlResumo" onclick="summarizeArticleFromURL()">Generate Summary</button>
+  <div class="progress-container" id="progressContainer" style="display: none;">
+    <div class="progress-bar" id="progressBar"></div>
+  </div>
+  <div class="loading-phrase" id="loadingPhrase"></div>
+  <pre id="resultado" class="oe-result"></pre>
+</div>
+
+<script src="../js/ouviescrevi-api.js"></script>
+<script>
+  const frases = [
+    "🧠 Reading the article...",
+    "✍️ Summarizing key points...",
+    "📚 Organizing content...",
+    "💡 Creating smart summary...",
+    "⏳ Almost done..."
+  ];
+
+  async function summarizeArticleFromURL() {
+    const url = document.getElementById("urlInput").value.trim();
+    const btn = document.getElementById("btnUrlResumo");
+    const output = document.getElementById("resultado");
+    const progressBar = document.getElementById("progressBar");
+    const progressContainer = document.getElementById("progressContainer");
+    const loadingPhrase = document.getElementById("loadingPhrase");
+
+    if (!url) {
+      OuviescreviUI.toast("Enter a valid URL.", "error");
+      return;
+    }
+
+    OuviescreviUI.setButtonLoading(btn, true, "Summarizing...");
+    output.textContent = "";
+    output.classList.remove("oe-result--error");
+    progressContainer.style.display = "block";
+    progressBar.style.width = "0%";
+
+    let percent = 0;
+    let fraseIndex = 0;
+    const interval = setInterval(() => {
+      if (percent >= 92) return;
+      percent += Math.floor(Math.random() * 5) + 1;
+      progressBar.style.width = percent + "%";
+      loadingPhrase.textContent = frases[fraseIndex];
+      fraseIndex = (fraseIndex + 1) % frases.length;
+    }, 700);
+
+    await OuviescreviAPI.init();
+    fetch(`${OuviescreviAPI.getBase()}/summarize-url`, {
+      method: "POST",
+      headers: OuviescreviAPI.authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify(OuviescreviAPI.authJson({ url: url, lang: "en" }))
+    })
+    .then(res => res.json())
+    .then(data => {
+      clearInterval(interval);
+      progressBar.style.width = "100%";
+      loadingPhrase.textContent = "";
+      if (data.summary) {
+        output.textContent = data.summary;
+      } else {
+        output.textContent = data.error || data.detail || "An unexpected error occurred.";
+        output.classList.add("oe-result--error");
+      }
+    })
+    .catch(err => {
+      clearInterval(interval);
+      progressBar.style.width = "100%";
+      loadingPhrase.textContent = "";
+      console.error(err);
+      output.textContent = "Failed to contact the server.";
+      output.classList.add("oe-result--error");
+    })
+    .finally(() => {
+      OuviescreviUI.setButtonLoading(btn, false);
+      setTimeout(() => { progressContainer.style.display = "none"; }, 800);
+    });
+  }
+</script>
+
+<div id="footer"></div>
+<script>
+  OuviescreviUI.loadHeader("header.html");
+  OuviescreviUI.loadFooter("footer.html");
+</script>
+</body>
+</html>

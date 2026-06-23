@@ -1,18 +1,18 @@
 ﻿<!DOCTYPE html>
-<html lang="pt">
+<html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <link rel="stylesheet" href="css/ouviescrevi.css?v=10">
-  <link rel="stylesheet" href="css/index-home.css?v=10">
+  <link rel="stylesheet" href="../css/ouviescrevi.css?v=10">
+  <link rel="stylesheet" href="../css/index-home.css?v=10">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
-  <title>Ouviescrevi — Transcrição de Áudio e Vídeo com IA Grátis</title>
-  <meta name="description" content="Transcreve áudio e vídeo online com inteligência artificial, grátis e sem registo. Resumos, tradução, legendas SRT e conversão de ficheiros. Feito em Portugal.">
+  <title>Ouviescrevi — Transcripción de audio y vídeo con IA gratis</title>
+  <meta name="description" content="Transcribe audio y vídeo online con inteligencia artificial, gratis y sin registro. Resúmenes, traducción, subtítulos SRT y conversión de archivos.">
   <meta name="keywords" content="converter Word para PDF, PDF para texto, imagem para PDF, conversor de ficheiros online, transcrição de áudio, transcrição automática, Ouviescrevi">
   <meta name="robots" content="index, follow">
 </head>
 <body class="oe-page oe-pro oe-page--home" data-cms-auto="false">
-<a class="oe-skip" href="#mainContent">Saltar para o conteúdo</a>
+<a class="oe-skip" href="#mainContent">Saltar al contenido</a>
 
 <div id="header"></div>
 
@@ -21,28 +21,28 @@
 </div>
 
 <main id="mainContent">
-  <h1 class="oe-visually-hidden">Ouviescrevi — Transcrição de Áudio e Vídeo com IA Grátis</h1>
+  <h1 class="oe-visually-hidden">Ouviescrevi — Transcrição de Áudio y Vídeo com IA Grátis</h1>
   <div id="adminContent">
-    <p id="cmsHomeIntro" data-cms-key="home_intro_html" data-cms-mode="html">
-      <strong>🧠 Ouviescrevi</strong> é o teu assistente com IA para
-      <br><strong>transcrever</strong> 🎙️, <strong>traduzir</strong> 🌍, <strong>resumir</strong> 📌 e <strong>converter ficheiros</strong> 📄
-      <br>— simples, rápido e gratuito.
+    <p id="cmsHomeIntro" data-cms-key="es_home_intro_html" data-cms-mode="html">
+      <strong>🧠 Ouviescrevi</strong> es tu asistente con IA para
+      <br><strong>transcribir</strong> 🎙️, <strong>traducir</strong> 🌍, <strong>resumir</strong> 📌 y <strong>convertir archivos</strong> 📄
+      <br>— simples, rápido y gratuito.
     </p>
 
     <form id="uploadForm">
       <div id="dropZone">
         <p>📁 <strong>Arrasta o ficheiro aqui</strong> ou clica para escolher</p>
         <input type="file" id="fileInput" accept="audio/*,video/*" required>
-        <span id="fileName">Nenhum ficheiro selecionado</span>
-        <small class="oe-file-hint">Limite: 500 MB — para ficheiros maiores, extrai só o áudio.</small>
+        <span id="fileName">Ningún archivo seleccionado</span>
+        <small class="oe-file-hint">Límite: 500 MB — para archivos más grandes, extrae solo el audio.</small>
       </div>
 
       <div class="oe-upload-actions">
-      <button type="submit" id="btnTranscrever">Transcrever</button>
-      <button type="button" id="btnLegendarVideo" disabled>🎬 Legendar Vídeo (SRT + MP4)</button>
-      <button type="button" id="btnStartRec">🎤 Gravar Áudio</button>
-      <button type="button" id="btnStopRecording" class="hidden">🛑 Parar Gravação</button>
-      <button type="button" id="btnLimparTudo" onclick="limparTudo()">🧹 Limpar Tudo</button>
+      <button type="submit" id="btnTranscribir">Transcribir</button>
+      <button type="button" id="btnLegendarVideo" disabled>🎬 Subtitular vídeo (SRT + MP4)</button>
+      <button type="button" id="btnStartRec">🎤 Grabar audio</button>
+      <button type="button" id="btnStopRecording" class="hidden">🛑 Detener grabación</button>
+      <button type="button" id="btnLimparTudo" onclick="limparTudo()">🧹 Limpiar todo</button>
       </div>
 
       <p id="timerGravacao" class="hidden">⏱️ 00:00</p>
@@ -51,18 +51,18 @@
       <label class="switch-container">
         <input type="checkbox" id="identificarLocutores">
         <span class="slider"></span>
-        <span class="switch-label">Identificar falas com nomes de locutores</span>
+        <span class="switch-label">Identificar voces con nombres de hablantes</span>
       </label>
 
       <label class="oe-lang-select" for="transcribeLanguage">
-        <span class="switch-label">Idioma do áudio</span>
+        <span class="switch-label">Idioma del audio</span>
         <select id="transcribeLanguage">
-          <option value="auto" selected>Deteção automática</option>
-          <option value="pt">Português</option>
-          <option value="en">Inglês</option>
-          <option value="es">Espanhol</option>
-          <option value="fr">Francês</option>
-          <option value="de">Alemão</option>
+          <option value="auto" selected>Detección automática</option>
+          <option value="pt">Portugués</option>
+          <option value="en">Inglés</option>
+          <option value="es">Español</option>
+          <option value="fr">Francés</option>
+          <option value="de">Alemán</option>
         </select>
       </label>
       </div>
@@ -71,7 +71,7 @@
     </form>
 
     <div id="loading" class="hidden">
-      <p class="status" id="transcricaoStatus">🔄 A preparar...</p>
+      <p class="status" id="transcricaoStatus">🔄 Preparando...</p>
       <p id="timerTranscricao" class="hidden">⏳ 00:00</p>
 
       <div id="progressWrap">
@@ -82,45 +82,45 @@
     <div id="uploadAlert" class="oe-upload-alert hidden" role="alert"></div>
 
     <div id="output" class="hidden">
-      <h3>Transcrição:</h3>
+      <h3>Transcripción:</h3>
       <textarea id="transcriptionText" readonly></textarea>
       <div class="oe-copy-row">
-        <button type="button" class="oe-copy-btn" onclick="copiarTranscricao()">📋 Copiar Tudo</button>
+        <button type="button" class="oe-copy-btn" onclick="copiarTranscricao()">📋 Copiar todo</button>
       </div>
 
-      <button id="btnRetry" class="hidden" onclick="tentarNovamente()"><span>🔁 Tentar novamente</span></button>
+      <button id="btnRetry" class="hidden" onclick="tentarNovamente()"><span>🔁 Intentar de nuevo</span></button>
 
-      <p id="traducaoStatus" class="status hidden">🌍 A traduzir... por favor aguarde</p>
+      <p id="traducaoStatus" class="status hidden">🌍 A traducir... por favor aguarde</p>
       <div id="traducaoProgressWrapper" class="hidden">
         <div id="traducaoProgressBar"></div>
       </div>
 
       <div id="resumoBox" class="hidden">
-        <h3>📌 Resumo:</h3>
+        <h3>📌 Resumen:</h3>
         <div id="resumoTexto" class="oe-result-box"></div>
         <div class="oe-copy-row">
-          <button type="button" class="oe-copy-btn" onclick="copiarTextoBox('resumoTexto', this)">📋 Copiar Tudo</button>
+          <button type="button" class="oe-copy-btn" onclick="copiarTextoBox('resumoTexto', this)">📋 Copiar todo</button>
         </div>
       </div>
 
       <div id="minutaBox" class="hidden">
-        <h3>📩 Minuta da Reunião:</h3>
+        <h3>📩 Acta de la reunión:</h3>
         <div id="minutaTexto" class="oe-result-box"></div>
         <div class="oe-copy-row">
-          <button type="button" class="oe-copy-btn" onclick="copiarTextoBox('minutaTexto', this)">📋 Copiar Tudo</button>
+          <button type="button" class="oe-copy-btn" onclick="copiarTextoBox('minutaTexto', this)">📋 Copiar todo</button>
         </div>
       </div>
 
       <div id="traducaoBox" class="hidden">
-        <h3>🌍 Tradução:</h3>
+        <h3>🌍 Traducción:</h3>
         <div id="traducaoTexto" class="oe-result-box"></div>
         <div class="oe-copy-row">
-          <button type="button" class="oe-copy-btn" onclick="copiarTextoBox('traducaoTexto', this)">📋 Copiar Tudo</button>
+          <button type="button" class="oe-copy-btn" onclick="copiarTextoBox('traducaoTexto', this)">📋 Copiar todo</button>
         </div>
       </div>
 
       <div id="classificacaoBox" class="hidden">
-        <h3>📚 Tipo de Conteúdo:</h3>
+        <h3>📚 Tipo de contenido:</h3>
         <div id="classificacaoTexto" class="oe-result-box"></div>
       </div>
 
@@ -259,36 +259,36 @@
     <div class="card">
       <h3>🌍 Seleciona o idioma de destino:</h3>
       <div class="oe-lang-grid">
-        <button onclick="traduzirTextoComIdioma(event, 'português')">Português</button>
-        <button onclick="traduzirTextoComIdioma(event, 'inglês')">Inglês</button>
-        <button onclick="traduzirTextoComIdioma(event, 'espanhol')">Espanhol</button>
-        <button onclick="traduzirTextoComIdioma(event, 'francês')">Francês</button>
-        <button onclick="traduzirTextoComIdioma(event, 'alemão')">Alemão</button>
-        <button onclick="traduzirTextoComIdioma(event, 'italiano')">Italiano</button>
+        <button onclick="traducirTextoComIdioma(event, 'português')">Portugués</button>
+        <button onclick="traducirTextoComIdioma(event, 'inglês')">Inglés</button>
+        <button onclick="traducirTextoComIdioma(event, 'espanhol')">Español</button>
+        <button onclick="traducirTextoComIdioma(event, 'francês')">Francés</button>
+        <button onclick="traducirTextoComIdioma(event, 'alemão')">Alemán</button>
+        <button onclick="traducirTextoComIdioma(event, 'italiano')">Italiano</button>
         <button onclick="fecharModalTraducao()">Cancelar</button>
       </div>
     </div>
   </div>
 
 <section id="apresentacaoSEO" class="oe-seo-block">
-  <h2 id="cmsSeoTitle" data-cms-key="seo_title" data-cms-mode="text">🧠 O que é o Ouviescrevi?</h2>
+  <h2 id="cmsSeoTitle" data-cms-key="seo_title" data-cms-mode="text">🧠 ¿Qué es Ouviescrevi?</h2>
   <p id="cmsSeoP1" data-cms-key="seo_p1" data-cms-mode="html">
     Ouviescrevi é uma ferramenta online que usa Inteligência Artificial (IA) para 
-    <strong>transcrever, resumir, traduzir, corrigir</strong> e <strong>classificar conteúdos</strong>, 
-    além de <strong>gerar emails</strong>, <strong>criar perguntas de estudo</strong> e até <strong>produzir vídeos com legendas automáticas</strong>.
+    <strong>transcribir, resumir, traducir, corrigir</strong> y <strong>classificar conteúdos</strong>, 
+    além de <strong>gerar emails</strong>, <strong>criar perguntas de estudo</strong> y até <strong>produzir vídeos com legendas automáticas</strong>.
   </p>
-  <p id="cmsSeoP2" data-cms-key="seo_p2" data-cms-mode="html">Ideal para professores, jornalistas, estudantes, empresas e qualquer pessoa que precise transformar áudio, vídeo ou texto em conhecimento útil. 🚀</p>
+  <p id="cmsSeoP2" data-cms-key="seo_p2" data-cms-mode="html">Ideal para professores, jornalistas, estudantes, empresas y qualquer pessoa que precise transformar áudio, vídeo ou texto em conhecimento útil. 🚀</p>
   <div class="oe-seo-features" id="cmsSeoFeatures" data-cms-key="seo_features" data-cms-mode="lines">
     <p><strong>Funcionalidades principais:</strong></p>
     <p>🎙️ Transcrição de áudio/vídeo</p>
     <p>🧠 Resumos automáticos</p>
     <p>🌍 Tradução de textos</p>
-    <p>✍️ Correção e emails com IA</p>
+    <p>✍️ Correção y emails com IA</p>
     <p>📚 Perguntas de estudo</p>
     <p>💬 Vídeos com legendas automáticas</p>
     <p>📁 Conversão de ficheiros</p>
   </div>
-  <p id="cmsSeoClosing" data-cms-key="seo_closing" data-cms-mode="text">Começa já gratuitamente. Simples, rápido e feito em Portugal 🇵🇹</p>
+  <p id="cmsSeoClosing" data-cms-key="seo_closing" data-cms-mode="text">Começa já gratuitamente. Simples, rápido y feito em Portugal 🇵🇹</p>
 </section>
 
 
@@ -300,19 +300,19 @@
 <!-- Painel de sugestão -->
 <div id="sugestaoPanel">
   <div class="sug-card">
-    <h3>💡 A tua sugestão</h3>
+    <h3>💡 Tu sugerencia</h3>
     <p>Queremos evoluir todos os dias. Deixa aqui a tua ideia 👇</p>
-    <textarea id="sugestaoTexto" placeholder="Escreve a tua sugestão..." rows="4"></textarea>
+    <textarea id="sugestaoTexto" placeholder="Escribe tu sugerencia..." rows="4"></textarea>
     <button id="enviarSugestao">📩 Enviar</button>
-    <button id="fecharSugestao">❌ Fechar</button>
+    <button id="fecharSugestao">❌ Cerrar</button>
   </div>
 </div>
 
 </main>
 
 <script src="/js/ouviescrevi-seo.js"></script>
-<script src="js/ouviescrevi-ui.js"></script>
-<script src="js/ouviescrevi-api.js"></script>
+<script src="../js/ouviescrevi-ui.js"></script>
+<script src="../js/ouviescrevi-api.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
   const ADMIN_EMAIL = "admin@ouviescrevi.pt";
@@ -360,8 +360,8 @@
     "🧩 A montar o quebra-cabeças da tua gravação...",
     "🧠 A preparar os neurónios para ouvir o ficheiro...",
     "📡 A sintonizar as ondas do áudio...",
-    "🎧 A escutar com atenção... já começámos a transcrever!",
-    "💬 A traduzir som em texto com alma...",
+    "🎧 A escutar com atenção... já começámos a transcribir!",
+    "💬 A traducir som em texto com alma...",
     "🔍 A caçar cada sílaba... nada escapa aos nossos ouvidos!",
     "🧾 A transformar conversa fiada em texto afinado...",
     "📚 A passar o áudio a limpo, como um bom aluno no fim da aula!",
@@ -422,7 +422,7 @@
   function mensagemErroTranscricao(data, file){
     const hint = [data.warning, data.error, data.detail].filter(Boolean).join(" ");
     if (/insufficient_quota|exceeded your current quota|sem créditos/i.test(hint)) {
-      return "💳 A conta OpenAI não tem créditos ativos. Adiciona um método de pagamento em https://platform.openai.com/settings/organization/billing e tenta novamente.";
+      return "💳 A conta OpenAI não tem créditos ativos. Adiciona um método de pagamento em https://platform.openai.com/settings/organization/billing y tenta novamente.";
     }
     if (/>\s*\d+\s*MB|tamanho|413/i.test(hint)) {
       return mensagemFicheiroGrande(file, hint);
@@ -474,7 +474,7 @@
   }
 
   // =========================
-  // Upload/Transcrever
+  // Upload/Transcribir
   // =========================
   const form = document.getElementById("uploadForm");
   const loading = document.getElementById("loading");
@@ -482,7 +482,7 @@
   const output = document.getElementById("output");
   const transcriptionText = document.getElementById("transcriptionText");
   const statusEl = document.getElementById("transcricaoStatus");
-  const btnTranscrever = document.getElementById("btnTranscrever");
+  const btnTranscribir = document.getElementById("btnTranscribir");
   const btnStartRec = document.getElementById("btnStartRec");
   const btnLegendarVideo = document.getElementById("btnLegendarVideo");
 
@@ -514,10 +514,10 @@
     loading.classList.remove("hidden");
     progressBar.style.width = "0%";
 
-    btnTranscrever.disabled = true;
+    btnTranscribir.disabled = true;
     btnStartRec.disabled = true;
     btnLegendarVideo.disabled = !isVideoFile(file);
-    btnTranscrever.style.opacity = 0.6;
+    btnTranscribir.style.opacity = 0.6;
     btnStartRec.style.opacity = 0.6;
 
     iniciarFrasesAnimadas(statusEl);
@@ -602,7 +602,7 @@
         transcriptionText.value = msg;
         output.classList.remove("hidden");
       }
-      statusEl.textContent = "⚠️ Não conseguimos transcrever desta vez.";
+      statusEl.textContent = "⚠️ Não conseguimos transcribir desta vez.";
       document.getElementById("btnRetry").classList.remove("hidden");
       ultimaTentativaFalhada = true;
     }
@@ -611,16 +611,16 @@
       loading.classList.add("hidden");
       progressBar.style.width = "0%";
       document.getElementById("btnRetry").classList.toggle("hidden", !ultimaTentativaFalhada);
-      btnTranscrever.disabled = false;
+      btnTranscribir.disabled = false;
       btnStartRec.disabled = false;
       btnLegendarVideo.disabled = !isVideoFile(file);
-      btnTranscrever.style.opacity = 1;
+      btnTranscribir.style.opacity = 1;
       btnStartRec.style.opacity = 1;
     }, 800);
   });
 
   // =========================
-  // Painel de legendas – helpers e preview
+  // Painel de legendas – helpers y preview
   // =========================
   const subEls = {
     panel: document.getElementById('subtitlePanel'),
@@ -742,7 +742,7 @@
     ctx.fillStyle = style.color || '#fff';
     ctx.textBaseline = 'alphabetic';
 
-    // limites e linhas
+    // limites y linhas
     const maxBlockW = canvasWidth * (style.maxWidthPct/100);
     const lines = wrapLines(ctx, style.text, maxBlockW);
     const lineHeight = Math.round(style.fontSize * 1.25);
@@ -855,14 +855,14 @@
   bindStyleInputs();
 
   // =========================
-  // Nova função: Legendar Vídeo (SRT + MP4)
+  // Nova função: Subtitular vídeo (SRT + MP4)
   // =========================
   btnLegendarVideo.addEventListener("click", legendarVideo);
 
   async function legendarVideo(){
     await ensureApi();
     const file = document.getElementById("fileInput").files[0];
-    if (!file){ return alert("⚠️ Nenhum ficheiro selecionado."); }
+    if (!file){ return alert("⚠️ Ningún archivo seleccionado."); }
     if (!isVideoFile(file)){ return alert("⚠️ Esta opção é apenas para ficheiros de vídeo."); }
 
     // reset UI
@@ -874,7 +874,7 @@
     iniciarFrasesAnimadas(statusEl);
     iniciarTimerTranscricao();
 
-    btnTranscrever.disabled = true;
+    btnTranscribir.disabled = true;
     btnStartRec.disabled = true;
     btnLegendarVideo.disabled = true;
 
@@ -953,7 +953,7 @@
       warn.classList.remove("hidden");
     } finally{
       setTimeout(() => { loading.classList.add("hidden"); progressBar.style.width = "0%"; }, 800);
-      btnTranscrever.disabled = false;
+      btnTranscribir.disabled = false;
       btnStartRec.disabled = false;
       btnLegendarVideo.disabled = !isVideoFile(file);
     }
@@ -1067,10 +1067,10 @@
     const status = document.getElementById("recordingStatus");
     const startBtn = document.getElementById("btnStartRec");
     const stopBtn = document.getElementById("btnStopRecording");
-    const transcribeBtn = document.getElementById("btnTranscrever");
+    const transcribeBtn = document.getElementById("btnTranscribir");
     const timer = document.getElementById("timerGravacao");
 
-    if (!navigator.mediaDevices?.getUserMedia){ alert("O teu navegador não suporta getUserMedia. Usa Chrome/Edge/Firefox recente e HTTPS."); return; }
+    if (!navigator.mediaDevices?.getUserMedia){ alert("O teu navegador não suporta getUserMedia. Usa Chrome/Edge/Firefox recente y HTTPS."); return; }
     if (typeof MediaRecorder === "undefined"){ alert("O teu navegador não suporta MediaRecorder."); return; }
     if (mediaRecorder && mediaRecorder.state === "recording") return;
 
@@ -1086,7 +1086,7 @@
     audioChunks = [];
 
     mediaRecorder.onstart = () => {
-      status.textContent = "🎙️ A gravar... clique em 'Parar Gravação' para terminar.";
+      status.textContent = "🎙️ A gravar... clique em 'Detener grabación' para terminar.";
       stopBtn.classList.remove("hidden");
       startBtn.disabled = true; transcribeBtn.disabled = true;
       startBtn.style.opacity = 0.6; transcribeBtn.style.opacity = 0.6;
@@ -1098,7 +1098,7 @@
       }, 1000);
     };
 
-    mediaRecorder.ondataavailable = e => { if (e.data && e.data.size > 0) audioChunks.push(e.data); };
+    mediaRecorder.ondataavailable = y => { if (e.data && e.data.size > 0) audioChunks.push(e.data); };
     mediaRecorder.onerror = () => { status.textContent = "❌ Erro do gravador. Tenta de novo."; };
 
     mediaRecorder.onstop = async () => {
@@ -1148,7 +1148,7 @@
         let txt = await res.text();
         try{ data = JSON.parse(txt); } catch{ data = { error: `Resposta inválida (${res.status})` }; }
 
-        transcriptionText.value = data.formatted || data.transcription || "⚠️ Erro ao transcrever.";
+        transcriptionText.value = data.formatted || data.transcription || "⚠️ Erro ao transcribir.";
         output.classList.remove("hidden");
         status.textContent = "✅ Transcrição concluída!";
       }catch(err){
@@ -1170,7 +1170,7 @@
   // =========================
   function tentarNovamente(){
     const file = document.getElementById("fileInput").files[0];
-    if (!file){ alert("⚠️ Nenhum ficheiro selecionado."); return; }
+    if (!file){ alert("⚠️ Ningún archivo seleccionado."); return; }
     form.dispatchEvent(new Event("submit", { bubbles:true, cancelable:true }));
   }
 
@@ -1209,7 +1209,7 @@
     if (win) {
       win.document.open();
       win.document.write(`
-        <!doctype html><html lang="pt"><head>
+        <!doctype html><html lang="es"><head>
           <meta charset="utf-8">
           <title>Correção de Texto</title>
           <style>
@@ -1229,7 +1229,7 @@
             <p class="muted">Por favor aguarda, estamos a melhorar o teu texto.</p>
             <textarea readonly>Processando…</textarea>
             <div class="row">
-              <button onclick="window.close()">Fechar</button>
+              <button onclick="window.close()">Cerrar</button>
             </div>
           </div>
         </body></html>
@@ -1339,7 +1339,7 @@
     if (win){
       win.document.open();
       win.document.write(`
-        <!doctype html><html lang="pt"><head>
+        <!doctype html><html lang="es"><head>
         <meta charset="utf-8"><title>Email Gerado</title>
         <style>
           body{font-family:'Segoe UI',sans-serif;margin:0;background:#f6f7fb;color:#222;}
@@ -1356,7 +1356,7 @@
             <h2>📧 A gerar email…</h2>
             <p class="muted">Aguarda um momento.</p>
             <textarea readonly>Processando…</textarea>
-            <div class="row"><button onclick="window.close()">Fechar</button></div>
+            <div class="row"><button onclick="window.close()">Cerrar</button></div>
           </div>
         </body></html>
       `);
@@ -1374,7 +1374,7 @@
         if (win){
           const doc = win.document;
           doc.querySelector("h2").textContent = "✅ Email gerado";
-          doc.querySelector(".muted").textContent = "Revê e copia/cola no teu cliente de email.";
+          doc.querySelector(".muted").textContent = "Revê y copia/cola no teu cliente de email.";
           const ta = doc.querySelector("textarea");
           ta.removeAttribute("readonly");
           ta.value = data.email;
@@ -1422,7 +1422,7 @@
     if (e.target.id === "modalTraducao") fecharModalTraducao();
   });
 
-  async function traduzirTextoComIdioma(event, idioma){
+  async function traducirTextoComIdioma(event, idioma){
     await ensureApi();
     fecharModalTraducao();
     const texto = transcriptionText.value.trim();
@@ -1432,7 +1432,7 @@
     const progressWrapper = document.getElementById("traducaoProgressWrapper");
 
     status.classList.remove("hidden");
-    status.textContent = "🌍 A traduzir... por favor aguarda";
+    status.textContent = "🌍 A traducir... por favor aguarda";
     progressWrapper.classList.remove("hidden");
     progressBar.style.width = "0%";
 
@@ -1443,7 +1443,7 @@
 
     const btn = event.target;
     const originalText = btn.textContent || "🌍 Traduzir";
-    btn.textContent = "🌍 A traduzir..."; btn.disabled = true;
+    btn.textContent = "🌍 A traducir..."; btn.disabled = true;
 
     try{
       const res = await fetch(`${API_BASE}/translate`, {
@@ -1480,21 +1480,21 @@
     textarea.select();
     document.execCommand("copy");
     const btn = event.target; btn.textContent = "✅ Copiado!";
-    setTimeout(() => btn.textContent = "📋 Copiar Tudo", 2000);
+    setTimeout(() => btn.textContent = "📋 Copiar todo", 2000);
   }
   function copiarTextoBox(idTexto, botao){
     const texto = document.getElementById(idTexto).textContent.trim();
     if (!texto) return;
     navigator.clipboard.writeText(texto).then(() => {
       botao.textContent = "✅ Copiado!";
-      setTimeout(() => botao.textContent = "📋 Copiar Tudo", 2000);
+      setTimeout(() => botao.textContent = "📋 Copiar todo", 2000);
     });
   }
   function limparTudo(){
     const fileInput = document.getElementById("fileInput");
     if (videoObjectURL){ URL.revokeObjectURL(videoObjectURL); videoObjectURL=null; }
     fileInput.value = "";
-    document.getElementById("fileName").textContent = "Nenhum ficheiro selecionado";
+    document.getElementById("fileName").textContent = "Ningún archivo seleccionado";
     limparAlertaUpload();
     transcriptionText.value = "";
     output.classList.add("hidden");
@@ -1561,7 +1561,7 @@
       if (fileInput.files.length > 0){
         handleFileSelected(fileInput.files[0], fileNameDisplay);
       } else {
-        fileNameDisplay.textContent = "Nenhum ficheiro selecionado";
+        fileNameDisplay.textContent = "Ningún archivo seleccionado";
         btnLegendarVideo.disabled = true;
         subEls.panel.classList.add('hidden');
       }
@@ -1575,14 +1575,14 @@
 
         if (isFileTooLarge(file)) {
           mostrarAlertaUpload(mensagemFicheiroGrande(file));
-          btnTranscrever.disabled = true;
+          btnTranscribir.disabled = true;
           btnLegendarVideo.disabled = true;
           subEls.panel.classList.add('hidden');
           return;
         }
 
         limparAlertaUpload();
-        btnTranscrever.disabled = false;
+        btnTranscribir.disabled = false;
         btnLegendarVideo.disabled = !isVid;
 
         if (isVid){

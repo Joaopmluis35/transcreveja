@@ -74,9 +74,9 @@
     });
   }
 
-  function ensureNavScript() {
-    if (global.OuviescreviNav) return Promise.resolve();
-    var existing = document.querySelector('script[data-oe-nav="1"]');
+  function ensureI18nScript() {
+    if (global.OuviescreviI18n) return Promise.resolve();
+    var existing = document.querySelector('script[data-oe-i18n="1"]');
     if (existing) {
       if (existing.getAttribute("data-ready") === "1") return Promise.resolve();
       return new Promise(function (resolve) {
@@ -85,8 +85,8 @@
     }
     return new Promise(function (resolve) {
       var s = document.createElement("script");
-      s.src = "/js/ouviescrevi-nav.js";
-      s.dataset.oeNav = "1";
+      s.src = "/js/ouviescrevi-i18n.js";
+      s.dataset.oeI18n = "1";
       s.onload = function () {
         s.setAttribute("data-ready", "1");
         resolve();
@@ -96,22 +96,53 @@
     });
   }
 
+  function ensureNavScript() {
+    return ensureI18nScript().then(function () {
+      if (global.OuviescreviNav) return Promise.resolve();
+      var existing = document.querySelector('script[data-oe-nav="1"]');
+      if (existing) {
+        if (existing.getAttribute("data-ready") === "1") return Promise.resolve();
+        return new Promise(function (resolve) {
+          existing.addEventListener("load", resolve, { once: true });
+        });
+      }
+      return new Promise(function (resolve) {
+        var s = document.createElement("script");
+        s.src = "/js/ouviescrevi-nav.js";
+        s.dataset.oeNav = "1";
+        s.onload = function () {
+          s.setAttribute("data-ready", "1");
+          resolve();
+        };
+        s.onerror = resolve;
+        document.head.appendChild(s);
+      });
+    });
+  }
+
+  var LAYOUT_V = "3";
+
+  function withLayoutVersion(url) {
+    if (!url) return url;
+    return url + (url.indexOf("?") === -1 ? "?" : "&") + "v=" + LAYOUT_V;
+  }
+
   function resolveHeaderUrl(explicit) {
-    if (explicit) return explicit;
+    if (explicit) return withLayoutVersion(explicit);
     var el = document.getElementById("header");
     if (el && el.getAttribute("data-header-url")) {
-      return el.getAttribute("data-header-url");
+      return withLayoutVersion(el.getAttribute("data-header-url"));
     }
-    return "header.html";
+    return withLayoutVersion("header.html");
   }
 
   function resolveFooterUrl(explicit) {
-    if (explicit) return explicit;
+    if (explicit) return withLayoutVersion(explicit);
     var el = document.getElementById("footer");
     if (el && el.getAttribute("data-footer-url")) {
-      return el.getAttribute("data-footer-url");
+      return withLayoutVersion(el.getAttribute("data-footer-url"));
     }
-    return "footer.html";
+    return withLayoutVersion("footer.html");
   }
 
   function loadHeader(url) {
@@ -216,6 +247,8 @@
   }
 
   function cookieBannerPath() {
+    var I = global.OuviescreviI18n;
+    if (I) return I.uiStrings(I.localeFromPath()).cookiesPath;
     var path = global.location.pathname || "";
     return path.indexOf("/en/") !== -1 ? "/en/cookies.html" : "/cookies.html";
   }
@@ -228,23 +261,40 @@
     } catch (e) {
       return;
     }
-    var en = (global.location.pathname || "").indexOf("/en/") !== -1;
+    var loc = global.OuviescreviI18n
+      ? global.OuviescreviI18n.localeFromPath()
+      : (global.location.pathname || "").indexOf("/en/") !== -1
+        ? "en"
+        : "pt";
+    var strings = global.OuviescreviI18n
+      ? global.OuviescreviI18n.uiStrings(loc)
+      : loc === "en"
+        ? {
+            cookieAria: "Cookie notice",
+            cookieText: "We use essential browser storage for the service to work. ",
+            cookieLink: "Cookie Policy",
+            cookieBtn: "OK",
+          }
+        : {
+            cookieAria: "Aviso de cookies",
+            cookieText: "Utilizamos armazenamento essencial no browser para o serviço funcionar. ",
+            cookieLink: "Política de Cookies",
+            cookieBtn: "Compreendi",
+          };
     var banner = document.createElement("div");
     banner.id = "oe-cookie-banner";
     banner.className = "oe-cookie-banner";
     banner.setAttribute("role", "dialog");
-    banner.setAttribute("aria-label", en ? "Cookie notice" : "Aviso de cookies");
+    banner.setAttribute("aria-label", strings.cookieAria);
     banner.innerHTML =
-      (en
-        ? 'We use essential browser storage for the service to work. '
-        : "Utilizamos armazenamento essencial no browser para o serviço funcionar. ") +
+      strings.cookieText +
       '<a href="' + cookieBannerPath() + '">' +
-      (en ? "Cookie Policy" : "Política de Cookies") +
+      strings.cookieLink +
       "</a>";
     var btn = document.createElement("button");
     btn.type = "button";
     btn.className = "oe-cookie-banner__btn";
-    btn.textContent = en ? "OK" : "Compreendi";
+    btn.textContent = strings.cookieBtn;
     btn.addEventListener("click", function () {
       try {
         localStorage.setItem("oe_cookies_ack", "1");
@@ -336,12 +386,14 @@
 
   function bootLayout() {
     if (global.OuviescreviSEO) global.OuviescreviSEO.apply();
+    ensureI18nScript().then(function () {
+      maybeShowCookieBanner();
+    });
     ensureNavScript().then(function () {
       autoLoadLayout();
       setTimeout(markCurrentNav, 400);
     });
     trackPageView();
-    maybeShowCookieBanner();
     if (document.body && document.body.dataset.cmsAuto !== "false") {
       loadCms();
     }

@@ -255,9 +255,21 @@
 
       <!-- Sistema -->
       <div data-panel="sistema" class="hidden">
+        <div id="systemHealthCards" class="oe-admin-health-grid" aria-live="polite"></div>
+
         <div class="oe-admin-panel">
-          <div class="oe-admin-panel__head">Estado do sistema</div>
+          <div class="oe-admin-panel__head oe-admin-panel__head--row">
+            <span>Base de dados e serviços</span>
+            <button type="button" id="btnRefreshSystem" class="oe-admin-btn oe-admin-btn--secondary oe-admin-btn--sm">🔄 Atualizar</button>
+          </div>
           <div class="oe-admin-panel__body" id="systemHealth"><p class="oe-admin-empty">A carregar...</p></div>
+        </div>
+
+        <div class="oe-admin-panel">
+          <div class="oe-admin-panel__head">Registos na base</div>
+          <div class="oe-admin-panel__body oe-admin-table-wrap" id="databaseStats">
+            <p class="oe-admin-empty">A carregar...</p>
+          </div>
         </div>
         <div class="oe-admin-panel">
           <div class="oe-admin-panel__head">Banner do site</div>
@@ -303,14 +315,14 @@
         <div class="oe-admin-panel">
           <div class="oe-admin-panel__head">Auditoria e erros</div>
           <div class="oe-admin-grid-2">
-            <div class="oe-admin-panel__body oe-admin-table-wrap" id="auditLog"><p class="oe-admin-empty">—</p></div>
-            <div class="oe-admin-panel__body oe-admin-table-wrap" id="errorLog"><p class="oe-admin-empty">—</p></div>
-          </div>
-        </div>
-        <div class="oe-admin-panel">
-          <div class="oe-admin-panel__head">Base de dados</div>
-          <div class="oe-admin-panel__body">
-            <p style="color:var(--bo-muted);margin-top:0">No Render grátis a BD SQLite é efémera. Usa backup regular ou define <code>DATABASE_PATH</code> num disco persistente.</p>
+            <div>
+              <h3 class="oe-admin-subhead">Auditoria</h3>
+              <div class="oe-admin-table-wrap" id="auditLog"><p class="oe-admin-empty">—</p></div>
+            </div>
+            <div>
+              <h3 class="oe-admin-subhead">Erros API</h3>
+              <div class="oe-admin-table-wrap" id="errorLog"><p class="oe-admin-empty">—</p></div>
+            </div>
           </div>
         </div>
       </div>

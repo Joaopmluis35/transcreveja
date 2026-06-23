@@ -12,3 +12,4 @@ imageio>=2.31.1
 imageio-ffmpeg>=0.4.8
 gtts
 jinja2  # (opcional – se fores usar templates HTML no futuro)
+libsql  # Turso Cloud (SQLite remoto, plano grátis)

@@ -611,6 +611,141 @@ table.oe-admin-table td code {
   font-style: italic;
 }
 
+/* Sistema — saúde e base de dados */
+.oe-admin-health-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.oe-admin-health-card {
+  background: var(--bo-card);
+  border: 1px solid var(--bo-border);
+  border-radius: 8px;
+  padding: 16px 18px;
+  border-left: 4px solid var(--bo-border);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.oe-admin-health-card--ok { border-left-color: var(--bo-success); }
+.oe-admin-health-card--warn { border-left-color: var(--bo-warning); }
+.oe-admin-health-card--err { border-left-color: var(--bo-danger); }
+
+.oe-admin-health-card__title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--bo-muted);
+  margin-bottom: 6px;
+}
+
+.oe-admin-health-card__value {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--bo-text);
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.oe-admin-kv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px 24px;
+}
+
+.oe-admin-kv {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.oe-admin-kv__label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--bo-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.oe-admin-kv__value {
+  font-size: 0.92rem;
+  color: var(--bo-text);
+  word-break: break-word;
+}
+
+.oe-admin-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85em;
+  background: #f6f7f7;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.oe-admin-alert {
+  padding: 12px 14px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.oe-admin-alert--ok {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+}
+
+.oe-admin-alert--warn {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+}
+
+.oe-admin-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.oe-admin-badge--ok {
+  background: #ecfdf5;
+  color: var(--bo-success);
+}
+
+.oe-admin-badge--warn {
+  background: #fffbeb;
+  color: #b45309;
+}
+
+.oe-admin-badge--err {
+  background: #fef2f2;
+  color: var(--bo-danger);
+}
+
+.oe-admin-panel__head--row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.oe-admin-subhead {
+  margin: 0 0 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--bo-muted);
+}
+
+.oe-admin-btn--sm {
+  padding: 5px 10px;
+  font-size: 0.8rem;
+}
+
 .oe-admin-burger {
   display: none;
   background: none;

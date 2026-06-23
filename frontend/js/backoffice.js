@@ -397,6 +397,17 @@
     }
   }
 
+  function formatTransDate(iso) {
+    if (!iso) return "—";
+    return String(iso).replace("T", " ").replace("Z", "").slice(0, 19);
+  }
+
+  function statusBadge(status) {
+    var s = (status || "ok").toLowerCase();
+    var cls = s === "ok" ? "oe-admin-badge--ok" : "oe-admin-badge--err";
+    return '<span class="oe-admin-badge ' + cls + '">' + s + "</span>";
+  }
+
   async function carregarLogs() {
     var div = document.getElementById("tabelaLogs");
     if (!div) return;
@@ -415,22 +426,31 @@
         return;
       }
       div.innerHTML = "";
-      div.appendChild(
-        buildTable(
-          ["Ficheiro", "Idioma", "MB", "Duração s", "Proc. s", "Estado", "Data"],
-          logs.map(function (row) {
-            return [
-              row.ficheiro || "—",
-              row.language || "—",
-              row.size_bytes ? (row.size_bytes / 1048576).toFixed(1) : "—",
-              row.duration_sec != null ? String(Math.round(row.duration_sec)) : "—",
-              row.processing_sec != null ? String(row.processing_sec) : "—",
-              row.status || "ok",
-              row.data || "—",
-            ];
-          })
-        )
+      var table = buildTable(
+        ["Ficheiro", "Idioma", "MB", "Duração", "Processamento", "Estado", "Data"],
+        logs.map(function (row) {
+          var name = row.ficheiro || "—";
+          var short = name.length > 48 ? name.slice(0, 45) + "…" : name;
+          return [
+            short,
+            row.language || "auto",
+            row.size_bytes ? (row.size_bytes / 1048576).toFixed(1) : "—",
+            row.duration_sec != null ? Math.round(row.duration_sec) + " s" : "—",
+            row.processing_sec != null ? row.processing_sec + " s" : "—",
+            row.status || "ok",
+            formatTransDate(row.data),
+          ];
+        })
       );
+      table.querySelectorAll("tbody tr").forEach(function (tr, i) {
+        var row = logs[i];
+        if (!row) return;
+        var fileTd = tr.cells[0];
+        if (fileTd && row.ficheiro) fileTd.title = row.ficheiro;
+        var statusTd = tr.cells[5];
+        if (statusTd) statusTd.innerHTML = statusBadge(row.status);
+      });
+      div.appendChild(table);
     } catch (e) {
       div.innerHTML = '<p class="oe-admin-empty">Erro ao carregar.</p>';
     }
@@ -496,7 +516,14 @@
     document.getElementById("cmsPageSelect").addEventListener("change", function () {
       selectCmsPage(this.value);
     });
-    document.getElementById("btnRefresh").addEventListener("click", carregarDashboard);
+    document.getElementById("btnRefresh").addEventListener("click", function () {
+      carregarDashboard();
+      var active = document.querySelector(".oe-admin-nav button.is-active");
+      if (active && active.dataset.tab === "transcricoes") carregarLogs();
+      if (active && active.dataset.tab === "sistema" && global.OuviescreviAdminExt) {
+        global.OuviescreviAdminExt.loadSystem();
+      }
+    });
     document.getElementById("btnLogoutSide").addEventListener("click", logout);
     document.getElementById("btnLogoutTop").addEventListener("click", logout);
     document.getElementById("adminBurger").addEventListener("click", function () {
