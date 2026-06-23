@@ -16,9 +16,13 @@
 
 <div id="header"></div>
 
+<div id="cmsMaintenanceBanner" class="oe-maintenance-banner hidden" role="alert">
+  🛑 O serviço está temporariamente em manutenção. Novas transcrições estão indisponíveis.
+</div>
+
 <main id="mainContent">
   <div id="adminContent">
-    <p>
+    <p id="cmsHomeIntro">
       <strong>🧠 Ouviescrevi</strong> é o teu assistente com IA para
       <br><strong>transcrever</strong> 🎙️, <strong>traduzir</strong> 🌍, <strong>resumir</strong> 📌 e <strong>converter ficheiros</strong> 📄
       <br>— simples, rápido e gratuito.
@@ -54,7 +58,6 @@
           <option value="en">Inglês</option>
           <option value="es">Espanhol</option>
           <option value="fr">Francês</option>
-          <option value="auto">Deteção automática</option>
         </select>
       </label>
 
@@ -262,14 +265,14 @@
   </div>
 
 <section id="apresentacaoSEO" class="oe-seo-block">
-  <h2>🧠 O que é o Ouviescrevi?</h2>
-  <p>
+  <h2 id="cmsSeoTitle">🧠 O que é o Ouviescrevi?</h2>
+  <p id="cmsSeoP1">
     Ouviescrevi é uma ferramenta online que usa Inteligência Artificial (IA) para 
     <strong>transcrever, resumir, traduzir, corrigir</strong> e <strong>classificar conteúdos</strong>, 
     além de <strong>gerar emails</strong>, <strong>criar perguntas de estudo</strong> e até <strong>produzir vídeos com legendas automáticas</strong>.
   </p>
-  <p>Ideal para professores, jornalistas, estudantes, empresas e qualquer pessoa que precise transformar áudio, vídeo ou texto em conhecimento útil. 🚀</p>
-  <div class="oe-seo-features">
+  <p id="cmsSeoP2">Ideal para professores, jornalistas, estudantes, empresas e qualquer pessoa que precise transformar áudio, vídeo ou texto em conhecimento útil. 🚀</p>
+  <div class="oe-seo-features" id="cmsSeoFeatures">
     <p><strong>Funcionalidades principais:</strong></p>
     <p>🎙️ Transcrição de áudio/vídeo</p>
     <p>🧠 Resumos automáticos</p>
@@ -279,7 +282,7 @@
     <p>💬 Vídeos com legendas automáticas</p>
     <p>📁 Conversão de ficheiros</p>
   </div>
-  <p>Começa já gratuitamente. Simples, rápido e feito em Portugal 🇵🇹</p>
+  <p id="cmsSeoClosing">Começa já gratuitamente. Simples, rápido e feito em Portugal 🇵🇹</p>
 </section>
 
 
@@ -313,6 +316,56 @@
     API_BASE = OuviescreviAPI.getBase();
     API_TOKEN = OuviescreviAPI.getToken();
   }
+
+  async function loadSiteContent() {
+    try {
+      await ensureApi();
+      const res = await fetch(`${API_BASE}/api/site-content`, { credentials: "omit" });
+      if (!res.ok) return;
+      const data = await res.json();
+      const c = data.content || {};
+      if (c.home_intro_html) {
+        const el = document.getElementById("cmsHomeIntro");
+        if (el) el.innerHTML = c.home_intro_html;
+      }
+      if (c.seo_title) {
+        const t = document.getElementById("cmsSeoTitle");
+        if (t) t.textContent = c.seo_title;
+      }
+      if (c.seo_p1) {
+        const p = document.getElementById("cmsSeoP1");
+        if (p) p.innerHTML = c.seo_p1;
+      }
+      if (c.seo_p2) {
+        const p = document.getElementById("cmsSeoP2");
+        if (p) p.textContent = c.seo_p2;
+      }
+      if (c.seo_features) {
+        const box = document.getElementById("cmsSeoFeatures");
+        if (box) {
+          const lines = c.seo_features.split("\n").filter(Boolean);
+          box.innerHTML = "<p><strong>Funcionalidades principais:</strong></p>" +
+            lines.map((line) => "<p></p>").join("");
+          const ps = box.querySelectorAll("p");
+          lines.forEach((line, i) => { if (ps[i + 1]) ps[i + 1].textContent = line; });
+        }
+      }
+      if (c.seo_closing) {
+        const cl = document.getElementById("cmsSeoClosing");
+        if (cl) cl.textContent = c.seo_closing;
+      }
+      if (data.manutencao) {
+        const banner = document.getElementById("cmsMaintenanceBanner");
+        if (banner) banner.classList.remove("hidden");
+        const form = document.getElementById("uploadForm");
+        if (form) form.querySelectorAll("button, input[type=file]").forEach((el) => { el.disabled = true; });
+      }
+    } catch (e) {
+      console.warn("CMS: conteúdo dinâmico indisponível", e);
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", loadSiteContent);
 
   let mediaRecorder;
   let audioChunks = [];

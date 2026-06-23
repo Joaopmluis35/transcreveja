@@ -33,6 +33,8 @@ from security import (
     safe_http_get,
     validate_public_http_url,
 )
+from cms import get_all_content, update_content, reset_content, CONTENT_KEYS
+from analytics import record_visit, get_visit_stats, get_recent_visits
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Setup
@@ -137,6 +139,8 @@ RATE_LIMIT_VIDEO_SUBS = int(os.getenv("RATE_LIMIT_VIDEO_SUBS", "10"))
 RATE_LIMIT_VIDEO_SUBS_WINDOW = int(os.getenv("RATE_LIMIT_VIDEO_SUBS_WINDOW", "3600"))
 RATE_LIMIT_AI = int(os.getenv("RATE_LIMIT_AI", "60"))
 RATE_LIMIT_AI_WINDOW = int(os.getenv("RATE_LIMIT_AI_WINDOW", "3600"))
+RATE_LIMIT_TRACK = int(os.getenv("RATE_LIMIT_TRACK", "300"))
+RATE_LIMIT_TRACK_WINDOW = int(os.getenv("RATE_LIMIT_TRACK_WINDOW", "3600"))
 
 # Timeouts e parâmetros
 WHISPER_TIMEOUT = int(os.getenv("WHISPER_TIMEOUT", "110"))  # por chunk
@@ -310,6 +314,22 @@ def enforce_rate_limit(request: Request, bucket: str, limit: int, window: int) -
 def require_debug_enabled() -> None:
     if not ENABLE_DEBUG_ENDPOINTS:
         raise HTTPException(status_code=404, detail="Não encontrado.")
+
+
+def get_manutencao() -> bool:
+    conn = sqlite3.connect("ouviescrevi.db")
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT manutencao FROM status WHERE id = 1")
+        row = cur.fetchone()
+        return bool(row[0]) if row else False
+    finally:
+        conn.close()
+
+
+def require_not_maintenance() -> None:
+    if get_manutencao():
+        raise HTTPException(status_code=503, detail="Serviço temporariamente em manutenção. Tenta mais tarde.")
 
 def enviar_email_assunto(mensagem: str, assunto: str = "Nova atividade no Ouviescrevi"):
     import smtplib
@@ -650,6 +670,76 @@ def admin_login(req: AdminLoginRequest):
     return {"ok": True, "adminToken": ADMIN_TOKEN}
 
 
+class TrackVisitRequest(BaseModel):
+    path: str = "/"
+
+
+@app.post("/api/track-visit")
+def track_visit(request: Request, body: TrackVisitRequest):
+    if not origin_is_allowed(request, ALLOWED_ORIGINS):
+        raise HTTPException(status_code=403, detail="Origem não autorizada.")
+    enforce_rate_limit(request, "track", RATE_LIMIT_TRACK, RATE_LIMIT_TRACK_WINDOW)
+    path = (body.path or "/").strip()[:500] or "/"
+    record_visit(path, client_ip(request))
+    return {"ok": True}
+
+
+@app.get("/api/site-content")
+def site_content(request: Request):
+    if not origin_is_allowed(request, ALLOWED_ORIGINS):
+        raise HTTPException(status_code=403, detail="Origem não autorizada.")
+    return {"content": get_all_content(), "manutencao": get_manutencao()}
+
+
+class SiteContentUpdateRequest(BaseModel):
+    updates: dict[str, str]
+
+
+@app.get("/api/admin/dashboard")
+def admin_dashboard(request: Request):
+    require_admin_token(request)
+    conn = sqlite3.connect("ouviescrevi.db")
+    try:
+        cur = conn.cursor()
+        hoje = date.today().isoformat()
+        cur.execute("SELECT COUNT(*) FROM transcricoes WHERE substr(data,1,10) = ?", (hoje,))
+        transcricoes_hoje = int(cur.fetchone()[0])
+        cur.execute("SELECT COUNT(*) FROM transcricoes")
+        transcricoes_total = int(cur.fetchone()[0])
+    finally:
+        conn.close()
+    stats = get_visit_stats()
+    return {
+        "manutencao": get_manutencao(),
+        "transcricoes_hoje": transcricoes_hoje,
+        "transcricoes_total": transcricoes_total,
+        "visitas": stats,
+        "visitas_recentes": get_recent_visits(15),
+    }
+
+
+@app.get("/api/admin/site-content")
+def admin_get_site_content(request: Request):
+    require_admin_token(request)
+    return {"content": get_all_content(), "keys": sorted(CONTENT_KEYS)}
+
+
+@app.put("/api/admin/site-content")
+def admin_put_site_content(request: Request, body: SiteContentUpdateRequest):
+    require_admin_token(request)
+    if not body.updates:
+        raise HTTPException(status_code=400, detail="Nenhuma alteração enviada.")
+    content = update_content(body.updates)
+    return {"ok": True, "content": content}
+
+
+@app.post("/api/admin/site-content/reset")
+def admin_reset_site_content(request: Request):
+    require_admin_token(request)
+    content = reset_content()
+    return {"ok": True, "content": content}
+
+
 @app.get("/debug")
 def debug():
     require_debug_enabled()
@@ -664,6 +754,7 @@ async def transcribe(
     language: str | None = Form(None),
 ):
     require_api_token(request, token)
+    require_not_maintenance()
     enforce_rate_limit(request, "transcribe", RATE_LIMIT_TRANSCRIBE, RATE_LIMIT_TRANSCRIBE_WINDOW)
     rid = str(uuid.uuid4())
     t_start = time.monotonic()

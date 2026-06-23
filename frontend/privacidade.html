@@ -58,7 +58,7 @@
         <tr><th>Categoria</th><th>Exemplos</th></tr>
       </thead>
       <tbody>
-        <tr><td>Dados de utilização</td><td>Endereço IP, data/hora do pedido, páginas visitadas, tipo de browser</td></tr>
+        <tr><td>Dados de utilização</td><td>Páginas visitadas, data/hora, identificador técnico anonimizado por dia (para contagem de visitantes únicos), tipo de browser; endereço IP pode aparecer em logs do servidor</td></tr>
         <tr><td>Ficheiros enviados</td><td>Áudio, vídeo ou documentos que carregas para transcrição ou conversão</td></tr>
         <tr><td>Conteúdo derivado</td><td>Transcrições, resumos, traduções e outros textos gerados a partir dos teus ficheiros</td></tr>
         <tr><td>Dados técnicos</td><td>Nome do ficheiro original, tamanho, tipo MIME, identificadores internos de pedido</td></tr>
@@ -78,7 +78,7 @@
       <tbody>
         <tr><td>Prestar transcrição, resumo, tradução e funcionalidades de IA</td><td>Execução de medidas pré-contratuais / contrato (art.º 6.º, n.º 1, al. b))</td></tr>
         <tr><td>Garantir segurança, prevenir abuso e limitar taxa de pedidos</td><td>Interesse legítimo (art.º 6.º, n.º 1, al. f))</td></tr>
-        <tr><td>Manter estatísticas agregadas de utilização (ex.: contagem diária)</td><td>Interesse legítimo (art.º 6.º, n.º 1, al. f))</td></tr>
+        <tr><td>Manter estatísticas agregadas de utilização (visitas ao site, contagem de transcrições)</td><td>Interesse legítimo (art.º 6.º, n.º 1, al. f))</td></tr>
         <tr><td>Responder a pedidos de suporte</td><td>Interesse legítimo / execução de contrato</td></tr>
         <tr><td>Cumprir obrigações legais</td><td>Obrigação legal (art.º 6.º, n.º 1, al. c))</td></tr>
       </tbody>
@@ -113,7 +113,8 @@
     <h2>6. Prazos de conservação</h2>
     <ul>
       <li><strong>Ficheiros carregados:</strong> eliminados após processamento (minutos).</li>
-      <li><strong>Registo estatístico (nome + data):</strong> mantido enquanto necessário para análise de utilização; podes pedir eliminação.</li>
+      <li><strong>Registo de visitas:</strong> página visitada, dia e hora; identificador anonimizado (não guardamos o IP em claro na base de estatísticas).</li>
+      <li><strong>Registo estatístico de transcrições (nome + data):</strong> mantido enquanto necessário para análise de utilização; podes pedir eliminação.</li>
       <li><strong>Logs técnicos do servidor:</strong> conservados pelo período definido pelo alojamento (tipicamente dias a semanas).</li>
       <li><strong>Emails de suporte:</strong> até resolução do pedido e período razoável posterior.</li>
       <li><strong>Dados no teu browser:</strong> até limpares o armazenamento local ou fechares a sessão (ver Cookies).</li>

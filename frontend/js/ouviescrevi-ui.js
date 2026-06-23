@@ -155,6 +155,29 @@
     }
   }
 
+  function trackPageView() {
+    try {
+      if ((global.location.pathname || "").indexOf("backoffice") !== -1) return;
+      var path = global.location.pathname || "/";
+      var key = "oe_track_" + path;
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, "1");
+    } catch (e) {
+      return;
+    }
+    var base =
+      global.OuviescreviAPI && global.OuviescreviAPI.detectApiBase
+        ? global.OuviescreviAPI.detectApiBase()
+        : null;
+    if (!base) return;
+    fetch(base + "/api/track-visit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "omit",
+      body: JSON.stringify({ path: global.location.pathname || "/" }),
+    }).catch(function () {});
+  }
+
   function cookieBannerPath() {
     var path = global.location.pathname || "";
     return path.indexOf("/en/") !== -1 ? "/en/cookies.html" : "/cookies.html";
@@ -197,6 +220,7 @@
   function bootLayout() {
     autoLoadLayout();
     setTimeout(markCurrentNav, 400);
+    trackPageView();
     maybeShowCookieBanner();
   }
 

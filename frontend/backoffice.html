@@ -3,38 +3,100 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
   <title>Backoffice | Ouviescrevi</title>
   <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png">
   <link rel="stylesheet" href="css/ouviescrevi.css">
   <script src="js/ouviescrevi-ui.js" defer></script>
 </head>
-<body class="oe-backoffice">
+<body class="oe-backoffice" data-oe-auto-footer="false">
 <a class="oe-skip" href="#painel">Saltar para o painel</a>
 
-<h2>Backoffice Ouviescrevi</h2>
+<div class="oe-bo-wrap">
+  <h2>Backoffice Ouviescrevi</h2>
 
-<form id="loginForm" class="oe-card oe-card--narrow">
-  <p style="margin-top:0;color:var(--oe-text-muted);">Acesso restrito a administradores</p>
-  <label for="password" style="display:block;text-align:left;font-weight:600;margin-top:12px;">Palavra-chave</label>
-  <input type="password" id="password" placeholder="Palavra-chave" autocomplete="current-password">
-  <button type="submit" class="oe-btn oe-btn--block">Entrar</button>
-</form>
+  <form id="loginForm" class="oe-card oe-card--narrow oe-bo-login">
+    <p style="margin-top:0;color:var(--oe-text-muted);">Acesso restrito a administradores</p>
+    <label for="password" class="oe-bo-label">Palavra-chave</label>
+    <input type="password" id="password" placeholder="Palavra-chave" autocomplete="current-password">
+    <button type="submit" class="oe-btn oe-btn--block">Entrar</button>
+  </form>
 
-<div class="painel oe-card" id="painel" style="display:none">
-  <p style="margin-top:0;"><strong>Bem-vindo, admin.</strong></p>
-  <p id="contadorHoje">🔄 A carregar transcrições de hoje...</p>
+  <div class="painel oe-bo-panel" id="painel" style="display:none">
+    <div class="oe-bo-topbar">
+      <p class="oe-bo-welcome"><strong>Bem-vindo, admin.</strong></p>
+      <button type="button" class="oe-btn oe-btn--ghost" onclick="logout()">Sair</button>
+    </div>
 
-  <label>
-    <span>🛑 Modo Manutenção</span>
-    <input type="checkbox" id="manutencaoToggle">
-  </label>
+    <nav class="oe-bo-tabs" role="tablist" aria-label="Secções do backoffice">
+      <button type="button" class="oe-bo-tab is-active" data-tab="dashboard" role="tab" aria-selected="true">📊 Painel</button>
+      <button type="button" class="oe-bo-tab" data-tab="conteudo" role="tab" aria-selected="false">✏️ Conteúdo</button>
+      <button type="button" class="oe-bo-tab" data-tab="transcricoes" role="tab" aria-selected="false">🎙️ Transcrições</button>
+    </nav>
 
-  <p id="statusTexto"></p>
+    <!-- Dashboard -->
+    <section id="tab-dashboard" class="oe-bo-section" role="tabpanel">
+      <div class="oe-bo-stats" id="statsGrid">
+        <div class="oe-bo-stat"><span class="oe-bo-stat__label">Visitas hoje</span><strong id="statVisitasHoje">—</strong></div>
+        <div class="oe-bo-stat"><span class="oe-bo-stat__label">Visitantes únicos hoje</span><strong id="statUnicosHoje">—</strong></div>
+        <div class="oe-bo-stat"><span class="oe-bo-stat__label">Visitas (7 dias)</span><strong id="statVisitas7">—</strong></div>
+        <div class="oe-bo-stat"><span class="oe-bo-stat__label">Visitas (30 dias)</span><strong id="statVisitas30">—</strong></div>
+        <div class="oe-bo-stat"><span class="oe-bo-stat__label">Transcrições hoje</span><strong id="statTransHoje">—</strong></div>
+        <div class="oe-bo-stat"><span class="oe-bo-stat__label">Transcrições total</span><strong id="statTransTotal">—</strong></div>
+      </div>
 
-  <button type="button" class="oe-btn oe-btn--block" onclick="carregarLogs()">📊 Ver Estatísticas</button>
-  <div id="tabelaLogs"></div>
+      <label class="oe-bo-maint">
+        <span>🛑 Modo manutenção <small>(bloqueia novas transcrições)</small></span>
+        <input type="checkbox" id="manutencaoToggle">
+      </label>
+      <p id="statusTexto" class="oe-bo-status"></p>
 
-  <button type="button" class="oe-btn oe-btn--block" onclick="logout()" style="margin-top:20px;background:#fee2e2;border-color:#fca5a5;">Sair</button>
+      <h3 class="oe-bo-subtitle">Visitas recentes</h3>
+      <div id="visitasRecentes" class="oe-bo-table-wrap">A carregar...</div>
+      <button type="button" class="oe-btn" onclick="carregarDashboard()">🔄 Atualizar painel</button>
+    </section>
+
+    <!-- Conteúdo -->
+    <section id="tab-conteudo" class="oe-bo-section hidden" role="tabpanel">
+      <p class="oe-bo-hint">Altera textos da página inicial. HTML simples permitido em parágrafos (ex.: <code>&lt;strong&gt;</code>).</p>
+      <form id="contentForm" class="oe-bo-form">
+        <label class="oe-bo-field">
+          <span>Texto de boas-vindas (topo)</span>
+          <textarea name="home_intro_html" rows="4"></textarea>
+        </label>
+        <label class="oe-bo-field">
+          <span>Título «O que é o Ouviescrevi?»</span>
+          <input type="text" name="seo_title">
+        </label>
+        <label class="oe-bo-field">
+          <span>Parágrafo 1 (SEO)</span>
+          <textarea name="seo_p1" rows="3"></textarea>
+        </label>
+        <label class="oe-bo-field">
+          <span>Parágrafo 2 (SEO)</span>
+          <textarea name="seo_p2" rows="2"></textarea>
+        </label>
+        <label class="oe-bo-field">
+          <span>Funcionalidades <small>(uma por linha)</small></span>
+          <textarea name="seo_features" rows="7"></textarea>
+        </label>
+        <label class="oe-bo-field">
+          <span>Texto de fecho</span>
+          <input type="text" name="seo_closing">
+        </label>
+        <div class="oe-bo-actions">
+          <button type="submit" class="oe-btn">💾 Guardar alterações</button>
+          <button type="button" class="oe-btn oe-btn--ghost" onclick="reporConteudo()">↩️ Repor textos originais</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Transcrições -->
+    <section id="tab-transcricoes" class="oe-bo-section hidden" role="tabpanel">
+      <button type="button" class="oe-btn" onclick="carregarLogs()">📋 Carregar últimas transcrições</button>
+      <div id="tabelaLogs" class="oe-bo-table-wrap"></div>
+    </section>
+  </div>
 </div>
 
 <script src="js/ouviescrevi-api.js"></script>
@@ -43,6 +105,7 @@
   const painel = document.getElementById("painel");
   const toggle = document.getElementById("manutencaoToggle");
   const statusTexto = document.getElementById("statusTexto");
+  const contentForm = document.getElementById("contentForm");
 
   function apiBase() {
     return OuviescreviAPI.getBase() || OuviescreviAPI.detectApiBase();
@@ -51,19 +114,18 @@
   function mostrarPainel() {
     form.style.display = "none";
     painel.style.display = "block";
-    painel.id = "painel";
-    carregarEstado();
+    carregarDashboard();
+    carregarConteudo();
   }
 
-  if (OuviescreviUI && OuviescreviAPI.isAdminSession()) {
-    mostrarPainel();
+  if (OuviescreviAPI.isAdminSession()) {
+    OuviescreviAPI.init().then(mostrarPainel);
   }
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const password = document.getElementById("password").value;
     try {
-      await OuviescreviAPI.adminLogin(password);
+      await OuviescreviAPI.adminLogin(document.getElementById("password").value);
       OuviescreviUI.toast("Sessão iniciada.", "success");
       mostrarPainel();
     } catch {
@@ -71,28 +133,19 @@
     }
   });
 
-  async function carregarEstado() {
-    try {
-      const res = await fetch(`${apiBase()}/api/status`);
-      const data = await res.json();
-      toggle.checked = !!data.manutencao;
-      statusTexto.textContent = data.manutencao ? "🛑 Site em manutenção" : "✅ Site operacional";
-      statusTexto.style.color = data.manutencao ? "#b91c1c" : "#047857";
-    } catch {
-      statusTexto.textContent = "⚠️ Não foi possível carregar o estado.";
-    }
-
-    try {
-      const res = await fetch(`${apiBase()}/transcricoes-hoje`, {
-        headers: OuviescreviAPI.adminAuthHeaders()
+  document.querySelectorAll(".oe-bo-tab").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".oe-bo-tab").forEach((b) => {
+        b.classList.remove("is-active");
+        b.setAttribute("aria-selected", "false");
       });
-      const data = await res.json();
-      document.getElementById("contadorHoje").textContent =
-        "📊 Transcrições hoje: " + (data.total ?? data.count ?? "—");
-    } catch {
-      document.getElementById("contadorHoje").textContent = "📊 Transcrições hoje: —";
-    }
-  }
+      btn.classList.add("is-active");
+      btn.setAttribute("aria-selected", "true");
+      const tab = btn.dataset.tab;
+      document.querySelectorAll(".oe-bo-section").forEach((sec) => sec.classList.add("hidden"));
+      document.getElementById("tab-" + tab).classList.remove("hidden");
+    });
+  });
 
   toggle.addEventListener("change", async () => {
     try {
@@ -102,14 +155,132 @@
         body: JSON.stringify({ manutencao: toggle.checked })
       });
       const data = await res.json();
-      statusTexto.textContent = data.manutencao ? "🛑 Modo manutenção ativado" : "✅ Modo manutenção desativado";
-      statusTexto.style.color = data.manutencao ? "#b91c1c" : "#047857";
+      atualizarStatusManutencao(!!data.manutencao);
       OuviescreviUI.toast(statusTexto.textContent, "success");
     } catch {
       OuviescreviUI.toast("Erro ao atualizar estado.", "error");
       toggle.checked = !toggle.checked;
     }
   });
+
+  function atualizarStatusManutencao(on) {
+    statusTexto.textContent = on ? "🛑 Site em manutenção" : "✅ Site operacional";
+    statusTexto.style.color = on ? "#b91c1c" : "#047857";
+  }
+
+  async function carregarDashboard() {
+    try {
+      const res = await fetch(`${apiBase()}/api/admin/dashboard`, {
+        headers: OuviescreviAPI.adminAuthHeaders()
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const data = await res.json();
+      const v = data.visitas || {};
+      document.getElementById("statVisitasHoje").textContent = v.visitas_hoje ?? "—";
+      document.getElementById("statUnicosHoje").textContent = v.visitantes_unicos_hoje ?? "—";
+      document.getElementById("statVisitas7").textContent = v.visitas_7_dias ?? "—";
+      document.getElementById("statVisitas30").textContent = v.visitas_30_dias ?? "—";
+      document.getElementById("statTransHoje").textContent = data.transcricoes_hoje ?? "—";
+      document.getElementById("statTransTotal").textContent = data.transcricoes_total ?? "—";
+      toggle.checked = !!data.manutencao;
+      atualizarStatusManutencao(!!data.manutencao);
+      renderVisitasRecentes(data.visitas_recentes || []);
+    } catch {
+      OuviescreviUI.toast("Erro ao carregar painel.", "error");
+    }
+  }
+
+  function renderVisitasRecentes(rows) {
+    const div = document.getElementById("visitasRecentes");
+    if (!rows.length) {
+      div.textContent = "Ainda sem visitas registadas.";
+      return;
+    }
+    div.innerHTML = "";
+    div.appendChild(buildTable(["Página", "Dia", "Hora"], rows.map((r) => [
+      r.path || "—",
+      r.day || "—",
+      (r.created_at || "").replace("T", " ").replace("Z", "")
+    ])));
+  }
+
+  async function carregarConteudo() {
+    try {
+      const res = await fetch(`${apiBase()}/api/admin/site-content`, {
+        headers: OuviescreviAPI.adminAuthHeaders()
+      });
+      const data = await res.json();
+      const c = data.content || {};
+      contentForm.querySelectorAll("[name]").forEach((el) => {
+        if (c[el.name] != null) el.value = c[el.name];
+      });
+    } catch {
+      OuviescreviUI.toast("Erro ao carregar conteúdo.", "error");
+    }
+  }
+
+  contentForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const updates = {};
+    contentForm.querySelectorAll("[name]").forEach((el) => {
+      updates[el.name] = el.value;
+    });
+    try {
+      const res = await fetch(`${apiBase()}/api/admin/site-content`, {
+        method: "PUT",
+        headers: OuviescreviAPI.adminAuthHeaders(),
+        body: JSON.stringify({ updates })
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      OuviescreviUI.toast("Conteúdo guardado. Atualiza a homepage para ver.", "success");
+    } catch {
+      OuviescreviUI.toast("Erro ao guardar.", "error");
+    }
+  });
+
+  async function reporConteudo() {
+    if (!confirm("Repor todos os textos da homepage aos valores originais?")) return;
+    try {
+      const res = await fetch(`${apiBase()}/api/admin/site-content/reset`, {
+        method: "POST",
+        headers: OuviescreviAPI.adminAuthHeaders()
+      });
+      const data = await res.json();
+      const c = data.content || {};
+      contentForm.querySelectorAll("[name]").forEach((el) => {
+        if (c[el.name] != null) el.value = c[el.name];
+      });
+      OuviescreviUI.toast("Textos repostos.", "success");
+    } catch {
+      OuviescreviUI.toast("Erro ao repor.", "error");
+    }
+  }
+
+  function buildTable(headers, rows) {
+    const table = document.createElement("table");
+    table.className = "logs";
+    const thead = document.createElement("thead");
+    const hr = document.createElement("tr");
+    headers.forEach((t) => {
+      const th = document.createElement("th");
+      th.textContent = t;
+      hr.appendChild(th);
+    });
+    thead.appendChild(hr);
+    table.appendChild(thead);
+    const tbody = document.createElement("tbody");
+    rows.forEach((row) => {
+      const tr = document.createElement("tr");
+      row.forEach((cell) => {
+        const td = document.createElement("td");
+        td.textContent = cell;
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    return table;
+  }
 
   async function carregarLogs() {
     const div = document.getElementById("tabelaLogs");
@@ -124,34 +295,17 @@
         div.textContent = "Sem registos.";
         return;
       }
-      const table = document.createElement("table");
-      table.className = "logs";
-      const thead = document.createElement("thead");
-      const hr = document.createElement("tr");
-      ["Ficheiro", "Data"].forEach(t => {
-        const th = document.createElement("th");
-        th.textContent = t;
-        hr.appendChild(th);
-      });
-      thead.appendChild(hr);
-      table.appendChild(thead);
-      const tbody = document.createElement("tbody");
-      logs.slice().reverse().slice(0, 50).forEach(row => {
-        const tr = document.createElement("tr");
-        const td1 = document.createElement("td");
-        const td2 = document.createElement("td");
-        td1.textContent = row.ficheiro || row.file || "—";
-        td2.textContent = row.data || row.date || "—";
-        tr.appendChild(td1);
-        tr.appendChild(td2);
-        tbody.appendChild(tr);
-      });
-      table.appendChild(tbody);
-      div.textContent = "";
-      div.appendChild(table);
+      div.innerHTML = "";
+      div.appendChild(buildTable(
+        ["Ficheiro", "Data"],
+        logs.slice().reverse().slice(0, 80).map((row) => [
+          row.ficheiro || row.file || "—",
+          row.data || row.date || "—"
+        ])
+      ));
     } catch {
-      div.textContent = "Erro ao carregar logs.";
-      OuviescreviUI.toast("Erro ao carregar logs.", "error");
+      div.textContent = "Erro ao carregar.";
+      OuviescreviUI.toast("Erro ao carregar transcrições.", "error");
     }
   }
 
