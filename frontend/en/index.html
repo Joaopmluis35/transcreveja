@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png" />
+  <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="../css/ouviescrevi.css">
   <script src="/js/ouviescrevi-seo.js" defer></script>
@@ -175,7 +175,7 @@
     }
   </style>
 </head>
-<body class="oe-page oe-page--home">
+<body class="oe-page oe-pro oe-page--home">
 <a class="oe-skip" href="#mainContent">Skip to content</a>
 
 <div id="header"></div>
@@ -200,19 +200,23 @@
         <span id="fileName">No file selected</span>
       </div>
 
+      <div class="oe-upload-actions">
       <button type="submit" id="btnTranscribe">Transcribe</button>
       <button type="button" id="btnSubtitleVideo" disabled>🎬 Subtitle Video (SRT + MP4)</button>
       <button type="button" id="btnStartRec">🎤 Record Audio</button>
-      <button type="button" id="btnStopRecording" class="hidden" style="background:#ff4c4c;color:#fff;font-weight:700;margin-bottom:10px;">🛑 Stop Recording</button>
-      <button type="button" id="btnClear" style="background:#ffffff;border:2px solid var(--primary);color:var(--primary);font-weight:700;margin-bottom:10px;">🧹 Clear All</button>
+      <button type="button" id="btnStopRecording" class="hidden">🛑 Stop Recording</button>
+      <button type="button" id="btnClear">🧹 Clear All</button>
+      </div>
 
-      <p id="timerGravacao" class="hidden" style="font-weight:bold;margin-top:10px;">⏱️ 00:00</p>
+      <p id="timerGravacao" class="hidden">⏱️ 00:00</p>
 
+      <div class="oe-upload-options">
       <label class="switch-container">
         <input type="checkbox" id="identificarLocutores">
         <span class="slider"></span>
         <span class="switch-label">Identify speakers by name</span>
       </label>
+      </div>
 
       <p id="recordingStatus"></p>
     </form>

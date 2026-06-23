@@ -1,6 +1,8 @@
-Coloca aqui os ficheiros de imagem antes do deploy:
+Logos do site:
 
-  ouviescreviicon.png      (ícone / favicon)
-  ouviescrevimainlogo.png  (logo no cabeçalho)
+  ouviescrevi-icon-pro.png   — ícone / favicon (design pro)
+  ouviescrevi-logo-pro.png   — logo horizontal (header, OG)
+  ouviescreviicon.png        — ícone legado
+  ouviescrevimainlogo.png    — logo legado
 
-Sem estes ficheiros o site funciona mas o logo e o favicon ficam em falta.
+O site usa por defeito os ficheiros *-pro.png.

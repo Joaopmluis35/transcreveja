@@ -49,6 +49,10 @@
   }
 
   function markCurrentNav() {
+    if (global.OuviescreviNav && global.OuviescreviNav.markCurrentPage) {
+      global.OuviescreviNav.markCurrentPage();
+      return;
+    }
     const path = global.location.pathname.replace(/\/$/, "");
     const page = path.split("/").pop().replace(".html", "") || "index";
     document.querySelectorAll("nav#nichoMenu button").forEach(function (btn) {
@@ -62,10 +66,33 @@
 
   function injectScriptsFromHtml(html, root) {
     (root || document).querySelectorAll("script").forEach(function (oldScript) {
+      if (oldScript.src && oldScript.src.indexOf("ouviescrevi-nav.js") !== -1) return;
       const newScript = document.createElement("script");
       if (oldScript.src) newScript.src = oldScript.src;
       else newScript.textContent = oldScript.textContent;
       document.body.appendChild(newScript);
+    });
+  }
+
+  function ensureNavScript() {
+    if (global.OuviescreviNav) return Promise.resolve();
+    var existing = document.querySelector('script[data-oe-nav="1"]');
+    if (existing) {
+      if (existing.getAttribute("data-ready") === "1") return Promise.resolve();
+      return new Promise(function (resolve) {
+        existing.addEventListener("load", resolve, { once: true });
+      });
+    }
+    return new Promise(function (resolve) {
+      var s = document.createElement("script");
+      s.src = "/js/ouviescrevi-nav.js";
+      s.dataset.oeNav = "1";
+      s.onload = function () {
+        s.setAttribute("data-ready", "1");
+        resolve();
+      };
+      s.onerror = resolve;
+      document.head.appendChild(s);
     });
   }
 
@@ -89,7 +116,10 @@
 
   function loadHeader(url) {
     url = resolveHeaderUrl(url);
-    return fetch(url)
+    return ensureNavScript()
+      .then(function () {
+        return fetch(url);
+      })
       .then(function (r) {
         if (!r.ok) throw new Error("HTTP " + r.status);
         return r.text();
@@ -102,6 +132,9 @@
         const temp = document.createElement("div");
         temp.innerHTML = html;
         injectScriptsFromHtml(html, temp);
+        if (global.OuviescreviNav && global.OuviescreviNav.init) {
+          global.OuviescreviNav.init();
+        }
         markCurrentNav();
       })
       .catch(function (err) {
@@ -139,6 +172,7 @@
     if (
       headerEl &&
       headerEl.dataset.oeSkipHeader !== "true" &&
+      !headerEl.querySelector("#oeProHeader") &&
       !headerEl.querySelector("#topoOuviescrevi")
     ) {
       loadHeader();
@@ -302,8 +336,10 @@
 
   function bootLayout() {
     if (global.OuviescreviSEO) global.OuviescreviSEO.apply();
-    autoLoadLayout();
-    setTimeout(markCurrentNav, 400);
+    ensureNavScript().then(function () {
+      autoLoadLayout();
+      setTimeout(markCurrentNav, 400);
+    });
     trackPageView();
     maybeShowCookieBanner();
     if (document.body && document.body.dataset.cmsAuto !== "false") {

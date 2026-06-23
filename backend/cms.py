@@ -226,11 +226,52 @@ PAGE_SCHEMA: list[dict[str, Any]] = [
         ],
     },
     {
+        "id": "resumo",
+        "label": "Ferramenta — Resumo",
+        "lang": "pt",
+        "path": "/resumo.html",
+        "fields": [
+            {"key": "resumo_title", "label": "Título", "type": "text"},
+            {"key": "resumo_lead", "label": "Subtítulo", "type": "text"},
+        ],
+    },
+    {
+        "id": "corretor",
+        "label": "Ferramenta — Corretor",
+        "lang": "pt",
+        "path": "/corretor.html",
+        "fields": [
+            {"key": "corretor_title", "label": "Título", "type": "text"},
+            {"key": "corretor_lead", "label": "Subtítulo", "type": "text"},
+        ],
+    },
+    {
+        "id": "perguntas",
+        "label": "Ferramenta — Perguntas",
+        "lang": "pt",
+        "path": "/perguntas.html",
+        "fields": [
+            {"key": "perguntas_title", "label": "Título", "type": "text"},
+            {"key": "perguntas_lead", "label": "Subtítulo", "type": "text"},
+        ],
+    },
+    {
+        "id": "url_resumo",
+        "label": "Ferramenta — Resumo URL",
+        "lang": "pt",
+        "path": "/url-resumo.html",
+        "fields": [
+            {"key": "url_resumo_title", "label": "Título", "type": "text"},
+            {"key": "url_resumo_lead", "label": "Subtítulo", "type": "text"},
+        ],
+    },
+    {
         "id": "privacidade",
         "label": "Legal — Privacidade",
         "lang": "pt",
         "path": "/privacidade.html",
         "fields": [
+            {"key": "privacidade_meta", "label": "Data de atualização", "type": "text"},
             {"key": "privacidade_disclaimer", "label": "Aviso introdutório", "type": "rich"},
         ],
     },
@@ -240,7 +281,8 @@ PAGE_SCHEMA: list[dict[str, Any]] = [
         "lang": "pt",
         "path": "/termos.html",
         "fields": [
-            {"key": "termos_intro", "label": "Introdução", "type": "rich"},
+            {"key": "termos_meta", "label": "Data de atualização", "type": "text"},
+            {"key": "termos_intro", "label": "Aviso introdutório", "type": "rich"},
         ],
     },
     {
@@ -249,7 +291,38 @@ PAGE_SCHEMA: list[dict[str, Any]] = [
         "lang": "pt",
         "path": "/cookies.html",
         "fields": [
-            {"key": "cookies_intro", "label": "Introdução", "type": "rich"},
+            {"key": "cookies_meta", "label": "Data de atualização", "type": "text"},
+            {"key": "cookies_intro", "label": "Introdução (secção 1)", "type": "rich"},
+        ],
+    },
+    {
+        "id": "privacidade_en",
+        "label": "Legal — Privacy (EN)",
+        "lang": "en",
+        "path": "/en/privacy.html",
+        "fields": [
+            {"key": "en_privacidade_meta", "label": "Last updated line", "type": "rich"},
+            {"key": "en_privacidade_disclaimer", "label": "Intro disclaimer", "type": "rich"},
+        ],
+    },
+    {
+        "id": "termos_en",
+        "label": "Legal — Terms (EN)",
+        "lang": "en",
+        "path": "/en/terms.html",
+        "fields": [
+            {"key": "en_termos_meta", "label": "Last updated line", "type": "rich"},
+            {"key": "en_termos_intro", "label": "Intro disclaimer", "type": "rich"},
+        ],
+    },
+    {
+        "id": "cookies_en",
+        "label": "Legal — Cookies (EN)",
+        "lang": "en",
+        "path": "/en/cookies.html",
+        "fields": [
+            {"key": "en_cookies_meta", "label": "Last updated line", "type": "rich"},
+            {"key": "en_cookies_intro", "label": "Introduction (section 1)", "type": "rich"},
         ],
     },
     {
@@ -370,22 +443,86 @@ DEFAULT_SITE_CONTENT: dict[str, str] = {
     "en_sugestoes_title": "💡 Suggestions",
     "en_sugestoes_lead": "Your feedback helps us improve Ouviescrevi.",
     "aulas_title": "🎥 Aulas",
-    "aulas_body": "<p>Transforma vídeos de aulas em texto claro, bem formatado e pronto a partilhar. Útil para estudantes, professores, tutores e plataformas educativas.</p>",
-    "professores_title": "👩‍🏫 Professores",
-    "professores_body": "<p>Ferramentas de IA para educadores: transcrição de aulas, resumos automáticos e preparação de materiais didáticos.</p>",
-    "jornalistas_title": "📰 Jornalistas",
-    "jornalistas_body": "<p>Transcreve entrevistas de áudio e vídeo com IA. Poupa horas de trabalho e exporta texto pronto a editar.</p>",
-    "podcasts_title": "🎧 Podcasts",
-    "podcasts_body": "<p>Converte episódios de podcast em transcrições e resumos com inteligência artificial. Grátis e online.</p>",
-    "reunioes_title": "💼 Reuniões",
-    "reunioes_body": "<p>Grava e transcreve reuniões automaticamente. Gera minutas e resumos para equipas e empresas.</p>",
-    "testemunhos_title": "⚖️ Testemunhos",
-    "testemunhos_body": "<p>Transcreve testemunhos, declarações e gravações com precisão. Útil em contextos jurídicos e administrativos.</p>",
-    "privacidade_disclaimer": (
-        "<p>Este documento descreve como o serviço <strong>Ouviescrevi</strong> trata dados pessoais.</p>"
+    "aulas_body": (
+        "<p>Transforma vídeos de aulas em texto claro, bem formatado e pronto a partilhar. "
+        "Útil para estudantes, professores, tutores e plataformas educativas.</p>"
     ),
-    "termos_intro": "<p>Condições gerais de utilização do serviço <strong>Ouviescrevi</strong>.</p>",
-    "cookies_intro": "<p>Informação sobre cookies e armazenamento local no website Ouviescrevi.</p>",
+    "professores_title": "🎓 Professores",
+    "professores_body": (
+        "<h2>Transforma as tuas aulas em texto com IA</h2>"
+        "<p>Grava explicações, aulas ou feedback e converte tudo automaticamente em texto estruturado. "
+        "Ideal para criar resumos, materiais de apoio ou registos para alunos.</p>"
+        "<p>Podes ainda traduzir, resumir ou exportar em vários formatos (PDF, Word, TXT, etc.).</p>"
+    ),
+    "jornalistas_title": "📰 Jornalistas",
+    "jornalistas_body": (
+        "<p>Transcreve entrevistas, conferências de imprensa ou reportagens com precisão e rapidez. "
+        "Facilita a produção de conteúdos e permite focar no que realmente importa: contar histórias.</p>"
+    ),
+    "podcasts_title": "🎙️ Podcasts",
+    "podcasts_body": (
+        "<p>Converte episódios de podcast em texto com um clique. Melhora o SEO, partilha transcrições "
+        "com o público e reutiliza os conteúdos em newsletters, artigos ou redes sociais.</p>"
+    ),
+    "reunioes_title": "🗣️ Reuniões",
+    "reunioes_body": (
+        "<p>Grava e transcreve automaticamente reuniões presenciais ou online. Garante que nenhuma decisão, "
+        "ideia ou compromisso é esquecido. Ideal para equipas, empresas e freelancers.</p>"
+    ),
+    "testemunhos_title": "🧑‍⚖️ Testemunhos",
+    "testemunhos_body": (
+        "<p>Ideal para transcrever testemunhos jurídicos, audiências e declarações. Garante precisão e "
+        "registo textual para processos legais ou administrativos.</p>"
+    ),
+    "resumo_title": "📌 Resumo Inteligente",
+    "resumo_lead": "Cola o teu texto, ou carrega um ficheiro PDF ou Word (.docx), e escolhe o estilo de resumo",
+    "corretor_title": "✍️ Corretor de Texto com IA",
+    "corretor_lead": "Cola o teu texto para corrigir erros ortográficos e gramaticais automaticamente.",
+    "perguntas_title": "📘 Gerador de Perguntas com IA",
+    "perguntas_lead": "Cola aqui o teu texto e gera perguntas de escolha múltipla com respostas e explicações.",
+    "url_resumo_title": "🔗 Resumo Inteligente por URL",
+    "url_resumo_lead": "Insere o link de um artigo ou página online para gerar um resumo automático com IA.",
+    "privacidade_meta": "Última atualização: 22 de junho de 2026",
+    "privacidade_disclaimer": (
+        "<p>Este documento descreve como o serviço <strong>Ouviescrevi</strong> trata dados pessoais. "
+        "Recomendamos revisão por um advogado antes de uso comercial em larga escala.</p>"
+    ),
+    "termos_meta": "Última atualização: 22 de junho de 2026",
+    "termos_intro": (
+        "<p>Ao utilizar o <strong>Ouviescrevi</strong> (ouviescrevi.pt), aceitas estes termos. "
+        "Se não concordares, não utilizes o serviço.</p>"
+    ),
+    "cookies_meta": "Última atualização: 22 de junho de 2026",
+    "cookies_intro": (
+        "<h2>1. O que são cookies?</h2>"
+        "<p>Cookies são pequenos ficheiros guardados no teu dispositivo. Também utilizamos tecnologias "
+        "semelhantes, como <strong>localStorage</strong> e <strong>sessionStorage</strong> do browser.</p>"
+        "<p>Esta política explica o que usamos no <strong>ouviescrevi.pt</strong> e como podes gerir as tuas preferências.</p>"
+    ),
+    "en_privacidade_meta": (
+        'Last updated: 22 June 2026 · <a href="../privacidade.html">Português</a>'
+    ),
+    "en_privacidade_disclaimer": (
+        "<p>This policy describes how <strong>Ouviescrevi</strong> (ouviescrevi.pt) processes personal data. "
+        "We recommend legal review before large-scale commercial use.</p>"
+    ),
+    "en_termos_meta": (
+        'Last updated: 22 June 2026 · <a href="../termos.html">Português</a>'
+    ),
+    "en_termos_intro": (
+        "<p>By using <strong>Ouviescrevi</strong>, you agree to these terms. "
+        "If you do not agree, do not use the service.</p>"
+    ),
+    "en_cookies_meta": (
+        'Last updated: 22 June 2026 · <a href="../cookies.html">Português</a>'
+    ),
+    "en_cookies_intro": (
+        "<h2>1. What are cookies?</h2>"
+        "<p>Cookies are small files stored on your device. We also use similar technologies such as "
+        "<strong>localStorage</strong> and <strong>sessionStorage</strong>.</p>"
+        "<p>This policy explains what we use on <strong>ouviescrevi.pt</strong> and how you can manage "
+        "your preferences.</p>"
+    ),
     "maintenance_message": (
         "<p>🛑 O serviço está temporariamente em manutenção. Novas transcrições estão indisponíveis.</p>"
     ),

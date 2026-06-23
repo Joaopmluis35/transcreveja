@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Exemplo — Novo Logo | Ouviescrevi</title>
+  <link rel="icon" href="logos/ouviescrevi-icon-pro.png" type="image/png">
+  <link rel="stylesheet" href="css/ouviescrevi-pro.css">
+  <style>
+    .oe-logo-preview { padding: 32px 24px 80px; max-width: 960px; margin: 0 auto; }
+    .oe-logo-preview h1 { font-size: 1.75rem; margin: 0 0 8px; letter-spacing: -0.02em; }
+    .oe-logo-preview > p { color: var(--pro-text-secondary); margin: 0 0 32px; }
+    .oe-logo-grid { display: grid; gap: 20px; }
+    @media (min-width: 640px) { .oe-logo-grid { grid-template-columns: 1fr 1fr; } }
+    .oe-logo-swatch {
+      border: 1px solid var(--pro-border);
+      border-radius: var(--pro-radius);
+      overflow: hidden;
+      background: var(--pro-surface);
+    }
+    .oe-logo-swatch__label {
+      padding: 10px 16px;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--pro-text-muted);
+      border-bottom: 1px solid var(--pro-border);
+      background: #fafbfc;
+    }
+    .oe-logo-swatch__area {
+      padding: 32px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 120px;
+    }
+    .oe-logo-swatch__area--dark { background: #0f172a; }
+    .oe-logo-swatch__area--light { background: #ffffff; }
+    .oe-logo-swatch__area--muted { background: var(--pro-bg); }
+    .oe-logo-swatch img { max-width: 100%; height: auto; }
+    .oe-logo-swatch img.logo-main { max-height: 64px; width: auto; }
+    .oe-logo-swatch img.logo-icon { width: 64px; height: 64px; }
+    .oe-logo-swatch img.logo-icon-sm { width: 32px; height: 32px; }
+    .oe-logo-compare {
+      margin-top: 32px;
+      padding: 24px;
+      border: 1px dashed var(--pro-border-strong);
+      border-radius: var(--pro-radius);
+      background: var(--pro-accent-muted);
+    }
+    .oe-logo-compare h2 { margin: 0 0 16px; font-size: 1.125rem; }
+    .oe-logo-compare-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 24px;
+      margin-bottom: 16px;
+    }
+    .oe-logo-compare-row:last-child { margin-bottom: 0; }
+    .oe-logo-compare-row span {
+      font-size: 0.8125rem;
+      color: var(--pro-text-muted);
+      min-width: 72px;
+    }
+    .oe-logo-header-demo {
+      margin-top: 32px;
+      border: 1px solid var(--pro-border);
+      border-radius: var(--pro-radius);
+      overflow: hidden;
+    }
+    .oe-logo-header-demo .oe-pro-header { position: relative; }
+    .oe-logo-actions { margin-top: 24px; display: flex; flex-wrap: wrap; gap: 12px; }
+  </style>
+</head>
+<body class="oe-pro">
+
+  <div class="oe-pro-preview-bar">
+  <strong>Pré-visualização de logo</strong> — Proposta gerada para avaliação. O site em produção mantém o logo atual.
+  </div>
+
+  <main class="oe-logo-preview">
+    <h1>Novo logo Ouviescrevi</h1>
+    <p>Proposta alinhada com a interface profissional: ícone geométrico (voz → texto) e wordmark limpo.</p>
+
+    <div class="oe-logo-grid">
+      <div class="oe-logo-swatch">
+        <div class="oe-logo-swatch__label">Logo horizontal — fundo claro</div>
+        <div class="oe-logo-swatch__area oe-logo-swatch__area--light">
+          <img class="logo-main" src="logos/ouviescrevi-logo-pro.png" alt="Ouviescrevi — logo proposto">
+        </div>
+      </div>
+
+      <div class="oe-logo-swatch">
+        <div class="oe-logo-swatch__label">Ícone — fundo escuro</div>
+        <div class="oe-logo-swatch__area oe-logo-swatch__area--dark">
+          <img class="logo-icon" src="logos/ouviescrevi-icon-pro.png" alt="Ícone Ouviescrevi em fundo escuro">
+        </div>
+      </div>
+
+      <div class="oe-logo-swatch">
+        <div class="oe-logo-swatch__label">Ícone — 64×64 (app / redes)</div>
+        <div class="oe-logo-swatch__area oe-logo-swatch__area--muted">
+          <img class="logo-icon" src="logos/ouviescrevi-icon-pro.png" alt="Ícone Ouviescrevi">
+        </div>
+      </div>
+
+      <div class="oe-logo-swatch">
+        <div class="oe-logo-swatch__label">Favicon — 32×32</div>
+        <div class="oe-logo-swatch__area oe-logo-swatch__area--muted">
+          <img class="logo-icon-sm" src="logos/ouviescrevi-icon-pro.png" alt="">
+        </div>
+      </div>
+    </div>
+
+    <div class="oe-logo-header-demo">
+      <header class="oe-pro-header">
+        <div class="oe-pro-header__inner">
+          <a class="oe-pro-brand" href="exemplo-interface-profissional.html">
+            <img src="logos/ouviescrevi-icon-pro.png" alt="" style="height:32px;width:32px;border-radius:8px;">
+            <span>Ouviescrevi</span>
+          </a>
+          <div class="oe-pro-header__actions">
+            <a class="oe-pro-btn oe-pro-btn--primary" href="index.html">Transcrever grátis</a>
+          </div>
+        </div>
+      </header>
+      <div style="padding:16px 24px;font-size:0.875rem;color:var(--pro-text-muted);background:#fafbfc;border-top:1px solid var(--pro-border);">
+        Variante no header: ícone quadrado + nome em texto (comum em SaaS modernos).
+      </div>
+    </div>
+
+    <div class="oe-logo-compare">
+      <h2>Comparação rápida</h2>
+      <div class="oe-logo-compare-row">
+        <span>Atual</span>
+        <img class="logo-main" src="logos/ouviescrevimainlogo.png" alt="Logo atual" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <em style="display:none;font-size:0.875rem;color:var(--pro-text-muted)">(logo atual não disponível localmente)</em>
+      </div>
+      <div class="oe-logo-compare-row">
+        <span>Novo</span>
+        <img class="logo-main" src="logos/ouviescrevi-logo-pro.png" alt="Logo proposto">
+      </div>
+    </div>
+
+    <div class="oe-logo-actions">
+      <a class="oe-pro-btn oe-pro-btn--primary" href="exemplo-interface-profissional.html">Ver interface profissional</a>
+      <a class="oe-pro-btn oe-pro-btn--secondary" href="index.html">Voltar ao site</a>
+    </div>
+  </main>
+
+</body>
+</html>

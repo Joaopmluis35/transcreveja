@@ -1,4 +1,6 @@
 /* Ouviescrevi — design system partilhado */
+@import url("ouviescrevi-pro.css");
+
 :root {
   --oe-purple: #7c3aed;
   --oe-purple-dark: #6b21a8;
@@ -299,8 +301,8 @@ nav#nichoMenu button span { position: relative; z-index: 1; }
   #burgerBtn { display: none !important; }
 }
 
-/* ── Footer ───────────────────────────────────────────────────────────── */
-#rodapeOuviescrevi {
+/* ── Footer (legado — só páginas sem design pro) ───────────────────────── */
+#rodapeOuviescrevi:not(.oe-pro-footer) {
   background: rgba(15, 23, 42, 0.35);
   backdrop-filter: blur(8px);
   padding: 24px 16px;
@@ -418,8 +420,8 @@ nav#nichoMenu button span { position: relative; z-index: 1; }
 .oe-page textarea,
 .container textarea { min-height: 160px; resize: vertical; line-height: 1.55; }
 
-.oe-page button,
-.container button,
+.oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle),
+.container button:not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle),
 .oe-btn {
   display: inline-flex;
   align-items: center;
@@ -439,8 +441,8 @@ nav#nichoMenu button span { position: relative; z-index: 1; }
   width: auto;
   min-width: 140px;
 }
-.oe-page button:hover:not(:disabled),
-.container button:hover:not(:disabled),
+.oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):hover:not(:disabled),
+.container button:not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):hover:not(:disabled),
 .oe-btn:hover:not(:disabled) {
   background: var(--oe-gradient);
   color: #fff;
@@ -448,14 +450,14 @@ nav#nichoMenu button span { position: relative; z-index: 1; }
   transform: translateY(-1px);
   box-shadow: 0 6px 20px rgba(124, 58, 237, 0.3);
 }
-.oe-page button:focus-visible,
-.container button:focus-visible,
+.oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):focus-visible,
+.container button:not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):focus-visible,
 .oe-btn:focus-visible {
   outline: none;
   box-shadow: var(--oe-focus);
 }
-.oe-page button:disabled,
-.container button:disabled,
+.oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):disabled,
+.container button:not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):disabled,
 .oe-btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;

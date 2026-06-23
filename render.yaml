@@ -1,0 +1,44 @@
+# Render Blueprint — API Ouviescrevi
+# https://render.com/docs/blueprint-spec
+#
+# Serviço existente: liga este repo em Dashboard → Settings → Blueprint
+# ou cria novo Web Service a partir do repositório (Render deteta render.yaml).
+#
+# Segredos (OPENAI_API_KEY, tokens, password): Dashboard → Environment → preencher uma vez.
+
+services:
+  - type: web
+    name: api-ouviescrevi
+    runtime: python
+    region: frankfurt
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.11"
+      - key: APP_ENV
+        value: production
+      - key: ENABLE_DEBUG_ENDPOINTS
+        value: "false"
+      - key: PUBLIC_API_BASE
+        value: https://api.ouviescrevi.pt
+      - key: ALLOWED_ORIGINS
+        value: https://ouviescrevi.pt,https://www.ouviescrevi.pt
+      - key: MAX_FILE_SIZE_MB
+        value: "100"
+      - key: TOTAL_TRANSCRIBE_TIMEOUT
+        value: "600"
+      - key: LOG_LEVEL
+        value: INFO
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ADMIN_TOKEN
+        sync: false
+      - key: API_TOKEN
+        sync: false
+      - key: BACKOFFICE_PASSWORD
+        sync: false

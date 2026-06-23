@@ -1,17 +1,17 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <link rel="stylesheet" href="css/ouviescrevi.css?v=3">
-  <link rel="stylesheet" href="css/index-home.css?v=3">
-  <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png" />
+  <link rel="stylesheet" href="css/ouviescrevi.css?v=10">
+  <link rel="stylesheet" href="css/index-home.css?v=10">
+  <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <title>Ouviescrevi — Transcrição de Áudio e Vídeo com IA Grátis</title>
   <meta name="description" content="Transcreve áudio e vídeo online com inteligência artificial, grátis e sem registo. Resumos, tradução, legendas SRT e conversão de ficheiros. Feito em Portugal.">
   <meta name="keywords" content="converter Word para PDF, PDF para texto, imagem para PDF, conversor de ficheiros online, transcrição de áudio, transcrição automática, Ouviescrevi">
   <meta name="robots" content="index, follow">
 </head>
-<body class="oe-page oe-page--home" data-cms-auto="false">
+<body class="oe-page oe-pro oe-page--home" data-cms-auto="false">
 <a class="oe-skip" href="#mainContent">Saltar para o conteúdo</a>
 
 <div id="header"></div>
@@ -37,14 +37,17 @@
         <small class="oe-file-hint">Limite: 500 MB — para ficheiros maiores, extrai só o áudio.</small>
       </div>
 
+      <div class="oe-upload-actions">
       <button type="submit" id="btnTranscrever">Transcrever</button>
       <button type="button" id="btnLegendarVideo" disabled>🎬 Legendar Vídeo (SRT + MP4)</button>
       <button type="button" id="btnStartRec">🎤 Gravar Áudio</button>
       <button type="button" id="btnStopRecording" class="hidden">🛑 Parar Gravação</button>
       <button type="button" id="btnLimparTudo" onclick="limparTudo()">🧹 Limpar Tudo</button>
+      </div>
 
       <p id="timerGravacao" class="hidden">⏱️ 00:00</p>
 
+      <div class="oe-upload-options">
       <label class="switch-container">
         <input type="checkbox" id="identificarLocutores">
         <span class="slider"></span>
@@ -61,6 +64,7 @@
           <option value="fr">Francês</option>
         </select>
       </label>
+      </div>
 
       <p id="recordingStatus"></p>
     </form>

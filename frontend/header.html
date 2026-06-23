@@ -1,88 +1,64 @@
-<header id="topoOuviescrevi">
-  <div class="logo-area">
-   <a href="https://www.ouviescrevi.pt/index.html"> <img src="/logos/ouviescrevimainlogo.png" alt="Ouviescrevi — transcrição com IA" /></a>
-    
-    <span class="oe-site-name" aria-hidden="true">Ouviescrevi</span>
-    <div class="hourglass" style="margin-bottom:0px;"></div>
+<header class="oe-pro-header" id="oeProHeader">
+  <div class="oe-pro-header__inner">
+    <a class="oe-pro-brand" href="index.html">
+      <span class="oe-pro-brand__icon-wrap" aria-hidden="true">
+        <img src="/logos/ouviescrevi-icon-pro.png" alt="" class="oe-pro-brand__icon">
+      </span>
+      <span class="oe-pro-brand__name">Ouviescrevi</span>
+    </a>
 
-    <div class="language-selector">
-      <button onclick="toggleLanguageMenu()" id="langBtn">
-        <img src="/icons/pt.png" alt="PT" />
-      </button>
-      <div id="langDropdown" class="lang-menu">
-        <button onclick="setLanguage('pt')"><img src="/icons/pt.png" alt="Português" /></button>
-        <button onclick="setLanguage('en')"><img src="/icons/en.png" alt="English" /></button>
+    <button type="button" class="oe-pro-nav__mobile-toggle" aria-expanded="false" aria-controls="oeProNavPanel" aria-label="Abrir menu">
+      <span class="oe-pro-nav__burger" aria-hidden="true"></span>
+    </button>
+
+    <div class="oe-pro-nav__panel" id="oeProNavPanel">
+      <nav class="oe-pro-nav" aria-label="Principal">
+        <div class="oe-pro-nav__dropdown">
+          <button type="button" class="oe-pro-nav__trigger" aria-expanded="false" aria-haspopup="true">
+            Ferramentas
+            <svg class="oe-pro-nav__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="oe-pro-nav__menu" role="menu">
+            <a href="resumo.html" data-nav-page="resumo" role="menuitem">Resumo PDF / Word</a>
+            <a href="url-resumo.html" data-nav-page="url-resumo" role="menuitem">Resumo por URL</a>
+            <a href="perguntas.html" data-nav-page="perguntas" role="menuitem">Perguntas com IA</a>
+            <a href="conversor.html" data-nav-page="conversor" role="menuitem">Conversor de ficheiros</a>
+            <a href="corretor.html" data-nav-page="corretor" role="menuitem">Corretor de texto</a>
+          </div>
+        </div>
+
+        <div class="oe-pro-nav__dropdown">
+          <button type="button" class="oe-pro-nav__trigger" aria-expanded="false" aria-haspopup="true">
+            Para quem
+            <svg class="oe-pro-nav__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="oe-pro-nav__menu" role="menu">
+            <a href="aulas.html" data-nav-page="aulas" role="menuitem">Aulas</a>
+            <a href="professores.html" data-nav-page="professores" role="menuitem">Professores</a>
+            <a href="jornalistas.html" data-nav-page="jornalistas" role="menuitem">Jornalistas</a>
+            <a href="podcasts.html" data-nav-page="podcasts" role="menuitem">Podcasts</a>
+            <a href="reunioes.html" data-nav-page="reunioes" role="menuitem">Reuniões</a>
+            <a href="testemunhos.html" data-nav-page="testemunhos" role="menuitem">Testemunhos</a>
+          </div>
+        </div>
+
+        <a class="oe-pro-nav__link" href="ajuda.html" data-nav-page="ajuda">Ajuda</a>
+        <a class="oe-pro-nav__link" href="sugestoes.html" data-nav-page="sugestoes">Sugestões</a>
+      </nav>
+
+      <div class="oe-pro-header__actions">
+        <div class="oe-pro-lang">
+          <button type="button" class="oe-pro-lang__btn" id="oeLangBtn" aria-expanded="false" aria-haspopup="true" aria-label="Idioma">
+            <img src="/icons/pt.png" alt="PT" width="22" height="16">
+          </button>
+          <div class="oe-pro-lang__menu" id="oeLangMenu" role="menu">
+            <button type="button" data-lang="pt" role="menuitem"><img src="/icons/pt.png" alt=""> Português</button>
+            <button type="button" data-lang="en" role="menuitem"><img src="/icons/en.png" alt=""> English</button>
+          </div>
+        </div>
+        <a class="oe-pro-btn oe-pro-btn--primary oe-pro-nav__cta" href="index.html">Transcrever grátis</a>
       </div>
     </div>
   </div>
-
-  <button id="burgerBtn" type="button" onclick="toggleMenu()" aria-label="Abrir menu" aria-expanded="false" aria-controls="nichoMenu">
-    <span id="burgerIcon">☰ Menu</span>
-  </button>
-
-  <nav id="nichoMenu">
-    <button onclick="irParaNicho('index')"><span data-i18n="inicio">🏠 Início</span></button>
-    <button onclick="irParaNicho('resumo')"><span>Resumo (PDF/Word)</span></button>
-	 <button onclick="irParaNicho('url-resumo')"><span data-i18n="conversor">URL Resumo</span></button>
- <button onclick="irParaNicho('perguntas')"><span data-i18n="conversor">Perguntas Grátis</span></button>
-    <button onclick="irParaNicho('conversor')"><span data-i18n="conversor">Conversor Grátis</span></button>
-	  <button onclick="irParaNicho('corretor')"><span>Corretor de Texto</span></button> <!-- ✅ AQUI -->
-    <button onclick="irParaNicho('ajuda')"><span data-i18n="ajuda">Ajuda</span></button>
-    <button onclick="irParaNicho('sugestoes')"><span data-i18n="sugestoes">Sugestões</span></button>
-  </nav>
+  <div class="oe-pro-nav__backdrop" aria-hidden="true"></div>
 </header>
-
-<script>
-  window.irParaNicho = function(pagina) {
-    window.location.href = pagina + ".html";
-  };
-
-  window.toggleMenu = function() {
-    const menu = document.getElementById("nichoMenu");
-    const icon = document.getElementById("burgerIcon");
-    const btn = document.getElementById("burgerBtn");
-
-    menu.classList.toggle("show");
-    const open = menu.classList.contains("show");
-    icon.textContent = open ? "✕ Fechar" : "☰ Menu";
-    if (btn) btn.setAttribute("aria-expanded", open ? "true" : "false");
-  };
-
-  window.toggleLanguageMenu = function () {
-    const dropdown = document.getElementById("langDropdown");
-    dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
-  };
-
-  window.setLanguage = function (lang) {
-  localStorage.setItem("lang", lang);
-  
-  const currentPath = window.location.pathname;
-  const isInEN = currentPath.startsWith("/en");
-
-  if (lang === "en" && !isInEN) {
-    window.location.href = "/en/index.html";
-  } else if (lang === "pt" && isInEN) {
-    window.location.href = "/index.html";
-  } else {
-    location.reload();
-  }
-};
-
-
-  // Fecha o menu de idioma ao clicar fora
-  window.addEventListener("click", function (e) {
-    const btn = document.getElementById("langBtn");
-    const dropdown = document.getElementById("langDropdown");
-    if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
-      dropdown.style.display = "none";
-    }
-  });
-
-  // Aplica a bandeira atual
-  window.addEventListener("DOMContentLoaded", () => {
-    const lang = localStorage.getItem("lang") || "pt";
-    const langBtn = document.getElementById("langBtn");
-    langBtn.innerHTML = `<img src="/icons/${lang}.png" alt="${lang}" />`;
-  });
-</script>
-
