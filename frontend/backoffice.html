@@ -7,7 +7,7 @@
   <title>Backoffice | Ouviescrevi</title>
   <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png">
   <link rel="stylesheet" href="css/ouviescrevi.css">
-  <link rel="stylesheet" href="css/backoffice.css?v=7">
+  <link rel="stylesheet" href="css/backoffice.css?v=8">
   <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
   <script src="js/ouviescrevi-ui.js" defer></script>
 </head>
@@ -105,6 +105,10 @@
             <div class="oe-admin-card__label">Transcrições total</div>
             <div class="oe-admin-card__value" id="statTransTotal">0</div>
           </div>
+          <div class="oe-admin-card oe-admin-card--purple" id="cardSugestoes" role="button" tabindex="0" title="Abrir sugestões">
+            <div class="oe-admin-card__label">Sugestões novas</div>
+            <div class="oe-admin-card__value" id="statSugestoesNovas">0</div>
+          </div>
           <div class="oe-admin-card oe-admin-card--green">
             <div class="oe-admin-card__label">Conversão hoje</div>
             <div class="oe-admin-card__value" id="statConversao">0%</div>
@@ -112,6 +116,15 @@
           <div class="oe-admin-card oe-admin-card--purple">
             <div class="oe-admin-card__label">Custo OpenAI est.</div>
             <div class="oe-admin-card__value" id="statCusto">$0</div>
+          </div>
+        </div>
+
+        <div id="dashboardAlerts" class="oe-admin-alerts-stack hidden"></div>
+
+        <div class="oe-admin-panel">
+          <div class="oe-admin-panel__head">Cloudflare <span style="font-weight:400;color:var(--bo-muted)">(pedidos HTTP, 7 dias)</span></div>
+          <div class="oe-admin-panel__body" id="cloudflareStats">
+            <p class="oe-admin-empty">Configura Zone ID e API Token em Sistema para ver tráfego.</p>
           </div>
         </div>
 
@@ -236,6 +249,17 @@
           <div class="oe-admin-panel__head">SEO — títulos e descrições</div>
           <div class="oe-admin-panel__body">
             <div class="oe-admin-cms-toolbar">
+              <div class="oe-admin-field" style="margin:0;min-width:140px">
+                <label for="seoLangFilter">Idioma</label>
+                <select id="seoLangFilter">
+                  <option value="">Todos</option>
+                  <option value="pt">PT</option>
+                  <option value="en">EN</option>
+                  <option value="es">ES</option>
+                  <option value="fr">FR</option>
+                  <option value="de">DE</option>
+                </select>
+              </div>
               <div class="oe-admin-field" style="margin:0;flex:1">
                 <label for="seoPageSelect">Página</label>
                 <select id="seoPageSelect"></select>
@@ -272,6 +296,14 @@
             <div class="oe-admin-form-actions" style="margin-top:12px">
               <button type="button" id="btnTransMore" class="oe-admin-btn oe-admin-btn--secondary hidden">Carregar mais</button>
             </div>
+          </div>
+        </div>
+        <div id="transDetailModal" class="oe-admin-modal hidden" role="dialog" aria-modal="true" aria-labelledby="transDetailTitle">
+          <div class="oe-admin-modal__backdrop" data-close-trans-modal></div>
+          <div class="oe-admin-modal__box">
+            <button type="button" class="oe-admin-modal__close" id="transDetailClose" aria-label="Fechar">×</button>
+            <h3 id="transDetailTitle">Detalhe da transcrição</h3>
+            <div id="transDetailBody" class="oe-admin-modal__body"></div>
           </div>
         </div>
       </div>
@@ -370,8 +402,8 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 <script src="js/ouviescrevi-api.js"></script>
-<script src="js/backoffice-cms-locales.js?v=2"></script>
-<script src="js/backoffice.js?v=7"></script>
-<script src="js/backoffice-admin.js?v=7"></script>
+<script src="js/backoffice-cms-locales.js?v=3"></script>
+<script src="js/backoffice.js?v=8"></script>
+<script src="js/backoffice-admin.js?v=8"></script>
 </body>
 </html>

@@ -20,7 +20,9 @@
   }
 
   var seoPages = [];
+  var seoAllPages = [];
   var seoContent = {};
+  var seoCurrentPage = null;
 
   function initExports() {
     var base = apiBase();
@@ -82,6 +84,94 @@
     if (msg && data.maintenance_message) msg.value = data.maintenance_message.replace(/<[^>]+>/g, function (t) {
       return t === "<br>" || t === "<br/>" ? "\n" : "";
     }).replace(/<p>/gi, "").replace(/<\/p>/gi, "\n").replace(/<[^>]+>/g, "").trim();
+    renderDashboardAlerts(data);
+    renderCloudflare(data.cloudflare);
+  }
+
+  function renderDashboardAlerts(data) {
+    var box = document.getElementById("dashboardAlerts");
+    if (!box) return;
+    var alerts = [];
+    var unread = data.sugestoes_nao_lidas || 0;
+    if (unread > 0) {
+      alerts.push({
+        type: "warn",
+        html: "<strong>" + unread + " sugestão" + (unread === 1 ? "" : "ões") + " nova" + (unread === 1 ? "" : "s") + "</strong> — revê no separador Sugestões.",
+      });
+    }
+    var tLimit = data.alert_transcriptions_daily || 0;
+    var tHoje = data.transcricoes_hoje || 0;
+    if (tLimit > 0 && tHoje >= tLimit) {
+      alerts.push({
+        type: "warn",
+        html: "<strong>Limite diário de transcrições atingido</strong> — " + tHoje + " hoje (limite " + tLimit + ").",
+      });
+    }
+    var vLimit = data.alert_visits_daily || 0;
+    var vHoje = (data.visitas && data.visitas.visitas_hoje) || 0;
+    if (vLimit > 0 && vHoje >= vLimit) {
+      alerts.push({
+        type: "warn",
+        html: "<strong>Limite diário de visitas atingido</strong> — " + vHoje + " hoje (limite " + vLimit + ").",
+      });
+    }
+    if (!alerts.length) {
+      box.classList.add("hidden");
+      box.innerHTML = "";
+      return;
+    }
+    box.classList.remove("hidden");
+    box.innerHTML = alerts.map(function (a) {
+      return '<div class="oe-admin-alert oe-admin-alert--' + a.type + '">' + a.html + "</div>";
+    }).join("");
+    var sugEl = document.getElementById("statSugestoesNovas");
+    if (sugEl) sugEl.textContent = String(unread);
+    var card = document.getElementById("cardSugestoes");
+    if (card) card.classList.toggle("oe-admin-card--pulse", unread > 0);
+  }
+
+  function parseCloudflareRows(raw) {
+    if (!raw || raw.errors) return [];
+    try {
+      var zones = (((raw.data || {}).viewer || {}).zones || []);
+      var groups = (zones[0] || {}).httpRequests1dGroups || [];
+      return groups.map(function (g) {
+        return {
+          date: (g.dimensions || {}).date || "—",
+          requests: ((g.sum || {}).requests) || 0,
+        };
+      }).sort(function (a, b) { return String(a.date).localeCompare(String(b.date)); });
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function renderCloudflare(raw) {
+    var div = document.getElementById("cloudflareStats");
+    if (!div) return;
+    if (!raw) {
+      div.innerHTML = '<p class="oe-admin-empty">Configura Zone ID e API Token em Sistema para ver tráfego.</p>';
+      return;
+    }
+    if (raw.errors && raw.errors.length) {
+      div.innerHTML = '<p class="oe-admin-empty">Erro Cloudflare: ' + String((raw.errors[0] || {}).message || "token inválido") + "</p>";
+      return;
+    }
+    var rows = parseCloudflareRows(raw);
+    if (!rows.length) {
+      div.innerHTML = '<p class="oe-admin-empty">Sem dados de tráfego nos últimos 7 dias.</p>';
+      return;
+    }
+    var total = rows.reduce(function (sum, r) { return sum + r.requests; }, 0);
+    div.innerHTML = "";
+    var summary = document.createElement("p");
+    summary.className = "oe-admin-cms-hint";
+    summary.textContent = "Total pedidos (7 dias): " + total.toLocaleString("pt-PT");
+    div.appendChild(summary);
+    div.appendChild(buildTable(
+      ["Data", "Pedidos"],
+      rows.map(function (r) { return [r.date, String(r.requests)]; })
+    ));
   }
 
   async function saveMaintenanceMessage() {
@@ -103,23 +193,86 @@
     }
   }
 
-  function setupSeo(pages, content) {
-    seoPages = (pages || []).filter(function (p) { return p.category === "seo"; });
-    seoContent = content || {};
+  function seoLangOrder(lang) {
+    var order = { pt: 0, en: 1, es: 2, fr: 3, de: 4 };
+    return order[lang] != null ? order[lang] : 9;
+  }
+
+  function filteredSeoPages() {
+    var langEl = document.getElementById("seoLangFilter");
+    var lang = langEl ? String(langEl.value || "").trim().toLowerCase() : "";
+    var list = seoAllPages.slice();
+    if (lang) {
+      list = list.filter(function (p) {
+        return String(p.lang || "").toLowerCase() === lang;
+      });
+    }
+    list.sort(function (a, b) {
+      var la = seoLangOrder(a.lang);
+      var lb = seoLangOrder(b.lang);
+      if (la !== lb) return la - lb;
+      return String(a.label).localeCompare(String(b.label), "pt");
+    });
+    return list;
+  }
+
+  function populateSeoPageSelect() {
     var sel = document.getElementById("seoPageSelect");
     if (!sel) return;
+    seoPages = filteredSeoPages();
     sel.innerHTML = "";
-    seoPages.forEach(function (p, i) {
+    if (!seoPages.length) {
+      var empty = document.createElement("option");
+      empty.textContent = "Nenhuma página neste idioma";
+      empty.value = "";
+      sel.appendChild(empty);
+      var box = document.getElementById("seoFields");
+      if (box) box.innerHTML = "";
+      return;
+    }
+    seoPages.forEach(function (p) {
       var opt = document.createElement("option");
       opt.value = p.id;
       opt.textContent = p.label;
       sel.appendChild(opt);
-      if (i === 0) renderSeoFields(p);
     });
-    sel.onchange = function () {
-      var page = seoPages.find(function (p) { return p.id === sel.value; });
-      if (page) renderSeoFields(page);
-    };
+    var keepId = seoCurrentPage && seoPages.some(function (p) { return p.id === seoCurrentPage.id; })
+      ? seoCurrentPage.id
+      : seoPages[0].id;
+    var page = seoPages.find(function (p) { return p.id === keepId; });
+    if (page) {
+      seoCurrentPage = page;
+      sel.value = page.id;
+      renderSeoFields(page);
+    }
+  }
+
+  function setupSeo(pages, content) {
+    var fromApi = (pages || []).filter(function (p) { return p.category === "seo"; });
+    seoAllPages = global.OuviescreviCmsLocales && global.OuviescreviCmsLocales.mergeLocaleSeoPages
+      ? global.OuviescreviCmsLocales.mergeLocaleSeoPages(fromApi)
+      : fromApi;
+    seoContent = content || {};
+    if (global.OuviescreviCmsLocales && global.OuviescreviCmsLocales.mergeLocaleSeoContent) {
+      seoContent = global.OuviescreviCmsLocales.mergeLocaleSeoContent(seoContent);
+    }
+    var langEl = document.getElementById("seoLangFilter");
+    if (langEl && !langEl.dataset.bound) {
+      langEl.dataset.bound = "1";
+      langEl.addEventListener("change", populateSeoPageSelect);
+    }
+    var sel = document.getElementById("seoPageSelect");
+    if (sel && !sel.dataset.bound) {
+      sel.dataset.bound = "1";
+      sel.onchange = function () {
+        var page = seoPages.find(function (p) { return p.id === sel.value; });
+        if (page) {
+          seoCurrentPage = page;
+          renderSeoFields(page);
+        }
+      };
+    }
+    populateSeoPageSelect();
   }
 
   function renderSeoFields(page) {
@@ -315,6 +468,14 @@
       '<div class="oe-admin-alert ' + (h.database_persistent ? "oe-admin-alert--ok" : "oe-admin-alert--warn") + '" style="margin-top:16px">' +
       "<strong>" + (h.database_persistent ? "✓ Dados persistentes" : "⚠ Risco de perda de dados") + "</strong><br>" +
       (h.persistence_note || "") +
+      "</div>" +
+      '<div class="oe-admin-alert ' + (h.cms_locales_ready ? "oe-admin-alert--ok" : "oe-admin-alert--warn") + '" style="margin-top:12px">' +
+      "<strong>CMS multi-idioma (API)</strong><br>" +
+      (h.cms_locales_ready ? "✓ " : "⚠ ") + (h.cms_locales_note || "—") +
+      (h.cms_locale_pages != null
+        ? "<br><small>Páginas locale: " + h.cms_locale_pages + " · SEO locale: " + (h.cms_locale_seo_pages || 0) +
+          " · Chaves: " + (h.cms_locale_keys || 0) + "</small>"
+        : "") +
       "</div>";
 
     var statsDiv = document.getElementById("databaseStats");

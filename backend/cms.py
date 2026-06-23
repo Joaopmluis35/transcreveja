@@ -467,6 +467,61 @@ def _locale_cms_pages(lang: str, lang_label: str) -> list[dict[str, Any]]:
 for _lc_lang, _lc_label in LOCALE_CMS_LANGS:
     PAGE_SCHEMA.extend(_locale_cms_pages(_lc_lang, _lc_label))
 
+
+def _locale_seo_pages(lang: str, lang_label: str) -> list[dict[str, Any]]:
+    base = f"/{lang}"
+    p = lang
+    return [
+        {
+            "id": f"seo_home_{lang}",
+            "label": f"SEO — Homepage ({lang_label})",
+            "lang": lang,
+            "path": f"{base}/index.html",
+            "category": "seo",
+            "fields": [
+                {"key": f"meta_home_title_{lang}", "label": "Meta title", "type": "text"},
+                {"key": f"meta_home_description_{lang}", "label": "Meta description", "type": "text"},
+            ],
+        },
+        {
+            "id": f"seo_ajuda_{lang}",
+            "label": f"SEO — Ajuda ({lang_label})",
+            "lang": lang,
+            "path": f"{base}/ajuda.html",
+            "category": "seo",
+            "fields": [
+                {"key": f"meta_ajuda_title_{lang}", "label": "Meta title", "type": "text"},
+                {"key": f"meta_ajuda_description_{lang}", "label": "Meta description", "type": "text"},
+            ],
+        },
+        {
+            "id": f"seo_conversor_{lang}",
+            "label": f"SEO — Conversor ({lang_label})",
+            "lang": lang,
+            "path": f"{base}/conversor.html",
+            "category": "seo",
+            "fields": [
+                {"key": f"meta_conversor_title_{lang}", "label": "Meta title", "type": "text"},
+                {"key": f"meta_conversor_description_{lang}", "label": "Meta description", "type": "text"},
+            ],
+        },
+        {
+            "id": f"seo_resumo_{lang}",
+            "label": f"SEO — Resumo ({lang_label})",
+            "lang": lang,
+            "path": f"{base}/resumo.html",
+            "category": "seo",
+            "fields": [
+                {"key": f"meta_resumo_title_{lang}", "label": "Meta title", "type": "text"},
+                {"key": f"meta_resumo_description_{lang}", "label": "Meta description", "type": "text"},
+            ],
+        },
+    ]
+
+
+for _lc_lang, _lc_label in LOCALE_CMS_LANGS:
+    PAGE_SCHEMA.extend(_locale_seo_pages(_lc_lang, _lc_label))
+
 # Reordenar: PT → EN → ES → FR → DE (facilita backoffice e API)
 _LANG_ORDER = {"pt": 0, "en": 1, "es": 2, "fr": 3, "de": 4}
 PAGE_SCHEMA.sort(
@@ -636,6 +691,70 @@ DEFAULT_SITE_CONTENT: dict[str, str] = {
     "meta_ajuda_description": "Respostas às perguntas frequentes sobre transcrição com IA e funcionalidades do Ouviescrevi.",
 }
 
+_LOCALE_SEO_DEFAULTS: dict[str, dict[str, str]] = {
+    "es": {
+        "meta_home_title_es": "Ouviescrevi — Transcripción de audio y vídeo con IA gratis",
+        "meta_home_description_es": (
+            "Transcribe audio y vídeo online con inteligencia artificial, gratis y sin registro. "
+            "Resúmenes, traducción, subtítulos SRT y conversión de archivos."
+        ),
+        "meta_ajuda_title_es": "Ayuda y FAQ — Cómo usar Ouviescrevi",
+        "meta_ajuda_description_es": (
+            "Preguntas frecuentes sobre transcripción con IA, formatos compatibles y privacidad."
+        ),
+        "meta_conversor_title_es": "Conversor de archivos online gratis — Word, PDF, imagen | Ouviescrevi",
+        "meta_conversor_description_es": (
+            "Convierte Word a PDF, PDF a texto e imágenes a PDF en el navegador. Gratis y sin instalación."
+        ),
+        "meta_resumo_title_es": "Resumen automático con IA — PDF, Word y texto | Ouviescrevi",
+        "meta_resumo_description_es": (
+            "Genera resúmenes inteligentes con IA a partir de PDF, Word o texto."
+        ),
+    },
+    "fr": {
+        "meta_home_title_fr": "Ouviescrevi — Transcription audio et vidéo IA gratuite",
+        "meta_home_description_fr": (
+            "Transcrivez audio et vidéo en ligne avec l'IA, gratuitement et sans inscription. "
+            "Résumés, traduction, sous-titres SRT et conversion de fichiers."
+        ),
+        "meta_ajuda_title_fr": "Aide et FAQ — Utiliser Ouviescrevi",
+        "meta_ajuda_description_fr": (
+            "Questions fréquentes sur la transcription IA, les formats pris en charge et la confidentialité."
+        ),
+        "meta_conversor_title_fr": "Convertisseur de fichiers en ligne gratuit — Word, PDF | Ouviescrevi",
+        "meta_conversor_description_fr": (
+            "Convertissez Word en PDF, PDF en texte et images en PDF dans le navigateur."
+        ),
+        "meta_resumo_title_fr": "Résumé automatique avec IA — PDF, Word et texte | Ouviescrevi",
+        "meta_resumo_description_fr": (
+            "Générez des résumés intelligents avec l'IA à partir de PDF, Word ou texte."
+        ),
+    },
+    "de": {
+        "meta_home_title_de": "Ouviescrevi — Kostenlose KI-Audio- und Video-Transkription",
+        "meta_home_description_de": (
+            "Transkribiere Audio und Video online mit KI, kostenlos und ohne Anmeldung. "
+            "Zusammenfassungen, Übersetzung, SRT-Untertitel und Dateikonvertierung."
+        ),
+        "meta_ajuda_title_de": "Hilfe & FAQ — Ouviescrevi nutzen",
+        "meta_ajuda_description_de": (
+            "Häufige Fragen zu KI-Transkription, unterstützten Formaten und Datenschutz."
+        ),
+        "meta_conversor_title_de": "Kostenloser Online-Dateikonverter — Word, PDF | Ouviescrevi",
+        "meta_conversor_description_de": (
+            "Word zu PDF, PDF zu Text und Bilder zu PDF im Browser konvertieren."
+        ),
+        "meta_resumo_title_de": "KI-Zusammenfassung — PDF, Word & Text | Ouviescrevi",
+        "meta_resumo_description_de": (
+            "Erstelle intelligente Zusammenfassungen mit KI aus PDF, Word oder Text."
+        ),
+    },
+}
+
+for _lng, _defaults in _LOCALE_SEO_DEFAULTS.items():
+    for _k, _v in _defaults.items():
+        DEFAULT_SITE_CONTENT.setdefault(_k, _v)
+
 for _lc_lang in ("es", "fr", "de"):
     for _key, _val in list(DEFAULT_SITE_CONTENT.items()):
         if _key.startswith("en_"):
@@ -661,16 +780,27 @@ def keys_for_page(page_id: str) -> list[str]:
 
 def get_seo_overrides() -> dict[str, dict[str, str]]:
     content = get_all_content()
-    mapping = {
-        "/index.html": ("meta_home_title", "meta_home_description"),
-        "/conversor.html": ("meta_conversor_title", "meta_conversor_description"),
-        "/resumo.html": ("meta_resumo_title", "meta_resumo_description"),
-        "/ajuda.html": ("meta_ajuda_title", "meta_ajuda_description"),
-    }
+    mapping: list[tuple[str, str, str]] = [
+        ("/index.html", "meta_home_title", "meta_home_description"),
+        ("/conversor.html", "meta_conversor_title", "meta_conversor_description"),
+        ("/resumo.html", "meta_resumo_title", "meta_resumo_description"),
+        ("/ajuda.html", "meta_ajuda_title", "meta_ajuda_description"),
+    ]
+    for lang in ("es", "fr", "de"):
+        mapping.extend(
+            [
+                (f"/{lang}/index.html", f"meta_home_title_{lang}", f"meta_home_description_{lang}"),
+                (f"/{lang}/conversor.html", f"meta_conversor_title_{lang}", f"meta_conversor_description_{lang}"),
+                (f"/{lang}/resumo.html", f"meta_resumo_title_{lang}", f"meta_resumo_description_{lang}"),
+                (f"/{lang}/ajuda.html", f"meta_ajuda_title_{lang}", f"meta_ajuda_description_{lang}"),
+            ]
+        )
     out: dict[str, dict[str, str]] = {}
-    for path, (tk, dk) in mapping.items():
-        if content.get(tk) or content.get(dk):
-            out[path] = {"title": content.get(tk, ""), "description": content.get(dk, "")}
+    for path, tk, dk in mapping:
+        title = content.get(tk, "")
+        description = content.get(dk, "")
+        if title or description:
+            out[path] = {"title": title, "description": description}
     return out
 
 

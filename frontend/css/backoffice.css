@@ -883,3 +883,99 @@ table.oe-admin-table td code {
     grid-template-columns: 1fr;
   }
 }
+
+.oe-admin-alerts-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.oe-admin-alerts-stack.hidden {
+  display: none;
+}
+
+.oe-admin-row--dup td:first-child {
+  border-left: 3px solid var(--bo-warn, #d97706);
+}
+
+.oe-admin-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.oe-admin-modal.hidden {
+  display: none;
+}
+
+.oe-admin-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+}
+
+.oe-admin-modal__box {
+  position: relative;
+  background: var(--bo-surface, #fff);
+  border-radius: 12px;
+  max-width: 560px;
+  width: 100%;
+  max-height: 85vh;
+  overflow: auto;
+  padding: 20px 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+}
+
+.oe-admin-modal__close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  border: 0;
+  background: transparent;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--bo-muted, #64748b);
+}
+
+.oe-admin-modal__body {
+  margin-top: 8px;
+  font-size: 0.92rem;
+}
+
+.oe-admin-dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 8px 12px;
+}
+
+.oe-admin-dl dt {
+  margin: 0;
+  font-weight: 600;
+  color: var(--bo-muted, #64748b);
+}
+
+.oe-admin-dl dd {
+  margin: 0;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.oe-admin-card--pulse {
+  animation: oe-admin-pulse 2s ease-in-out infinite;
+}
+
+@keyframes oe-admin-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0); }
+  50% { box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.25); }
+}
+
+#cardSugestoes {
+  cursor: pointer;
+}

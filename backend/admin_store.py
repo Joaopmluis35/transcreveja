@@ -320,7 +320,32 @@ def list_transcriptions(
             """,
             params,
         ).fetchall()
-        return [dict(r) for r in rows]
+        items = [dict(r) for r in rows]
+        dup_map: dict[str, int] = {}
+        if items:
+            dup_rows = conn.execute(
+                f"""
+                SELECT ficheiro, COUNT(*) AS c
+                FROM transcricoes
+                WHERE {' AND '.join(clauses)}
+                  AND ficheiro IS NOT NULL AND TRIM(ficheiro) != ''
+                GROUP BY ficheiro
+                HAVING c > 1
+                """,
+                params[:-2],
+            ).fetchall()
+            dup_map = {
+                r["ficheiro"] if hasattr(r, "keys") else r[0]: int(
+                    r["c"] if hasattr(r, "keys") else r[1]
+                )
+                for r in dup_rows
+            }
+        for item in items:
+            name = item.get("ficheiro") or ""
+            cnt = dup_map.get(name, 1)
+            item["duplicate_count"] = cnt
+            item["is_duplicate"] = cnt > 1
+        return items
     finally:
         conn.close()
 
@@ -389,11 +414,26 @@ def transcription_stats(
             """,
             params,
         ).fetchone()
+        dup_groups = conn.execute(
+            f"""
+            SELECT COUNT(*) AS c FROM (
+                SELECT ficheiro FROM transcricoes
+                WHERE {' AND '.join(clauses)}
+                  AND ficheiro IS NOT NULL AND TRIM(ficheiro) != ''
+                GROUP BY ficheiro
+                HAVING COUNT(*) > 1
+            )
+            """,
+            params,
+        ).fetchone()
         return {
             "total": int(row["total"] or 0),
             "falhas": int(row["falhas"] or 0),
             "media_proc_s": float(row["media_proc_s"] or 0),
             "media_dur_s": float(row["media_dur_s"] or 0),
+            "ficheiros_duplicados": int(
+                dup_groups["c"] if hasattr(dup_groups, "keys") else dup_groups[0] or 0
+            ),
         }
     finally:
         conn.close()
@@ -766,6 +806,48 @@ def system_health(openai_client=None) -> dict:
             health["openai"] = "ok"
         except Exception as exc:
             health["openai"] = f"erro: {str(exc)[:120]}"
+
+    try:
+        from cms import CONTENT_KEYS, get_page_schema
+
+        pages = get_page_schema()
+        locale_langs = ("es", "fr", "de")
+        health["cms_locale_pages"] = len(
+            [
+                p
+                for p in pages
+                if p.get("lang") in locale_langs and p.get("category") != "seo"
+            ]
+        )
+        health["cms_locale_seo_pages"] = len(
+            [
+                p
+                for p in pages
+                if p.get("lang") in locale_langs and p.get("category") == "seo"
+            ]
+        )
+        health["cms_locale_keys"] = len(
+            [
+                k
+                for k in CONTENT_KEYS
+                if any(k.startswith(f"{lng}_") or k.endswith(f"_{lng}") for lng in locale_langs)
+            ]
+        )
+        health["cms_locales_ready"] = (
+            health["cms_locale_pages"] >= 21
+            and health["cms_locale_seo_pages"] >= 12
+            and "es_home_intro_html" in CONTENT_KEYS
+            and "meta_home_title_es" in CONTENT_KEYS
+        )
+        health["cms_locales_note"] = (
+            "API pronta para guardar conteúdo e SEO em ES/FR/DE."
+            if health["cms_locales_ready"]
+            else "API desatualizada — faz redeploy no Render para guardar textos ES/FR/DE."
+        )
+    except Exception as exc:
+        health["cms_locales_ready"] = False
+        health["cms_locales_note"] = f"Não foi possível verificar CMS: {str(exc)[:80]}"
+
     return health
 
 

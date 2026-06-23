@@ -87,6 +87,91 @@
     .concat(localeCmsPages("fr", "FR"))
     .concat(localeCmsPages("de", "DE"));
 
+  function localeSeoPages(lang, langLabel) {
+    var base = "/" + lang;
+    return [
+      {
+        id: "seo_home_" + lang,
+        label: "SEO — Homepage (" + langLabel + ")",
+        lang: lang,
+        path: base + "/index.html",
+        category: "seo",
+        fields: [
+          { key: "meta_home_title_" + lang, label: "Meta title", type: "text" },
+          { key: "meta_home_description_" + lang, label: "Meta description", type: "text" },
+        ],
+      },
+      {
+        id: "seo_ajuda_" + lang,
+        label: "SEO — Ajuda (" + langLabel + ")",
+        lang: lang,
+        path: base + "/ajuda.html",
+        category: "seo",
+        fields: [
+          { key: "meta_ajuda_title_" + lang, label: "Meta title", type: "text" },
+          { key: "meta_ajuda_description_" + lang, label: "Meta description", type: "text" },
+        ],
+      },
+      {
+        id: "seo_conversor_" + lang,
+        label: "SEO — Conversor (" + langLabel + ")",
+        lang: lang,
+        path: base + "/conversor.html",
+        category: "seo",
+        fields: [
+          { key: "meta_conversor_title_" + lang, label: "Meta title", type: "text" },
+          { key: "meta_conversor_description_" + lang, label: "Meta description", type: "text" },
+        ],
+      },
+      {
+        id: "seo_resumo_" + lang,
+        label: "SEO — Resumo (" + langLabel + ")",
+        lang: lang,
+        path: base + "/resumo.html",
+        category: "seo",
+        fields: [
+          { key: "meta_resumo_title_" + lang, label: "Meta title", type: "text" },
+          { key: "meta_resumo_description_" + lang, label: "Meta description", type: "text" },
+        ],
+      },
+    ];
+  }
+
+  var FALLBACK_LOCALE_SEO_PAGES = []
+    .concat(localeSeoPages("es", "ES"))
+    .concat(localeSeoPages("fr", "FR"))
+    .concat(localeSeoPages("de", "DE"));
+
+  var LOCALE_SEO_DEFAULTS = {
+    meta_home_title_es: "Ouviescrevi — Transcripción de audio y vídeo con IA gratis",
+    meta_home_description_es:
+      "Transcribe audio y vídeo online con inteligencia artificial, gratis y sin registro. Resúmenes, traducción, subtítulos SRT y conversión de archivos.",
+    meta_ajuda_title_es: "Ayuda y FAQ — Cómo usar Ouviescrevi",
+    meta_ajuda_description_es: "Preguntas frecuentes sobre transcripción con IA, formatos compatibles y privacidad.",
+    meta_conversor_title_es: "Conversor de archivos online gratis — Word, PDF, imagen | Ouviescrevi",
+    meta_conversor_description_es: "Convierte Word a PDF, PDF a texto e imágenes a PDF en el navegador. Gratis y sin instalación.",
+    meta_resumo_title_es: "Resumen automático con IA — PDF, Word y texto | Ouviescrevi",
+    meta_resumo_description_es: "Genera resúmenes inteligentes con IA a partir de PDF, Word o texto.",
+    meta_home_title_fr: "Ouviescrevi — Transcription audio et vidéo IA gratuite",
+    meta_home_description_fr:
+      "Transcrivez audio et vidéo en ligne avec l'IA, gratuitement et sans inscription. Résumés, traduction, sous-titres SRT et conversion de fichiers.",
+    meta_ajuda_title_fr: "Aide et FAQ — Utiliser Ouviescrevi",
+    meta_ajuda_description_fr: "Questions fréquentes sur la transcription IA, les formats pris en charge et la confidentialité.",
+    meta_conversor_title_fr: "Convertisseur de fichiers en ligne gratuit — Word, PDF | Ouviescrevi",
+    meta_conversor_description_fr: "Convertissez Word en PDF, PDF en texte et images en PDF dans le navigateur.",
+    meta_resumo_title_fr: "Résumé automatique avec IA — PDF, Word et texte | Ouviescrevi",
+    meta_resumo_description_fr: "Générez des résumés intelligents avec l'IA à partir de PDF, Word ou texte.",
+    meta_home_title_de: "Ouviescrevi — Kostenlose KI-Audio- und Video-Transkription",
+    meta_home_description_de:
+      "Transkribiere Audio und Video online mit KI, kostenlos und ohne Anmeldung. Zusammenfassungen, Übersetzung, SRT-Untertitel und Dateikonvertierung.",
+    meta_ajuda_title_de: "Hilfe & FAQ — Ouviescrevi nutzen",
+    meta_ajuda_description_de: "Häufige Fragen zu KI-Transkription, unterstützten Formaten und Datenschutz.",
+    meta_conversor_title_de: "Kostenloser Online-Dateikonverter — Word, PDF | Ouviescrevi",
+    meta_conversor_description_de: "Word zu PDF, PDF zu Text und Bilder zu PDF im Browser konvertieren.",
+    meta_resumo_title_de: "KI-Zusammenfassung — PDF, Word & Text | Ouviescrevi",
+    meta_resumo_description_de: "Erstelle intelligente Zusammenfassungen mit KI aus PDF, Word oder Text.",
+  };
+
   function mergeLocaleCmsPages(apiPages) {
     var byId = {};
     (apiPages || []).forEach(function (p) {
@@ -136,9 +221,35 @@
     return out;
   }
 
+  function mergeLocaleSeoPages(apiPages) {
+    var seoFromApi = (apiPages || []).filter(function (p) {
+      return p.category === "seo";
+    });
+    var byId = {};
+    seoFromApi.forEach(function (p) {
+      byId[p.id] = p;
+    });
+    FALLBACK_LOCALE_SEO_PAGES.forEach(function (p) {
+      if (!byId[p.id]) byId[p.id] = p;
+    });
+    return Object.keys(byId).map(function (id) {
+      return byId[id];
+    });
+  }
+
+  function mergeLocaleSeoContent(content) {
+    var out = Object.assign({}, content || {});
+    Object.keys(LOCALE_SEO_DEFAULTS).forEach(function (key) {
+      if (!out[key]) out[key] = LOCALE_SEO_DEFAULTS[key];
+    });
+    return out;
+  }
+
   global.OuviescreviCmsLocales = {
     mergeLocaleCmsPages: mergeLocaleCmsPages,
     mergeLocaleCmsContent: mergeLocaleCmsContent,
+    mergeLocaleSeoPages: mergeLocaleSeoPages,
+    mergeLocaleSeoContent: mergeLocaleSeoContent,
     FALLBACK_LOCALE_PAGES: FALLBACK_LOCALE_PAGES,
   };
 })(window);

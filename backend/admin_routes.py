@@ -25,6 +25,7 @@ def admin_dashboard(request: Request):
     costs = store.estimate_costs()
     conv = store.conversion_stats()
     maint = store.get_maintenance()
+    cfg = store.get_config()
     return {
         "manutencao": maint["manutencao"],
         "maintenance_message": maint["maintenance_message"],
@@ -46,6 +47,8 @@ def admin_dashboard(request: Request):
         "cloudflare": store.fetch_cloudflare_analytics(),
         "banner": store.get_active_banner(),
         "sugestoes_nao_lidas": len(store.list_suggestions(unread_only=True, limit=200)),
+        "alert_transcriptions_daily": int(cfg.get("alert_transcriptions_daily") or 0),
+        "alert_visits_daily": int(cfg.get("alert_visits_daily") or 0),
     }
 
 

@@ -303,6 +303,8 @@
       renderPeakHoursChart((data.charts && data.charts.horas_pico) || []);
       renderTopPages(data.top_paginas);
       updateSugestoesBadge(data.sugestoes_nao_lidas);
+      var sugStat = document.getElementById("statSugestoesNovas");
+      if (sugStat) sugStat.textContent = String(data.sugestoes_nao_lidas || 0);
       renderVisitasRecentes(data.visitas_recentes || []);
       if (global.OuviescreviAdminExt) global.OuviescreviAdminExt.renderReferrersAndDevices(data);
     } catch (e) {
@@ -477,7 +479,8 @@
         : fromApi;
       populateCmsPageSelect();
       if (global.OuviescreviAdminExt) {
-        global.OuviescreviAdminExt.setupSeo(data.pages || [], cmsContent);
+        var seoPages = data.pages || [];
+        global.OuviescreviAdminExt.setupSeo(seoPages, cmsContent);
       }
     } catch (e) {
       global.OuviescreviUI.toast("Erro ao carregar conteúdo.", "error");
@@ -568,8 +571,49 @@
     box.innerHTML =
       '<div class="oe-admin-mini-stat"><span>Total</span><strong>' + (total || 0) + "</strong></div>" +
       '<div class="oe-admin-mini-stat"><span>Falhas</span><strong>' + (stats.falhas || 0) + "</strong></div>" +
+      '<div class="oe-admin-mini-stat"><span>Ficheiros repetidos</span><strong>' + (stats.ficheiros_duplicados || 0) + "</strong></div>" +
       '<div class="oe-admin-mini-stat"><span>Proc. médio</span><strong>' + (stats.media_proc_s || 0) + " s</strong></div>" +
       '<div class="oe-admin-mini-stat"><span>Duração média</span><strong>' + (stats.media_dur_s || 0) + " s</strong></div>";
+  }
+
+  function showTransDetail(row) {
+    var modal = document.getElementById("transDetailModal");
+    var body = document.getElementById("transDetailBody");
+    var title = document.getElementById("transDetailTitle");
+    if (!modal || !body) return;
+    if (title) title.textContent = row.ficheiro || "Transcrição #" + (row.id || "");
+    var lines = [
+      ["ID", row.id != null ? String(row.id) : "—"],
+      ["Ficheiro", row.ficheiro || "—"],
+      ["Idioma", row.language || "auto"],
+      ["Tamanho", row.size_bytes ? (row.size_bytes / 1048576).toFixed(2) + " MB" : "—"],
+      ["Duração", row.duration_sec != null ? row.duration_sec + " s" : "—"],
+      ["Processamento", row.processing_sec != null ? row.processing_sec + " s" : "—"],
+      ["Estado", row.status || "ok"],
+      ["Data", formatTransDate(row.data)],
+      ["Repetições (mesmo nome)", row.duplicate_count != null ? String(row.duplicate_count) : "1"],
+    ];
+    if (row.error_message) lines.push(["Erro", row.error_message]);
+    body.innerHTML =
+      '<dl class="oe-admin-dl">' +
+      lines.map(function (pair) {
+        return "<dt>" + pair[0] + "</dt><dd>" + escapeHtml(pair[1]) + "</dd>";
+      }).join("") +
+      "</dl>";
+    modal.classList.remove("hidden");
+  }
+
+  function closeTransDetail() {
+    var modal = document.getElementById("transDetailModal");
+    if (modal) modal.classList.add("hidden");
+  }
+
+  function escapeHtml(text) {
+    return String(text)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
   }
 
   function renderTransTable(logs, append) {
@@ -594,6 +638,10 @@
       var short = name.length > 42 ? name.slice(0, 39) + "…" : name;
       var err = row.error_message ? String(row.error_message).slice(0, 60) : "—";
       var tr = document.createElement("tr");
+      if (row.is_duplicate) tr.classList.add("oe-admin-row--dup");
+      tr.title = "Clicar para ver detalhe";
+      tr.style.cursor = "pointer";
+      tr.addEventListener("click", function () { showTransDetail(row); });
       [
         short,
         row.language || "auto",
@@ -611,10 +659,19 @@
           td.title = row.error_message;
           td.textContent = err;
           td.className = "oe-admin-cell--err";
+        } else if (i === 0) {
+          if (row.ficheiro) td.title = row.ficheiro;
+          td.textContent = short;
+          if (row.duplicate_count > 1) {
+            var badge = document.createElement("span");
+            badge.className = "oe-admin-badge oe-admin-badge--warn";
+            badge.textContent = "×" + row.duplicate_count;
+            badge.style.marginLeft = "6px";
+            td.appendChild(badge);
+          }
         } else {
           td.textContent = cell;
         }
-        if (i === 0 && row.ficheiro) td.title = row.ficheiro;
         tr.appendChild(td);
       });
       tbody.appendChild(tr);
@@ -730,6 +787,23 @@
     document.getElementById("btnTransFilter").addEventListener("click", function () { carregarLogs(false); });
     var btnMore = document.getElementById("btnTransMore");
     if (btnMore) btnMore.addEventListener("click", carregarMaisLogs);
+
+    var transClose = document.getElementById("transDetailClose");
+    if (transClose) transClose.addEventListener("click", closeTransDetail);
+    document.querySelectorAll("[data-close-trans-modal]").forEach(function (el) {
+      el.addEventListener("click", closeTransDetail);
+    });
+
+    var cardSug = document.getElementById("cardSugestoes");
+    if (cardSug) {
+      cardSug.addEventListener("click", function () { switchTab("sugestoes"); });
+      cardSug.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          switchTab("sugestoes");
+        }
+      });
+    }
 
     document.getElementById("btnRefresh").addEventListener("click", function () {
       carregarDashboard();
