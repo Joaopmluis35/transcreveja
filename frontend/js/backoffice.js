@@ -4,6 +4,7 @@
 (function (global) {
   let chartVisitas = null;
   let chartTranscricoes = null;
+  let chartPeakHours = null;
   let cmsPages = [];
   let cmsContent = {};
   let cmsCurrentPage = null;
@@ -15,6 +16,49 @@
     ["link"],
     ["clean"],
   ];
+
+  const ROLE_LEVEL = { viewer: 1, editor: 2, admin: 3 };
+  let transOffset = 0;
+  const TRANS_PAGE = 50;
+  let transTotal = 0;
+
+  function getAdminRole() {
+    return sessionStorage.getItem("ouviescrevi_admin_role") || "admin";
+  }
+
+  function roleAtLeast(minimum) {
+    var role = getAdminRole();
+    return (ROLE_LEVEL[role] || 0) >= (ROLE_LEVEL[minimum] || 99);
+  }
+
+  function applyRoleUI() {
+    var role = getAdminRole();
+    document.querySelectorAll("[data-min-role]").forEach(function (el) {
+      var min = el.getAttribute("data-min-role") || "viewer";
+      el.classList.toggle("hidden", !roleAtLeast(min));
+    });
+    document.querySelectorAll("[data-admin-only]").forEach(function (el) {
+      el.classList.toggle("hidden", role !== "admin");
+    });
+    var label = document.getElementById("adminUserLabel");
+    if (label) {
+      var user = sessionStorage.getItem("ouviescrevi_admin_username") || "admin";
+      label.textContent = user + " · " + role;
+      label.classList.remove("hidden");
+    }
+  }
+
+  function updateSugestoesBadge(count) {
+    var badge = document.getElementById("navBadgeSugestoes");
+    if (!badge) return;
+    var n = Number(count) || 0;
+    if (n > 0) {
+      badge.textContent = n > 99 ? "99+" : String(n);
+      badge.classList.remove("hidden");
+    } else {
+      badge.classList.add("hidden");
+    }
+  }
 
   function apiBase() {
     return global.OuviescreviAPI.getBase() || global.OuviescreviAPI.detectApiBase();
@@ -165,6 +209,37 @@
     }
   }
 
+  function renderPeakHoursChart(peakRows) {
+    if (!global.Chart) return;
+    var ctx = document.getElementById("chartPeakHours");
+    if (!ctx) return;
+    var hours = [];
+    for (var h = 0; h < 24; h++) hours.push(String(h).padStart(2, "0"));
+    var map = {};
+    (peakRows || []).forEach(function (r) {
+      map[r.hora] = r.total;
+    });
+    if (chartPeakHours) chartPeakHours.destroy();
+    chartPeakHours = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: hours.map(function (h) { return h + "h"; }),
+        datasets: [{
+          label: "Visitas",
+          data: hours.map(function (h) { return map[h] || 0; }),
+          backgroundColor: "rgba(37, 99, 235, 0.7)",
+          borderRadius: 3,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+      },
+    });
+  }
+
   function renderTopPages(pages) {
     var div = document.getElementById("topPaginas");
     if (!div) return;
@@ -224,7 +299,9 @@
       atualizarStatusManutencao(!!data.manutencao);
 
       renderCharts(data.charts);
+      renderPeakHoursChart((data.charts && data.charts.horas_pico) || []);
       renderTopPages(data.top_paginas);
+      updateSugestoesBadge(data.sugestoes_nao_lidas);
       renderVisitasRecentes(data.visitas_recentes || []);
       if (global.OuviescreviAdminExt) global.OuviescreviAdminExt.renderReferrersAndDevices(data);
     } catch (e) {
@@ -320,7 +397,7 @@
     cmsPages.forEach(function (page) {
       var opt = document.createElement("option");
       opt.value = page.id;
-      opt.textContent = page.label + (page.lang === "en" ? " (EN)" : "");
+      opt.textContent = page.label + (page.lang && page.lang !== "pt" ? " (" + page.lang.toUpperCase() + ")" : "");
       select.appendChild(opt);
     });
     if (cmsPages.length) selectCmsPage(cmsPages[0].id);
@@ -408,59 +485,116 @@
     return '<span class="oe-admin-badge ' + cls + '">' + s + "</span>";
   }
 
-  async function carregarLogs() {
-    var div = document.getElementById("tabelaLogs");
-    if (!div) return;
-    div.innerHTML = '<p class="oe-admin-empty">A carregar...</p>';
+  function transQueryParams() {
     var q = (document.getElementById("transSearch") || {}).value || "";
     var status = (document.getElementById("transStatus") || {}).value || "";
-    var qs = "?limit=100" + (q ? "&q=" + encodeURIComponent(q) : "") + (status ? "&status=" + encodeURIComponent(status) : "");
+    var dayFrom = (document.getElementById("transDayFrom") || {}).value || "";
+    var dayTo = (document.getElementById("transDayTo") || {}).value || "";
+    var qs = "?limit=" + TRANS_PAGE + "&offset=" + transOffset;
+    if (q) qs += "&q=" + encodeURIComponent(q);
+    if (status) qs += "&status=" + encodeURIComponent(status);
+    if (dayFrom) qs += "&day_from=" + encodeURIComponent(dayFrom);
+    if (dayTo) qs += "&day_to=" + encodeURIComponent(dayTo);
+    return qs;
+  }
+
+  function renderTransSummary(stats, total) {
+    var box = document.getElementById("transSummary");
+    if (!box || !stats) return;
+    box.innerHTML =
+      '<div class="oe-admin-mini-stat"><span>Total</span><strong>' + (total || 0) + "</strong></div>" +
+      '<div class="oe-admin-mini-stat"><span>Falhas</span><strong>' + (stats.falhas || 0) + "</strong></div>" +
+      '<div class="oe-admin-mini-stat"><span>Proc. médio</span><strong>' + (stats.media_proc_s || 0) + " s</strong></div>" +
+      '<div class="oe-admin-mini-stat"><span>Duração média</span><strong>' + (stats.media_dur_s || 0) + " s</strong></div>";
+  }
+
+  function renderTransTable(logs, append) {
+    var div = document.getElementById("tabelaLogs");
+    if (!div) return;
+    if (!append) div.innerHTML = "";
+    if (!logs.length && !append) {
+      div.innerHTML = '<p class="oe-admin-empty">Sem transcrições registadas.</p>';
+      return;
+    }
+    var table = append ? div.querySelector("table") : null;
+    if (!table) {
+      table = buildTable(
+        ["Ficheiro", "Idioma", "MB", "Duração", "Processamento", "Estado", "Erro", "Data"],
+        []
+      );
+      if (!append) div.appendChild(table);
+    }
+    var tbody = table.querySelector("tbody");
+    logs.forEach(function (row) {
+      var name = row.ficheiro || "—";
+      var short = name.length > 42 ? name.slice(0, 39) + "…" : name;
+      var err = row.error_message ? String(row.error_message).slice(0, 60) : "—";
+      var tr = document.createElement("tr");
+      [
+        short,
+        row.language || "auto",
+        row.size_bytes ? (row.size_bytes / 1048576).toFixed(1) : "—",
+        row.duration_sec != null ? Math.round(row.duration_sec) + " s" : "—",
+        row.processing_sec != null ? row.processing_sec + " s" : "—",
+        row.status || "ok",
+        err,
+        formatTransDate(row.data),
+      ].forEach(function (cell, i) {
+        var td = document.createElement("td");
+        if (i === 5) {
+          td.innerHTML = statusBadge(row.status);
+        } else if (i === 6 && row.error_message) {
+          td.title = row.error_message;
+          td.textContent = err;
+          td.className = "oe-admin-cell--err";
+        } else {
+          td.textContent = cell;
+        }
+        if (i === 0 && row.ficheiro) td.title = row.ficheiro;
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+  }
+
+  async function carregarLogs(append) {
+    if (append === undefined) append = false;
+    var div = document.getElementById("tabelaLogs");
+    if (!div) return;
+    if (!append) {
+      transOffset = 0;
+      div.innerHTML = '<p class="oe-admin-empty">A carregar...</p>';
+    }
     try {
-      var res = await fetch(apiBase() + "/api/admin/transcricoes" + qs, {
+      var res = await fetch(apiBase() + "/api/admin/transcricoes" + transQueryParams(), {
         headers: global.OuviescreviAPI.adminAuthHeaders(),
       });
       var data = await res.json();
       var logs = data.items || [];
-      if (!logs.length) {
-        div.innerHTML = '<p class="oe-admin-empty">Sem transcrições registadas.</p>';
-        return;
+      transTotal = data.total || 0;
+      renderTransSummary(data.stats, transTotal);
+      renderTransTable(logs, !!append);
+      var moreBtn = document.getElementById("btnTransMore");
+      if (moreBtn) {
+        var hasMore = transOffset + logs.length < transTotal;
+        moreBtn.classList.toggle("hidden", !hasMore);
       }
-      div.innerHTML = "";
-      var table = buildTable(
-        ["Ficheiro", "Idioma", "MB", "Duração", "Processamento", "Estado", "Data"],
-        logs.map(function (row) {
-          var name = row.ficheiro || "—";
-          var short = name.length > 48 ? name.slice(0, 45) + "…" : name;
-          return [
-            short,
-            row.language || "auto",
-            row.size_bytes ? (row.size_bytes / 1048576).toFixed(1) : "—",
-            row.duration_sec != null ? Math.round(row.duration_sec) + " s" : "—",
-            row.processing_sec != null ? row.processing_sec + " s" : "—",
-            row.status || "ok",
-            formatTransDate(row.data),
-          ];
-        })
-      );
-      table.querySelectorAll("tbody tr").forEach(function (tr, i) {
-        var row = logs[i];
-        if (!row) return;
-        var fileTd = tr.cells[0];
-        if (fileTd && row.ficheiro) fileTd.title = row.ficheiro;
-        var statusTd = tr.cells[5];
-        if (statusTd) statusTd.innerHTML = statusBadge(row.status);
-      });
-      div.appendChild(table);
     } catch (e) {
       div.innerHTML = '<p class="oe-admin-empty">Erro ao carregar.</p>';
     }
   }
 
+  function carregarMaisLogs() {
+    transOffset += TRANS_PAGE;
+    carregarLogs(true);
+  }
+
   function mostrarApp() {
     document.getElementById("loginScreen").classList.add("hidden");
     document.getElementById("adminApp").classList.remove("hidden");
+    applyRoleUI();
     carregarDashboard();
-    carregarConteudo();
+    if (roleAtLeast("editor")) carregarConteudo();
   }
 
   function logout() {
@@ -470,6 +604,7 @@
     document.getElementById("password").value = "";
     if (chartVisitas) { chartVisitas.destroy(); chartVisitas = null; }
     if (chartTranscricoes) { chartTranscricoes.destroy(); chartTranscricoes = null; }
+    if (chartPeakHours) { chartPeakHours.destroy(); chartPeakHours = null; }
     global.OuviescreviUI.toast("Sessão terminada.");
   }
 
@@ -496,6 +631,11 @@
 
     document.getElementById("manutencaoToggle").addEventListener("change", async function () {
       var toggle = document.getElementById("manutencaoToggle");
+      if (!roleAtLeast("admin")) {
+        toggle.checked = !toggle.checked;
+        global.OuviescreviUI.toast("Sem permissão.", "error");
+        return;
+      }
       try {
         var res = await fetch(apiBase() + "/api/status", {
           method: "POST",
@@ -516,6 +656,10 @@
     document.getElementById("cmsPageSelect").addEventListener("change", function () {
       selectCmsPage(this.value);
     });
+    document.getElementById("btnTransFilter").addEventListener("click", function () { carregarLogs(false); });
+    var btnMore = document.getElementById("btnTransMore");
+    if (btnMore) btnMore.addEventListener("click", carregarMaisLogs);
+
     document.getElementById("btnRefresh").addEventListener("click", function () {
       carregarDashboard();
       var active = document.querySelector(".oe-admin-nav button.is-active");
@@ -545,5 +689,8 @@
     carregarDashboard: carregarDashboard,
     carregarLogs: carregarLogs,
     buildTable: buildTable,
+    roleAtLeast: roleAtLeast,
+    updateSugestoesBadge: updateSugestoesBadge,
+    applyRoleUI: applyRoleUI,
   };
 })(window);

@@ -381,6 +381,92 @@ PAGE_SCHEMA: list[dict[str, Any]] = [
     },
 ]
 
+LOCALE_CMS_LANGS = (("es", "ES"), ("fr", "FR"), ("de", "DE"))
+
+
+def _locale_cms_pages(lang: str, lang_label: str) -> list[dict[str, Any]]:
+    p = lang
+    base = f"/{lang}"
+    return [
+        {
+            "id": f"home_{lang}",
+            "label": f"Homepage ({lang_label})",
+            "lang": lang,
+            "path": f"{base}/index.html",
+            "fields": [
+                {"key": f"{p}_home_intro_html", "label": "Texto de boas-vindas (topo)", "type": "rich"},
+            ],
+        },
+        {
+            "id": f"ajuda_{lang}",
+            "label": f"Ajuda ({lang_label})",
+            "lang": lang,
+            "path": f"{base}/ajuda.html",
+            "fields": [
+                {"key": f"{p}_ajuda_title", "label": "Título da página", "type": "text"},
+                {"key": f"{p}_ajuda_intro", "label": "Introdução", "type": "rich"},
+                {"key": f"{p}_ajuda_faq", "label": "Perguntas frequentes", "type": "rich"},
+                {"key": f"{p}_ajuda_contact", "label": "Secção de contacto", "type": "rich"},
+            ],
+        },
+        {
+            "id": f"conversor_{lang}",
+            "label": f"Conversor ({lang_label})",
+            "lang": lang,
+            "path": f"{base}/conversor.html",
+            "fields": [
+                {"key": f"{p}_conversor_title", "label": "Título", "type": "text"},
+                {"key": f"{p}_conversor_lead", "label": "Subtítulo", "type": "text"},
+                {"key": f"{p}_conversor_notice", "label": "Aviso", "type": "rich"},
+                {"key": f"{p}_conversor_seo", "label": "Texto SEO (rodapé)", "type": "rich"},
+            ],
+        },
+        {
+            "id": f"sugestoes_{lang}",
+            "label": f"Sugestões ({lang_label})",
+            "lang": lang,
+            "path": f"{base}/sugestoes.html",
+            "fields": [
+                {"key": f"{p}_sugestoes_title", "label": "Título", "type": "text"},
+                {"key": f"{p}_sugestoes_lead", "label": "Subtítulo", "type": "text"},
+            ],
+        },
+        {
+            "id": f"privacidade_{lang}",
+            "label": f"Legal — Privacidade ({lang_label})",
+            "lang": lang,
+            "path": f"{base}/privacy.html",
+            "fields": [
+                {"key": f"{p}_privacidade_meta", "label": "Linha «última atualização»", "type": "rich"},
+                {"key": f"{p}_privacidade_disclaimer", "label": "Aviso introdutório", "type": "rich"},
+            ],
+        },
+        {
+            "id": f"termos_{lang}",
+            "label": f"Legal — Termos ({lang_label})",
+            "lang": lang,
+            "path": f"{base}/terms.html",
+            "fields": [
+                {"key": f"{p}_termos_meta", "label": "Linha «última atualização»", "type": "rich"},
+                {"key": f"{p}_termos_intro", "label": "Aviso introdutório", "type": "rich"},
+            ],
+        },
+        {
+            "id": f"cookies_{lang}",
+            "label": f"Legal — Cookies ({lang_label})",
+            "lang": lang,
+            "path": f"{base}/cookies.html",
+            "fields": [
+                {"key": f"{p}_cookies_meta", "label": "Linha «última atualização»", "type": "rich"},
+                {"key": f"{p}_cookies_intro", "label": "Introdução (secção 1)", "type": "rich"},
+            ],
+        },
+    ]
+
+
+for _lc_lang, _lc_label in LOCALE_CMS_LANGS:
+    PAGE_SCHEMA.extend(_locale_cms_pages(_lc_lang, _lc_label))
+
 DEFAULT_SITE_CONTENT: dict[str, str] = {
     "home_intro_html": (
         "<p><strong>🧠 Ouviescrevi</strong> é o teu assistente com IA para<br>"
@@ -539,6 +625,15 @@ DEFAULT_SITE_CONTENT: dict[str, str] = {
     "meta_ajuda_title": "Ajuda e FAQ — Como Usar o Ouviescrevi",
     "meta_ajuda_description": "Respostas às perguntas frequentes sobre transcrição com IA e funcionalidades do Ouviescrevi.",
 }
+
+for _lc_lang in ("es", "fr", "de"):
+    for _key, _val in list(DEFAULT_SITE_CONTENT.items()):
+        if _key.startswith("en_"):
+            DEFAULT_SITE_CONTENT.setdefault(_lc_lang + _key[2:], _val)
+    DEFAULT_SITE_CONTENT.setdefault(
+        f"{_lc_lang}_home_intro_html",
+        DEFAULT_SITE_CONTENT.get("home_intro_html", ""),
+    )
 
 CONTENT_KEYS = frozenset(DEFAULT_SITE_CONTENT.keys())
 _PAGE_KEYS: dict[str, list[str]] = {

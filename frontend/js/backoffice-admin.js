@@ -165,8 +165,12 @@
   async function loadSugestoes() {
     var div = document.getElementById("tabelaSugestoes");
     if (!div) return;
+    var unreadOnly = !!(document.getElementById("sugUnreadOnly") || {}).checked;
     try {
-      var res = await fetch(apiBase() + "/api/admin/sugestoes", { headers: authHeaders() });
+      var res = await fetch(
+        apiBase() + "/api/admin/sugestoes" + (unreadOnly ? "?unread_only=true" : ""),
+        { headers: authHeaders() }
+      );
       var data = await res.json();
       var items = data.items || [];
       if (!items.length) {
@@ -174,21 +178,71 @@
         return;
       }
       div.innerHTML = "";
-      div.appendChild(
-        buildTable(
-          ["Nome", "Mensagem", "Data", "Lida"],
-          items.map(function (s) {
-            return [
-              s.nome || "—",
-              (s.mensagem || "").slice(0, 80),
-              (s.created_at || "").replace("T", " ").replace("Z", ""),
-              s.lida ? "Sim" : "Não",
-            ];
-          })
-        )
+      var table = buildTable(
+        ["Nome", "Mensagem", "Idioma", "Data", "Estado", ""],
+        items.map(function (s) {
+          return [
+            s.nome || "—",
+            (s.mensagem || "").slice(0, 100),
+            s.lang || "pt",
+            (s.created_at || "").replace("T", " ").replace("Z", "").slice(0, 19),
+            s.lida ? "Lida" : "Nova",
+            s.lida ? "" : "mark",
+          ];
+        })
       );
+      table.querySelectorAll("tbody tr").forEach(function (tr, i) {
+        var s = items[i];
+        if (!s || s.lida) return;
+        var td = tr.cells[5];
+        if (!td) return;
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "oe-admin-btn oe-admin-btn--secondary oe-admin-btn--sm";
+        btn.textContent = "Marcar lida";
+        btn.addEventListener("click", function () {
+          markSugestaoRead(s.id);
+        });
+        td.appendChild(btn);
+        tr.cells[4].innerHTML = '<span class="oe-admin-badge oe-admin-badge--warn">Nova</span>';
+        if (s.mensagem && s.mensagem.length > 100) tr.cells[1].title = s.mensagem;
+      });
+      div.appendChild(table);
     } catch (e) {
       div.innerHTML = '<p class="oe-admin-empty">Erro ao carregar.</p>';
+    }
+  }
+
+  async function markSugestaoRead(id) {
+    try {
+      var res = await fetch(apiBase() + "/api/admin/sugestoes/read", {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({ id: id }),
+      });
+      if (!res.ok) throw new Error();
+      global.OuviescreviUI.toast("Sugestão marcada como lida.", "success");
+      loadSugestoes();
+      if (global.OuviescreviAdmin && global.OuviescreviAdmin.carregarDashboard) {
+        global.OuviescreviAdmin.carregarDashboard();
+      }
+    } catch (e) {
+      global.OuviescreviUI.toast("Erro ao atualizar.", "error");
+    }
+  }
+
+  async function deleteUser(userId, username) {
+    if (!confirm("Remover utilizador «" + username + "»?")) return;
+    try {
+      var res = await fetch(apiBase() + "/api/admin/users/" + userId, {
+        method: "DELETE",
+        headers: authHeaders(),
+      });
+      if (!res.ok) throw new Error();
+      global.OuviescreviUI.toast("Utilizador removido.", "success");
+      loadSystem();
+    } catch (e) {
+      global.OuviescreviUI.toast("Erro ao remover.", "error");
     }
   }
 
@@ -319,31 +373,65 @@
         document.getElementById("bannerLink").value = banner.link || "";
         document.getElementById("bannerAtivo").checked = !!banner.ativo;
       }
-      var ures = await fetch(apiBase() + "/api/admin/users", { headers: authHeaders() });
-      var udata = await ures.json();
       var ul = document.getElementById("usersList");
-      if (ul) {
-        var users = udata.items || [];
-        ul.innerHTML = users.length
-          ? "<ul>" + users.map(function (u) {
-            return "<li><strong>" + u.username + "</strong> — " + u.role + "</li>";
-          }).join("") + "</ul>"
-          : "<p class='oe-admin-empty'>Só o admin por defeito.</p>";
+      if (ul && (sessionStorage.getItem("ouviescrevi_admin_role") || "admin") === "admin") {
+        try {
+          var ures = await fetch(apiBase() + "/api/admin/users", { headers: authHeaders() });
+          var udata = await ures.json();
+          var users = udata.items || [];
+          if (!users.length) {
+            ul.innerHTML = "<p class='oe-admin-empty'>Só o admin por defeito.</p>";
+          } else {
+            ul.innerHTML = "";
+            var utable = buildTable(
+              ["Utilizador", "Papel", "Criado", ""],
+              users.map(function (u) {
+                return [
+                  u.username,
+                  u.role,
+                  (u.created_at || "").replace("T", " ").slice(0, 10),
+                  "del",
+                ];
+              })
+            );
+            utable.querySelectorAll("tbody tr").forEach(function (tr, i) {
+              var u = users[i];
+              var td = tr.cells[3];
+              if (!td || !u) return;
+              var btn = document.createElement("button");
+              btn.type = "button";
+              btn.className = "oe-admin-btn oe-admin-btn--danger oe-admin-btn--sm";
+              btn.textContent = "Remover";
+              btn.addEventListener("click", function () {
+                deleteUser(u.id, u.username);
+              });
+              td.appendChild(btn);
+            });
+            ul.appendChild(utable);
+          }
+        } catch (e) {
+          ul.innerHTML = "<p class='oe-admin-empty'>Sem permissão.</p>";
+        }
       }
-      var ares = await fetch(apiBase() + "/api/admin/audit?limit=15", { headers: authHeaders() });
-      var adata = await ares.json();
-      var auditDiv = document.getElementById("auditLog");
-      if (auditDiv) {
-        auditDiv.innerHTML = "";
-        var logs = adata.items || [];
-        auditDiv.appendChild(
-          buildTable(
-            ["Quem", "Ação", "Quando"],
-            logs.map(function (l) {
-              return [l.actor, l.action, (l.created_at || "").replace("T", " ")];
-            })
-          )
-        );
+      if ((sessionStorage.getItem("ouviescrevi_admin_role") || "admin") === "admin") {
+        var ares = await fetch(apiBase() + "/api/admin/audit?limit=15", { headers: authHeaders() });
+        var adata = await ares.json();
+        var auditDiv = document.getElementById("auditLog");
+        if (auditDiv) {
+          auditDiv.innerHTML = "";
+          var logs = adata.items || [];
+          auditDiv.appendChild(
+            buildTable(
+              ["Quem", "Ação", "Quando"],
+              logs.map(function (l) {
+                return [l.actor, l.action, (l.created_at || "").replace("T", " ")];
+              })
+            )
+          );
+        }
+      } else {
+        var auditDivOnly = document.getElementById("auditLog");
+        if (auditDivOnly) auditDivOnly.innerHTML = '<p class="oe-admin-empty">Apenas administradores.</p>';
       }
       var eres = await fetch(apiBase() + "/api/admin/errors?limit=15", { headers: authHeaders() });
       var edata = await eres.json();
@@ -451,6 +539,8 @@
     if (bannerForm) bannerForm.addEventListener("submit", saveBanner);
     var userForm = document.getElementById("userForm");
     if (userForm) userForm.addEventListener("submit", addUser);
+    var sugUnread = document.getElementById("sugUnreadOnly");
+    if (sugUnread) sugUnread.addEventListener("change", loadSugestoes);
     var btnSys = document.getElementById("btnRefreshSystem");
     if (btnSys) btnSys.addEventListener("click", loadSystem);
   }

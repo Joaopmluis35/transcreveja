@@ -49,6 +49,15 @@ def admin_dashboard(request: Request):
     }
 
 
+@router.get("/me")
+def admin_me(request: Request):
+    session = getattr(request.state, "admin_session", None) or {}
+    return {
+        "username": session.get("username") or getattr(request.state, "admin_user", "admin"),
+        "role": session.get("role") or "admin",
+    }
+
+
 @router.get("/health")
 def admin_health(request: Request):
     import os
@@ -70,9 +79,17 @@ def admin_transcricoes(
     status: str | None = None,
     day_from: str | None = None,
     day_to: str | None = None,
-    limit: int = 100,
+    limit: int = 50,
+    offset: int = 0,
 ):
-    return {"items": store.list_transcriptions(q=q, status=status, day_from=day_from, day_to=day_to, limit=limit)}
+    filters = {"q": q, "status": status, "day_from": day_from, "day_to": day_to}
+    return {
+        "items": store.list_transcriptions(**filters, limit=limit, offset=offset),
+        "total": store.count_transcriptions(**filters),
+        "stats": store.transcription_stats(**filters),
+        "limit": limit,
+        "offset": offset,
+    }
 
 
 @router.get("/sugestoes")

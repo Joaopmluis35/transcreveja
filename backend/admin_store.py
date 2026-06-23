@@ -300,9 +300,37 @@ def list_transcriptions(
     status: str | None = None,
     day_from: str | None = None,
     day_to: str | None = None,
-    limit: int = 100,
+    limit: int = 50,
+    offset: int = 0,
 ) -> list[dict]:
     limit = max(1, min(limit, 500))
+    offset = max(0, offset)
+    clauses, params = _transcription_filters(q, status, day_from, day_to)
+    params.extend([limit, offset])
+    conn = get_connection()
+    try:
+        rows = conn.execute(
+            f"""
+            SELECT id, ficheiro, data, language, size_bytes, duration_sec,
+                   processing_sec, status, error_message
+            FROM transcricoes
+            WHERE {' AND '.join(clauses)}
+            ORDER BY id DESC
+            LIMIT ? OFFSET ?
+            """,
+            params,
+        ).fetchall()
+        return [dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+def _transcription_filters(
+    q: str | None,
+    status: str | None,
+    day_from: str | None,
+    day_to: str | None,
+) -> tuple[list[str], list[Any]]:
     clauses = ["1=1"]
     params: list[Any] = []
     if q:
@@ -317,21 +345,56 @@ def list_transcriptions(
     if day_to:
         clauses.append("substr(data, 1, 10) <= ?")
         params.append(day_to)
-    params.append(limit)
+    return clauses, params
+
+
+def count_transcriptions(
+    *,
+    q: str | None = None,
+    status: str | None = None,
+    day_from: str | None = None,
+    day_to: str | None = None,
+) -> int:
+    clauses, params = _transcription_filters(q, status, day_from, day_to)
     conn = get_connection()
     try:
-        rows = conn.execute(
+        row = conn.execute(
+            f"SELECT COUNT(*) AS c FROM transcricoes WHERE {' AND '.join(clauses)}",
+            params,
+        ).fetchone()
+        return int(row["c"] if hasattr(row, "keys") else row[0])
+    finally:
+        conn.close()
+
+
+def transcription_stats(
+    *,
+    q: str | None = None,
+    status: str | None = None,
+    day_from: str | None = None,
+    day_to: str | None = None,
+) -> dict[str, Any]:
+    clauses, params = _transcription_filters(q, status, day_from, day_to)
+    conn = get_connection()
+    try:
+        row = conn.execute(
             f"""
-            SELECT id, ficheiro, data, language, size_bytes, duration_sec,
-                   processing_sec, status, error_message
+            SELECT
+                COUNT(*) AS total,
+                SUM(CASE WHEN COALESCE(status, 'ok') != 'ok' THEN 1 ELSE 0 END) AS falhas,
+                ROUND(AVG(COALESCE(processing_sec, 0)), 2) AS media_proc_s,
+                ROUND(AVG(COALESCE(duration_sec, 0)), 1) AS media_dur_s
             FROM transcricoes
             WHERE {' AND '.join(clauses)}
-            ORDER BY id DESC
-            LIMIT ?
             """,
             params,
-        ).fetchall()
-        return [dict(r) for r in rows]
+        ).fetchone()
+        return {
+            "total": int(row["total"] or 0),
+            "falhas": int(row["falhas"] or 0),
+            "media_proc_s": float(row["media_proc_s"] or 0),
+            "media_dur_s": float(row["media_dur_s"] or 0),
+        }
     finally:
         conn.close()
 

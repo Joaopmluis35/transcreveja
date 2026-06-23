@@ -130,6 +130,7 @@
     sessionStorage.setItem(ADMIN_KEY, data.adminToken);
     sessionStorage.setItem("ouviescrevi_admin_ok", "true");
     if (data.role) sessionStorage.setItem("ouviescrevi_admin_role", data.role);
+    if (data.username) sessionStorage.setItem("ouviescrevi_admin_username", data.username);
     apiBase = base;
     return data;
   }
@@ -137,6 +138,8 @@
   function adminLogout() {
     sessionStorage.removeItem(ADMIN_KEY);
     sessionStorage.removeItem("ouviescrevi_admin_ok");
+    sessionStorage.removeItem("ouviescrevi_admin_role");
+    sessionStorage.removeItem("ouviescrevi_admin_username");
   }
 
   function isAdminSession() {

@@ -38,10 +38,10 @@
       <button type="button" data-tab="dashboard" class="is-active" aria-selected="true">
         <span class="oe-admin-nav-icon">📊</span> Painel
       </button>
-      <button type="button" data-tab="conteudo" aria-selected="false">
+      <button type="button" data-tab="conteudo" data-min-role="editor" aria-selected="false">
         <span class="oe-admin-nav-icon">✏️</span> Conteúdo
       </button>
-      <button type="button" data-tab="seo" aria-selected="false">
+      <button type="button" data-tab="seo" data-min-role="editor" aria-selected="false">
         <span class="oe-admin-nav-icon">🔍</span> SEO
       </button>
       <button type="button" data-tab="transcricoes" aria-selected="false">
@@ -49,6 +49,7 @@
       </button>
       <button type="button" data-tab="sugestoes" aria-selected="false">
         <span class="oe-admin-nav-icon">💡</span> Sugestões
+        <span id="navBadgeSugestoes" class="oe-admin-nav-badge hidden">0</span>
       </button>
       <button type="button" data-tab="sistema" aria-selected="false">
         <span class="oe-admin-nav-icon">⚙️</span> Sistema
@@ -67,6 +68,7 @@
         <h1 id="adminPageTitle">Painel</h1>
       </div>
       <div class="oe-admin-topbar-actions">
+        <span id="adminUserLabel" class="oe-admin-user-label hidden"></span>
         <span id="statusPill" class="oe-admin-status-pill oe-admin-status-pill--ok">Operacional</span>
         <button type="button" id="btnRefresh" class="oe-admin-btn oe-admin-btn--secondary">🔄 Atualizar</button>
         <button type="button" id="btnLogoutTop" class="oe-admin-btn oe-admin-btn--secondary">Sair</button>
@@ -142,6 +144,15 @@
         </div>
 
         <div class="oe-admin-panel">
+          <div class="oe-admin-panel__head">Horas de pico <span style="font-weight:400;color:var(--bo-muted)">(visitas, 7 dias)</span></div>
+          <div class="oe-admin-panel__body">
+            <div class="oe-admin-chart-wrap oe-admin-chart-wrap--short">
+              <canvas id="chartPeakHours" aria-label="Gráfico horas de pico"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="oe-admin-panel" data-min-role="admin">
           <div class="oe-admin-panel__head">Modo manutenção</div>
           <div class="oe-admin-toggle-row">
             <div>
@@ -231,13 +242,23 @@
         <div class="oe-admin-panel">
           <div class="oe-admin-panel__head">Histórico de transcrições</div>
           <div class="oe-admin-panel__body">
-            <div class="oe-admin-filters">
+            <div class="oe-admin-filters oe-admin-filters--wrap">
               <input type="search" id="transSearch" placeholder="Pesquisar ficheiro...">
-              <select id="transStatus"><option value="">Todos</option><option value="ok">OK</option><option value="error">Erro</option></select>
+              <select id="transStatus">
+                <option value="">Todos os estados</option>
+                <option value="ok">OK</option>
+                <option value="error">Erro</option>
+              </select>
+              <input type="date" id="transDayFrom" title="Desde">
+              <input type="date" id="transDayTo" title="Até">
               <button type="button" id="btnTransFilter" class="oe-admin-btn oe-admin-btn--secondary">Filtrar</button>
             </div>
+            <div id="transSummary" class="oe-admin-mini-stats"></div>
             <div class="oe-admin-table-wrap" id="tabelaLogs">
               <p class="oe-admin-empty">A carregar...</p>
+            </div>
+            <div class="oe-admin-form-actions" style="margin-top:12px">
+              <button type="button" id="btnTransMore" class="oe-admin-btn oe-admin-btn--secondary hidden">Carregar mais</button>
             </div>
           </div>
         </div>
@@ -246,7 +267,10 @@
       <!-- Sugestões -->
       <div data-panel="sugestoes" class="hidden">
         <div class="oe-admin-panel">
-          <div class="oe-admin-panel__head">Sugestões dos visitantes</div>
+          <div class="oe-admin-panel__head oe-admin-panel__head--row">
+            <span>Sugestões dos visitantes</span>
+            <label class="oe-admin-check-inline"><input type="checkbox" id="sugUnreadOnly"> Só não lidas</label>
+          </div>
           <div class="oe-admin-panel__body oe-admin-table-wrap" id="tabelaSugestoes">
             <p class="oe-admin-empty">A carregar...</p>
           </div>
@@ -282,7 +306,7 @@
             </form>
           </div>
         </div>
-        <div class="oe-admin-panel">
+        <div class="oe-admin-panel" data-admin-only="admin">
           <div class="oe-admin-panel__head">Configurações e alertas</div>
           <div class="oe-admin-panel__body">
             <form id="configForm" class="oe-admin-form">
@@ -298,7 +322,7 @@
             </form>
           </div>
         </div>
-        <div class="oe-admin-panel">
+        <div class="oe-admin-panel" data-admin-only="admin">
           <div class="oe-admin-panel__head">Utilizadores</div>
           <div class="oe-admin-panel__body">
             <div id="usersList"></div>
@@ -312,7 +336,7 @@
             </form>
           </div>
         </div>
-        <div class="oe-admin-panel">
+        <div class="oe-admin-panel" data-admin-only="admin">
           <div class="oe-admin-panel__head">Auditoria e erros</div>
           <div class="oe-admin-grid-2">
             <div>
