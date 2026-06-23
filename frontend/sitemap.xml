@@ -17,6 +17,9 @@
   <url><loc>https://ouviescrevi.pt/reunioes.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://ouviescrevi.pt/sugestoes.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
   <url><loc>https://ouviescrevi.pt/testemunhos.html</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://ouviescrevi.pt/privacidade.html</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://ouviescrevi.pt/termos.html</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://ouviescrevi.pt/cookies.html</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
   <url><loc>https://ouviescrevi.pt/url-resumo.html</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
 
   <!-- Versões em inglês -->
@@ -27,5 +30,8 @@
   <url><loc>https://ouviescrevi.pt/en/resumo.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://ouviescrevi.pt/en/sugestoes.html</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>
   <url><loc>https://ouviescrevi.pt/en/url-resumo.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://ouviescrevi.pt/en/privacy.html</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://ouviescrevi.pt/en/terms.html</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://ouviescrevi.pt/en/cookies.html</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
 
 </urlset>

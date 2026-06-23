@@ -155,9 +155,49 @@
     }
   }
 
+  function cookieBannerPath() {
+    var path = global.location.pathname || "";
+    return path.indexOf("/en/") !== -1 ? "/en/cookies.html" : "/cookies.html";
+  }
+
+  function maybeShowCookieBanner() {
+    try {
+      if (localStorage.getItem("oe_cookies_ack")) return;
+      if (document.getElementById("oe-cookie-banner")) return;
+    } catch (e) {
+      return;
+    }
+    var en = (global.location.pathname || "").indexOf("/en/") !== -1;
+    var banner = document.createElement("div");
+    banner.id = "oe-cookie-banner";
+    banner.className = "oe-cookie-banner";
+    banner.setAttribute("role", "dialog");
+    banner.setAttribute("aria-label", en ? "Cookie notice" : "Aviso de cookies");
+    banner.innerHTML =
+      (en
+        ? 'We use essential browser storage for the service to work. '
+        : "Utilizamos armazenamento essencial no browser para o serviço funcionar. ") +
+      '<a href="' + cookieBannerPath() + '">' +
+      (en ? "Cookie Policy" : "Política de Cookies") +
+      "</a>";
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "oe-cookie-banner__btn";
+    btn.textContent = en ? "OK" : "Compreendi";
+    btn.addEventListener("click", function () {
+      try {
+        localStorage.setItem("oe_cookies_ack", "1");
+      } catch (e) {}
+      banner.remove();
+    });
+    banner.appendChild(btn);
+    document.body.appendChild(banner);
+  }
+
   function bootLayout() {
     autoLoadLayout();
     setTimeout(markCurrentNav, 400);
+    maybeShowCookieBanner();
   }
 
   if (document.readyState === "loading") {

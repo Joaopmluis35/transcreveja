@@ -734,6 +734,145 @@ main.oe-content {
   text-align: left;
 }
 
+/* Legal pages */
+.oe-legal-meta {
+  font-size: 0.9rem;
+  color: var(--oe-text-muted);
+  margin: 0 0 1rem;
+}
+
+.oe-legal-disclaimer {
+  background: #fffbeb;
+  border-left: 4px solid #f59e0b;
+  padding: 12px 16px;
+  border-radius: var(--oe-radius-sm);
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.oe-legal-nav {
+  background: #f8fafc;
+  border: 1px solid var(--oe-border);
+  border-radius: var(--oe-radius-sm);
+  padding: 1rem 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.oe-legal-nav ol {
+  margin: 0.5rem 0 0;
+  padding-left: 1.25rem;
+  line-height: 1.8;
+}
+
+.oe-legal section {
+  margin-bottom: 2rem;
+}
+
+.oe-legal section h2 {
+  font-size: 1.15rem;
+  color: var(--oe-purple-dark);
+  margin: 0 0 0.75rem;
+}
+
+.oe-legal section p,
+.oe-legal section li {
+  line-height: 1.7;
+  color: var(--oe-text);
+}
+
+.oe-legal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  margin: 1rem 0;
+}
+
+.oe-legal-table th,
+.oe-legal-table td {
+  border: 1px solid var(--oe-border);
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.oe-legal-table th {
+  background: #f1f5f9;
+  font-weight: 600;
+}
+
+.oe-legal-table code {
+  font-size: 0.85em;
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.oe-footer-legal {
+  margin-top: 10px;
+  font-size: 0.88rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+
+.oe-footer-legal a {
+  color: #cbd5e1;
+  text-decoration: none;
+}
+
+.oe-footer-legal a:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.oe-cookie-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10000;
+  background: rgba(15, 23, 42, 0.96);
+  color: #e2e8f0;
+  padding: 14px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px 20px;
+  font-size: 0.9rem;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.2);
+}
+
+.oe-cookie-banner a {
+  color: #c4b5fd;
+}
+
+.oe-cookie-banner__btn {
+  background: var(--oe-purple);
+  color: #fff;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.oe-cookie-banner__btn:hover {
+  filter: brightness(1.08);
+}
+
+@media (max-width: 600px) {
+  .oe-legal-table {
+    font-size: 0.82rem;
+  }
+
+  .oe-legal-table th,
+  .oe-legal-table td {
+    padding: 8px;
+  }
+}
+
 .converter,
 .sugestoes,
 .suggestions {
