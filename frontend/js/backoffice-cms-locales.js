@@ -100,8 +100,45 @@
     });
   }
 
+  var LOCALE_HOME_INTRO = {
+    es: (
+      "<p><strong>🧠 Ouviescrevi</strong> es tu asistente con IA para<br>" +
+      "<strong>transcribir</strong> 🎙️, <strong>traducir</strong> 🌍, <strong>resumir</strong> 📌 " +
+      "y <strong>convertir archivos</strong> 📄<br>— simple, rápido y gratuito.</p>"
+    ),
+    fr: (
+      "<p><strong>🧠 Ouviescrevi</strong> est ton assistant IA pour<br>" +
+      "<strong>transcrire</strong> 🎙️, <strong>traduire</strong> 🌍, <strong>résumer</strong> 📌 " +
+      "et <strong>convertir des fichiers</strong> 📄<br>— simple, rapide et gratuit.</p>"
+    ),
+    de: (
+      "<p><strong>🧠 Ouviescrevi</strong> ist dein KI-Assistent zum<br>" +
+      "<strong>Transkribieren</strong> 🎙️, <strong>Übersetzen</strong> 🌍, <strong>Zusammenfassen</strong> 📌 " +
+      "und <strong>Dateien konvertieren</strong> 📄<br>— einfach, schnell und kostenlos.</p>"
+    ),
+  };
+
+  /** Preenche chaves es_/fr_/de_ quando a API ainda não as tem na BD. */
+  function mergeLocaleCmsContent(content) {
+    var out = Object.assign({}, content || {});
+    ["es", "fr", "de"].forEach(function (lang) {
+      Object.keys(out).forEach(function (key) {
+        if (!key.startsWith("en_")) return;
+        var localeKey = lang + key.slice(2);
+        if (!out[localeKey] && out[key]) out[localeKey] = out[key];
+      });
+      var homeKey = lang + "_home_intro_html";
+      if (!out[homeKey]) {
+        if (LOCALE_HOME_INTRO[lang]) out[homeKey] = LOCALE_HOME_INTRO[lang];
+        else if (out.home_intro_html) out[homeKey] = out.home_intro_html;
+      }
+    });
+    return out;
+  }
+
   global.OuviescreviCmsLocales = {
     mergeLocaleCmsPages: mergeLocaleCmsPages,
+    mergeLocaleCmsContent: mergeLocaleCmsContent,
     FALLBACK_LOCALE_PAGES: FALLBACK_LOCALE_PAGES,
   };
 })(window);

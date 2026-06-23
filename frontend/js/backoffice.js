@@ -468,6 +468,9 @@
       });
       var data = await res.json();
       cmsContent = data.content || {};
+      if (global.OuviescreviCmsLocales && global.OuviescreviCmsLocales.mergeLocaleCmsContent) {
+        cmsContent = global.OuviescreviCmsLocales.mergeLocaleCmsContent(cmsContent);
+      }
       var fromApi = (data.pages || []).filter(function (p) { return p.category !== "seo"; });
       cmsAllPages = global.OuviescreviCmsLocales
         ? global.OuviescreviCmsLocales.mergeLocaleCmsPages(fromApi)
