@@ -835,9 +835,10 @@ def system_health(openai_client=None) -> dict:
         )
         health["cms_locales_ready"] = (
             health["cms_locale_pages"] >= 21
-            and health["cms_locale_seo_pages"] >= 12
+            and health["cms_locale_seo_pages"] >= 16
             and "es_home_intro_html" in CONTENT_KEYS
             and "meta_home_title_es" in CONTENT_KEYS
+            and "meta_home_title_en" in CONTENT_KEYS
         )
         health["cms_locales_note"] = (
             "API pronta para guardar conteúdo e SEO em ES/FR/DE."

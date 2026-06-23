@@ -87,6 +87,50 @@
     .concat(localeCmsPages("fr", "FR"))
     .concat(localeCmsPages("de", "DE"));
 
+  function enExtraCmsPages() {
+    return [
+      {
+        id: "home_en",
+        label: "Homepage (EN)",
+        lang: "en",
+        path: "/en/index.html",
+        fields: [{ key: "en_home_intro_html", label: "Welcome text (top)", type: "rich" }],
+      },
+      {
+        id: "resumo_en",
+        label: "Summary tool (EN)",
+        lang: "en",
+        path: "/en/resumo.html",
+        fields: [
+          { key: "en_resumo_title", label: "Title", type: "text" },
+          { key: "en_resumo_lead", label: "Subtitle", type: "text" },
+        ],
+      },
+      {
+        id: "url_resumo_en",
+        label: "URL summary (EN)",
+        lang: "en",
+        path: "/en/url-resumo.html",
+        fields: [
+          { key: "en_url_resumo_title", label: "Title", type: "text" },
+          { key: "en_url_resumo_lead", label: "Subtitle", type: "text" },
+        ],
+      },
+      {
+        id: "perguntas_en",
+        label: "Quiz generator (EN)",
+        lang: "en",
+        path: "/en/perguntas.html",
+        fields: [
+          { key: "en_perguntas_title", label: "Title", type: "text" },
+          { key: "en_perguntas_lead", label: "Subtitle", type: "text" },
+        ],
+      },
+    ];
+  }
+
+  var FALLBACK_EN_PAGES = enExtraCmsPages();
+
   function localeSeoPages(lang, langLabel) {
     var base = "/" + lang;
     return [
@@ -138,11 +182,24 @@
   }
 
   var FALLBACK_LOCALE_SEO_PAGES = []
+    .concat(localeSeoPages("en", "EN"))
     .concat(localeSeoPages("es", "ES"))
     .concat(localeSeoPages("fr", "FR"))
     .concat(localeSeoPages("de", "DE"));
 
   var LOCALE_SEO_DEFAULTS = {
+    meta_home_title_en: "Ouviescrevi — Free AI Audio & Video Transcription",
+    meta_home_description_en:
+      "Transcribe audio and video online with AI for free. Summaries, translation, SRT subtitles and file conversion. No sign-up required.",
+    meta_ajuda_title_en: "Help & FAQ — How to Use Ouviescrevi",
+    meta_ajuda_description_en:
+      "Frequently asked questions about AI transcription, supported formats, privacy and Ouviescrevi features.",
+    meta_conversor_title_en: "Free Online File Converter — Word, PDF, Image | Ouviescrevi",
+    meta_conversor_description_en:
+      "Convert Word to PDF, PDF to text and images to PDF in your browser. Free, fast and no installation.",
+    meta_resumo_title_en: "AI Summary Generator — PDF, Word & Text | Ouviescrevi",
+    meta_resumo_description_en:
+      "Generate smart AI summaries from PDF, Word or plain text. Formal, simple, bullet points or meeting minutes.",
     meta_home_title_es: "Ouviescrevi — Transcripción de audio y vídeo con IA gratis",
     meta_home_description_es:
       "Transcribe audio y vídeo online con inteligencia artificial, gratis y sin registro. Resúmenes, traducción, subtítulos SRT y conversión de archivos.",
@@ -180,12 +237,20 @@
     FALLBACK_LOCALE_PAGES.forEach(function (p) {
       if (!byId[p.id]) byId[p.id] = p;
     });
+    FALLBACK_EN_PAGES.forEach(function (p) {
+      if (!byId[p.id]) byId[p.id] = p;
+    });
     return Object.keys(byId).map(function (id) {
       return byId[id];
     });
   }
 
   var LOCALE_HOME_INTRO = {
+    en: (
+      "<p><strong>🧠 Ouviescrevi</strong> is your AI assistant to<br>" +
+      "<strong>transcribe</strong> 🎙️, <strong>translate</strong> 🌍, <strong>summarise</strong> 📌 " +
+      "and <strong>convert files</strong> 📄<br>— simple, fast and free.</p>"
+    ),
     es: (
       "<p><strong>🧠 Ouviescrevi</strong> es tu asistente con IA para<br>" +
       "<strong>transcribir</strong> 🎙️, <strong>traducir</strong> 🌍, <strong>resumir</strong> 📌 " +
@@ -206,6 +271,19 @@
   /** Preenche chaves es_/fr_/de_ quando a API ainda não as tem na BD. */
   function mergeLocaleCmsContent(content) {
     var out = Object.assign({}, content || {});
+    var enDefaults = {
+      en_home_intro_html: LOCALE_HOME_INTRO.en,
+      en_resumo_title: "📌 Smart Summary",
+      en_resumo_lead: "Paste your text or upload a PDF or Word file, then choose a summary style.",
+      en_url_resumo_title: "🔗 Smart Summary from URL",
+      en_url_resumo_lead: "Paste an article link to generate an automatic AI summary.",
+      en_perguntas_title: "📘 AI Quiz Generator",
+      en_perguntas_lead:
+        "Paste your text here to generate multiple-choice questions with answers and explanations.",
+    };
+    Object.keys(enDefaults).forEach(function (key) {
+      if (!out[key]) out[key] = enDefaults[key];
+    });
     ["es", "fr", "de"].forEach(function (lang) {
       Object.keys(out).forEach(function (key) {
         if (!key.startsWith("en_")) return;

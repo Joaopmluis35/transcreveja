@@ -166,6 +166,45 @@ PAGE_SCHEMA: list[dict[str, Any]] = [
         ],
     },
     {
+        "id": "home_en",
+        "label": "Homepage (EN)",
+        "lang": "en",
+        "path": "/en/index.html",
+        "fields": [
+            {"key": "en_home_intro_html", "label": "Welcome text (top)", "type": "rich"},
+        ],
+    },
+    {
+        "id": "resumo_en",
+        "label": "Summary tool (EN)",
+        "lang": "en",
+        "path": "/en/resumo.html",
+        "fields": [
+            {"key": "en_resumo_title", "label": "Title", "type": "text"},
+            {"key": "en_resumo_lead", "label": "Subtitle", "type": "text"},
+        ],
+    },
+    {
+        "id": "url_resumo_en",
+        "label": "URL summary (EN)",
+        "lang": "en",
+        "path": "/en/url-resumo.html",
+        "fields": [
+            {"key": "en_url_resumo_title", "label": "Title", "type": "text"},
+            {"key": "en_url_resumo_lead", "label": "Subtitle", "type": "text"},
+        ],
+    },
+    {
+        "id": "perguntas_en",
+        "label": "Quiz generator (EN)",
+        "lang": "en",
+        "path": "/en/perguntas.html",
+        "fields": [
+            {"key": "en_perguntas_title", "label": "Title", "type": "text"},
+            {"key": "en_perguntas_lead", "label": "Subtitle", "type": "text"},
+        ],
+    },
+    {
         "id": "aulas",
         "label": "Landing — Aulas",
         "lang": "pt",
@@ -522,6 +561,8 @@ def _locale_seo_pages(lang: str, lang_label: str) -> list[dict[str, Any]]:
 for _lc_lang, _lc_label in LOCALE_CMS_LANGS:
     PAGE_SCHEMA.extend(_locale_seo_pages(_lc_lang, _lc_label))
 
+PAGE_SCHEMA.extend(_locale_seo_pages("en", "EN"))
+
 # Reordenar: PT → EN → ES → FR → DE (facilita backoffice e API)
 _LANG_ORDER = {"pt": 0, "en": 1, "es": 2, "fr": 3, "de": 4}
 PAGE_SCHEMA.sort(
@@ -593,6 +634,19 @@ DEFAULT_SITE_CONTENT: dict[str, str] = {
     "en_conversor_seo": _CONVERSOR_SEO_EN,
     "en_sugestoes_title": "💡 Suggestions",
     "en_sugestoes_lead": "Your feedback helps us improve Ouviescrevi.",
+    "en_home_intro_html": (
+        "<p><strong>🧠 Ouviescrevi</strong> is your AI assistant to<br>"
+        "<strong>transcribe</strong> 🎙️, <strong>translate</strong> 🌍, <strong>summarise</strong> 📌 "
+        "and <strong>convert files</strong> 📄<br>— simple, fast and free.</p>"
+    ),
+    "en_resumo_title": "📌 Smart Summary",
+    "en_resumo_lead": "Paste your text or upload a PDF or Word file, then choose a summary style.",
+    "en_url_resumo_title": "🔗 Smart Summary from URL",
+    "en_url_resumo_lead": "Paste an article link to generate an automatic AI summary.",
+    "en_perguntas_title": "📘 AI Quiz Generator",
+    "en_perguntas_lead": (
+        "Paste your text here to generate multiple-choice questions with answers and explanations."
+    ),
     "aulas_title": "🎥 Aulas",
     "aulas_body": (
         "<p>Transforma vídeos de aulas em texto claro, bem formatado e pronto a partilhar. "
@@ -692,6 +746,26 @@ DEFAULT_SITE_CONTENT: dict[str, str] = {
 }
 
 _LOCALE_SEO_DEFAULTS: dict[str, dict[str, str]] = {
+    "en": {
+        "meta_home_title_en": "Ouviescrevi — Free AI Audio & Video Transcription",
+        "meta_home_description_en": (
+            "Transcribe audio and video online with AI for free. Summaries, translation, "
+            "SRT subtitles and file conversion. No sign-up required."
+        ),
+        "meta_ajuda_title_en": "Help & FAQ — How to Use Ouviescrevi",
+        "meta_ajuda_description_en": (
+            "Frequently asked questions about AI transcription, supported formats, "
+            "privacy and Ouviescrevi features."
+        ),
+        "meta_conversor_title_en": "Free Online File Converter — Word, PDF, Image | Ouviescrevi",
+        "meta_conversor_description_en": (
+            "Convert Word to PDF, PDF to text and images to PDF in your browser. Free, fast and no installation."
+        ),
+        "meta_resumo_title_en": "AI Summary Generator — PDF, Word & Text | Ouviescrevi",
+        "meta_resumo_description_en": (
+            "Generate smart AI summaries from PDF, Word or plain text. Formal, simple, bullet points or meeting minutes."
+        ),
+    },
     "es": {
         "meta_home_title_es": "Ouviescrevi — Transcripción de audio y vídeo con IA gratis",
         "meta_home_description_es": (
@@ -786,7 +860,7 @@ def get_seo_overrides() -> dict[str, dict[str, str]]:
         ("/resumo.html", "meta_resumo_title", "meta_resumo_description"),
         ("/ajuda.html", "meta_ajuda_title", "meta_ajuda_description"),
     ]
-    for lang in ("es", "fr", "de"):
+    for lang in ("en", "es", "fr", "de"):
         mapping.extend(
             [
                 (f"/{lang}/index.html", f"meta_home_title_{lang}", f"meta_home_description_{lang}"),
