@@ -405,9 +405,14 @@
   }
 
   function filteredCmsPages() {
-    var lang = (document.getElementById("cmsLangFilter") || {}).value || "";
+    var langEl = document.getElementById("cmsLangFilter");
+    var lang = langEl ? String(langEl.value || "").trim().toLowerCase() : "";
     var list = cmsAllPages.slice();
-    if (lang) list = list.filter(function (p) { return p.lang === lang; });
+    if (lang) {
+      list = list.filter(function (p) {
+        return String(p.lang || "").toLowerCase() === lang;
+      });
+    }
     list.sort(function (a, b) {
       var la = cmsLangOrder(a.lang);
       var lb = cmsLangOrder(b.lang);
@@ -425,11 +430,14 @@
     if (countEl) {
       var lang = (document.getElementById("cmsLangFilter") || {}).value || "";
       var hasLocales = cmsAllPages.some(function (p) {
-        return p.lang === "es" || p.lang === "fr" || p.lang === "de";
+        var l = String(p.lang || "").toLowerCase();
+        return l === "es" || l === "fr" || l === "de";
       });
       countEl.textContent = cmsPages.length + " página(s)" + (lang ? " em " + lang.toUpperCase() : "") + ".";
-      if (!hasLocales) {
-        countEl.textContent += " Se não vês ES/FR/DE, a API no Render ainda não tem o deploy mais recente.";
+      if (!hasLocales && global.OuviescreviCmsLocales) {
+        countEl.textContent += " (páginas ES/FR/DE em modo local — confirma deploy da API no Render para guardar.)";
+      } else if (!hasLocales) {
+        countEl.textContent += " API no Render sem locales — faz redeploy.";
       }
     }
     select.innerHTML = "";
@@ -460,7 +468,10 @@
       });
       var data = await res.json();
       cmsContent = data.content || {};
-      cmsAllPages = (data.pages || []).filter(function (p) { return p.category !== "seo"; });
+      var fromApi = (data.pages || []).filter(function (p) { return p.category !== "seo"; });
+      cmsAllPages = global.OuviescreviCmsLocales
+        ? global.OuviescreviCmsLocales.mergeLocaleCmsPages(fromApi)
+        : fromApi;
       populateCmsPageSelect();
       if (global.OuviescreviAdminExt) {
         global.OuviescreviAdminExt.setupSeo(data.pages || [], cmsContent);
@@ -707,7 +718,12 @@
       selectCmsPage(this.value);
     });
     var cmsLang = document.getElementById("cmsLangFilter");
-    if (cmsLang) cmsLang.addEventListener("change", populateCmsPageSelect);
+    if (cmsLang) {
+      cmsLang.addEventListener("change", function () {
+        cmsCurrentPage = null;
+        populateCmsPageSelect();
+      });
+    }
     document.getElementById("btnTransFilter").addEventListener("click", function () { carregarLogs(false); });
     var btnMore = document.getElementById("btnTransMore");
     if (btnMore) btnMore.addEventListener("click", carregarMaisLogs);
