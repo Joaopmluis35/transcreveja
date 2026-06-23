@@ -6,6 +6,7 @@
   let chartTranscricoes = null;
   let chartPeakHours = null;
   let cmsPages = [];
+  let cmsAllPages = [];
   let cmsContent = {};
   let cmsCurrentPage = null;
   let cmsEditors = {};
@@ -390,17 +391,66 @@
     setPageTitle("Conteúdo — " + page.label);
   }
 
+  function pageOptionLabel(page) {
+    if (/\((PT|EN|ES|FR|DE)\)/i.test(page.label || "")) return page.label;
+    if (page.lang && page.lang !== "pt") {
+      return page.label + " (" + String(page.lang).toUpperCase() + ")";
+    }
+    return page.label;
+  }
+
+  function cmsLangOrder(lang) {
+    var order = { pt: 0, en: 1, es: 2, fr: 3, de: 4 };
+    return order[lang] != null ? order[lang] : 9;
+  }
+
+  function filteredCmsPages() {
+    var lang = (document.getElementById("cmsLangFilter") || {}).value || "";
+    var list = cmsAllPages.slice();
+    if (lang) list = list.filter(function (p) { return p.lang === lang; });
+    list.sort(function (a, b) {
+      var la = cmsLangOrder(a.lang);
+      var lb = cmsLangOrder(b.lang);
+      if (la !== lb) return la - lb;
+      return String(a.label).localeCompare(String(b.label), "pt");
+    });
+    return list;
+  }
+
   function populateCmsPageSelect() {
     var select = document.getElementById("cmsPageSelect");
     if (!select) return;
+    cmsPages = filteredCmsPages();
+    var countEl = document.getElementById("cmsPageCount");
+    if (countEl) {
+      var lang = (document.getElementById("cmsLangFilter") || {}).value || "";
+      var hasLocales = cmsAllPages.some(function (p) {
+        return p.lang === "es" || p.lang === "fr" || p.lang === "de";
+      });
+      countEl.textContent = cmsPages.length + " página(s)" + (lang ? " em " + lang.toUpperCase() : "") + ".";
+      if (!hasLocales) {
+        countEl.textContent += " Se não vês ES/FR/DE, a API no Render ainda não tem o deploy mais recente.";
+      }
+    }
     select.innerHTML = "";
+    if (!cmsPages.length) {
+      var empty = document.createElement("option");
+      empty.textContent = "Nenhuma página neste idioma";
+      empty.value = "";
+      select.appendChild(empty);
+      destroyCmsEditors();
+      return;
+    }
     cmsPages.forEach(function (page) {
       var opt = document.createElement("option");
       opt.value = page.id;
-      opt.textContent = page.label + (page.lang && page.lang !== "pt" ? " (" + page.lang.toUpperCase() + ")" : "");
+      opt.textContent = pageOptionLabel(page);
       select.appendChild(opt);
     });
-    if (cmsPages.length) selectCmsPage(cmsPages[0].id);
+    var keepId = cmsCurrentPage && cmsPages.some(function (p) { return p.id === cmsCurrentPage.id; })
+      ? cmsCurrentPage.id
+      : cmsPages[0].id;
+    selectCmsPage(keepId);
   }
 
   async function carregarConteudo() {
@@ -410,7 +460,7 @@
       });
       var data = await res.json();
       cmsContent = data.content || {};
-      cmsPages = (data.pages || []).filter(function (p) { return p.category !== "seo"; });
+      cmsAllPages = (data.pages || []).filter(function (p) { return p.category !== "seo"; });
       populateCmsPageSelect();
       if (global.OuviescreviAdminExt) {
         global.OuviescreviAdminExt.setupSeo(data.pages || [], cmsContent);
@@ -656,6 +706,8 @@
     document.getElementById("cmsPageSelect").addEventListener("change", function () {
       selectCmsPage(this.value);
     });
+    var cmsLang = document.getElementById("cmsLangFilter");
+    if (cmsLang) cmsLang.addEventListener("change", populateCmsPageSelect);
     document.getElementById("btnTransFilter").addEventListener("click", function () { carregarLogs(false); });
     var btnMore = document.getElementById("btnTransMore");
     if (btnMore) btnMore.addEventListener("click", carregarMaisLogs);

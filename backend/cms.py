@@ -467,6 +467,16 @@ def _locale_cms_pages(lang: str, lang_label: str) -> list[dict[str, Any]]:
 for _lc_lang, _lc_label in LOCALE_CMS_LANGS:
     PAGE_SCHEMA.extend(_locale_cms_pages(_lc_lang, _lc_label))
 
+# Reordenar: PT → EN → ES → FR → DE (facilita backoffice e API)
+_LANG_ORDER = {"pt": 0, "en": 1, "es": 2, "fr": 3, "de": 4}
+PAGE_SCHEMA.sort(
+    key=lambda p: (
+        _LANG_ORDER.get(p.get("lang", "pt"), 9),
+        1 if p.get("category") == "seo" else 0,
+        str(p.get("label", "")),
+    )
+)
+
 DEFAULT_SITE_CONTENT: dict[str, str] = {
     "home_intro_html": (
         "<p><strong>🧠 Ouviescrevi</strong> é o teu assistente com IA para<br>"

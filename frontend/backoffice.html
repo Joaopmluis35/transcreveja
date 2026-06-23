@@ -200,14 +200,26 @@
           <div class="oe-admin-panel__head">Editar conteúdo do site</div>
           <div class="oe-admin-panel__body">
             <div class="oe-admin-cms-toolbar">
+              <div class="oe-admin-field" style="margin:0;min-width:120px">
+                <label for="cmsLangFilter">Idioma</label>
+                <select id="cmsLangFilter">
+                  <option value="">Todos</option>
+                  <option value="pt">Português</option>
+                  <option value="en">English</option>
+                  <option value="es">Español</option>
+                  <option value="fr">Français</option>
+                  <option value="de">Deutsch</option>
+                </select>
+              </div>
               <div class="oe-admin-field" style="margin:0;flex:1;min-width:200px">
                 <label for="cmsPageSelect">Página</label>
                 <select id="cmsPageSelect"></select>
               </div>
               <a id="cmsPagePreview" class="oe-admin-btn oe-admin-btn--secondary" href="index.html" target="_blank" rel="noopener">↗ Ver no site</a>
             </div>
-            <p class="oe-admin-cms-hint">Usa a barra de ferramentas para <strong>negrito</strong>, títulos e listas — sem escrever HTML à mão.</p>
+            <p class="oe-admin-cms-hint" id="cmsPageCount"></p>
             <form id="contentForm" class="oe-admin-form">
+              <p class="oe-admin-cms-hint" style="margin-top:0">Usa a barra de ferramentas para <strong>negrito</strong>, títulos e listas — sem escrever HTML à mão.</p>
               <div id="contentFields"></div>
               <div class="oe-admin-form-actions">
                 <button type="submit" class="oe-admin-btn oe-admin-btn--primary">💾 Guardar alterações</button>
