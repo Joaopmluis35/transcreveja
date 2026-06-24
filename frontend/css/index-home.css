@@ -536,6 +536,14 @@ body.oe-page--home .oe-loading__hint {
   text-align: center;
 }
 
+body.oe-page--home .oe-loading__eta {
+  margin: 8px 0 0;
+  font-size: 0.82rem;
+  color: #374151;
+  text-align: center;
+  font-weight: 600;
+}
+
 body.oe-page--home #loading {
   width: 100%;
   max-width: 600px;

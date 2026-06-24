@@ -53,6 +53,7 @@
         <p class="oe-loading__eyebrow" id="loadingEyebrow">A processar</p>
         <p class="status oe-loading__status" id="transcricaoStatus">🔄 A preparar...</p>
         <p id="timerTranscricao" class="oe-loading__timer hidden">⏳ 00:00</p>
+        <p id="legendarEta" class="oe-loading__eta hidden" aria-live="polite"></p>
         <div id="progressWrap">
           <div id="progressBar"></div>
         </div>
@@ -102,6 +103,12 @@
           <option value="fr">Francês</option>
           <option value="de">Alemão</option>
         </select>
+      </label>
+
+      <label class="switch-container oe-burn-mp4 hidden" id="burnMp4Wrap">
+        <input type="checkbox" id="burnMp4" checked>
+        <span class="slider"></span>
+        <span class="switch-label">Gerar vídeo MP4 com legendas embutidas (demora mais; o SRT fica pronto primeiro)</span>
       </label>
       </div>
 
@@ -584,7 +591,8 @@
     });
   }
 
-  function showLegendarSuccess(srtUrl, mp4Url, warning) {
+  function showLegendarSuccess(srtUrl, mp4Url, warning, options) {
+    options = options || {};
     var errBanner = document.getElementById("legendarErrorBanner");
     if (errBanner) errBanner.classList.add("hidden");
     legendarReady = true;
@@ -598,14 +606,20 @@
       if (mp4Url) {
         mp4Btn.href = mp4Url;
         mp4Btn.classList.remove("hidden");
+      } else if (options.mp4Pending) {
+        mp4Btn.classList.add("hidden");
       } else {
         mp4Btn.classList.add("hidden");
       }
     }
     if (text) {
-      text.textContent = mp4Url
-        ? "Clica para descarregar as legendas (SRT) e o vídeo com legendas embutidas (MP4)."
-        : "Clica para descarregar o ficheiro SRT. O vídeo MP4 não foi gerado — vê o aviso abaixo.";
+      if (options.mp4Pending) {
+        text.textContent = "O ficheiro SRT já está pronto. O vídeo MP4 continua a ser gerado em segundo plano — podes descarregar as legendas e ler a transcrição abaixo.";
+      } else if (mp4Url) {
+        text.textContent = "Clica para descarregar as legendas (SRT) e o vídeo com legendas embutidas (MP4).";
+      } else {
+        text.textContent = "Clica para descarregar o ficheiro SRT. O vídeo MP4 não foi gerado — vê o aviso abaixo.";
+      }
     }
     if (warnEl) {
       if (warning) {
@@ -620,9 +634,34 @@
       banner.classList.remove("hidden");
     }
     if (window.OuviescreviUI && window.OuviescreviUI.toast) {
-      window.OuviescreviUI.toast("Legendas prontas — descarrega os ficheiros abaixo.", "success");
+      window.OuviescreviUI.toast(
+        options.mp4Pending ? "Legendas SRT prontas — o MP4 continua a processar." : "Legendas prontas — descarrega os ficheiros abaixo.",
+        "success"
+      );
     }
     syncSubtitleChrome();
+  }
+
+  function updateLegendarMp4Ready(mp4Url, warning) {
+    var mp4Btn = document.getElementById("legendarMp4Btn");
+    var text = document.getElementById("legendarDoneText");
+    var warnEl = document.getElementById("legendarDoneWarn");
+    if (mp4Btn && mp4Url) {
+      mp4Btn.href = mp4Url;
+      mp4Btn.classList.remove("hidden");
+    }
+    if (text && mp4Url) {
+      text.textContent = "Clica para descarregar as legendas (SRT) e o vídeo com legendas embutidas (MP4).";
+    }
+    if (warnEl) {
+      if (warning) {
+        warnEl.textContent = "ℹ️ " + warning;
+        warnEl.classList.remove("hidden");
+      }
+    }
+    if (window.OuviescreviUI && window.OuviescreviUI.toast && mp4Url) {
+      window.OuviescreviUI.toast("Vídeo MP4 pronto para descarregar.", "success");
+    }
   }
 
   function showLegendarError(message) {
@@ -846,6 +885,8 @@
     var openBtn = document.getElementById('btnOpenSubtitleStyle');
     if (hint) hint.classList.toggle('hidden', !showExtras);
     if (openBtn) openBtn.classList.toggle('hidden', !showExtras);
+    var burnWrap = document.getElementById('burnMp4Wrap');
+    if (burnWrap) burnWrap.classList.toggle('hidden', !isVideo);
   }
 
   function setSubtitlePanelVisible(visible, opts) {
@@ -1100,11 +1141,55 @@
   // =========================
   btnLegendarVideo.addEventListener("click", legendarVideo);
 
-  async function pollVideoSubsJob(jobId) {
+  function formatEtaSeconds(sec) {
+    if (!sec || sec <= 0) return "";
+    var m = Math.ceil(sec / 60);
+    if (m <= 1) return "~1 min";
+    return "~" + m + " min";
+  }
+
+  function estimateLegendarSeconds(durationSec, burnMp4) {
+    if (!durationSec || durationSec <= 0) return { transcribe: 30, burn: burnMp4 ? 120 : 0, total: burnMp4 ? 150 : 30 };
+    var transcribe = Math.max(15, Math.round(durationSec * 0.25) + 10);
+    var burn = burnMp4 ? Math.max(30, Math.round(durationSec * 1.0) + 20) : 0;
+    return { transcribe: transcribe, burn: burn, total: transcribe + burn };
+  }
+
+  function updateLegendarEta(durationSec, burnMp4, serverEst) {
+    var etaEl = document.getElementById("legendarEta");
+    if (!etaEl) return;
+    var est = serverEst || estimateLegendarSeconds(durationSec, burnMp4);
+    var parts = [];
+    if (durationSec > 0) {
+      var dm = Math.floor(durationSec / 60);
+      var ds = Math.floor(durationSec % 60);
+      parts.push("Vídeo: " + dm + ":" + String(ds).padStart(2, "0"));
+    }
+    parts.push("Estimativa SRT: " + formatEtaSeconds(est.estimate_transcribe_sec || est.transcribe));
+    if (burnMp4) {
+      parts.push("MP4: " + formatEtaSeconds(est.estimate_burn_sec || est.burn));
+      parts.push("total " + formatEtaSeconds(est.estimate_total_sec || est.total));
+    }
+    etaEl.textContent = parts.join(" · ");
+    etaEl.classList.remove("hidden");
+  }
+
+  function applySrtReadyUi(st) {
+    definirTranscricao(st.formatted || st.transcription || "");
+    output.classList.remove("hidden");
+    atualizarMetaTranscricao();
+    var srtUrl = toAbsUrl(st.srt_url);
+    document.getElementById("srtDownload").href = srtUrl;
+    showLegendarSuccess(srtUrl, null, null, { mp4Pending: !!st.burn_mp4 });
+  }
+
+  async function pollVideoSubsJob(jobId, onSrtReady) {
     const maxWait = 900000;
     const started = Date.now();
     let lastProgress = -1;
     let lastProgressAt = Date.now();
+    let srtHandled = false;
+    const burnMp4 = document.getElementById("burnMp4") && document.getElementById("burnMp4").checked;
     while (Date.now() - started < maxWait) {
       await new Promise(function (r) { setTimeout(r, 2500); });
       let stRes;
@@ -1123,9 +1208,15 @@
       if (!stRes.ok) {
         throw new Error(st.detail || st.error || `Erro ${stRes.status}`);
       }
+      if (st.duration_sec != null || st.estimate_total_sec != null) {
+        updateLegendarEta(st.duration_sec, st.burn_mp4 != null ? st.burn_mp4 : burnMp4, st);
+      }
       const localElapsed = Math.floor((Date.now() - started) / 1000);
       const localFmt = Math.floor(localElapsed / 60) + ":" + String(localElapsed % 60).padStart(2, "0");
       let msg = st.message || "A processar…";
+      if (st.status === "burning" && st.estimate_burn_sec) {
+        msg += " (estimativa MP4: " + formatEtaSeconds(st.estimate_burn_sec) + ")";
+      }
       if (st.stage_elapsed_sec != null && st.stage_elapsed_sec > 20) {
         msg += " (esta fase: " + Math.floor(st.stage_elapsed_sec / 60) + ":" + String(st.stage_elapsed_sec % 60).padStart(2, "0") + ")";
       }
@@ -1133,14 +1224,24 @@
         statusEl.textContent = "🔄 " + msg + " · tempo total " + localFmt;
       }
       if (st.progress != null && progressBar) {
-        const pct = Math.min(98, Number(st.progress) || 0);
+        const pct = Math.min(st.status === "burning" ? 99 : 98, Number(st.progress) || 0);
         progressBar.style.width = pct + "%";
         if (pct !== lastProgress) {
           lastProgress = pct;
           lastProgressAt = Date.now();
         } else if (Date.now() - lastProgressAt > 20000 && statusEl) {
-          statusEl.textContent =
-            "🔄 " + msg + " · tempo total " + localFmt + " — o servidor continua (a incorporar legendas pode demorar vários minutos)";
+          var extra = st.status === "burning"
+            ? " — a incorporar legendas pode demorar vários minutos"
+            : " — o servidor continua a processar";
+          statusEl.textContent = "🔄 " + msg + " · tempo total " + localFmt + extra;
+        }
+      }
+      if ((st.status === "srt_ready" || (st.status === "completed" && st.srt_url && !srtHandled)) && !srtHandled) {
+        srtHandled = true;
+        if (typeof onSrtReady === "function") onSrtReady(st);
+        else applySrtReadyUi(st);
+        if (st.burn_mp4 && st.status === "srt_ready") {
+          continue;
         }
       }
       if (st.status === "completed") return st;
@@ -1157,11 +1258,18 @@
     if (!file){ return alert("⚠️ Nenhum ficheiro selecionado."); }
     if (!isVideoFile(file)){ return alert("⚠️ Esta opção é apenas para ficheiros de vídeo."); }
 
+    const burnMp4El = document.getElementById("burnMp4");
+    const wantBurnMp4 = !burnMp4El || burnMp4El.checked;
+    const videoDur = (loadedVideoMeta && loadedVideoMeta.duration) ? loadedVideoMeta.duration : 0;
+
     // reset UI
     output.classList.add("hidden");
     document.getElementById("legendasBox").classList.add("hidden");
     document.getElementById("legendasWarn").classList.add("hidden");
+    var etaEl = document.getElementById("legendarEta");
+    if (etaEl) etaEl.classList.add("hidden");
     startJobLoading("legendar");
+    updateLegendarEta(videoDur, wantBurnMp4, null);
     iniciarFrasesAnimadas(statusEl);
     iniciarTimerTranscricao();
 
@@ -1179,10 +1287,24 @@
     formData.append("file", file);
     const lang = document.getElementById("transcribeLanguage").value;
     if (lang && lang !== "auto") formData.append("language", lang);
-    // parâmetros de estilo (JSON)
     formData.append("style", JSON.stringify(getStyle()));
-    // opcional: token
+    formData.append("burn_mp4", wantBurnMp4 ? "true" : "false");
     formData.append("token", API_TOKEN);
+
+    let srtPhaseDone = false;
+    function onSrtReady(st) {
+      if (srtPhaseDone) return;
+      srtPhaseDone = true;
+      clearInterval(interval);
+      progressBar.style.width = st.burn_mp4 ? "80%" : "100%";
+      pararFrasesAnimadas(statusEl);
+      pararTimerTranscricao();
+      applySrtReadyUi(st);
+      if (st.burn_mp4) {
+        if (statusEl) statusEl.textContent = "🔄 SRT pronto — a gerar vídeo MP4 em segundo plano…";
+        endJobLoading();
+      }
+    }
 
     try{
       const controller = new AbortController();
@@ -1199,18 +1321,24 @@
       let raw = await res.text();
       try{ data = JSON.parse(raw); } catch{ data = { error: `Resposta inválida (${res.status})` }; }
 
-      clearInterval(interval);
-      progressBar.style.width = "100%";
-      pararFrasesAnimadas(statusEl);
-      pararTimerTranscricao();
-
       if (!res.ok){
+        clearInterval(interval);
+        progressBar.style.width = "100%";
+        pararFrasesAnimadas(statusEl);
+        pararTimerTranscricao();
         throw new Error(data.detail || data.error || `Erro ${res.status}`);
       }
 
       let result = data;
       if (data.job_id) {
-        result = await pollVideoSubsJob(data.job_id);
+        result = await pollVideoSubsJob(data.job_id, onSrtReady);
+      }
+
+      clearInterval(interval);
+      progressBar.style.width = "100%";
+      if (!srtPhaseDone) {
+        pararFrasesAnimadas(statusEl);
+        pararTimerTranscricao();
       }
 
       const srtUrl = toAbsUrl(result.srt_url);
@@ -1219,8 +1347,17 @@
       document.getElementById("srtDownload").href = srtUrl;
       if (mp4Url) {
         document.getElementById("mp4Download").href = mp4Url;
+        updateLegendarMp4Ready(mp4Url, result.warning);
+      } else if (!srtPhaseDone) {
+        showLegendarSuccess(srtUrl, null, result.warning);
+      } else if (result.warning) {
+        updateLegendarMp4Ready(null, result.warning);
       }
-      showLegendarSuccess(srtUrl, mp4Url, result.warning);
+      if (!srtPhaseDone) {
+        definirTranscricao(result.formatted || result.transcription || "");
+        output.classList.remove("hidden");
+        atualizarMetaTranscricao();
+      }
     } catch(err){
       clearInterval(interval);
       progressBar.style.width = "100%";
@@ -1240,6 +1377,8 @@
       warn.textContent = "❌ " + errMsg;
       warn.classList.remove("hidden");
     } finally{
+      var etaHide = document.getElementById("legendarEta");
+      if (etaHide) etaHide.classList.add("hidden");
       setTimeout(() => { endJobLoading(); progressBar.style.width = "0%"; }, 800);
       btnTranscrever.disabled = false;
       btnStartRec.disabled = false;

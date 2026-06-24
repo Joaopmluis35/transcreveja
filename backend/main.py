@@ -162,6 +162,9 @@ SUBS_TIMEOUT = int(os.getenv("SUBS_TIMEOUT", "900"))  # tempo p/ queimar legenda
 SUBS_BURN_PRESET = os.getenv("SUBS_BURN_PRESET", "ultrafast")
 SUBS_BURN_CRF = int(os.getenv("SUBS_BURN_CRF", "23"))
 SUBS_BURN_MAX_WIDTH = int(os.getenv("SUBS_BURN_MAX_WIDTH", "1280"))
+SUBS_BURN_SEC_PER_SEC = float(os.getenv("SUBS_BURN_SEC_PER_SEC", "1.0"))
+SUBS_TRANSCRIBE_SEC_PER_SEC = float(os.getenv("SUBS_TRANSCRIBE_SEC_PER_SEC", "0.25"))
+VIDEO_CLEANUP_MAX_AGE_HOURS = float(os.getenv("VIDEO_CLEANUP_MAX_AGE_HOURS", "36"))
 
 # Modelos
 SUM_MODEL = os.getenv("SUM_MODEL", "gpt-4o-mini")
@@ -197,6 +200,11 @@ STATIC_DIR = os.path.abspath("static")
 VIDEO_DIR = os.path.join(STATIC_DIR, "videos")
 os.makedirs(VIDEO_DIR, exist_ok=True)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+
+@app.on_event("startup")
+def _on_startup() -> None:
+    threading.Thread(target=_cleanup_old_video_files, daemon=True).start()
 
 
 @app.middleware("http")
@@ -660,9 +668,9 @@ def probe_media_duration_sec(path: str) -> float | None:
         return None
 
 
-def probe_video_width(path: str) -> int | None:
+def probe_video_dimensions(path: str) -> tuple[int | None, int | None]:
     if not path or not os.path.isfile(path) or not FFMPEG:
-        return None
+        return None, None
     try:
         proc = subprocess.run(
             [FFMPEG, "-hide_banner", "-i", path],
@@ -672,10 +680,132 @@ def probe_video_width(path: str) -> int | None:
         )
         m = re.search(r"Stream #\d+:\d+.*Video:.*? (\d+)x(\d+)", proc.stderr or "")
         if not m:
-            return None
-        return int(m.group(1))
+            return None, None
+        return int(m.group(1)), int(m.group(2))
     except Exception:
-        return None
+        return None, None
+
+
+def probe_video_width(path: str) -> int | None:
+    w, _ = probe_video_dimensions(path)
+    return w
+
+
+def _hex_to_ass_colour(hex_color: str, *, alpha: int = 0) -> str:
+    h = (hex_color or "#ffffff").strip().lstrip("#")
+    if len(h) == 3:
+        h = "".join(c * 2 for c in h)
+    if len(h) != 6:
+        h = "ffffff"
+    r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+    return f"&H{alpha:02X}{b:02X}{g:02X}{r:02X}"
+
+
+def _parse_style_json(style: str | None) -> dict:
+    if not style:
+        return {}
+    try:
+        data = json.loads(style)
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
+def _style_json_to_ass_force_style(
+    style: dict,
+    video_width: int | None,
+    video_height: int | None,
+) -> str:
+    font_size = int(style.get("fontSize") or 40)
+    vw = video_width or 1280
+    preview_ref_w = min(854, vw)
+    ass_font = max(12, round(font_size * vw / preview_ref_w))
+
+    color = _hex_to_ass_colour(style.get("color") or "#ffffff")
+    outline_w = int(style.get("outline") if style.get("outline") is not None else 2)
+    shadow_kind = style.get("shadow") or "soft"
+    shadow_depth = {"none": 0, "soft": 2, "strong": 4}.get(shadow_kind, 2)
+
+    bg = bool(style.get("bg", True))
+    bg_opacity = float(style.get("bgOpacity") if style.get("bgOpacity") is not None else 0.35)
+    bg_alpha = min(255, max(0, int((1.0 - bg_opacity) * 255)))
+    back_colour = _hex_to_ass_colour("#000000", alpha=bg_alpha)
+    outline_colour = _hex_to_ass_colour("#000000")
+    border_style = (4 if outline_w > 0 else 3) if bg else 1
+
+    align_h = style.get("align") or "center"
+    position = style.get("position") or "bottom"
+    if position == "top":
+        alignment = {"left": 7, "center": 8, "right": 9}.get(align_h, 8)
+    else:
+        alignment = {"left": 1, "center": 2, "right": 3}.get(align_h, 2)
+
+    margin_v = int(style.get("marginV") if style.get("marginV") is not None else 48)
+
+    return ",".join(
+        [
+            "FontName=DejaVu Sans",
+            f"FontSize={ass_font}",
+            f"PrimaryColour={color}",
+            f"OutlineColour={outline_colour}",
+            f"BackColour={back_colour}",
+            f"BorderStyle={border_style}",
+            f"Outline={outline_w}",
+            f"Shadow={shadow_depth}",
+            f"Alignment={alignment}",
+            f"MarginV={margin_v}",
+        ]
+    )
+
+
+def _entries_to_transcription(
+    entries: list[tuple[float, float, str]],
+    whisper_lang: str | None,
+) -> tuple[str, str]:
+    plain: list[str] = []
+    lines: list[str] = []
+    for start, _end, text in entries:
+        t = (text or "").strip()
+        if not t:
+            continue
+        plain.append(t)
+        lines.append(f"{_format_time(start)} {t}")
+    transcription = clean_transcription_text(" ".join(plain), whisper_lang)
+    formatted = clean_transcription_text("\n\n".join(lines), whisper_lang)
+    return transcription, formatted
+
+
+def _estimate_transcribe_seconds(duration_sec: float | None) -> int:
+    if not duration_sec or duration_sec <= 0:
+        return 30
+    return max(15, int(duration_sec * SUBS_TRANSCRIBE_SEC_PER_SEC) + 10)
+
+
+def _estimate_burn_seconds(duration_sec: float | None) -> int:
+    if not duration_sec or duration_sec <= 0:
+        return 120
+    return max(30, int(duration_sec * SUBS_BURN_SEC_PER_SEC) + 20)
+
+
+def _cleanup_old_video_files() -> int:
+    if not os.path.isdir(VIDEO_DIR):
+        return 0
+    max_age = VIDEO_CLEANUP_MAX_AGE_HOURS * 3600
+    now = time.time()
+    removed = 0
+    for name in os.listdir(VIDEO_DIR):
+        path = os.path.join(VIDEO_DIR, name)
+        try:
+            if not os.path.isfile(path):
+                continue
+            if now - os.path.getmtime(path) > max_age:
+                os.remove(path)
+                removed += 1
+        except Exception:
+            pass
+    if removed:
+        logger.info("Limpeza static/videos: %d ficheiro(s) removido(s)", removed)
+    return removed
 
 
 def _build_burn_subtitles_cmd(
@@ -1140,12 +1270,27 @@ def _execute_video_subs_job(
     whisper_lang: str | None,
     written: int,
     t_start: float,
+    style_json: str | None,
+    burn_mp4: bool,
 ) -> None:
     audio_wav_path = os.path.join(tempfile.gettempdir(), f"subs_{uuid.uuid4()}.wav")
     split_dir = tempfile.mkdtemp(prefix="subs_split_")
     srt_tmp = None
     try:
-        _video_job_set(job_id, status="processing", message="A extrair áudio do vídeo…", progress=12)
+        duration_sec = probe_media_duration_sec(tmp_video)
+        est_transcribe = _estimate_transcribe_seconds(duration_sec)
+        est_burn = _estimate_burn_seconds(duration_sec) if burn_mp4 else 0
+        _video_job_set(
+            job_id,
+            status="processing",
+            message="A extrair áudio do vídeo…",
+            progress=12,
+            duration_sec=duration_sec,
+            estimate_transcribe_sec=est_transcribe,
+            estimate_burn_sec=est_burn,
+            estimate_total_sec=est_transcribe + est_burn,
+            burn_mp4=burn_mp4,
+        )
         conv = [
             FFMPEG, "-nostdin", "-hide_banner", "-loglevel", "error", "-y",
             "-i", tmp_video, "-vn", "-sn",
@@ -1194,10 +1339,45 @@ def _execute_video_subs_job(
         srt_out = os.path.join(VIDEO_DIR, f"{base}.srt")
         shutil.copyfile(srt_tmp, srt_out)
 
-        _video_job_set(job_id, message="A incorporar legendas no vídeo…", progress=85)
+        transcription, formatted = _entries_to_transcription(entries, whisper_lang)
+        if duration_sec is None and parts:
+            duration_sec = float(len(parts) * SEGMENT_DURATION)
+
+        srt_result = {
+            "status": "srt_ready" if burn_mp4 else "completed",
+            "message": "Legendas SRT prontas."
+            + (" A gerar vídeo MP4 em segundo plano…" if burn_mp4 else ""),
+            "progress": 78 if burn_mp4 else 100,
+            "srt_url": f"/static/videos/{os.path.basename(srt_out)}",
+            "transcription": transcription,
+            "formatted": formatted,
+            "rid": rid,
+            "burn_mp4": burn_mp4,
+        }
+        if failed_segments:
+            srt_result["note"] = f"Alguns segmentos falharam ({failed_segments})."
+        _video_job_set(job_id, **srt_result)
+
+        if not burn_mp4:
+            processing_ms = round((time.monotonic() - t_start) * 1000)
+            _video_job_set(job_id, processing_ms=processing_ms)
+            _schedule_video_subs_notify(
+                rid, filename, whisper_lang, written, duration_sec, t_start
+            )
+            return
+
+        _video_job_set(
+            job_id,
+            status="burning",
+            message="A incorporar legendas no vídeo…",
+            progress=85,
+        )
         out_video = os.path.join(VIDEO_DIR, f"{base}.mp4")
-        burn = _build_burn_subtitles_cmd(tmp_video, srt_tmp, out_video)
+        vw, vh = probe_video_dimensions(tmp_video)
+        force_style = _style_json_to_ass_force_style(_parse_style_json(style_json), vw, vh)
+        burn = _build_burn_subtitles_cmd(tmp_video, srt_tmp, out_video, force_style=force_style)
         warning = None
+        out_video_url = None
         try:
             safe_run_ffmpeg_with_heartbeat(
                 burn,
@@ -1207,50 +1387,31 @@ def _execute_video_subs_job(
                 status_message="A incorporar legendas no vídeo",
             )
             logger.info("[%s] [video-subs] Vídeo legendado gerado", rid)
+            out_video_url = f"/static/videos/{os.path.basename(out_video)}"
         except Exception:
             warning = "Não foi possível embutir as legendas (FFmpeg/libass). A entregar apenas o .srt."
             logger.warning("[%s] [video-subs] Falha a queimar legendas. Fallback SRT.", rid)
-            out_video = None
-
-        duration_sec = probe_media_duration_sec(audio_wav_path)
-        if duration_sec is None and parts:
-            duration_sec = float(len(parts) * SEGMENT_DURATION)
 
         processing_ms = round((time.monotonic() - t_start) * 1000)
         result = {
             "status": "completed",
             "message": "Legendas prontas.",
             "progress": 100,
-            "srt_url": f"/static/videos/{os.path.basename(srt_out)}",
+            "srt_url": srt_result["srt_url"],
+            "transcription": transcription,
+            "formatted": formatted,
             "rid": rid,
             "processing_ms": processing_ms,
+            "burn_mp4": True,
         }
-        if out_video:
-            result["video_url"] = f"/static/videos/{os.path.basename(out_video)}"
+        if out_video_url:
+            result["video_url"] = out_video_url
         if warning:
             result["warning"] = warning
         if failed_segments:
             result["note"] = f"Alguns segmentos falharam ({failed_segments})."
         _video_job_set(job_id, **result)
-
-        def _post_video_subs_notify() -> None:
-            try:
-                registar_transcricao(
-                    filename + " [legendado]",
-                    language=whisper_lang,
-                    size_bytes=written,
-                    duration_sec=duration_sec,
-                    processing_sec=round(time.monotonic() - t_start, 2),
-                    status="ok",
-                )
-            except Exception as e:
-                logger.warning("[%s] [video-subs] Falha ao registar DB: %s", rid, e)
-            try:
-                enviar_email_assunto(f"Vídeo legendado gerado: {filename}", "Vídeo legendado no Ouviescrevi")
-            except Exception:
-                pass
-
-        threading.Thread(target=_post_video_subs_notify, daemon=True).start()
+        _schedule_video_subs_notify(rid, filename, whisper_lang, written, duration_sec, t_start)
     except Exception as e:
         logger.exception("[%s] [video-subs] job %s falhou", rid, job_id)
         _video_job_set(job_id, status="failed", error=str(e), message="Falha ao processar o vídeo.")
@@ -1277,17 +1438,48 @@ def _execute_video_subs_job(
             pass
 
 
+def _schedule_video_subs_notify(
+    rid: str,
+    filename: str,
+    whisper_lang: str | None,
+    written: int,
+    duration_sec: float | None,
+    t_start: float,
+) -> None:
+    def _post_video_subs_notify() -> None:
+        try:
+            registar_transcricao(
+                filename + " [legendado]",
+                language=whisper_lang,
+                size_bytes=written,
+                duration_sec=duration_sec,
+                processing_sec=round(time.monotonic() - t_start, 2),
+                status="ok",
+            )
+        except Exception as e:
+            logger.warning("[%s] [video-subs] Falha ao registar DB: %s", rid, e)
+        try:
+            enviar_email_assunto(f"Vídeo legendado gerado: {filename}", "Vídeo legendado no Ouviescrevi")
+        except Exception:
+            pass
+
+    threading.Thread(target=_post_video_subs_notify, daemon=True).start()
+
+
 @app.post("/video-subs")
 async def video_subs(
     request: Request,
     file: UploadFile = File(...),
     style: str | None = Form(None),
+    burn_mp4: str | None = Form("true"),
     token: str | None = Form(None),
     language: str | None = Form(None),
 ):
     require_api_token(request, token)
     enforce_rate_limit(request, "video-subs", RATE_LIMIT_VIDEO_SUBS, RATE_LIMIT_VIDEO_SUBS_WINDOW)
     whisper_lang = resolve_whisper_language(language)
+    want_burn_mp4 = str(burn_mp4 or "true").strip().lower() not in ("0", "false", "no", "off")
+    threading.Thread(target=_cleanup_old_video_files, daemon=True).start()
     """
     Upload de vídeo → resposta imediata com job_id → processamento em segundo plano.
     Consultar GET /video-subs/jobs/{job_id} até status=completed.
@@ -1344,7 +1536,10 @@ async def video_subs(
     )
     threading.Thread(
         target=_execute_video_subs_job,
-        args=(job_id, rid, tmp_video, file.filename or "sem_nome", whisper_lang, written, t_start),
+        args=(
+            job_id, rid, tmp_video, file.filename or "sem_nome",
+            whisper_lang, written, t_start, style, want_burn_mp4,
+        ),
         daemon=True,
     ).start()
     return {"job_id": job_id, "status": "processing", "rid": rid}
