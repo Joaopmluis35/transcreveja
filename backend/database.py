@@ -383,6 +383,16 @@ def criar_base() -> None:
             )
         """)
 
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS site_users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                name TEXT,
+                created_at TEXT NOT NULL
+            )
+        """)
+
         conn.commit()
     finally:
         conn.close()

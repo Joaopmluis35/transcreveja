@@ -120,7 +120,29 @@
     });
   }
 
-  var LAYOUT_V = "3";
+  function ensureAuthScript() {
+    if (global.OuviescreviAuth) return Promise.resolve();
+    var existing = document.querySelector('script[data-oe-auth="1"]');
+    if (existing) {
+      if (existing.getAttribute("data-ready") === "1") return Promise.resolve();
+      return new Promise(function (resolve) {
+        existing.addEventListener("load", resolve, { once: true });
+      });
+    }
+    return new Promise(function (resolve) {
+      var s = document.createElement("script");
+      s.src = "/js/auth-ui.js";
+      s.dataset.oeAuth = "1";
+      s.onload = function () {
+        s.setAttribute("data-ready", "1");
+        resolve();
+      };
+      s.onerror = resolve;
+      document.head.appendChild(s);
+    });
+  }
+
+  var LAYOUT_V = "4";
 
   function withLayoutVersion(url) {
     if (!url) return url;
@@ -167,6 +189,12 @@
           global.OuviescreviNav.init();
         }
         markCurrentNav();
+        return ensureAuthScript();
+      })
+      .then(function () {
+        if (global.OuviescreviAuth && global.OuviescreviAuth.init) {
+          global.OuviescreviAuth.init();
+        }
       })
       .catch(function (err) {
         console.error("OuviescreviUI: falha ao carregar", url, err);

@@ -5,6 +5,7 @@
   const DEFAULT_API = "https://api.ouviescrevi.pt";
   const TOKEN_KEY = "ouviescrevi_api_token";
   const ADMIN_KEY = "ouviescrevi_admin_token";
+  const SITE_SESSION_KEY = "ouviescrevi_site_session";
 
   let apiBase = "";
   let apiToken = null;
@@ -72,11 +73,31 @@
     return sessionStorage.getItem(ADMIN_KEY);
   }
 
+  function getSiteSessionToken() {
+    return (
+      sessionStorage.getItem(SITE_SESSION_KEY) ||
+      sessionStorage.getItem(ADMIN_KEY) ||
+      null
+    );
+  }
+
+  function syncAdminFromSiteSession(data) {
+    if (!data || !data.isStaff || !data.sessionToken) return;
+    sessionStorage.setItem(ADMIN_KEY, data.sessionToken);
+    sessionStorage.setItem("ouviescrevi_admin_ok", "true");
+    if (data.role) sessionStorage.setItem("ouviescrevi_admin_role", data.role);
+    if (data.username) sessionStorage.setItem("ouviescrevi_admin_username", data.username);
+  }
+
   function authHeaders(extra) {
     const headers = Object.assign({}, extra || {});
     const token = getToken();
     if (token) {
       headers.Authorization = `Bearer ${token}`;
+    }
+    const siteSession = getSiteSessionToken();
+    if (siteSession) {
+      headers["X-Site-Session"] = siteSession;
     }
     return headers;
   }
@@ -156,6 +177,8 @@
     getToken,
     getMaxFileSizeMb,
     getAdminToken,
+    getSiteSessionToken,
+    syncAdminFromSiteSession,
     authHeaders,
     adminAuthHeaders,
     authJson,

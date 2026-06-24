@@ -192,7 +192,7 @@ app.add_middleware(
     allow_origins=ALLOWED_ORIGINS if "*" not in ALLOWED_ORIGINS else ["*"],
     allow_credentials=False,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "X-API-Token"],
+    allow_headers=["Authorization", "Content-Type", "X-API-Token", "X-Site-Session"],
 )
 
 # estáticos
@@ -352,6 +352,61 @@ def require_token(token: str):
     """Compatibilidade com rotas que recebem token no corpo JSON."""
     if token != API_TOKEN:
         raise HTTPException(status_code=403, detail="Token inválido.")
+
+
+SITE_USER_ROLE = "user"
+STAFF_ROLES = frozenset(admin_store.ROLE_LEVEL.keys())
+
+
+def resolve_site_actor(request: Request) -> dict:
+    site_token = (request.headers.get("x-site-session") or "").strip()
+    if not site_token:
+        return {"type": "anonymous"}
+    if site_token == ADMIN_TOKEN:
+        return {"type": "admin", "username": "env", "role": "admin"}
+    session = admin_store.resolve_session(site_token)
+    if not session:
+        return {"type": "anonymous"}
+    role = session["role"]
+    username = session["username"]
+    if role == SITE_USER_ROLE:
+        return {"type": "user", "email": username, "username": username}
+    if role in STAFF_ROLES:
+        return {"type": "admin", "username": username, "role": role}
+    return {"type": "anonymous"}
+
+
+def should_notify_activity(request: Request) -> bool:
+    return resolve_site_actor(request)["type"] != "admin"
+
+
+def activity_actor_label(request: Request) -> str:
+    actor = resolve_site_actor(request)
+    if actor["type"] == "user":
+        return actor.get("email") or actor.get("username") or "utilizador"
+    if actor["type"] == "admin":
+        return f"admin:{actor.get('username')}"
+    return "anónimo"
+
+
+def maybe_notify_activity(
+    request: Request | None,
+    mensagem: str,
+    assunto: str = "Nova atividade no Ouviescrevi",
+    *,
+    actor_label: str | None = None,
+    notify: bool | None = None,
+) -> None:
+    if notify is None:
+        notify = should_notify_activity(request) if request else True
+    if not notify:
+        return
+    label = actor_label
+    if label is None and request:
+        label = activity_actor_label(request)
+    if label and label != "anónimo":
+        mensagem = f"{mensagem}\n\nConta: {label}"
+    threading.Thread(target=enviar_email_assunto, args=(mensagem, assunto), daemon=True).start()
 
 
 def enforce_rate_limit(request: Request, bucket: str, limit: int, window: int) -> None:
@@ -1018,6 +1073,92 @@ def frontend_config(request: Request):
     return {"apiBase": PUBLIC_API_BASE, "token": API_TOKEN, "maxFileSizeMb": MAX_FILE_SIZE_MB}
 
 
+class SiteRegisterRequest(BaseModel):
+    email: str
+    password: str
+    name: str | None = None
+
+
+class SiteLoginRequest(BaseModel):
+    email: str
+    password: str
+    admin: bool = False
+
+
+@app.post("/api/auth/register")
+def site_register(req: SiteRegisterRequest, request: Request):
+    enforce_rate_limit(request, "auth", 15, 3600)
+    try:
+        user = admin_store.register_site_user(req.email, req.password, req.name)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    token = admin_store.create_session(user["email"], SITE_USER_ROLE, hours=720)
+    return {
+        "sessionToken": token,
+        "email": user["email"],
+        "name": user.get("name"),
+        "role": SITE_USER_ROLE,
+        "isStaff": False,
+    }
+
+
+@app.post("/api/auth/login")
+def site_login(req: SiteLoginRequest, request: Request):
+    enforce_rate_limit(request, "auth", 30, 3600)
+    ident = (req.email or "").strip()
+    password = req.password or ""
+    if not ident or not password:
+        raise HTTPException(status_code=400, detail="Email e palavra-passe são obrigatórios.")
+    if req.admin:
+        user = admin_store.authenticate_user(ident, password)
+        if not user and password == BACKOFFICE_PASSWORD and ident in ("", "admin"):
+            token = admin_store.create_session("admin", "admin")
+            admin_store.log_audit_login("admin")
+            return {
+                "sessionToken": token,
+                "username": "admin",
+                "role": "admin",
+                "isStaff": True,
+            }
+        if not user:
+            raise HTTPException(status_code=403, detail="Credenciais de administrador inválidas.")
+        token = admin_store.create_session(user["username"], user["role"])
+        admin_store.log_audit_login(user["username"])
+        return {
+            "sessionToken": token,
+            "username": user["username"],
+            "role": user["role"],
+            "isStaff": True,
+        }
+    user = admin_store.authenticate_site_user(ident, password)
+    if not user:
+        raise HTTPException(status_code=403, detail="Email ou palavra-passe incorretos.")
+    token = admin_store.create_session(user["email"], SITE_USER_ROLE, hours=720)
+    return {
+        "sessionToken": token,
+        "email": user["email"],
+        "name": user.get("name"),
+        "role": SITE_USER_ROLE,
+        "isStaff": False,
+    }
+
+
+@app.get("/api/auth/me")
+def site_me(request: Request):
+    actor = resolve_site_actor(request)
+    if actor["type"] == "anonymous":
+        return {"loggedIn": False}
+    out = {"loggedIn": True, "type": actor["type"]}
+    if actor["type"] == "user":
+        out["email"] = actor.get("email")
+        out["isStaff"] = False
+    else:
+        out["username"] = actor.get("username")
+        out["role"] = actor.get("role")
+        out["isStaff"] = True
+    return out
+
+
 class AdminLoginRequest(BaseModel):
     password: str
     username: str | None = None
@@ -1217,12 +1358,11 @@ async def transcribe(
             logger.warning("[%s] Falha ao registar na DB: %s", rid, e)
 
         try:
-            import threading
-            threading.Thread(
-                target=enviar_email_assunto,
-                args=(f"Nova transcrição recebida: {file.filename}", "Nova transcrição no Ouviescrevi"),
-                daemon=True,
-            ).start()
+            maybe_notify_activity(
+                request,
+                f"Nova transcrição recebida: {file.filename}",
+                "Nova transcrição no Ouviescrevi",
+            )
         except Exception as e:
             logger.warning("[%s] Falha ao agendar email de notificação: %s", rid, e)
 
@@ -1272,6 +1412,8 @@ def _execute_video_subs_job(
     t_start: float,
     style_json: str | None,
     burn_mp4: bool,
+    notify_email: bool,
+    actor_label: str,
 ) -> None:
     audio_wav_path = os.path.join(tempfile.gettempdir(), f"subs_{uuid.uuid4()}.wav")
     split_dir = tempfile.mkdtemp(prefix="subs_split_")
@@ -1362,7 +1504,8 @@ def _execute_video_subs_job(
             processing_ms = round((time.monotonic() - t_start) * 1000)
             _video_job_set(job_id, processing_ms=processing_ms)
             _schedule_video_subs_notify(
-                rid, filename, whisper_lang, written, duration_sec, t_start
+                rid, filename, whisper_lang, written, duration_sec, t_start,
+                notify_email=notify_email, actor_label=actor_label,
             )
             return
 
@@ -1411,7 +1554,10 @@ def _execute_video_subs_job(
         if failed_segments:
             result["note"] = f"Alguns segmentos falharam ({failed_segments})."
         _video_job_set(job_id, **result)
-        _schedule_video_subs_notify(rid, filename, whisper_lang, written, duration_sec, t_start)
+        _schedule_video_subs_notify(
+            rid, filename, whisper_lang, written, duration_sec, t_start,
+            notify_email=notify_email, actor_label=actor_label,
+        )
     except Exception as e:
         logger.exception("[%s] [video-subs] job %s falhou", rid, job_id)
         _video_job_set(job_id, status="failed", error=str(e), message="Falha ao processar o vídeo.")
@@ -1445,6 +1591,9 @@ def _schedule_video_subs_notify(
     written: int,
     duration_sec: float | None,
     t_start: float,
+    *,
+    notify_email: bool = True,
+    actor_label: str = "anónimo",
 ) -> None:
     def _post_video_subs_notify() -> None:
         try:
@@ -1458,10 +1607,13 @@ def _schedule_video_subs_notify(
             )
         except Exception as e:
             logger.warning("[%s] [video-subs] Falha ao registar DB: %s", rid, e)
-        try:
-            enviar_email_assunto(f"Vídeo legendado gerado: {filename}", "Vídeo legendado no Ouviescrevi")
-        except Exception:
-            pass
+        maybe_notify_activity(
+            None,
+            f"Vídeo legendado gerado: {filename}",
+            "Vídeo legendado no Ouviescrevi",
+            actor_label=actor_label,
+            notify=notify_email,
+        )
 
     threading.Thread(target=_post_video_subs_notify, daemon=True).start()
 
@@ -1479,6 +1631,8 @@ async def video_subs(
     enforce_rate_limit(request, "video-subs", RATE_LIMIT_VIDEO_SUBS, RATE_LIMIT_VIDEO_SUBS_WINDOW)
     whisper_lang = resolve_whisper_language(language)
     want_burn_mp4 = str(burn_mp4 or "true").strip().lower() not in ("0", "false", "no", "off")
+    notify_email = should_notify_activity(request)
+    actor_label = activity_actor_label(request)
     threading.Thread(target=_cleanup_old_video_files, daemon=True).start()
     """
     Upload de vídeo → resposta imediata com job_id → processamento em segundo plano.
@@ -1539,6 +1693,7 @@ async def video_subs(
         args=(
             job_id, rid, tmp_video, file.filename or "sem_nome",
             whisper_lang, written, t_start, style, want_burn_mp4,
+            notify_email, actor_label,
         ),
         daemon=True,
     ).start()
@@ -1589,10 +1744,7 @@ async def summarize(req: SummarizeRequest, request: Request):
             temperature=0.5,
             max_tokens=600,
         )
-        try:
-            enviar_email_assunto("Resumo com IA gerado", "Resumo criado no Ouviescrevi")
-        except Exception:
-            pass
+        maybe_notify_activity(request, "Resumo com IA gerado", "Resumo criado no Ouviescrevi")
         return {"summary": resp.choices[0].message.content.strip()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -1614,10 +1766,7 @@ async def translate_text(request: Request):
             messages=[{"role": "system", "content": f"Traduz o texto para {idiomas[language]}."}, {"role": "user", "content": text}],
             temperature=0.3,
         )
-        try:
-            enviar_email_assunto("Tradução com IA feita", "Tradução realizada no Ouviescrevi")
-        except Exception:
-            pass
+        maybe_notify_activity(request, "Tradução com IA feita", "Tradução realizada no Ouviescrevi")
         return {"translation": resp.choices[0].message.content.strip()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -1635,10 +1784,7 @@ async def classify_content(req: ClassifyRequest, request: Request):
               f"Texto:\n{req.text}\n\nResponde só com uma etiqueta.")
     try:
         resp = client.chat.completions.create(model=CLS_MODEL, messages=[{"role": "user", "content": prompt}], temperature=0.3, max_tokens=20)
-        try:
-            enviar_email_assunto("Classificação com IA feita", "Classificação feita no Ouviescrevi")
-        except Exception:
-            pass
+        maybe_notify_activity(request, "Classificação com IA feita", "Classificação feita no Ouviescrevi")
         return {"type": resp.choices[0].message.content.strip()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -1657,10 +1803,7 @@ async def correct_text(req: Request):
                       {"role": "user", "content": text}],
             temperature=0.2,
         )
-        try:
-            enviar_email_assunto("Correção com IA feita", "Texto corrigido no Ouviescrevi")
-        except Exception:
-            pass
+        maybe_notify_activity(req, "Correção com IA feita", "Texto corrigido no Ouviescrevi")
         return {"corrected": resp.choices[0].message.content.strip()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -1684,10 +1827,7 @@ async def generate_email(req: EmailRequest, request: Request):
             temperature=0.7,
             max_tokens=700,
         )
-        try:
-            enviar_email_assunto("Email com IA gerado", "Email gerado no Ouviescrevi")
-        except Exception:
-            pass
+        maybe_notify_activity(request, "Email com IA gerado", "Email gerado no Ouviescrevi")
         return {"email": resp.choices[0].message.content.strip()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -1754,10 +1894,7 @@ async def generate_questions(req: QuestionRequest, request: Request):
             temperature=0.7,
             max_tokens=900,
         )
-        try:
-            enviar_email_assunto("Perguntas de estudo geradas", "Perguntas geradas no Ouviescrevi")
-        except Exception:
-            pass
+        maybe_notify_activity(request, "Perguntas de estudo geradas", "Perguntas geradas no Ouviescrevi")
         return {"questions": resp.choices[0].message.content.strip()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -1807,10 +1944,7 @@ async def summarize_url(req: Request):
             )
             summaries.append(f"🧩 Parte {i}:\n{resp.choices[0].message.content.strip()}")
         final_summary = "\n\n".join(summaries)
-        try:
-            enviar_email_assunto(f"Resumo gerado por URL:\n{url}", "Resumo por URL no Ouviescrevi")
-        except Exception:
-            pass
+        maybe_notify_activity(req, f"Resumo gerado por URL:\n{url}", "Resumo por URL no Ouviescrevi")
         return {"summary": final_summary}
     except HTTPException:
         raise
@@ -1830,7 +1964,7 @@ async def notify_whatsapp(req: WhatsAppNotify, request: Request):
     enforce_rate_limit(request, "ai", RATE_LIMIT_AI, RATE_LIMIT_AI_WINDOW)
     try:
         msg = f"Partilha no WhatsApp usada.\nPágina: {req.page or '-'}\nNota: {req.note or '-'}\nData: {datetime.now().isoformat()}"
-        enviar_email_assunto(msg, "WhatsApp share usado no Ouviescrevi")
+        maybe_notify_activity(request, msg, "WhatsApp share usado no Ouviescrevi")
         logger.info("WhatsApp share notificado: page=%s note=%s", req.page, req.note)
         return {"ok": True}
     except Exception as e:

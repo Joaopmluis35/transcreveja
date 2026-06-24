@@ -166,6 +166,43 @@ def authenticate_user(username: str, password: str) -> dict[str, str] | None:
         conn.close()
 
 
+def register_site_user(email: str, password: str, name: str | None = None) -> dict[str, str]:
+    email = email.strip().lower()
+    if not email or "@" not in email:
+        raise ValueError("Email inválido.")
+    if len(password or "") < 8:
+        raise ValueError("A palavra-passe deve ter pelo menos 8 caracteres.")
+    conn = get_connection()
+    try:
+        existing = conn.execute("SELECT id FROM site_users WHERE email = ?", (email,)).fetchone()
+        if existing:
+            raise ValueError("Já existe uma conta com este email.")
+        display = (name or "").strip() or None
+        conn.execute(
+            "INSERT INTO site_users (email, password_hash, name, created_at) VALUES (?, ?, ?, ?)",
+            (email, _hash_password(password), display, _now()),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+    return {"email": email, "name": display}
+
+
+def authenticate_site_user(email: str, password: str) -> dict[str, str] | None:
+    email = email.strip().lower()
+    conn = get_connection()
+    try:
+        row = conn.execute(
+            "SELECT email, password_hash, name FROM site_users WHERE email = ?",
+            (email,),
+        ).fetchone()
+        if not row or not _verify_password(password, row["password_hash"]):
+            return None
+        return {"email": row["email"], "name": row["name"]}
+    finally:
+        conn.close()
+
+
 def list_users() -> list[dict]:
     conn = get_connection()
     try:
