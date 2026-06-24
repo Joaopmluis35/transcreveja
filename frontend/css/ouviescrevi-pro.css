@@ -1480,6 +1480,18 @@ body.oe-pro.oe-page--home #cmsSeoClosing {
 .oe-pro-auth .oe-pro-btn--ghost {
   padding: 8px 12px;
   font-size: 0.8125rem;
+  min-width: 0;
+  margin: 0;
+  border: 1px solid var(--pro-border-strong);
+  background: #fff;
+  color: var(--pro-text) !important;
+}
+.oe-pro-auth .oe-pro-btn--ghost:hover {
+  background: var(--pro-accent-soft);
+  border-color: var(--pro-accent);
+  color: var(--pro-accent) !important;
+  transform: none;
+  box-shadow: none;
 }
 body.oe-auth-modal-open {
   overflow: hidden;
@@ -1510,16 +1522,6 @@ body.oe-auth-modal-open {
   padding: 24px 22px 22px;
   box-shadow: 0 24px 48px rgba(15, 23, 42, 0.18);
 }
-.oe-auth-modal__close {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  border: none;
-  background: transparent;
-  font-size: 1.1rem;
-  cursor: pointer;
-  color: var(--pro-text-muted);
-}
 .oe-auth-modal__title {
   margin: 0 0 16px;
   font-size: 1.25rem;
@@ -1528,21 +1530,38 @@ body.oe-auth-modal-open {
   display: flex;
   gap: 6px;
   margin-bottom: 16px;
+  flex-wrap: nowrap;
 }
 .oe-auth-tabs__btn {
-  flex: 1;
-  border: 1px solid var(--pro-border);
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+  border: 1px solid var(--pro-border-strong);
   background: #f8fafc;
   border-radius: 999px;
   padding: 8px 10px;
   font-size: 0.8125rem;
   font-weight: 600;
+  color: var(--pro-text-secondary);
   cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  transform: none;
+  box-shadow: none;
+}
+.oe-auth-tabs__btn:hover {
+  background: var(--pro-accent-soft);
+  border-color: #c4b5fd;
+  color: var(--pro-accent);
 }
 .oe-auth-tabs__btn--active {
-  background: var(--pro-accent-muted);
+  background: var(--pro-accent);
   border-color: var(--pro-accent);
-  color: var(--pro-accent);
+  color: #fff;
+}
+.oe-auth-tabs__btn--active:hover {
+  background: var(--pro-accent-hover);
+  border-color: var(--pro-accent-hover);
+  color: #fff;
 }
 .oe-auth-form label {
   display: block;
@@ -1562,6 +1581,45 @@ body.oe-auth-modal-open {
 .oe-auth-form .oe-pro-btn {
   width: 100%;
   margin-top: 8px;
+  min-width: 0;
+}
+.oe-auth-modal .oe-pro-btn--primary,
+.oe-auth-modal button.oe-pro-btn--primary {
+  background: var(--pro-accent);
+  border-color: var(--pro-accent);
+  color: #fff !important;
+  box-shadow: 0 4px 14px rgba(109, 40, 217, 0.28);
+}
+.oe-auth-modal .oe-pro-btn--primary:hover,
+.oe-auth-modal button.oe-pro-btn--primary:hover {
+  background: var(--pro-accent-hover);
+  border-color: var(--pro-accent-hover);
+  color: #fff !important;
+  transform: none;
+  box-shadow: 0 6px 18px rgba(91, 33, 182, 0.35);
+}
+.oe-auth-modal__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  border: none;
+  background: #f1f5f9;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: var(--pro-text-secondary);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  line-height: 1;
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+.oe-auth-modal__close:hover {
+  background: #e2e8f0;
+  color: var(--pro-text);
+  transform: none;
+  box-shadow: none;
 }
 .oe-auth-form__hint {
   margin: 0 0 10px;
