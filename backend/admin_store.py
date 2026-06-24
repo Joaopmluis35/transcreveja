@@ -681,21 +681,32 @@ def estimate_costs(config: dict | None = None) -> dict:
         row = conn.execute(
             """
             SELECT COUNT(*) AS total,
-                   COALESCE(SUM(COALESCE(duration_sec, 0)), 0) AS secs,
-                   COALESCE(SUM(CASE WHEN substr(data,1,10)=? THEN 1 ELSE 0 END), 0) AS hoje
+                   COALESCE(SUM(COALESCE(duration_sec, 0)), 0) AS dur_secs,
+                   COALESCE(SUM(CASE WHEN substr(data,1,10)=? THEN 1 ELSE 0 END), 0) AS hoje,
+                   COALESCE(SUM(
+                     CASE
+                       WHEN COALESCE(duration_sec, 0) > 0 THEN duration_sec
+                       WHEN COALESCE(size_bytes, 0) > 500000 THEN size_bytes / 16000.0
+                       ELSE 90
+                     END
+                   ), 0) AS est_secs
             FROM transcricoes
             WHERE LOWER(COALESCE(status, 'ok')) = 'ok'
             """,
             (today_s,),
         ).fetchone()
-        secs = scalar_float(row, "secs", index=1)
+        dur_secs = scalar_float(row, "dur_secs", index=1)
+        est_secs = scalar_float(row, "est_secs", index=3)
+        secs = dur_secs if dur_secs > 0 else est_secs
         mins = secs / 60.0
+        estimated = dur_secs <= 0 and est_secs > 0
         return {
             "transcricoes_total": scalar_int(row, "total", index=0),
             "transcricoes_hoje": scalar_int(row, "hoje", index=2),
             "minutos_audio_total": round(mins, 2),
             "custo_estimado_usd": round(mins * rate, 4),
             "taxa_por_minuto_usd": rate,
+            "custo_estimado": estimated,
         }
     finally:
         conn.close()

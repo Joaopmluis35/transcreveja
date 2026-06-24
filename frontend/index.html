@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="stylesheet" href="css/ouviescrevi.css?v=10">
-  <link rel="stylesheet" href="css/index-home.css?v=15">
+  <link rel="stylesheet" href="css/index-home.css?v=16">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <title>Ouviescrevi — Transcrição de Áudio e Vídeo com IA Grátis</title>
   <meta name="description" content="Transcreve áudio e vídeo online com inteligência artificial, grátis e sem registo. Resumos, tradução, legendas SRT e conversão de ficheiros. Feito em Portugal.">
@@ -35,6 +35,10 @@
         <input type="file" id="fileInput" accept="audio/*,video/*" required>
         <span id="fileName">Nenhum ficheiro selecionado</span>
         <small class="oe-file-hint">Limite: 500 MB — para ficheiros maiores, extrai só o áudio.</small>
+      </div>
+
+      <div id="videoPreviewWrap" class="oe-video-preview hidden" aria-label="Pré-visualização do vídeo">
+        <video id="uploadVideoPreview" controls playsinline preload="metadata"></video>
       </div>
 
       <div class="oe-upload-actions">
@@ -841,7 +845,9 @@
   function syncSubtitleChrome() {
     var isVideo = btnLegendarVideo && !btnLegendarVideo.disabled;
     var panelOpen = subEls.wrap && !subEls.wrap.classList.contains('hidden');
-    var showExtras = isVideo && !panelOpen && !legendarReady;
+    var errBanner = document.getElementById('legendarErrorBanner');
+    var hasError = errBanner && !errBanner.classList.contains('hidden');
+    var showExtras = isVideo && !panelOpen && !legendarReady && !hasError;
     var hint = document.getElementById('videoUploadHint');
     var openBtn = document.getElementById('btnOpenSubtitleStyle');
     if (hint) hint.classList.toggle('hidden', !showExtras);
@@ -1100,6 +1106,41 @@
   // =========================
   btnLegendarVideo.addEventListener("click", legendarVideo);
 
+  async function pollVideoSubsJob(jobId) {
+    const maxWait = 900000;
+    const started = Date.now();
+    while (Date.now() - started < maxWait) {
+      await new Promise(function (r) { setTimeout(r, 2500); });
+      let stRes;
+      try {
+        stRes = await fetch(`${API_BASE}/video-subs/jobs/${jobId}`, {
+          headers: OuviescreviAPI.authHeaders(),
+        });
+      } catch (netErr) {
+        if (statusEl && netErr.message === "Failed to fetch") {
+          statusEl.textContent = "🔄 Ligação interrompida — a verificar se o servidor ainda processa…";
+        }
+        continue;
+      }
+      let st = {};
+      try { st = await stRes.json(); } catch { st = {}; }
+      if (!stRes.ok) {
+        throw new Error(st.detail || st.error || `Erro ${stRes.status}`);
+      }
+      if (st.message && statusEl) {
+        statusEl.textContent = "🔄 " + st.message;
+      }
+      if (st.progress && progressBar) {
+        progressBar.style.width = Math.min(95, Number(st.progress) || 0) + "%";
+      }
+      if (st.status === "completed") return st;
+      if (st.status === "failed") {
+        throw new Error(st.error || "Falha ao processar o vídeo.");
+      }
+    }
+    throw new Error("Tempo limite excedido (15 min). Tenta um clip mais curto.");
+  }
+
   async function legendarVideo(){
     await ensureApi();
     const file = document.getElementById("fileInput").files[0];
@@ -1157,8 +1198,13 @@
         throw new Error(data.detail || data.error || `Erro ${res.status}`);
       }
 
-      const srtUrl = toAbsUrl(data.srt_url);
-      const mp4Url = data.video_url ? toAbsUrl(data.video_url) : null;
+      let result = data;
+      if (data.job_id) {
+        result = await pollVideoSubsJob(data.job_id);
+      }
+
+      const srtUrl = toAbsUrl(result.srt_url);
+      const mp4Url = result.video_url ? toAbsUrl(result.video_url) : null;
 
       document.getElementById("srtDownload").href = srtUrl;
       const mp4Btn = document.getElementById("mp4Download");
@@ -1169,9 +1215,9 @@
         mp4Btn.classList.add("hidden");
       }
 
-      if (data.warning){
+      if (result.warning){
         const warn = document.getElementById("legendasWarn");
-        warn.textContent = "ℹ️ " + data.warning;
+        warn.textContent = "ℹ️ " + result.warning;
         warn.classList.remove("hidden");
       }
 
@@ -1183,7 +1229,7 @@
         nextStep.textContent = "✅ Legendas prontas! Clica nos botões abaixo para descarregar o SRT" +
           (mp4Url ? " e o vídeo MP4" : "") + ".";
       }
-      showLegendarSuccess(srtUrl, mp4Url, data.warning);
+      showLegendarSuccess(srtUrl, mp4Url, result.warning);
       scrollSeInvisivel("legendasBox");
     } catch(err){
       clearInterval(interval);
@@ -1193,7 +1239,9 @@
 
       var errMsg = err.name === "AbortError"
         ? "Tempo limite excedido (15 min). O vídeo pode ser longo — tenta um clip mais curto ou só transcrever."
-        : (err.message || "Erro inesperado ao comunicar com a API.");
+        : (err.message === "Failed to fetch"
+          ? "Ligação ao servidor interrompida. Verifica a rede e tenta novamente — se o processamento já começou, aguarda um minuto antes de repetir."
+          : (err.message || "Erro inesperado ao comunicar com a API."));
       showLegendarError(errMsg);
       document.getElementById("legendasBox").classList.remove("hidden");
       output.classList.remove("hidden");
@@ -1777,6 +1825,14 @@
     btnLegendarVideo.disabled = true;
     setSubtitlePanelVisible(false);
     loadedVideoMeta = false;
+    var previewWrap = document.getElementById("videoPreviewWrap");
+    var uploadPreview = document.getElementById("uploadVideoPreview");
+    if (uploadPreview) {
+      uploadPreview.pause();
+      uploadPreview.removeAttribute("src");
+      uploadPreview.load();
+    }
+    if (previewWrap) previewWrap.classList.add("hidden");
   }
   function scrollSeInvisivel(id){
     const el = document.getElementById(id);
@@ -1844,9 +1900,23 @@
           v.onloadedmetadata = function () {
             loadedVideoMeta = true;
           };
+          var previewWrap = document.getElementById("videoPreviewWrap");
+          var uploadPreview = document.getElementById("uploadVideoPreview");
+          if (previewWrap && uploadPreview) {
+            uploadPreview.src = videoObjectURL;
+            previewWrap.classList.remove("hidden");
+          }
         } else {
           setSubtitlePanelVisible(false);
           loadedVideoMeta = false;
+          var previewWrap = document.getElementById("videoPreviewWrap");
+          var uploadPreview = document.getElementById("uploadVideoPreview");
+          if (uploadPreview) {
+            uploadPreview.pause();
+            uploadPreview.removeAttribute("src");
+            uploadPreview.load();
+          }
+          if (previewWrap) previewWrap.classList.add("hidden");
         }
       });
     }

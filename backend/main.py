@@ -19,6 +19,7 @@ import shutil
 import time
 import math
 import re
+import threading
 
 import requests
 from bs4 import BeautifulSoup
@@ -585,6 +586,51 @@ def safe_run_ffmpeg(cmd: list, desc: str, timeout: int = FFMPEG_TIMEOUT):
         logger.error("FFmpeg ERRO (%s) em %.2fs: %s", desc, dur, err[:1000])
         raise
 
+
+def probe_media_duration_sec(path: str) -> float | None:
+    if not path or not os.path.isfile(path) or not FFMPEG:
+        return None
+    try:
+        proc = subprocess.run(
+            [FFMPEG, "-hide_banner", "-i", path],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        m = re.search(r"Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)", proc.stderr or "")
+        if not m:
+            return None
+        h, mi, s = m.groups()
+        return int(h) * 3600 + int(mi) * 60 + float(s)
+    except Exception:
+        return None
+
+
+_video_sub_jobs: dict[str, dict] = {}
+_video_sub_jobs_lock = threading.Lock()
+
+
+def _video_job_set(job_id: str, **kwargs) -> None:
+    with _video_sub_jobs_lock:
+        job = _video_sub_jobs.setdefault(job_id, {})
+        job.update(kwargs)
+        job["updated_at"] = time.monotonic()
+
+
+def _video_job_get(job_id: str) -> dict | None:
+    with _video_sub_jobs_lock:
+        job = _video_sub_jobs.get(job_id)
+        return dict(job) if job else None
+
+
+def _prune_video_jobs() -> None:
+    cutoff = time.monotonic() - 3600
+    with _video_sub_jobs_lock:
+        stale = [jid for jid, j in _video_sub_jobs.items() if j.get("updated_at", 0) < cutoff]
+        for jid in stale:
+            _video_sub_jobs.pop(jid, None)
+
+
 def split_audio(input_path, output_dir, segment_duration=SEGMENT_DURATION):
     os.makedirs(output_dir, exist_ok=True)
     cmd = [
@@ -898,7 +944,10 @@ async def transcribe(
                     offset_seconds += SEGMENT_DURATION
 
         try:
-            duration_sec = float(len(parts) * SEGMENT_DURATION) if parts else None
+            dur_src = used_source or (audio_wav_path if converted_ok else tmp_path)
+            duration_sec = probe_media_duration_sec(dur_src)
+            if duration_sec is None and parts:
+                duration_sec = float(len(parts) * SEGMENT_DURATION)
             processing_sec = time.monotonic() - t_start
             registar_transcricao(
                 file.filename or "sem_nome",
@@ -958,6 +1007,152 @@ async def transcribe(
             pass
 
 # ── NOVO: Vídeo com legendas embutidas ───────────────────────────────────────
+def _execute_video_subs_job(
+    job_id: str,
+    rid: str,
+    tmp_video: str,
+    filename: str,
+    whisper_lang: str | None,
+    written: int,
+    t_start: float,
+) -> None:
+    audio_wav_path = os.path.join(tempfile.gettempdir(), f"subs_{uuid.uuid4()}.wav")
+    split_dir = tempfile.mkdtemp(prefix="subs_split_")
+    srt_tmp = None
+    try:
+        _video_job_set(job_id, status="processing", message="A extrair áudio do vídeo…", progress=12)
+        conv = [
+            FFMPEG, "-nostdin", "-hide_banner", "-loglevel", "error", "-y",
+            "-i", tmp_video, "-vn", "-sn",
+            "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", audio_wav_path,
+        ]
+        safe_run_ffmpeg(conv, desc="audio p/ subs (wav)", timeout=max(60, FFMPEG_TIMEOUT))
+
+        _video_job_set(job_id, message="A transcrever o áudio…", progress=25)
+        parts = split_audio(audio_wav_path, split_dir)
+        if not parts:
+            parts = [audio_wav_path]
+        entries: list[tuple[float, float, str]] = []
+        offset_seconds = 0
+        failed_segments = 0
+
+        for idx, part in enumerate(parts):
+            if (time.monotonic() - t_start) > TOTAL_TRANSCRIBE_TIMEOUT:
+                logger.error("[%s] [video-subs] Watchdog TOTAL timeout", rid)
+                break
+            pct = 25 + int((idx / max(len(parts), 1)) * 40)
+            _video_job_set(job_id, message=f"A transcrever segmento {idx + 1}/{len(parts)}…", progress=pct)
+            try:
+                result = transcrever_parte_c_com_retries(
+                    part, retries=3, sleep_base=1.0, timeout=WHISPER_TIMEOUT, language=whisper_lang
+                )
+                segs = filter_whisper_segments(getattr(result, "segments", []) or [], whisper_lang)
+                for s in segs:
+                    st = float(_seg_get(s, "start", 0.0)) + offset_seconds
+                    en = float(_seg_get(s, "end", st + 0.01)) + offset_seconds
+                    tx = (_seg_get(s, "text", "") or "").strip()
+                    if tx:
+                        entries.append((st, en, tx))
+                logger.info("[%s] [video-subs] chunk %d/%d OK c/ %d segmentos", rid, idx + 1, len(parts), len(segs))
+            except Exception:
+                logger.exception("[%s] [video-subs] Erro a transcrever chunk %d", rid, idx + 1)
+                failed_segments += 1
+            finally:
+                if len(parts) > 1:
+                    offset_seconds += SEGMENT_DURATION
+
+        _video_job_set(job_id, message="A gerar ficheiro de legendas…", progress=72)
+        base = str(uuid.uuid4())
+        srt_tmp = os.path.join(tempfile.gettempdir(), f"{base}.srt")
+        _write_srt(entries, srt_tmp)
+
+        srt_out = os.path.join(VIDEO_DIR, f"{base}.srt")
+        shutil.copyfile(srt_tmp, srt_out)
+
+        _video_job_set(job_id, message="A incorporar legendas no vídeo…", progress=85)
+        out_video = os.path.join(VIDEO_DIR, f"{base}.mp4")
+        vf = (
+            f"subtitles={_escape_subtitles_path(srt_tmp)}:force_style="
+            "'FontName=DejaVu Sans,FontSize=24,Outline=1,BorderStyle=1,Shadow=0,MarginV=24'"
+        )
+        burn = [
+            FFMPEG, "-nostdin", "-hide_banner", "-loglevel", "error", "-y",
+            "-i", tmp_video,
+            "-vf", vf,
+            "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+            "-c:a", "copy",
+            out_video,
+        ]
+        warning = None
+        try:
+            safe_run_ffmpeg(burn, desc="queimar-legendas", timeout=SUBS_TIMEOUT)
+            logger.info("[%s] [video-subs] Vídeo legendado gerado", rid)
+        except Exception:
+            warning = "Não foi possível embutir as legendas (FFmpeg/libass). A entregar apenas o .srt."
+            logger.warning("[%s] [video-subs] Falha a queimar legendas. Fallback SRT.", rid)
+            out_video = None
+
+        duration_sec = probe_media_duration_sec(audio_wav_path)
+        if duration_sec is None and parts:
+            duration_sec = float(len(parts) * SEGMENT_DURATION)
+        try:
+            registar_transcricao(
+                filename + " [legendado]",
+                language=whisper_lang,
+                size_bytes=written,
+                duration_sec=duration_sec,
+                processing_sec=round(time.monotonic() - t_start, 2),
+                status="ok",
+            )
+        except Exception as e:
+            logger.warning("[%s] [video-subs] Falha ao registar DB: %s", rid, e)
+        try:
+            enviar_email_assunto(f"Vídeo legendado gerado: {filename}", "Vídeo legendado no Ouviescrevi")
+        except Exception:
+            pass
+
+        processing_ms = round((time.monotonic() - t_start) * 1000)
+        result = {
+            "status": "completed",
+            "message": "Legendas prontas.",
+            "progress": 100,
+            "srt_url": f"/static/videos/{os.path.basename(srt_out)}",
+            "rid": rid,
+            "processing_ms": processing_ms,
+        }
+        if out_video:
+            result["video_url"] = f"/static/videos/{os.path.basename(out_video)}"
+        if warning:
+            result["warning"] = warning
+        if failed_segments:
+            result["note"] = f"Alguns segmentos falharam ({failed_segments})."
+        _video_job_set(job_id, **result)
+    except Exception as e:
+        logger.exception("[%s] [video-subs] job %s falhou", rid, job_id)
+        _video_job_set(job_id, status="failed", error=str(e), message="Falha ao processar o vídeo.")
+    finally:
+        for p in (audio_wav_path, tmp_video):
+            try:
+                if p and os.path.exists(p):
+                    os.remove(p)
+            except Exception:
+                pass
+        try:
+            for f in os.listdir(split_dir):
+                try:
+                    os.remove(os.path.join(split_dir, f))
+                except Exception:
+                    pass
+            os.rmdir(split_dir)
+        except Exception:
+            pass
+        try:
+            if srt_tmp and os.path.exists(srt_tmp):
+                os.remove(srt_tmp)
+        except Exception:
+            pass
+
+
 @app.post("/video-subs")
 async def video_subs(
     request: Request,
@@ -970,23 +1165,24 @@ async def video_subs(
     enforce_rate_limit(request, "video-subs", RATE_LIMIT_VIDEO_SUBS, RATE_LIMIT_VIDEO_SUBS_WINDOW)
     whisper_lang = resolve_whisper_language(language)
     """
-    Upload de vídeo → transcreve (Whisper) → gera SRT → queima legendas no vídeo.
-    Resposta: { video_url, srt_url, warning?, rid?, processing_ms? }
+    Upload de vídeo → resposta imediata com job_id → processamento em segundo plano.
+    Consultar GET /video-subs/jobs/{job_id} até status=completed.
     """
     rid = str(uuid.uuid4())
     t_start = time.monotonic()
 
-    # Log headers úteis assim que entra no handler
     ua = request.headers.get("user-agent", "-")
     cl = request.headers.get("content-length", "-")
     ct = request.headers.get("content-type", "-")
     client_ip = getattr(request.client, "host", "-") if request.client else "-"
     logger.info("[%s] [video-subs] REQUEST from=%s len=%s ct=%s ua=%s", rid, client_ip, cl, ct, ua)
-
-    logger.info("[%s] [video-subs] Upload: %s (%s) style=%s", rid, file.filename, file.content_type, (style[:120] + "…") if style and len(style) > 120 else style)
+    logger.info(
+        "[%s] [video-subs] Upload: %s (%s) style=%s",
+        rid, file.filename, file.content_type,
+        (style[:120] + "…") if style and len(style) > 120 else style,
+    )
     _reject_oversized_upload(request)
 
-    # Gravar upload (com contagem de bytes e logs parciais)
     orig_ext = os.path.splitext(file.filename or "")[1].lower() or ".mp4"
     if orig_ext not in {".mp4", ".mov", ".mkv", ".webm", ".avi"}:
         orig_ext = ".mp4"
@@ -1005,152 +1201,36 @@ async def video_subs(
         raise HTTPException(status_code=400, detail=f"Falha ao gravar vídeo: {e}")
 
     if size_mb > MAX_FILE_SIZE_MB:
-        try: os.remove(tmp_video)
-        except: pass
+        try:
+            os.remove(tmp_video)
+        except Exception:
+            pass
         raise HTTPException(status_code=413, detail=f"Ficheiro > {MAX_FILE_SIZE_MB}MB. Reduz o tamanho e tenta novamente.")
 
-    # Extrair/normalizar áudio para transcrição
-    audio_wav_path = os.path.join(tempfile.gettempdir(), f"subs_{uuid.uuid4()}.wav")
-    try:
-        conv = [FFMPEG, "-nostdin", "-hide_banner", "-loglevel", "error", "-y",
-                "-i", tmp_video, "-vn", "-sn",
-                "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", audio_wav_path]
-        safe_run_ffmpeg(conv, desc="audio p/ subs (wav)", timeout=max(60, FFMPEG_TIMEOUT))
-    except Exception:
-        logger.exception("[%s] [video-subs] Falha a extrair áudio", rid)
-        raise HTTPException(status_code=500, detail="Falha ao extrair áudio com FFmpeg.")
+    job_id = str(uuid.uuid4())
+    _prune_video_jobs()
+    _video_job_set(
+        job_id,
+        status="processing",
+        message="Ficheiro recebido — a iniciar processamento…",
+        progress=5,
+        rid=rid,
+    )
+    threading.Thread(
+        target=_execute_video_subs_job,
+        args=(job_id, rid, tmp_video, file.filename or "sem_nome", whisper_lang, written, t_start),
+        daemon=True,
+    ).start()
+    return {"job_id": job_id, "status": "processing", "rid": rid}
 
-    # Particionar áudio e transcrever (como no /transcribe)
-    split_dir = tempfile.mkdtemp(prefix="subs_split_")
-    try:
-        parts = split_audio(audio_wav_path, split_dir)
-        if not parts:
-            parts = [audio_wav_path]
-        entries: list[tuple[float, float, str]] = []  # [(start,end,text)]
-        offset_seconds = 0
-        processed_segments = 0
-        failed_segments = 0
-        watchdog_hit = False
 
-        for idx, part in enumerate(parts):
-            if (time.monotonic() - t_start) > TOTAL_TRANSCRIBE_TIMEOUT:
-                watchdog_hit = True
-                logger.error("[%s] [video-subs] Watchdog TOTAL timeout", rid)
-                break
-            try:
-                result = transcrever_parte_c_com_retries(
-                    part, retries=3, sleep_base=1.0, timeout=WHISPER_TIMEOUT, language=whisper_lang
-                )
-                segs = filter_whisper_segments(getattr(result, "segments", []) or [], whisper_lang)
-                for s in segs:
-                    st = float(_seg_get(s, "start", 0.0)) + offset_seconds
-                    en = float(_seg_get(s, "end", st + 0.01)) + offset_seconds
-                    tx = (_seg_get(s, "text", "") or "").strip()
-                    if tx:
-                        entries.append((st, en, tx))
-                processed_segments += 1
-                logger.info("[%s] [video-subs] chunk %d/%d OK c/ %d segmentos", rid, idx+1, len(parts), len(segs))
-            except Exception:
-                logger.exception("[%s] [video-subs] Erro a transcrever chunk %d", rid, idx+1)
-                failed_segments += 1
-            finally:
-                if len(parts) > 1:
-                    offset_seconds += SEGMENT_DURATION
-
-        # Gerar SRT
-        base = str(uuid.uuid4())
-        srt_tmp = os.path.join(tempfile.gettempdir(), f"{base}.srt")
-        _write_srt(entries, srt_tmp)
-
-        # Copiar SRT para estáticos (download)
-        srt_out = os.path.join(VIDEO_DIR, f"{base}.srt")
-        try:
-            shutil.copyfile(srt_tmp, srt_out)
-        except Exception:
-            logger.exception("[%s] [video-subs] Falha a copiar SRT p/ static", rid)
-            raise HTTPException(status_code=500, detail="Falha ao preparar SRT para download.")
-
-        # Queimar legendas no vídeo
-        out_video = os.path.join(VIDEO_DIR, f"{base}.mp4")
-        vf = f"subtitles={_escape_subtitles_path(srt_tmp)}:force_style='FontName=DejaVu Sans,FontSize=24,Outline=1,BorderStyle=1,Shadow=0,MarginV=24'"
-        burn = [
-            FFMPEG, "-nostdin", "-hide_banner", "-loglevel", "error", "-y",
-            "-i", tmp_video,
-            "-vf", vf,
-            "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
-            "-c:a", "copy",
-            out_video
-        ]
-        warning = None
-        try:
-            safe_run_ffmpeg(burn, desc="queimar-legendas", timeout=SUBS_TIMEOUT)
-            logger.info("[%s] [video-subs] Vídeo legendado gerado", rid)
-        except Exception:
-            # Fallback: entregar só o SRT
-            warning = "Não foi possível embutir as legendas (FFmpeg/libass). A entregar apenas o .srt."
-            logger.warning("[%s] [video-subs] Falha a queimar legendas. Fallback SRT.", rid)
-            out_video = None
-
-        # Registar e notificar
-        try:
-            duration_sec = float(len(parts) * SEGMENT_DURATION) if parts else None
-            registar_transcricao(
-                (file.filename or "sem_nome") + " [legendado]",
-                language=whisper_lang,
-                size_bytes=written,
-                duration_sec=duration_sec,
-                processing_sec=round(time.monotonic() - t_start, 2),
-                status="ok",
-            )
-        except Exception as e:
-            logger.warning("[%s] [video-subs] Falha ao registar DB: %s", rid, e)
-        try:
-            enviar_email_assunto(f"Vídeo legendado gerado: {file.filename}", "Vídeo legendado no Ouviescrevi")
-        except Exception:
-            pass
-
-        processing_ms = round((time.monotonic() - t_start) * 1000)
-        resp = {
-            "srt_url": f"/static/videos/{os.path.basename(srt_out)}",
-            "rid": rid,
-            "processing_ms": processing_ms
-        }
-        if out_video:
-            resp["video_url"] = f"/static/videos/{os.path.basename(out_video)}"
-        if warning:
-            resp["warning"] = warning
-        if failed_segments:
-            resp["note"] = f"Alguns segmentos falharam ({failed_segments})."
-
-        return resp
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.exception("[%s] [video-subs] Erro inesperado", rid)
-        raise HTTPException(status_code=500, detail=f"Erro ao processar vídeo: {e}")
-    finally:
-        # limpeza
-        for p in (audio_wav_path, tmp_video, ):
-            try:
-                if p and os.path.exists(p):
-                    os.remove(p)
-            except:
-                pass
-        try:
-            for f in os.listdir(split_dir):
-                try:
-                    os.remove(os.path.join(split_dir, f))
-                except:
-                    pass
-            os.rmdir(split_dir)
-        except:
-            pass
-        try:
-            if 'srt_tmp' in locals() and os.path.exists(srt_tmp):
-                os.remove(srt_tmp)
-        except:
-            pass
+@app.get("/video-subs/jobs/{job_id}")
+def video_subs_job_status(job_id: str, request: Request):
+    require_api_token(request)
+    job = _video_job_get(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Tarefa não encontrada ou expirada.")
+    return {k: v for k, v in job.items() if k != "updated_at"}
 
 # ── IA payloads ───────────────────────────────────────────────────────────────
 class SummarizeRequest(BaseModel):

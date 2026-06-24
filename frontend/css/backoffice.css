@@ -130,6 +130,28 @@ body.oe-admin {
   background: #f6f7f7;
 }
 
+body.oe-admin.oe-admin--dark .oe-admin-btn--secondary:hover {
+  background: var(--bo-sidebar-hover);
+  border-color: #6366f1;
+  color: #f9fafb;
+}
+
+body.oe-admin.oe-admin--dark .oe-admin-btn--danger:hover {
+  background: #450a0a;
+  border-color: #f87171;
+  color: #fecaca;
+}
+
+body.oe-admin.oe-admin--dark .oe-admin-nav button:hover {
+  background: var(--bo-sidebar-hover);
+  color: #f9fafb;
+}
+
+body.oe-admin.oe-admin--dark table.oe-admin-table tbody tr:hover td {
+  background: var(--bo-table-hover);
+  color: var(--bo-text);
+}
+
 .oe-admin-btn--danger {
   background: transparent;
   color: #b91c1c;

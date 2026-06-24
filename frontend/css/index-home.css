@@ -16,6 +16,22 @@ body.oe-page--home #uploadForm .oe-video-hint strong {
   color: #1d4ed8;
 }
 
+body.oe-page--home #uploadForm .oe-video-preview {
+  margin: 14px 0 4px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #0f172a;
+  border: 1px solid #e5e7eb;
+}
+
+body.oe-page--home #uploadForm .oe-video-preview video {
+  display: block;
+  width: 100%;
+  max-height: 360px;
+  object-fit: contain;
+  background: #000;
+}
+
 body.oe-page--home #uploadForm .oe-subtitle-open {
   display: block;
   width: 100%;

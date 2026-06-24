@@ -24,6 +24,7 @@
   const TRANS_PAGE = 50;
   let transTotal = 0;
   let loginInFlight = false;
+  const DASH_CACHE_KEY = "oe_admin_dashboard_v1";
 
   function getAdminRole() {
     return sessionStorage.getItem("ouviescrevi_admin_role") || "admin";
@@ -350,23 +351,8 @@
     );
   }
 
-  async function carregarDashboard() {
-    var data;
-    try {
-      var res = await fetch(apiBase() + "/api/admin/dashboard", {
-        headers: global.OuviescreviAPI.adminAuthHeaders(),
-      });
-      if (res.status === 403) {
-        global.OuviescreviUI.toast("Sessão expirada — faz logout e login.", "error");
-        return;
-      }
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      data = await res.json();
-    } catch (e) {
-      global.OuviescreviUI.toast("Erro ao carregar painel.", "error");
-      return;
-    }
-
+  function applyDashboardData(data) {
+    if (!data) return;
     var v = data.visitas || {};
     document.getElementById("statVisitasHoje").textContent = v.visitas_hoje ?? "0";
     document.getElementById("statUnicosHoje").textContent = v.visitantes_unicos_hoje ?? "0";
@@ -393,8 +379,9 @@
       var mins = Number(cost.minutos_audio_total);
       var rate = Number(cost.taxa_por_minuto_usd);
       if (!isNaN(mins) && mins > 0) {
+        var estNote = cost.custo_estimado ? " (estimado)" : "";
         cSub.textContent =
-          mins.toFixed(1) + " min áudio · $" + (isNaN(rate) ? "0.006" : rate.toFixed(3)) + "/min";
+          mins.toFixed(1) + " min áudio" + estNote + " · $" + (isNaN(rate) ? "0.006" : rate.toFixed(3)) + "/min";
       } else {
         cSub.textContent = "Sem minutos de áudio registados";
       }
@@ -417,6 +404,41 @@
     } catch (e2) {
       global.OuviescreviUI.toast("Erro ao desenhar gráficos do painel.", "error");
     }
+  }
+
+  function hydrateDashboardFromCache() {
+    try {
+      var raw = sessionStorage.getItem(DASH_CACHE_KEY);
+      if (!raw) return;
+      applyDashboardData(JSON.parse(raw));
+    } catch (e) {
+      /* ignora cache inválido */
+    }
+  }
+
+  async function carregarDashboard() {
+    var data;
+    try {
+      var res = await fetch(apiBase() + "/api/admin/dashboard", {
+        headers: global.OuviescreviAPI.adminAuthHeaders(),
+      });
+      if (res.status === 403) {
+        global.OuviescreviUI.toast("Sessão expirada — faz logout e login.", "error");
+        return;
+      }
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      data = await res.json();
+    } catch (e) {
+      global.OuviescreviUI.toast("Erro ao carregar painel.", "error");
+      return;
+    }
+
+    try {
+      sessionStorage.setItem(DASH_CACHE_KEY, JSON.stringify(data));
+    } catch (eCache) {
+      /* quota ou modo privado */
+    }
+    applyDashboardData(data);
   }
 
   function destroyCmsEditors() {
@@ -826,6 +848,7 @@
     document.getElementById("loginScreen").classList.add("hidden");
     document.getElementById("adminApp").classList.remove("hidden");
     applyRoleUI();
+    hydrateDashboardFromCache();
     carregarDashboard();
     if (roleAtLeast("editor")) carregarConteudo();
   }
