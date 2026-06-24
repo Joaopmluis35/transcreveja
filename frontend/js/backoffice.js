@@ -384,7 +384,21 @@
     if (convEl) convEl.textContent = (conv.taxa_conversao_pct || 0) + "%";
     var cost = data.custos_openai || {};
     var cEl = document.getElementById("statCusto");
-    if (cEl) cEl.textContent = "$" + (cost.custo_estimado_usd || 0);
+    if (cEl) {
+      var usd = Number(cost.custo_estimado_usd);
+      cEl.textContent = "$" + (isNaN(usd) ? "0.00" : usd.toFixed(usd < 0.01 && usd > 0 ? 4 : 2));
+    }
+    var cSub = document.getElementById("statCustoSub");
+    if (cSub) {
+      var mins = Number(cost.minutos_audio_total);
+      var rate = Number(cost.taxa_por_minuto_usd);
+      if (!isNaN(mins) && mins > 0) {
+        cSub.textContent =
+          mins.toFixed(1) + " min áudio · $" + (isNaN(rate) ? "0.006" : rate.toFixed(3)) + "/min";
+      } else {
+        cSub.textContent = "Sem minutos de áudio registados";
+      }
+    }
 
     var toggle = document.getElementById("manutencaoToggle");
     if (toggle) toggle.checked = !!data.manutencao;

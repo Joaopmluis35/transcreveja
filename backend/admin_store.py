@@ -673,13 +673,15 @@ def estimate_costs(config: dict | None = None) -> dict:
         rate = float(raw_rate) if raw_rate not in (None, "") else 0.006
     except (TypeError, ValueError):
         rate = 0.006
+    if rate <= 0:
+        rate = 0.006
     conn = get_connection()
     try:
         today_s = date.today().isoformat()
         row = conn.execute(
             """
             SELECT COUNT(*) AS total,
-                   COALESCE(SUM(duration_sec), 0) AS secs,
+                   COALESCE(SUM(COALESCE(duration_sec, 0)), 0) AS secs,
                    COALESCE(SUM(CASE WHEN substr(data,1,10)=? THEN 1 ELSE 0 END), 0) AS hoje
             FROM transcricoes
             WHERE LOWER(COALESCE(status, 'ok')) = 'ok'

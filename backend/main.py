@@ -1093,7 +1093,15 @@ async def video_subs(
 
         # Registar e notificar
         try:
-            registar_transcricao((file.filename or "sem_nome") + " [legendado]")
+            duration_sec = float(len(parts) * SEGMENT_DURATION) if parts else None
+            registar_transcricao(
+                (file.filename or "sem_nome") + " [legendado]",
+                language=whisper_lang,
+                size_bytes=written,
+                duration_sec=duration_sec,
+                processing_sec=round(time.monotonic() - t_start, 2),
+                status="ok",
+            )
         except Exception as e:
             logger.warning("[%s] [video-subs] Falha ao registar DB: %s", rid, e)
         try:

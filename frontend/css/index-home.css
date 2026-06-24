@@ -2,14 +2,18 @@
 
 body.oe-page--home #uploadForm .oe-video-hint {
   margin: 10px 0 0;
-  padding: 10px 12px;
+  padding: 12px 14px;
   border-radius: 8px;
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  color: #166534;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e3a8a;
   font-size: 0.88rem;
-  line-height: 1.45;
+  line-height: 1.55;
   text-align: left;
+}
+
+body.oe-page--home #uploadForm .oe-video-hint strong {
+  color: #1d4ed8;
 }
 
 body.oe-page--home #uploadForm .oe-subtitle-open {
@@ -385,6 +389,53 @@ body.oe-page--home #btnLimparTudo {
 body.oe-page--home #timerGravacao {
   font-weight: bold;
   margin-top: 10px;
+}
+
+body.oe-page--home #uploadForm .oe-loading {
+  width: 100%;
+  margin: 14px 0 4px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  border: 2px solid #a550f7;
+  background: linear-gradient(180deg, #faf5ff 0%, #fff 100%);
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.12);
+}
+
+body.oe-page--home #uploadForm .oe-loading--active {
+  animation: oe-loading-pulse 2s ease-in-out infinite;
+}
+
+@keyframes oe-loading-pulse {
+  0%, 100% { box-shadow: 0 8px 24px rgba(124, 58, 237, 0.12); }
+  50% { box-shadow: 0 8px 28px rgba(124, 58, 237, 0.28); }
+}
+
+body.oe-page--home .oe-loading__eyebrow {
+  margin: 0 0 6px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #7c3aed;
+  text-align: center;
+}
+
+body.oe-page--home .oe-loading__status {
+  margin: 0 0 10px;
+}
+
+body.oe-page--home .oe-loading__timer {
+  margin: 0 0 10px;
+  text-align: center;
+  font-weight: 700;
+  color: #4b5563;
+}
+
+body.oe-page--home .oe-loading__hint {
+  margin: 10px 0 0;
+  font-size: 0.8rem;
+  color: #6b7280;
+  text-align: center;
 }
 
 body.oe-page--home #loading {
@@ -843,6 +894,17 @@ body.oe-page--home #traducaoProgressBar {
   width: 0%;
   background: #a550f7;
   border-radius: 8px;
+}
+
+body.oe-page--home .oe-legendas-next {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+  font-size: 0.92rem;
+  font-weight: 600;
 }
 
 body.oe-page--home #legendasBox a {
