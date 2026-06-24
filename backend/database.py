@@ -58,11 +58,18 @@ class _DictRow:
     def keys(self) -> KeysView[str]:
         return self._map.keys()
 
+    def as_dict(self) -> dict[str, Any]:
+        return dict(self._map)
+
 
 class _TursoCursor:
     def __init__(self, inner_cursor: Any):
         self._cur = inner_cursor
         self.description = getattr(inner_cursor, "description", None)
+
+    @property
+    def lastrowid(self) -> Any:
+        return getattr(self._cur, "lastrowid", None)
 
     def execute(self, sql: str, params: tuple | list = ()) -> _TursoCursor:
         if params:
@@ -77,6 +84,10 @@ class _TursoCursor:
 
     def fetchall(self) -> list[Any]:
         return [_as_sqlite_row(self, row) for row in self._cur.fetchall()]
+
+    def __iter__(self) -> Iterator[Any]:
+        for row in self._cur:
+            yield _as_sqlite_row(self, row)
 
 
 class _TursoConnection:
@@ -117,6 +128,16 @@ def _ensure_db_dir() -> None:
     parent = os.path.dirname(os.path.abspath(DB_PATH))
     if parent:
         os.makedirs(parent, exist_ok=True)
+
+
+def row_to_dict(row: Any) -> dict[str, Any]:
+    if row is None:
+        return {}
+    if isinstance(row, _DictRow):
+        return row.as_dict()
+    if isinstance(row, dict):
+        return row
+    return dict(row)
 
 
 def get_connection() -> Any:

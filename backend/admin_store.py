@@ -11,7 +11,7 @@ import sqlite3
 from datetime import date, datetime, timedelta
 from typing import Any
 
-from database import database_backend, db_path, get_connection, use_turso
+from database import database_backend, db_path, get_connection, row_to_dict, use_turso
 
 ROLE_LEVEL = {"viewer": 1, "editor": 2, "admin": 3}
 
@@ -172,7 +172,7 @@ def list_users() -> list[dict]:
         rows = conn.execute(
             "SELECT id, username, role, created_at FROM admin_users ORDER BY id"
         ).fetchall()
-        return [dict(r) for r in rows]
+        return [row_to_dict(r) for r in rows]
     finally:
         conn.close()
 
@@ -344,7 +344,7 @@ def list_transcriptions(
             """,
             params,
         ).fetchall()
-        items = [dict(r) for r in rows]
+        items = [row_to_dict(r) for r in rows]
         dup_map: dict[str, int] = {}
         if items:
             dup_rows = conn.execute(
@@ -517,7 +517,7 @@ def list_suggestions(
         q += " ORDER BY id DESC LIMIT ?"
         params.append(max(1, min(limit, 200)))
         rows = conn.execute(q, params).fetchall()
-        return [dict(r) for r in rows]
+        return [row_to_dict(r) for r in rows]
     finally:
         conn.close()
 
@@ -595,7 +595,7 @@ def list_banners() -> list[dict]:
     conn = get_connection()
     try:
         rows = conn.execute("SELECT * FROM site_banners ORDER BY id DESC").fetchall()
-        return [dict(r) for r in rows]
+        return [row_to_dict(r) for r in rows]
     finally:
         conn.close()
 
@@ -651,7 +651,7 @@ def get_audit_log(limit: int = 50) -> list[dict]:
             "SELECT * FROM audit_log ORDER BY id DESC LIMIT ?",
             (max(1, min(limit, 200)),),
         ).fetchall()
-        return [dict(r) for r in rows]
+        return [row_to_dict(r) for r in rows]
     finally:
         conn.close()
 
@@ -663,7 +663,7 @@ def get_api_errors(limit: int = 50) -> list[dict]:
             "SELECT * FROM api_errors ORDER BY id DESC LIMIT ?",
             (max(1, min(limit, 200)),),
         ).fetchall()
-        return [dict(r) for r in rows]
+        return [row_to_dict(r) for r in rows]
     finally:
         conn.close()
 
@@ -817,7 +817,7 @@ def backup_json() -> dict:
             "audit_log",
         ):
             rows = conn.execute(f"SELECT * FROM {table}").fetchall()
-            data[table] = [dict(r) for r in rows]
+            data[table] = [row_to_dict(r) for r in rows]
         return data
     finally:
         conn.close()

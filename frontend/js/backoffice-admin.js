@@ -639,33 +639,69 @@
     );
   }
 
+  function setField(id, value) {
+    var el = document.getElementById(id);
+    if (el) el.value = value != null ? value : "";
+  }
+
+  function setChecked(id, checked) {
+    var el = document.getElementById(id);
+    if (el) el.checked = !!checked;
+  }
+
   async function loadSystem() {
     var health = document.getElementById("systemHealth");
     var grid = document.getElementById("systemHealthCards");
     if (grid) grid.innerHTML = '<p class="oe-admin-empty">A verificar serviços...</p>';
     try {
       var hres = await fetch(apiBase() + "/api/admin/health", { headers: authHeaders() });
+      if (hres.status === 403) {
+        if (grid) grid.innerHTML = "";
+        if (health) {
+          health.innerHTML =
+            '<div class="oe-admin-alert oe-admin-alert--warn">' +
+            "<strong>Sessão expirada</strong><br>A base Turso é nova — faz <strong>Sair</strong> e volta a entrar com a palavra-chave." +
+            "</div>";
+        }
+        return;
+      }
+      if (!hres.ok) throw new Error("health " + hres.status);
       var h = await hres.json();
       renderHealthCards(h);
       renderSystemDetails(h);
+    } catch (e) {
+      if (grid) grid.innerHTML = "";
+      if (health) {
+        health.innerHTML =
+          '<p class="oe-admin-empty">Erro ao carregar estado do sistema. Clica <strong>Atualizar</strong> ou faz logout/login.</p>';
+      }
+      var statsDiv = document.getElementById("databaseStats");
+      if (statsDiv) statsDiv.innerHTML = '<p class="oe-admin-empty">—</p>';
+      return;
+    }
+    try {
       var cres = await fetch(apiBase() + "/api/admin/config", { headers: authHeaders() });
-      var cdata = await cres.json();
-      var cfg = cdata.config || {};
-      document.getElementById("cfgMaxMb").value = cfg.max_file_size_mb || "";
-      document.getElementById("cfgAlertEmail").checked = cfg.alert_email_enabled === "1";
-      document.getElementById("cfgAlertTo").value = cfg.alert_email_to || "";
-      document.getElementById("cfgAlertTrans").value = cfg.alert_transcriptions_daily || "";
-      document.getElementById("cfgAlertVisits").value = cfg.alert_visits_daily || "";
-      document.getElementById("cfgWhisperCost").value = cfg.whisper_cost_per_minute_usd || "0.006";
-      document.getElementById("cfgCfZone").value = cfg.cloudflare_zone_id || "";
-      document.getElementById("cfgCfToken").value = "";
+      if (cres.ok) {
+        var cdata = await cres.json();
+        var cfg = cdata.config || {};
+        setField("cfgMaxMb", cfg.max_file_size_mb || "");
+        setChecked("cfgAlertEmail", cfg.alert_email_enabled === "1");
+        setField("cfgAlertTo", cfg.alert_email_to || "");
+        setField("cfgAlertTrans", cfg.alert_transcriptions_daily || "");
+        setField("cfgAlertVisits", cfg.alert_visits_daily || "");
+        setField("cfgWhisperCost", cfg.whisper_cost_per_minute_usd || "0.006");
+        setField("cfgCfZone", cfg.cloudflare_zone_id || "");
+        setField("cfgCfToken", "");
+      }
       var bres = await fetch(apiBase() + "/api/admin/banners", { headers: authHeaders() });
-      var bdata = await bres.json();
-      var banner = (bdata.items || [])[0];
-      if (banner) {
-        document.getElementById("bannerTexto").value = banner.texto || "";
-        document.getElementById("bannerLink").value = banner.link || "";
-        document.getElementById("bannerAtivo").checked = !!banner.ativo;
+      if (bres.ok) {
+        var bdata = await bres.json();
+        var banner = (bdata.items || [])[0];
+        if (banner) {
+          setField("bannerTexto", banner.texto || "");
+          setField("bannerLink", banner.link || "");
+          setChecked("bannerAtivo", !!banner.ativo);
+        }
       }
       var ul = document.getElementById("usersList");
       if (ul && (sessionStorage.getItem("ouviescrevi_admin_role") || "admin") === "admin") {
@@ -742,10 +778,7 @@
         );
       }
     } catch (e) {
-      if (grid) grid.innerHTML = "";
-      if (health) health.innerHTML = '<p class="oe-admin-empty">Erro ao carregar sistema.</p>';
-      var statsDiv = document.getElementById("databaseStats");
-      if (statsDiv) statsDiv.innerHTML = '<p class="oe-admin-empty">—</p>';
+      /* Config/utilizadores/auditoria são opcionais — o painel de saúde já foi renderizado. */
     }
   }
 
