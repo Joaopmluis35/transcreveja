@@ -618,9 +618,6 @@
     }
     if (banner) {
       banner.classList.remove("hidden");
-      requestAnimationFrame(function () {
-        banner.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
     }
     if (window.OuviescreviUI && window.OuviescreviUI.toast) {
       window.OuviescreviUI.toast("Legendas prontas — descarrega os ficheiros abaixo.", "success");
@@ -633,10 +630,7 @@
     var banner = document.getElementById("legendarErrorBanner");
     var text = document.getElementById("legendarErrorText");
     if (text) text.textContent = message || "Erro inesperado. Tenta novamente.";
-    if (banner) {
-      banner.classList.remove("hidden");
-      banner.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
+    if (banner) banner.classList.remove("hidden");
     mostrarAlertaUpload(message || "Não foi possível gerar as legendas.");
     if (window.OuviescreviUI && window.OuviescreviUI.toast) {
       window.OuviescreviUI.toast("Erro ao legendar o vídeo.", "error");
@@ -1223,30 +1217,10 @@
       const mp4Url = result.video_url ? toAbsUrl(result.video_url) : null;
 
       document.getElementById("srtDownload").href = srtUrl;
-      const mp4Btn = document.getElementById("mp4Download");
-      if (mp4Url){
-        mp4Btn.href = mp4Url;
-        mp4Btn.classList.remove("hidden");
-      } else {
-        mp4Btn.classList.add("hidden");
-      }
-
-      if (result.warning){
-        const warn = document.getElementById("legendasWarn");
-        warn.textContent = "ℹ️ " + result.warning;
-        warn.classList.remove("hidden");
-      }
-
-      document.getElementById("legendasBox").classList.remove("hidden");
-      output.classList.remove("hidden");
-      statusEl.textContent = "✅ Legendas geradas com sucesso!";
-      var nextStep = document.getElementById("legendasNextStep");
-      if (nextStep) {
-        nextStep.textContent = "✅ Legendas prontas! Clica nos botões abaixo para descarregar o SRT" +
-          (mp4Url ? " e o vídeo MP4" : "") + ".";
+      if (mp4Url) {
+        document.getElementById("mp4Download").href = mp4Url;
       }
       showLegendarSuccess(srtUrl, mp4Url, result.warning);
-      scrollSeInvisivel("legendasBox");
     } catch(err){
       clearInterval(interval);
       progressBar.style.width = "100%";

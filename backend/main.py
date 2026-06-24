@@ -159,6 +159,9 @@ TOTAL_TRANSCRIBE_TIMEOUT = int(os.getenv("TOTAL_TRANSCRIBE_TIMEOUT", "900"))  # 
 MAX_FILE_SIZE_MB = int(os.getenv("MAX_FILE_SIZE_MB", "500"))
 SEGMENT_DURATION = int(os.getenv("SEGMENT_DURATION", "600"))  # 10 min
 SUBS_TIMEOUT = int(os.getenv("SUBS_TIMEOUT", "900"))  # tempo p/ queimar legendas
+SUBS_BURN_PRESET = os.getenv("SUBS_BURN_PRESET", "ultrafast")
+SUBS_BURN_CRF = int(os.getenv("SUBS_BURN_CRF", "23"))
+SUBS_BURN_MAX_WIDTH = int(os.getenv("SUBS_BURN_MAX_WIDTH", "1280"))
 
 # Modelos
 SUM_MODEL = os.getenv("SUM_MODEL", "gpt-4o-mini")
@@ -657,6 +660,52 @@ def probe_media_duration_sec(path: str) -> float | None:
         return None
 
 
+def probe_video_width(path: str) -> int | None:
+    if not path or not os.path.isfile(path) or not FFMPEG:
+        return None
+    try:
+        proc = subprocess.run(
+            [FFMPEG, "-hide_banner", "-i", path],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        m = re.search(r"Stream #\d+:\d+.*Video:.*? (\d+)x(\d+)", proc.stderr or "")
+        if not m:
+            return None
+        return int(m.group(1))
+    except Exception:
+        return None
+
+
+def _build_burn_subtitles_cmd(
+    video_path: str,
+    srt_path: str,
+    out_path: str,
+    *,
+    force_style: str | None = None,
+) -> list[str]:
+    style = force_style or (
+        "FontName=DejaVu Sans,FontSize=24,Outline=1,BorderStyle=1,Shadow=0,MarginV=24"
+    )
+    subs = f"subtitles={_escape_subtitles_path(srt_path)}:force_style='{style}'"
+    width = probe_video_width(video_path)
+    if SUBS_BURN_MAX_WIDTH > 0 and width and width > SUBS_BURN_MAX_WIDTH:
+        vf = f"scale={SUBS_BURN_MAX_WIDTH}:-2,{subs}"
+    else:
+        vf = subs
+    return [
+        FFMPEG, "-nostdin", "-hide_banner", "-loglevel", "error", "-y",
+        "-threads", "0",
+        "-i", video_path,
+        "-vf", vf,
+        "-c:v", "libx264", "-preset", SUBS_BURN_PRESET, "-crf", str(SUBS_BURN_CRF),
+        "-c:a", "copy",
+        "-movflags", "+faststart",
+        out_path,
+    ]
+
+
 _video_sub_jobs: dict[str, dict] = {}
 _video_sub_jobs_lock = threading.Lock()
 
@@ -1147,18 +1196,7 @@ def _execute_video_subs_job(
 
         _video_job_set(job_id, message="A incorporar legendas no vídeo…", progress=85)
         out_video = os.path.join(VIDEO_DIR, f"{base}.mp4")
-        vf = (
-            f"subtitles={_escape_subtitles_path(srt_tmp)}:force_style="
-            "'FontName=DejaVu Sans,FontSize=24,Outline=1,BorderStyle=1,Shadow=0,MarginV=24'"
-        )
-        burn = [
-            FFMPEG, "-nostdin", "-hide_banner", "-loglevel", "error", "-y",
-            "-i", tmp_video,
-            "-vf", vf,
-            "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
-            "-c:a", "copy",
-            out_video,
-        ]
+        burn = _build_burn_subtitles_cmd(tmp_video, srt_tmp, out_video)
         warning = None
         try:
             safe_run_ffmpeg_with_heartbeat(
@@ -1195,21 +1233,24 @@ def _execute_video_subs_job(
             result["note"] = f"Alguns segmentos falharam ({failed_segments})."
         _video_job_set(job_id, **result)
 
-        try:
-            registar_transcricao(
-                filename + " [legendado]",
-                language=whisper_lang,
-                size_bytes=written,
-                duration_sec=duration_sec,
-                processing_sec=round(time.monotonic() - t_start, 2),
-                status="ok",
-            )
-        except Exception as e:
-            logger.warning("[%s] [video-subs] Falha ao registar DB: %s", rid, e)
-        try:
-            enviar_email_assunto(f"Vídeo legendado gerado: {filename}", "Vídeo legendado no Ouviescrevi")
-        except Exception:
-            pass
+        def _post_video_subs_notify() -> None:
+            try:
+                registar_transcricao(
+                    filename + " [legendado]",
+                    language=whisper_lang,
+                    size_bytes=written,
+                    duration_sec=duration_sec,
+                    processing_sec=round(time.monotonic() - t_start, 2),
+                    status="ok",
+                )
+            except Exception as e:
+                logger.warning("[%s] [video-subs] Falha ao registar DB: %s", rid, e)
+            try:
+                enviar_email_assunto(f"Vídeo legendado gerado: {filename}", "Vídeo legendado no Ouviescrevi")
+            except Exception:
+                pass
+
+        threading.Thread(target=_post_video_subs_notify, daemon=True).start()
     except Exception as e:
         logger.exception("[%s] [video-subs] job %s falhou", rid, job_id)
         _video_job_set(job_id, status="failed", error=str(e), message="Falha ao processar o vídeo.")
