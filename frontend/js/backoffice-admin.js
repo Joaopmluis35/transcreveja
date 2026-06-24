@@ -570,6 +570,16 @@
       kvRow("Ambiente", h.app_env || "—") +
       kvRow("API pública", h.public_api_base || "—") +
       kvRow("Backend BD", h.database_backend === "turso" ? "Turso (libSQL)" : "Ficheiro SQLite") +
+      kvRow(
+        "Turso URL (env)",
+        h.turso_url_set
+          ? (h.turso_url_valid ? "✓ definida (libsql://…)" : "⚠ definida mas formato inválido — usa libsql://…")
+          : "✗ não definida no Render"
+      ) +
+      kvRow(
+        "Turso token (env)",
+        h.turso_token_set ? "✓ definido" : "✗ não definido no Render"
+      ) +
       kvRow("Host / ficheiro", '<code class="oe-admin-code">' + shortDbHost(h.database_path) + "</code>") +
       kvRow("Latência BD", h.database_latency_ms != null ? h.database_latency_ms + " ms" : "—") +
       kvRow("Tamanho ficheiro", formatBytes(h.database_bytes)) +

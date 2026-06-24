@@ -866,8 +866,8 @@ def system_health(openai_client=None) -> dict:
                 "audit_log",
             ):
                 try:
-                    row = conn.execute(f"SELECT COUNT(*) AS c FROM {table}").fetchone()
-                    health["table_counts"][table] = int(row["c"] if hasattr(row, "keys") else row[0])
+                    row = conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()
+                    health["table_counts"][table] = int(row[0]) if row else 0
                 except Exception:
                     health["table_counts"][table] = None
             try:
@@ -947,9 +947,12 @@ def system_health(openai_client=None) -> dict:
         health["cms_locales_ready"] = False
         health["cms_locales_note"] = f"Não foi possível verificar CMS: {str(exc)[:80]}"
 
-    health["turso_env_configured"] = bool(
-        os.getenv("TURSO_DATABASE_URL", "").strip() and os.getenv("TURSO_AUTH_TOKEN", "").strip()
-    )
+    turso_url = os.getenv("TURSO_DATABASE_URL", "").strip()
+    turso_token = os.getenv("TURSO_AUTH_TOKEN", "").strip()
+    health["turso_url_set"] = bool(turso_url)
+    health["turso_token_set"] = bool(turso_token)
+    health["turso_url_valid"] = turso_url.startswith("libsql://") if turso_url else False
+    health["turso_env_configured"] = bool(turso_url and turso_token)
     if not health["database_persistent"] and health["turso_env_configured"]:
         health["persistence_note"] = (
             "Variáveis TURSO_* existem no ambiente mas a API está em SQLite local — "
