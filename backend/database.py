@@ -9,12 +9,18 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 DB_PATH = os.getenv("DATABASE_PATH", "ouviescrevi.db")
-TURSO_DATABASE_URL = os.getenv("TURSO_DATABASE_URL", "").strip()
-TURSO_AUTH_TOKEN = os.getenv("TURSO_AUTH_TOKEN", "").strip()
+
+
+def _turso_url() -> str:
+    return os.getenv("TURSO_DATABASE_URL", "").strip()
+
+
+def _turso_token() -> str:
+    return os.getenv("TURSO_AUTH_TOKEN", "").strip()
 
 
 def use_turso() -> bool:
-    return bool(TURSO_DATABASE_URL and TURSO_AUTH_TOKEN)
+    return bool(_turso_url() and _turso_token())
 
 
 def database_backend() -> str:
@@ -23,8 +29,64 @@ def database_backend() -> str:
 
 def db_path() -> str:
     if use_turso():
-        return TURSO_DATABASE_URL
+        return _turso_url()
     return DB_PATH
+
+
+class _RowDescriptionCursor:
+    """Shim mínimo para construir sqlite3.Row a partir de tuplos libsql."""
+
+    def __init__(self, description):
+        self.description = description
+
+
+class _TursoCursor:
+    def __init__(self, inner_cursor: Any):
+        self._cur = inner_cursor
+        self.description = getattr(inner_cursor, "description", None)
+
+    def execute(self, sql: str, params: tuple | list = ()) -> _TursoCursor:
+        if params:
+            self._cur.execute(sql, params)
+        else:
+            self._cur.execute(sql)
+        self.description = getattr(self._cur, "description", None)
+        return self
+
+    def fetchone(self) -> Any:
+        return _as_sqlite_row(self, self._cur.fetchone())
+
+    def fetchall(self) -> list[Any]:
+        return [_as_sqlite_row(self, row) for row in self._cur.fetchall()]
+
+
+class _TursoConnection:
+    """Compatibiliza a API sqlite3 (row_factory, execute, cursor) com libsql."""
+
+    def __init__(self, inner_conn: Any):
+        self._conn = inner_conn
+
+    def cursor(self) -> _TursoCursor:
+        return _TursoCursor(self._conn.cursor())
+
+    def execute(self, sql: str, params: tuple | list = ()) -> _TursoCursor:
+        return self.cursor().execute(sql, params)
+
+    def commit(self) -> None:
+        self._conn.commit()
+
+    def close(self) -> None:
+        self._conn.close()
+
+
+def _as_sqlite_row(cur: _TursoCursor, row: Any) -> Any:
+    if row is None:
+        return None
+    if hasattr(row, "keys"):
+        return row
+    if not cur.description:
+        return row
+    return sqlite3.Row(_RowDescriptionCursor(cur.description), tuple(row))
 
 
 def _ensure_db_dir() -> None:
@@ -39,12 +101,11 @@ def get_connection() -> Any:
     if use_turso():
         import libsql
 
-        conn = libsql.connect(
-            database=TURSO_DATABASE_URL,
-            auth_token=TURSO_AUTH_TOKEN,
+        raw = libsql.connect(
+            database=_turso_url(),
+            auth_token=_turso_token(),
         )
-        conn.row_factory = sqlite3.Row
-        return conn
+        return _TursoConnection(raw)
     _ensure_db_dir()
     conn = sqlite3.connect(db_path())
     conn.row_factory = sqlite3.Row
@@ -97,13 +158,14 @@ def criar_base() -> None:
 
     backend = database_backend()
     if use_turso():
-        logger.info("Base de dados: Turso (%s)", TURSO_DATABASE_URL.split("/")[2] if "/" in TURSO_DATABASE_URL else "remoto")
+        url = _turso_url()
+        logger.info("Base de dados: Turso (%s)", url.split("/")[2] if "/" in url else "remoto")
     else:
         logger.warning(
             "Base de dados: SQLite local (%s). TURSO_URL=%s TURSO_TOKEN=%s",
             DB_PATH,
-            "sim" if TURSO_DATABASE_URL else "não",
-            "sim" if TURSO_AUTH_TOKEN else "não",
+            "sim" if _turso_url() else "não",
+            "sim" if _turso_token() else "não",
         )
 
     conn = get_connection()
