@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="stylesheet" href="css/ouviescrevi.css?v=10">
-  <link rel="stylesheet" href="css/index-home.css?v=14">
+  <link rel="stylesheet" href="css/index-home.css?v=15">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <title>Ouviescrevi — Transcrição de Áudio e Vídeo com IA Grátis</title>
   <meta name="description" content="Transcreve áudio e vídeo online com inteligência artificial, grátis e sem registo. Resumos, tradução, legendas SRT e conversão de ficheiros. Feito em Portugal.">
@@ -53,6 +53,21 @@
           <div id="progressBar"></div>
         </div>
         <p class="oe-loading__hint">Não feches esta página — o progresso aparece aqui mesmo.</p>
+      </div>
+
+      <div id="legendarDoneBanner" class="oe-legendar-done hidden" role="status" aria-live="polite">
+        <p class="oe-legendar-done__title" id="legendarDoneTitle">✅ Legendas prontas!</p>
+        <p class="oe-legendar-done__text" id="legendarDoneText">Os ficheiros estão prontos para descarregar.</p>
+        <div class="oe-legendar-done__actions">
+          <a id="legendarSrtBtn" class="oe-legendar-done__btn" href="#" download>⬇️ Descarregar SRT</a>
+          <a id="legendarMp4Btn" class="oe-legendar-done__btn oe-legendar-done__btn--primary hidden" href="#" download>⬇️ Descarregar vídeo MP4</a>
+        </div>
+        <p class="oe-legendar-done__warn hidden" id="legendarDoneWarn"></p>
+      </div>
+
+      <div id="legendarErrorBanner" class="oe-legendar-error hidden" role="alert">
+        <p class="oe-legendar-error__title">❌ Não foi possível legendar o vídeo</p>
+        <p class="oe-legendar-error__text" id="legendarErrorText"></p>
       </div>
 
       <p id="videoUploadHint" class="oe-video-hint hidden" role="status">
@@ -555,8 +570,78 @@
   const btnTranscrever = document.getElementById("btnTranscrever");
   const btnStartRec = document.getElementById("btnStartRec");
   const btnLegendarVideo = document.getElementById("btnLegendarVideo");
+  var legendarReady = false;
+
+  function hideLegendarBanners() {
+    legendarReady = false;
+    ["legendarDoneBanner", "legendarErrorBanner"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.classList.add("hidden");
+    });
+  }
+
+  function showLegendarSuccess(srtUrl, mp4Url, warning) {
+    var errBanner = document.getElementById("legendarErrorBanner");
+    if (errBanner) errBanner.classList.add("hidden");
+    legendarReady = true;
+    var banner = document.getElementById("legendarDoneBanner");
+    var srtBtn = document.getElementById("legendarSrtBtn");
+    var mp4Btn = document.getElementById("legendarMp4Btn");
+    var text = document.getElementById("legendarDoneText");
+    var warnEl = document.getElementById("legendarDoneWarn");
+    if (srtBtn) srtBtn.href = srtUrl;
+    if (mp4Btn) {
+      if (mp4Url) {
+        mp4Btn.href = mp4Url;
+        mp4Btn.classList.remove("hidden");
+      } else {
+        mp4Btn.classList.add("hidden");
+      }
+    }
+    if (text) {
+      text.textContent = mp4Url
+        ? "Clica para descarregar as legendas (SRT) e o vídeo com legendas embutidas (MP4)."
+        : "Clica para descarregar o ficheiro SRT. O vídeo MP4 não foi gerado — vê o aviso abaixo.";
+    }
+    if (warnEl) {
+      if (warning) {
+        warnEl.textContent = "ℹ️ " + warning;
+        warnEl.classList.remove("hidden");
+      } else {
+        warnEl.textContent = "";
+        warnEl.classList.add("hidden");
+      }
+    }
+    if (banner) {
+      banner.classList.remove("hidden");
+      requestAnimationFrame(function () {
+        banner.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+    if (global.OuviescreviUI && global.OuviescreviUI.toast) {
+      global.OuviescreviUI.toast("Legendas prontas — descarrega os ficheiros abaixo.", "success");
+    }
+    syncSubtitleChrome();
+  }
+
+  function showLegendarError(message) {
+    hideLegendarBanners();
+    var banner = document.getElementById("legendarErrorBanner");
+    var text = document.getElementById("legendarErrorText");
+    if (text) text.textContent = message || "Erro inesperado. Tenta novamente.";
+    if (banner) {
+      banner.classList.remove("hidden");
+      banner.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    mostrarAlertaUpload(message || "Não foi possível gerar as legendas.");
+    if (global.OuviescreviUI && global.OuviescreviUI.toast) {
+      global.OuviescreviUI.toast("Erro ao legendar o vídeo.", "error");
+    }
+    syncSubtitleChrome();
+  }
 
   function startJobLoading(mode) {
+    if (mode === "legendar") hideLegendarBanners();
     var eyebrow = document.getElementById("loadingEyebrow");
     var hint = document.getElementById("videoUploadHint");
     var openBtn = document.getElementById("btnOpenSubtitleStyle");
@@ -583,7 +668,9 @@
     loading.classList.add("hidden");
     loading.classList.remove("oe-loading--active");
     loading.setAttribute("aria-busy", "false");
-    if (typeof syncSubtitleChrome === "function") syncSubtitleChrome();
+    if (!legendarReady) {
+      if (typeof syncSubtitleChrome === "function") syncSubtitleChrome();
+    }
   }
 
   // Helper: é vídeo?
@@ -754,7 +841,7 @@
   function syncSubtitleChrome() {
     var isVideo = btnLegendarVideo && !btnLegendarVideo.disabled;
     var panelOpen = subEls.wrap && !subEls.wrap.classList.contains('hidden');
-    var showExtras = isVideo && !panelOpen;
+    var showExtras = isVideo && !panelOpen && !legendarReady;
     var hint = document.getElementById('videoUploadHint');
     var openBtn = document.getElementById('btnOpenSubtitleStyle');
     if (hint) hint.classList.toggle('hidden', !showExtras);
@@ -1048,7 +1135,7 @@
 
     try{
       const controller = new AbortController();
-      const to = setTimeout(() => controller.abort(), 180000); // até ~3min
+      const to = setTimeout(() => controller.abort(), 900000);
       const res = await fetch(`${API_BASE}/video-subs`, {
         method:"POST",
         body: formData,
@@ -1096,6 +1183,7 @@
         nextStep.textContent = "✅ Legendas prontas! Clica nos botões abaixo para descarregar o SRT" +
           (mp4Url ? " e o vídeo MP4" : "") + ".";
       }
+      showLegendarSuccess(srtUrl, mp4Url, data.warning);
       scrollSeInvisivel("legendasBox");
     } catch(err){
       clearInterval(interval);
@@ -1103,10 +1191,15 @@
       pararFrasesAnimadas(statusEl);
       pararTimerTranscricao();
 
+      var errMsg = err.name === "AbortError"
+        ? "Tempo limite excedido (15 min). O vídeo pode ser longo — tenta um clip mais curto ou só transcrever."
+        : (err.message || "Erro inesperado ao comunicar com a API.");
+      showLegendarError(errMsg);
+      document.getElementById("legendasBox").classList.remove("hidden");
       output.classList.remove("hidden");
       statusEl.textContent = "❌ Não foi possível gerar as legendas.";
       const warn = document.getElementById("legendasWarn");
-      warn.textContent = "❌ " + (err.message || "Erro inesperado ao comunicar com a API.");
+      warn.textContent = "❌ " + errMsg;
       warn.classList.remove("hidden");
     } finally{
       setTimeout(() => { endJobLoading(); progressBar.style.width = "0%"; }, 800);
@@ -1652,6 +1745,7 @@
     fileInput.value = "";
     document.getElementById("fileName").textContent = "Nenhum ficheiro selecionado";
     limparAlertaUpload();
+    hideLegendarBanners();
     definirTranscricao("");
     output.classList.add("hidden");
 
