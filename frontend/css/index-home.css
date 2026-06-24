@@ -16,6 +16,114 @@ body.oe-page--home #uploadForm .oe-video-hint strong {
   color: #1d4ed8;
 }
 
+body.oe-page--home .oe-sales-block {
+  width: calc(100% - 32px);
+  max-width: 980px;
+  margin: 28px auto 24px;
+  padding: clamp(24px, 4vw, 36px);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--oe-text, #1e293b);
+  box-shadow: 0 20px 55px rgba(15, 23, 42, 0.16);
+  text-align: left;
+}
+
+body.oe-page--home .oe-sales-block__eyebrow {
+  margin: 0 0 8px;
+  color: var(--oe-purple-dark, #6b21a8);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+body.oe-page--home .oe-sales-block h2 {
+  max-width: 760px;
+  margin: 0;
+  color: #111827;
+  font-size: clamp(1.6rem, 4vw, 2.35rem);
+  line-height: 1.12;
+  letter-spacing: -0.04em;
+}
+
+body.oe-page--home .oe-sales-block__lead {
+  max-width: 760px;
+  margin: 14px 0 0;
+  color: var(--oe-text-muted, #64748b);
+  font-size: 1.02rem;
+  line-height: 1.7;
+}
+
+body.oe-page--home .oe-sales-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+@media (min-width: 760px) {
+  body.oe-page--home .oe-sales-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+body.oe-page--home .oe-sales-grid article {
+  display: grid;
+  gap: 8px;
+  padding: 18px;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+body.oe-page--home .oe-sales-grid strong {
+  color: #111827;
+  font-size: 1rem;
+}
+
+body.oe-page--home .oe-sales-grid span {
+  color: var(--oe-text-muted, #64748b);
+  font-size: 0.93rem;
+  line-height: 1.55;
+}
+
+body.oe-page--home .oe-sales-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+body.oe-page--home .oe-sales-cta a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 11px 18px;
+  border-radius: 999px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+body.oe-page--home .oe-sales-cta__primary {
+  background: var(--oe-gradient, linear-gradient(135deg, #a550f7 0%, #00c3ff 100%));
+  color: #fff;
+  box-shadow: 0 12px 28px rgba(124, 58, 237, 0.22);
+}
+
+body.oe-page--home .oe-sales-cta__secondary {
+  border: 1px solid #c4b5fd;
+  background: #fff;
+  color: var(--oe-purple-dark, #6b21a8);
+}
+
+body.oe-page--home .oe-sales-block__trust {
+  margin: 18px 0 0;
+  color: #475569;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
 body.oe-page--home #uploadForm .oe-video-preview {
   margin: 14px 0 4px;
   border-radius: 10px;
