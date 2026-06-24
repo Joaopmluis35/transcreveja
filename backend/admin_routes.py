@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from datetime import date
 
 from fastapi import APIRouter, HTTPException, Request
@@ -21,6 +22,15 @@ from cms import get_all_content, get_page_schema, get_seo_overrides, keys_for_pa
 from database import database_backend, use_turso
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
+logger = logging.getLogger(__name__)
+
+
+def _safe(label: str, fn, default):
+    try:
+        return fn()
+    except Exception as exc:
+        logger.exception("dashboard: %s falhou", label)
+        return default
 
 
 def _actor(request: Request) -> str:
@@ -29,33 +39,40 @@ def _actor(request: Request) -> str:
 
 @router.get("/dashboard")
 def admin_dashboard(request: Request):
-    stats = get_visit_stats()
-    costs = store.estimate_costs()
-    conv = store.conversion_stats()
-    maint = store.get_maintenance()
-    cfg = store.get_config()
+    stats = _safe("visitas", get_visit_stats, {})
+    costs = _safe("custos", store.estimate_costs, {})
+    conv = _safe("conversao", store.conversion_stats, {})
+    maint = _safe("manutencao", store.get_maintenance, {})
+    cfg = _safe("config", store.get_config, {})
     return {
-        "manutencao": maint["manutencao"],
-        "maintenance_message": maint["maintenance_message"],
-        "block_transcribe_only": maint["block_transcribe_only"],
-        "transcricoes_hoje": costs["transcricoes_hoje"],
-        "transcricoes_total": costs["transcricoes_total"],
+        "manutencao": maint.get("manutencao", False),
+        "maintenance_message": maint.get("maintenance_message", ""),
+        "block_transcribe_only": maint.get("block_transcribe_only", True),
+        "transcricoes_hoje": costs.get("transcricoes_hoje", 0),
+        "transcricoes_total": costs.get("transcricoes_total", 0),
         "visitas": stats,
-        "visitas_recentes": get_recent_visits(15),
+        "visitas_total": stats.get("visitas_total", 0),
+        "visitas_recentes": _safe("visitas_recentes", lambda: get_recent_visits(15), []),
         "charts": {
-            "visitas_diarias": get_daily_visit_series(14),
-            "transcricoes_diarias": get_daily_transcription_series(14),
-            "transcricoes_resultados": get_daily_transcription_outcomes(14),
-            "horas_pico": store.peak_hours(7),
+            "visitas_diarias": _safe("visitas_diarias", lambda: get_daily_visit_series(14), []),
+            "transcricoes_diarias": _safe("transcricoes_diarias", lambda: get_daily_transcription_series(14), []),
+            "transcricoes_resultados": _safe(
+                "transcricoes_resultados", lambda: get_daily_transcription_outcomes(14), []
+            ),
+            "horas_pico": _safe("horas_pico", lambda: store.peak_hours(7), []),
         },
-        "top_paginas": get_top_pages(8),
-        "top_referrers": store.top_referrers(8),
-        "devices": store.device_breakdown(),
+        "top_paginas": _safe("top_paginas", lambda: get_top_pages(8), []),
+        "top_referrers": _safe("top_referrers", lambda: store.top_referrers(8), []),
+        "devices": _safe("devices", store.device_breakdown, []),
         "conversao": conv,
         "custos_openai": costs,
-        "cloudflare": store.fetch_cloudflare_analytics(),
-        "banner": store.get_active_banner(),
-        "sugestoes_nao_lidas": len(store.list_suggestions(unread_only=True, limit=200)),
+        "cloudflare": _safe("cloudflare", store.fetch_cloudflare_analytics, None),
+        "banner": _safe("banner", store.get_active_banner, None),
+        "sugestoes_nao_lidas": _safe(
+            "sugestoes",
+            lambda: len(store.list_suggestions(unread_only=True, limit=200)),
+            0,
+        ),
         "alert_transcriptions_daily": int(cfg.get("alert_transcriptions_daily") or 0),
         "alert_visits_daily": int(cfg.get("alert_visits_daily") or 0),
         "database_backend": database_backend(),

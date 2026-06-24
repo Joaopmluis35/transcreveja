@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="stylesheet" href="css/ouviescrevi.css?v=10">
-  <link rel="stylesheet" href="css/index-home.css?v=10">
+  <link rel="stylesheet" href="css/index-home.css?v=11">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <title>Ouviescrevi — Transcrição de Áudio e Vídeo com IA Grátis</title>
   <meta name="description" content="Transcreve áudio e vídeo online com inteligência artificial, grátis e sem registo. Resumos, tradução, legendas SRT e conversão de ficheiros. Feito em Portugal.">
@@ -81,14 +81,43 @@
 
     <div id="uploadAlert" class="oe-upload-alert hidden" role="alert"></div>
 
-    <div id="output" class="hidden">
-      <h3>Transcrição:</h3>
-      <textarea id="transcriptionText" readonly></textarea>
-      <div class="oe-copy-row">
-        <button type="button" class="oe-copy-btn" onclick="copiarTranscricao()">📋 Copiar Tudo</button>
-      </div>
+    <div id="output" class="oe-output hidden">
+      <div class="oe-output__layout">
+        <section class="oe-output__editor" aria-labelledby="outputTitle">
+          <div class="oe-output__toolbar">
+            <h3 id="outputTitle">Transcrição</h3>
+            <div class="oe-output__toolbar-actions">
+              <span id="transcriptionMeta" class="oe-output__meta" aria-live="polite"></span>
+              <button type="button" class="oe-copy-btn oe-output__copy" onclick="copiarTranscricao()">📋 Copiar</button>
+            </div>
+          </div>
+          <textarea id="transcriptionText" readonly aria-labelledby="outputTitle" placeholder="O texto transcrito aparece aqui…"></textarea>
+        </section>
 
-      <button id="btnRetry" class="hidden" onclick="tentarNovamente()"><span>🔁 Tentar novamente</span></button>
+        <aside class="oe-output__sidebar" aria-label="Ações sobre a transcrição">
+          <p class="oe-output__sidebar-title">Ações com IA</p>
+          <div class="oe-output__actions btn-group">
+            <button id="btnGerarResumo" type="button"><span>🧠 Gerar Resumo</span></button>
+            <button type="button" onclick="corrigirTextoIA()"><span>📝 Corrigir Texto</span></button>
+            <button type="button" onclick="abrirModalTraducao()"><span>🌍 Traduzir</span></button>
+            <button type="button" onclick="classificarConteudo()"><span>📚 Classificar</span></button>
+            <button type="button" onclick="gerarMinuta()"><span>📩 Gerar Minuta</span></button>
+            <button type="button" onclick="gerarEmailIA()"><span>📧 Gerar Email</span></button>
+            <button type="button" onclick="partilharWhatsapp()"><span>📲 WhatsApp</span></button>
+            <div class="dropdown-export" id="exportDropdown">
+              <button type="button" id="exportBtn" aria-haspopup="true" aria-expanded="false"><span>📁 Exportar ▼</span></button>
+              <div class="dropdown-content" id="exportOptions">
+                <button type="button" data-export="pdf"><span>📄 Exportar PDF</span></button>
+                <button type="button" data-export="doc"><span>📝 Exportar DOC</span></button>
+                <button type="button" data-export="txt"><span>📃 Exportar TXT</span></button>
+                <button type="button" data-export="srt"><span>🎞️ Exportar SRT</span></button>
+                <button type="button" data-export="json"><span>🔢 Exportar JSON</span></button>
+              </div>
+            </div>
+          </div>
+          <button id="btnRetry" type="button" class="oe-output__retry hidden" onclick="tentarNovamente()"><span>🔁 Tentar novamente</span></button>
+        </aside>
+      </div>
 
       <p id="traducaoStatus" class="status hidden">🌍 A traduzir... por favor aguarde</p>
       <div id="traducaoProgressWrapper" class="hidden">
@@ -125,7 +154,7 @@
       </div>
 
       <!-- Resultados de legendas/vídeo legendado -->
-      <div id="legendasBox" class="hidden">
+      <div id="legendasBox" class="hidden oe-output__extra">
         <h3>🎞️ Legendas / Vídeo Legendado</h3>
         <div id="legendasInfo">
           <p id="legendasMsg">Pronto! Escolhe o que queres descarregar:</p>
@@ -134,27 +163,6 @@
             <a id="mp4Download" class="hidden" href="#" download>⬇️ Download Vídeo (MP4)</a>
           </div>
           <p id="legendasWarn" class="hidden"></p>
-        </div>
-      </div>
-
-      <div class="btn-group">
-        <button id="btnGerarResumo"><span>🧠 Gerar Resumo</span></button>
-        <button onclick="partilharWhatsapp()"><span>📲 Partilhar no WhatsApp</span></button>
-        <button onclick="gerarMinuta()"><span>📩 Gerar Minuta</span></button>
-        <button onclick="corrigirTextoIA()"><span>📝 Corrigir Texto</span></button>
-        <button onclick="abrirModalTraducao()"><span>🌍 Traduzir</span></button>
-        <button onclick="classificarConteudo()"><span>📚 Classificar Tipo</span></button>
-        <button onclick="gerarEmailIA()"><span>📧 Gerar Email</span></button>
-
-        <div class="dropdown-export" id="exportDropdown">
-          <button id="exportBtn" aria-haspopup="true" aria-expanded="false"><span>📁 Exportar ▼</span></button>
-          <div class="dropdown-content" id="exportOptions">
-            <button data-export="pdf"><span>📄 Exportar PDF</span></button>
-            <button data-export="doc"><span>📝 Exportar DOC</span></button>
-            <button data-export="txt"><span>📃 Exportar TXT</span></button>
-            <button data-export="srt"><span>🎞️ Exportar SRT</span></button>
-            <button data-export="json"><span>🔢 Exportar JSON</span></button>
-          </div>
         </div>
       </div>
     </div>
@@ -311,7 +319,7 @@
 </main>
 
 <script src="/js/ouviescrevi-seo.js"></script>
-<script src="js/ouviescrevi-ui.js"></script>
+<script src="js/ouviescrevi-ui.js?v=2"></script>
 <script src="js/ouviescrevi-api.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
@@ -481,6 +489,23 @@
   const progressBar = document.getElementById("progressBar");
   const output = document.getElementById("output");
   const transcriptionText = document.getElementById("transcriptionText");
+  const transcriptionMeta = document.getElementById("transcriptionMeta");
+
+  function atualizarMetaTranscricao() {
+    if (!transcriptionMeta || !transcriptionText) return;
+    var n = (transcriptionText.value || "").length;
+    if (!n) {
+      transcriptionMeta.textContent = "";
+      return;
+    }
+    var palavras = (transcriptionText.value.match(/\S+/g) || []).length;
+    transcriptionMeta.textContent = palavras + " palavras · " + n.toLocaleString("pt-PT") + " caracteres";
+  }
+
+  function definirTranscricao(texto) {
+    transcriptionText.value = texto || "";
+    atualizarMetaTranscricao();
+  }
   const statusEl = document.getElementById("transcricaoStatus");
   const btnTranscrever = document.getElementById("btnTranscrever");
   const btnStartRec = document.getElementById("btnStartRec");
@@ -508,7 +533,7 @@
 
     // reset UI
     output.classList.add("hidden");
-    transcriptionText.value = "";
+    definirTranscricao("");
     document.getElementById("legendasBox").classList.add("hidden");
     document.getElementById("legendasWarn").classList.add("hidden");
     loading.classList.remove("hidden");
@@ -589,7 +614,7 @@
     if (sucesso && textoRecebido.trim()){
       let textoFinal = textoRecebido;
       if (identificar) textoFinal = aplicarLocutores(textoFinal);
-      transcriptionText.value = textoFinal;
+      definirTranscricao(textoFinal);
       output.classList.remove("hidden");
       statusEl.textContent = "✅ Transcrição concluída com sucesso!";
     } else {
@@ -599,7 +624,7 @@
         output.classList.add("hidden");
       } else {
         limparAlertaUpload();
-        transcriptionText.value = msg;
+        definirTranscricao(msg);
         output.classList.remove("hidden");
       }
       statusEl.textContent = "⚠️ Não conseguimos transcrever desta vez.";
@@ -1148,7 +1173,7 @@
         let txt = await res.text();
         try{ data = JSON.parse(txt); } catch{ data = { error: `Resposta inválida (${res.status})` }; }
 
-        transcriptionText.value = data.formatted || data.transcription || "⚠️ Erro ao transcrever.";
+        definirTranscricao(data.formatted || data.transcription || "⚠️ Erro ao transcrever.");
         output.classList.remove("hidden");
         status.textContent = "✅ Transcrição concluída!";
       }catch(err){
@@ -1249,7 +1274,7 @@
       const data = await res.json();
 
       if (data.corrected){
-        transcriptionText.value = data.corrected;
+        definirTranscricao(data.corrected);
 
         if (win) {
           const doc = win.document;
@@ -1455,7 +1480,7 @@
       clearInterval(interval);
       progressBar.style.width = "100%";
       if (data.translation){
-        transcriptionText.value = data.translation;
+        definirTranscricao(data.translation);
         document.getElementById("traducaoTexto").textContent = data.translation;
         document.getElementById("traducaoBox").classList.remove("hidden");
         status.textContent = "✅ Tradução concluída com sucesso!";
@@ -1496,7 +1521,7 @@
     fileInput.value = "";
     document.getElementById("fileName").textContent = "Nenhum ficheiro selecionado";
     limparAlertaUpload();
-    transcriptionText.value = "";
+    definirTranscricao("");
     output.classList.add("hidden");
 
     document.getElementById("resumoTexto").textContent = "";

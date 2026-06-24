@@ -752,7 +752,7 @@ def device_breakdown() -> list[dict]:
             """
             SELECT COALESCE(device_type, 'desconhecido') AS device, COUNT(*) AS total
             FROM visitas WHERE day >= ?
-            GROUP BY device ORDER BY total DESC
+            GROUP BY device_type ORDER BY total DESC
             """,
             (since,),
         ).fetchall()

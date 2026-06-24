@@ -22,6 +22,9 @@
   --bo-alert-warn-bg: #fffbeb;
   --bo-alert-warn-border: #fde68a;
   --bo-alert-warn-text: #92400e;
+  --bo-alert-info-bg: #eff6ff;
+  --bo-alert-info-border: #bfdbfe;
+  --bo-alert-info-text: #1e40af;
 }
 
 body.oe-admin {
@@ -722,6 +725,12 @@ table.oe-admin-table td code {
   color: var(--bo-alert-warn-text);
 }
 
+.oe-admin-alert--info {
+  background: var(--bo-alert-info-bg);
+  border: 1px solid var(--bo-alert-info-border);
+  color: var(--bo-alert-info-text);
+}
+
 .oe-admin-badge {
   display: inline-block;
   padding: 2px 8px;
@@ -1031,6 +1040,9 @@ body.oe-admin.oe-admin--dark {
   --bo-alert-warn-bg: #78350f;
   --bo-alert-warn-border: #d97706;
   --bo-alert-warn-text: #fef3c7;
+  --bo-alert-info-bg: #1e3a5f;
+  --bo-alert-info-border: #3b82f6;
+  --bo-alert-info-text: #dbeafe;
 }
 
 body.oe-admin.oe-admin--dark .oe-admin-login-card,

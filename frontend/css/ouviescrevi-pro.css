@@ -1154,6 +1154,28 @@ body.oe-pro.oe-page--home #output {
   border-radius: var(--pro-radius-lg);
   background: var(--pro-surface);
 }
+body.oe-pro.oe-page--home #output.oe-output {
+  padding: 24px;
+  max-width: min(960px, 100%);
+}
+body.oe-pro.oe-page--home .oe-output__toolbar h3 {
+  color: var(--pro-accent);
+}
+body.oe-pro.oe-page--home #transcriptionText {
+  background: var(--pro-bg, #f8fafc);
+  border-color: var(--pro-border-strong, #c4b5fd);
+  color: var(--pro-text);
+}
+body.oe-pro.oe-page--home .oe-output__actions.btn-group button {
+  background: var(--pro-surface) !important;
+  border: 1px solid var(--pro-border) !important;
+  color: var(--pro-text) !important;
+}
+body.oe-pro.oe-page--home .oe-output__actions.btn-group button:hover:not(:disabled) {
+  background: var(--pro-accent-muted) !important;
+  border-color: var(--pro-accent) !important;
+  color: var(--pro-accent) !important;
+}
 body.oe-pro.oe-page--home #uploadForm {
   display: flex;
   flex-direction: column;

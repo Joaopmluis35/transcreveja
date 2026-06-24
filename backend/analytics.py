@@ -63,6 +63,15 @@ def _count_visits(since_day: str | None = None) -> int:
         conn.close()
 
 
+def _count_visits_on_day(day: str) -> int:
+    conn = get_connection()
+    try:
+        row = conn.execute("SELECT COUNT(*) FROM visitas WHERE day = ?", (day,)).fetchone()
+        return int(row[0]) if row else 0
+    finally:
+        conn.close()
+
+
 def _count_unique_visitors(since_day: str) -> int:
     conn = get_connection()
     try:
@@ -75,14 +84,26 @@ def _count_unique_visitors(since_day: str) -> int:
         conn.close()
 
 
+def _count_unique_visitors_on_day(day: str) -> int:
+    conn = get_connection()
+    try:
+        row = conn.execute(
+            "SELECT COUNT(DISTINCT visitor_hash) FROM visitas WHERE day = ?",
+            (day,),
+        ).fetchone()
+        return int(row[0]) if row else 0
+    finally:
+        conn.close()
+
+
 def get_visit_stats() -> dict:
     today = date.today()
     day_7 = (today - timedelta(days=6)).isoformat()
     day_30 = (today - timedelta(days=29)).isoformat()
     today_s = _day_str(today)
     return {
-        "visitas_hoje": _count_visits(today_s),
-        "visitantes_unicos_hoje": _count_unique_visitors(today_s),
+        "visitas_hoje": _count_visits_on_day(today_s),
+        "visitantes_unicos_hoje": _count_unique_visitors_on_day(today_s),
         "visitas_7_dias": _count_visits(day_7),
         "visitantes_unicos_7_dias": _count_unique_visitors(day_7),
         "visitas_30_dias": _count_visits(day_30),

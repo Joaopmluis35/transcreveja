@@ -96,12 +96,182 @@ body.oe-page--home #uploadAlert.oe-upload-alert {
 body.oe-page--home #loading,
 body.oe-page--home #output {
   width: 100%;
-  max-width: 600px;
+  max-width: min(960px, 100%);
+}
+
+body.oe-page--home #output.oe-output {
+  padding: 20px;
+  margin-top: 16px;
+}
+
+body.oe-page--home .oe-output__layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (min-width: 768px) {
+  body.oe-page--home .oe-output__layout {
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 252px);
+    gap: 20px;
+  }
+}
+
+body.oe-page--home .oe-output__editor {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+body.oe-page--home .oe-output__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+body.oe-page--home .oe-output__toolbar h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  color: var(--oe-purple-dark, #6b21a8);
+}
+
+body.oe-page--home .oe-output__toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+body.oe-page--home .oe-output__meta {
+  font-size: 0.8rem;
+  color: #666;
+  white-space: nowrap;
+}
+
+body.oe-page--home #transcriptionText,
+body.oe-page--home #output textarea#transcriptionText {
+  width: 100%;
+  min-height: clamp(300px, 52vh, 580px);
+  max-height: min(72vh, 640px);
+  margin-top: 0;
+  padding: 16px 18px;
+  font-family: var(--oe-font);
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: #1f2937;
+  background: #fafafa;
+  border: 2px solid #a550f7;
+  border-radius: 12px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+  resize: vertical;
+  overflow-y: auto;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  scrollbar-gutter: stable;
+}
+
+body.oe-page--home #transcriptionText:focus,
+body.oe-page--home #output textarea:focus {
+  outline: none;
+  border-color: #00c3ff;
+  box-shadow: 0 0 0 4px rgba(0, 195, 255, 0.12);
+}
+
+body.oe-page--home .oe-output__sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+body.oe-page--home .oe-output__sidebar-title {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #666;
+}
+
+body.oe-page--home .oe-output__actions.btn-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 0;
+  justify-content: flex-start;
+}
+
+body.oe-page--home .oe-output__actions.btn-group button,
+body.oe-page--home .oe-output__actions .dropdown-export {
+  flex: none;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  margin: 0;
+  padding: 10px 12px;
+  font-size: 0.88rem;
+}
+
+body.oe-page--home .oe-output__actions .dropdown-export {
+  position: relative;
+}
+
+body.oe-page--home .oe-output__actions .dropdown-content {
+  left: 0;
+  right: 0;
+  min-width: 100%;
+}
+
+body.oe-page--home .oe-output__retry {
+  width: 100%;
+  margin-top: 4px;
+  padding: 10px 12px;
+  font-size: 0.88rem;
+  font-weight: bold;
+  border: 2px solid #a550f7;
+  border-radius: 8px;
+  background: #fff;
+  color: #333;
+  cursor: pointer;
+}
+
+body.oe-page--home .oe-output__extra,
+body.oe-page--home #output #resumoBox,
+body.oe-page--home #output #minutaBox,
+body.oe-page--home #output #traducaoBox,
+body.oe-page--home #output #classificacaoBox {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+@media (max-width: 767px) {
+  body.oe-page--home .oe-output__actions.btn-group {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body.oe-page--home .oe-output__actions .dropdown-export {
+    grid-column: 1 / -1;
+  }
+
+  body.oe-page--home #transcriptionText,
+  body.oe-page--home #output textarea#transcriptionText {
+    min-height: clamp(240px, 42vh, 400px);
+    max-height: 55vh;
+  }
 }
 
 body.oe-page--home #output textarea {
+  /* legado — ver #transcriptionText */
   width: 100%;
-  min-height: 200px;
+}
+
+body.oe-page--home #output textarea:not(#transcriptionText) {
+  min-height: 120px;
   margin-top: 10px;
   padding: 15px;
   font-family: var(--oe-font);
@@ -116,13 +286,7 @@ body.oe-page--home #output textarea {
   transition: border-color 0.3s, box-shadow 0.3s;
 }
 
-body.oe-page--home #output textarea:focus {
-  outline: none;
-  border-color: #00c3ff;
-  box-shadow: 0 0 0 4px rgba(0, 195, 255, 0.15);
-}
-
-body.oe-page--home .btn-group {
+body.oe-page--home .btn-group:not(.oe-output__actions) {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;

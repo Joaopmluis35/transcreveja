@@ -221,29 +221,50 @@
   }
 
   function trackPageView() {
+    var path;
+    var key;
     try {
       if ((global.location.pathname || "").indexOf("backoffice") !== -1) return;
-      var path = global.location.pathname || "/";
-      var key = "oe_track_" + path;
+      path = global.location.pathname || "/";
+      key = "oe_track_" + path;
       if (sessionStorage.getItem(key)) return;
-      sessionStorage.setItem(key, "1");
     } catch (e) {
       return;
     }
-    var base =
-      global.OuviescreviAPI && global.OuviescreviAPI.detectApiBase
-        ? global.OuviescreviAPI.detectApiBase()
-        : null;
-    if (!base) return;
-    fetch(base + "/api/track-visit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "omit",
-      body: JSON.stringify({
-        path: global.location.pathname || "/",
-        referrer: document.referrer || "",
-      }),
-    }).catch(function () {});
+
+    function sendTrack(base) {
+      if (!base) return;
+      fetch(base + "/api/track-visit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "omit",
+        keepalive: true,
+        body: JSON.stringify({
+          path: path,
+          referrer: document.referrer || "",
+        }),
+      })
+        .then(function (res) {
+          if (res.ok) {
+            try {
+              sessionStorage.setItem(key, "1");
+            } catch (e) {}
+          }
+        })
+        .catch(function () {});
+    }
+
+    if (global.OuviescreviAPI && global.OuviescreviAPI.init) {
+      global.OuviescreviAPI.init()
+        .then(function () {
+          sendTrack(global.OuviescreviAPI.getBase() || global.OuviescreviAPI.detectApiBase());
+        })
+        .catch(function () {
+          sendTrack(global.OuviescreviAPI.detectApiBase());
+        });
+    } else if (global.OuviescreviAPI && global.OuviescreviAPI.detectApiBase) {
+      sendTrack(global.OuviescreviAPI.detectApiBase());
+    }
   }
 
   function cookieBannerPath() {

@@ -124,6 +124,25 @@
           "Configura <code>TURSO_DATABASE_URL</code> e <code>TURSO_AUTH_TOKEN</code> no Render → Environment.",
       });
     }
+    var vStats = data.visitas || {};
+    var vTotal = vStats.visitas_total ?? data.visitas_total ?? 0;
+    var v30 = vStats.visitas_30_dias ?? 0;
+    if (vTotal > 0 && !v30 && !vStats.visitas_hoje) {
+      alerts.push({
+        type: "warn",
+        html:
+          "<strong>Visitas antigas na base (" + vTotal + ")</strong> — fora da janela de 30 dias. " +
+          "Os contadores recentes ficam a zero até haver tráfego novo.",
+      });
+    }
+    if (vTotal === 0 && (data.transcricoes_total || 0) === 0) {
+      alerts.push({
+        type: "info",
+        html:
+          "<strong>Sem dados ainda</strong> — visita o site público (noutro separador) e faz uma transcrição de teste. " +
+          "Depois clica <em>Atualizar</em> no painel.",
+      });
+    }
     if (!alerts.length) {
       box.classList.add("hidden");
       box.innerHTML = "";
@@ -851,6 +870,9 @@
   }
 
   function onTab(tab) {
+    if (tab === "dashboard" && global.OuviescreviAdmin && global.OuviescreviAdmin.carregarDashboard) {
+      global.OuviescreviAdmin.carregarDashboard();
+    }
     if (tab === "sugestoes") loadSugestoes();
     if (tab === "sistema") loadSystem();
   }

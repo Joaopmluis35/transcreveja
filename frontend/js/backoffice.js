@@ -351,35 +351,57 @@
   }
 
   async function carregarDashboard() {
+    var data;
     try {
       var res = await fetch(apiBase() + "/api/admin/dashboard", {
         headers: global.OuviescreviAPI.adminAuthHeaders(),
       });
+      if (res.status === 403) {
+        global.OuviescreviUI.toast("Sessão expirada — faz logout e login.", "error");
+        return;
+      }
       if (!res.ok) throw new Error("HTTP " + res.status);
-      var data = await res.json();
-      var v = data.visitas || {};
+      data = await res.json();
+    } catch (e) {
+      global.OuviescreviUI.toast("Erro ao carregar painel.", "error");
+      return;
+    }
 
-      document.getElementById("statVisitasHoje").textContent = v.visitas_hoje ?? "0";
-      document.getElementById("statUnicosHoje").textContent = v.visitantes_unicos_hoje ?? "0";
-      document.getElementById("statVisitas7").textContent = v.visitas_7_dias ?? "0";
-      document.getElementById("statVisitas30").textContent = v.visitas_30_dias ?? "0";
-      document.getElementById("statTransHoje").textContent = data.transcricoes_hoje ?? "0";
-      document.getElementById("statTransTotal").textContent = data.transcricoes_total ?? "0";
+    var v = data.visitas || {};
+    document.getElementById("statVisitasHoje").textContent = v.visitas_hoje ?? "0";
+    document.getElementById("statUnicosHoje").textContent = v.visitantes_unicos_hoje ?? "0";
+    document.getElementById("statVisitas7").textContent = v.visitas_7_dias ?? "0";
+    document.getElementById("statVisitas30").textContent = v.visitas_30_dias ?? "0";
+    var totalEl = document.getElementById("statVisitasTotal");
+    if (totalEl) {
+      totalEl.textContent = "Total: " + (v.visitas_total ?? data.visitas_total ?? "0");
+    }
+    document.getElementById("statTransHoje").textContent = data.transcricoes_hoje ?? "0";
+    document.getElementById("statTransTotal").textContent = data.transcricoes_total ?? "0";
 
-      var toggle = document.getElementById("manutencaoToggle");
-      if (toggle) toggle.checked = !!data.manutencao;
-      atualizarStatusManutencao(!!data.manutencao);
+    var conv = data.conversao || {};
+    var convEl = document.getElementById("statConversao");
+    if (convEl) convEl.textContent = (conv.taxa_conversao_pct || 0) + "%";
+    var cost = data.custos_openai || {};
+    var cEl = document.getElementById("statCusto");
+    if (cEl) cEl.textContent = "$" + (cost.custo_estimado_usd || 0);
 
+    var toggle = document.getElementById("manutencaoToggle");
+    if (toggle) toggle.checked = !!data.manutencao;
+    atualizarStatusManutencao(!!data.manutencao);
+
+    updateSugestoesBadge(data.sugestoes_nao_lidas);
+    var sugStat = document.getElementById("statSugestoesNovas");
+    if (sugStat) sugStat.textContent = String(data.sugestoes_nao_lidas || 0);
+    renderVisitasRecentes(data.visitas_recentes || []);
+
+    try {
       renderCharts(data.charts);
       renderPeakHoursChart((data.charts && data.charts.horas_pico) || []);
       renderTopPages(data.top_paginas);
-      updateSugestoesBadge(data.sugestoes_nao_lidas);
-      var sugStat = document.getElementById("statSugestoesNovas");
-      if (sugStat) sugStat.textContent = String(data.sugestoes_nao_lidas || 0);
-      renderVisitasRecentes(data.visitas_recentes || []);
       if (global.OuviescreviAdminExt) global.OuviescreviAdminExt.renderReferrersAndDevices(data);
-    } catch (e) {
-      global.OuviescreviUI.toast("Erro ao carregar painel.", "error");
+    } catch (e2) {
+      global.OuviescreviUI.toast("Erro ao desenhar gráficos do painel.", "error");
     }
   }
 
