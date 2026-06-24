@@ -51,6 +51,9 @@
         <span class="oe-admin-nav-icon">💡</span> Sugestões
         <span id="navBadgeSugestoes" class="oe-admin-nav-badge hidden">0</span>
       </button>
+      <button type="button" data-tab="emails" data-min-role="admin" aria-selected="false">
+        <span class="oe-admin-nav-icon">📧</span> Emails
+      </button>
       <button type="button" data-tab="sistema" aria-selected="false">
         <span class="oe-admin-nav-icon">⚙️</span> Sistema
       </button>
@@ -359,6 +362,62 @@
         </div>
       </div>
 
+      <!-- Emails -->
+      <div data-panel="emails" class="hidden" data-admin-only="admin">
+        <div id="emailStatusCards" class="oe-admin-health-grid" aria-live="polite">
+          <p class="oe-admin-empty">A carregar estado do email…</p>
+        </div>
+
+        <div class="oe-admin-panel">
+          <div class="oe-admin-panel__head oe-admin-panel__head--row">
+            <span>Configuração de notificações</span>
+            <button type="button" id="btnRefreshEmails" class="oe-admin-btn oe-admin-btn--secondary oe-admin-btn--sm">🔄 Atualizar</button>
+          </div>
+          <div class="oe-admin-panel__body">
+            <p class="oe-admin-hint" id="emailEnvHint">
+              As chaves <code>RESEND_API_KEY</code> e <code>SMTP_*</code> configuram-se no Render (variáveis de ambiente), não aqui.
+            </p>
+            <form id="emailConfigForm" class="oe-admin-form">
+              <div class="oe-admin-field">
+                <label for="emailCfgTo">Email de destino</label>
+                <input type="email" id="emailCfgTo" name="alert_email_to" placeholder="ouviescrevi@gmail.com" required>
+                <small class="oe-admin-hint">Recebe notificações de atividade (transcrições, IA) e alertas.</small>
+              </div>
+              <div class="oe-admin-field">
+                <label><input type="checkbox" id="emailCfgActivity"> Notificar atividade no site</label>
+                <small class="oe-admin-hint">Utilizadores anónimos e contas normais — admins logados não geram email.</small>
+              </div>
+              <div class="oe-admin-field">
+                <label><input type="checkbox" id="emailCfgAlerts"> Alertas de limites diários</label>
+                <small class="oe-admin-hint">Aviso quando transcrições ou visitas ultrapassam o limite.</small>
+              </div>
+              <div class="oe-admin-grid-2">
+                <div class="oe-admin-field">
+                  <label for="emailCfgTransLimit">Limite transcrições/dia (alerta)</label>
+                  <input type="number" id="emailCfgTransLimit" name="alert_transcriptions_daily" min="0" step="1">
+                </div>
+                <div class="oe-admin-field">
+                  <label for="emailCfgVisitLimit">Limite visitas/dia (alerta)</label>
+                  <input type="number" id="emailCfgVisitLimit" name="alert_visits_daily" min="0" step="1">
+                </div>
+              </div>
+              <div class="oe-admin-form-actions">
+                <button type="submit" class="oe-admin-btn oe-admin-btn--primary">Guardar</button>
+                <button type="button" id="btnTestActivityEmail" class="oe-admin-btn oe-admin-btn--secondary">✉️ Testar atividade</button>
+                <button type="button" id="btnTestAlertEmailEmails" class="oe-admin-btn oe-admin-btn--secondary">✉️ Testar alerta</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="oe-admin-panel">
+          <div class="oe-admin-panel__head">Histórico de envios</div>
+          <div class="oe-admin-panel__body oe-admin-table-wrap" id="emailLogTable">
+            <p class="oe-admin-empty">A carregar…</p>
+          </div>
+        </div>
+      </div>
+
       <!-- Sistema -->
       <div data-panel="sistema" class="hidden">
         <div id="systemHealthCards" class="oe-admin-health-grid" aria-live="polite"></div>
@@ -389,20 +448,15 @@
           </div>
         </div>
         <div class="oe-admin-panel" data-admin-only="admin">
-          <div class="oe-admin-panel__head">Configurações e alertas</div>
+          <div class="oe-admin-panel__head">Configurações gerais</div>
           <div class="oe-admin-panel__body">
             <form id="configForm" class="oe-admin-form">
               <div class="oe-admin-field"><label>Limite ficheiro (MB) — vazio = env</label><input name="max_file_size_mb" id="cfgMaxMb"></div>
-              <div class="oe-admin-field"><label>Alertas email ativos</label><label><input type="checkbox" id="cfgAlertEmail"> Enviar alertas</label></div>
-              <div class="oe-admin-field"><label>Email alertas</label><input name="alert_email_to" id="cfgAlertTo"></div>
-              <div class="oe-admin-field"><label>Limite transcrições/dia</label><input name="alert_transcriptions_daily" id="cfgAlertTrans"></div>
-              <div class="oe-admin-field"><label>Limite visitas/dia</label><input name="alert_visits_daily" id="cfgAlertVisits"></div>
               <div class="oe-admin-field"><label>Custo Whisper USD/min</label><input name="whisper_cost_per_minute_usd" id="cfgWhisperCost"></div>
               <div class="oe-admin-field"><label>Cloudflare Zone ID</label><input name="cloudflare_zone_id" id="cfgCfZone"></div>
               <div class="oe-admin-field"><label>Cloudflare API Token</label><input name="cloudflare_api_token" id="cfgCfToken" type="password"></div>
               <div class="oe-admin-form-actions">
                 <button type="submit" class="oe-admin-btn oe-admin-btn--primary">Guardar configurações</button>
-                <button type="button" id="btnTestAlertEmail" class="oe-admin-btn oe-admin-btn--secondary">✉️ Testar email de alerta</button>
               </div>
             </form>
           </div>
@@ -468,6 +522,6 @@
 <script src="js/ouviescrevi-api.js"></script>
 <script src="js/backoffice-cms-locales.js?v=5"></script>
 <script src="js/backoffice.js?v=15"></script>
-<script src="js/backoffice-admin.js?v=18"></script>
+<script src="js/backoffice-admin.js?v=19"></script>
 </body>
 </html>

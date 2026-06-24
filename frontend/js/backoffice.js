@@ -120,7 +120,7 @@
     document.querySelectorAll("[data-panel]").forEach(function (panel) {
       panel.classList.toggle("hidden", panel.dataset.panel !== tab);
     });
-    var titles = { dashboard: "Painel", conteudo: "Conteúdo do site", seo: "SEO", transcricoes: "Transcrições", sugestoes: "Sugestões", sistema: "Sistema" };
+    var titles = { dashboard: "Painel", conteudo: "Conteúdo do site", seo: "SEO", transcricoes: "Transcrições", sugestoes: "Sugestões", emails: "Emails", sistema: "Sistema" };
     if (tab !== "conteudo") {
       setPageTitle(titles[tab] || "Backoffice");
     } else if (cmsCurrentPage) {

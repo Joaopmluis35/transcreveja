@@ -400,13 +400,29 @@ def maybe_notify_activity(
     if notify is None:
         notify = should_notify_activity(request) if request else True
     if not notify:
+        logger.debug("Notificação omitida (sessão admin): %s", assunto)
+        return
+    from email_notify import activity_notifications_enabled
+
+    if not activity_notifications_enabled():
+        logger.debug("Notificação de atividade desativada na config: %s", assunto)
         return
     label = actor_label
     if label is None and request:
         label = activity_actor_label(request)
-    if label and label != "anónimo":
-        mensagem = f"{mensagem}\n\nConta: {label}"
-    threading.Thread(target=enviar_email_assunto, args=(mensagem, assunto), daemon=True).start()
+    if not label:
+        label = "anónimo"
+    mensagem = f"{mensagem}\n\nConta: {label}"
+    logger.info("A agendar notificação por email: %s → %s", assunto, label)
+
+    def _send() -> None:
+        from email_notify import send_notification_email
+
+        ok = send_notification_email(mensagem, assunto, kind="activity", actor=label)
+        if not ok:
+            logger.warning("Falha ao enviar notificação: %s", assunto)
+
+    threading.Thread(target=_send, daemon=True).start()
 
 
 def enforce_rate_limit(request: Request, bucket: str, limit: int, window: int) -> None:
@@ -439,26 +455,9 @@ def require_not_maintenance() -> None:
         raise HTTPException(status_code=503, detail="Serviço temporariamente em manutenção. Tenta mais tarde.")
 
 def enviar_email_assunto(mensagem: str, assunto: str = "Nova atividade no Ouviescrevi"):
-    import smtplib
-    from email.message import EmailMessage
-    try:
-        msg = EmailMessage()
-        msg.set_content(mensagem)
-        msg["Subject"] = assunto
-        msg["From"] = os.getenv("SMTP_FROM", "notificacoes@ouviescrevi.pt")
-        msg["To"] = os.getenv("SMTP_TO", "ouviescrevi@gmail.com")
-        smtp_user = os.getenv("SMTP_USER")
-        smtp_password = os.getenv("SMTP_PASSWORD")
-        smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
-        smtp_port = int(os.getenv("SMTP_PORT", "465"))
-        if not (smtp_user and smtp_password):
-            logger.warning("SMTP_USER/SMTP_PASSWORD não configurados; a notificação não será enviada.")
-            return
-        with smtplib.SMTP_SSL(smtp_host, smtp_port, timeout=5) as smtp:
-            smtp.login(smtp_user, smtp_password)
-            smtp.send_message(msg)
-    except Exception as e:
-        logger.error("Erro ao enviar email: %s", e)
+    from email_notify import send_notification_email
+
+    send_notification_email(mensagem, assunto)
 
 def _seg_get(seg, key, default=None):
     try:
@@ -2046,5 +2045,15 @@ def rotas():
 def test_email(request: Request):
     require_debug_enabled()
     require_admin_token(request)
-    enviar_email_assunto("Teste de envio", "Teste SMTP Ouviescrevi")
-    return {"status": "ok"}
+    from email_notify import send_notification_email
+
+    ok = send_notification_email(
+        "Teste de envio do Ouviescrevi.\n\nSe recebeste isto, as notificações estão a funcionar.",
+        "Teste de notificação Ouviescrevi",
+    )
+    if not ok:
+        raise HTTPException(
+            status_code=502,
+            detail="Falha ao enviar. No Render usa RESEND_API_KEY (SMTP costuma estar bloqueado).",
+        )
+    return {"status": "ok", "sent": True}

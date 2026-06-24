@@ -172,6 +172,32 @@ def admin_test_alert_email(request: Request):
     return result
 
 
+@router.post("/test-activity-email")
+def admin_test_activity_email(request: Request):
+    store.require_role(getattr(request.state, "admin_session", None), "admin")
+    result = store.send_test_activity_email(_actor(request))
+    if not result.get("ok"):
+        raise HTTPException(status_code=400, detail=result.get("error", "Falha no envio"))
+    return result
+
+
+@router.get("/email/status")
+def admin_email_status(request: Request):
+    store.require_role(getattr(request.state, "admin_session", None), "admin")
+    from email_notify import get_email_status
+
+    status = get_email_status()
+    cfg = store.get_config()
+    status["alert_email_to"] = cfg.get("alert_email_to") or status.get("default_to") or ""
+    return status
+
+
+@router.get("/email/logs")
+def admin_email_logs(request: Request, limit: int = 50):
+    store.require_role(getattr(request.state, "admin_session", None), "admin")
+    return {"items": store.list_email_notifications(limit=limit)}
+
+
 @router.get("/config")
 def admin_get_config(request: Request):
     return {"config": store.get_config()}

@@ -393,6 +393,19 @@ def criar_base() -> None:
             )
         """)
 
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS email_notifications (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                kind TEXT NOT NULL,
+                recipient TEXT NOT NULL,
+                subject TEXT NOT NULL,
+                status TEXT NOT NULL,
+                detail TEXT,
+                actor TEXT,
+                created_at TEXT NOT NULL
+            )
+        """)
+
         conn.commit()
     finally:
         conn.close()

@@ -256,8 +256,161 @@
       var data = await res.json().catch(function () { return {}; });
       if (!res.ok) throw new Error(data.detail || "Falha no envio");
       global.OuviescreviUI.toast("Email de teste enviado para " + (data.to || "destinatário") + ".", "success");
+      loadEmailLogs();
     } catch (e) {
       global.OuviescreviUI.toast(e.message || "Erro ao enviar email de teste.", "error");
+    }
+  }
+
+  async function testActivityEmail() {
+    try {
+      var res = await fetch(apiBase() + "/api/admin/test-activity-email", {
+        method: "POST",
+        headers: authHeaders(),
+      });
+      var data = await res.json().catch(function () { return {}; });
+      if (!res.ok) throw new Error(data.detail || "Falha no envio");
+      global.OuviescreviUI.toast("Notificação de atividade enviada para " + (data.to || "destinatário") + ".", "success");
+      loadEmailLogs();
+    } catch (e) {
+      global.OuviescreviUI.toast(e.message || "Erro ao enviar notificação de teste.", "error");
+    }
+  }
+
+  function emailKindLabel(kind) {
+    var map = {
+      activity: "Atividade",
+      activity_test: "Teste atividade",
+      alert: "Alerta",
+      alert_test: "Teste alerta",
+    };
+    return map[kind] || kind || "—";
+  }
+
+  function emailStatusLabel(status) {
+    if (status === "sent") return "✅ Enviado";
+    if (status === "failed") return "❌ Falhou";
+    if (status === "skipped") return "⏭️ Omitido";
+    return status || "—";
+  }
+
+  function renderEmailStatusCards(status) {
+    var grid = document.getElementById("emailStatusCards");
+    if (!grid) return;
+    var ready = status.provider_ready;
+    var cards = [
+      {
+        cls: ready ? "oe-admin-card--green" : "oe-admin-card--amber",
+        label: "Envio configurado",
+        value: ready ? "Sim" : "Não",
+        sub: ready ? "Pronto a enviar" : "Falta RESEND ou SMTP no Render",
+      },
+      {
+        cls: status.resend_configured ? "oe-admin-card--green" : "oe-admin-card--purple",
+        label: "Resend (HTTPS)",
+        value: status.resend_configured ? "Ativo" : "Inativo",
+        sub: "Recomendado no Render",
+      },
+      {
+        cls: status.smtp_configured ? "oe-admin-card--blue" : "oe-admin-card--purple",
+        label: "SMTP",
+        value: status.smtp_configured ? "Ativo" : "Inativo",
+        sub: "Pode estar bloqueado no Render",
+      },
+      {
+        cls: "oe-admin-card--blue",
+        label: "Destinatário",
+        value: status.alert_email_to || status.default_to || "—",
+        sub: "Notificações e alertas",
+      },
+    ];
+    grid.innerHTML = "";
+    cards.forEach(function (c) {
+      var card = document.createElement("div");
+      card.className = "oe-admin-card " + c.cls;
+      card.innerHTML =
+        '<div class="oe-admin-card__label">' + c.label + "</div>" +
+        '<div class="oe-admin-card__value" style="font-size:1rem;word-break:break-all">' + c.value + "</div>" +
+        '<div class="oe-admin-card__sub">' + c.sub + "</div>";
+      grid.appendChild(card);
+    });
+    var hint = document.getElementById("emailEnvHint");
+    if (hint && status.render_hint) {
+      hint.textContent = status.render_hint;
+    }
+  }
+
+  async function loadEmailLogs() {
+    var box = document.getElementById("emailLogTable");
+    if (!box) return;
+    try {
+      var res = await fetch(apiBase() + "/api/admin/email/logs?limit=40", { headers: authHeaders() });
+      if (!res.ok) throw new Error();
+      var data = await res.json();
+      var items = data.items || [];
+      if (!items.length) {
+        box.innerHTML = "<p class='oe-admin-empty'>Ainda sem envios registados.</p>";
+        return;
+      }
+      box.innerHTML = "";
+      box.appendChild(
+        buildTable(
+          ["Quando", "Tipo", "Destino", "Assunto", "Estado", "Detalhe"],
+          items.map(function (row) {
+            return [
+              (row.created_at || "").replace("T", " ").slice(0, 19),
+              emailKindLabel(row.kind),
+              row.recipient || "—",
+              row.subject || "—",
+              emailStatusLabel(row.status),
+              (row.detail || row.actor || "—").toString().slice(0, 80),
+            ];
+          })
+        )
+      );
+    } catch (e) {
+      box.innerHTML = "<p class='oe-admin-empty'>Erro ao carregar histórico.</p>";
+    }
+  }
+
+  async function loadEmails() {
+    try {
+      var sres = await fetch(apiBase() + "/api/admin/email/status", { headers: authHeaders() });
+      if (!sres.ok) throw new Error("status");
+      var status = await sres.json();
+      renderEmailStatusCards(status);
+      setField("emailCfgTo", status.alert_email_to || status.default_to || "");
+      setChecked("emailCfgActivity", status.notify_activity_enabled !== false);
+      setChecked("emailCfgAlerts", !!status.alert_email_enabled);
+      setField("emailCfgTransLimit", String(status.alert_transcriptions_daily || ""));
+      setField("emailCfgVisitLimit", String(status.alert_visits_daily || ""));
+    } catch (e) {
+      var grid = document.getElementById("emailStatusCards");
+      if (grid) grid.innerHTML = "<p class='oe-admin-empty'>Erro ao carregar estado de email.</p>";
+    }
+    await loadEmailLogs();
+  }
+
+  async function saveEmailConfig(e) {
+    e.preventDefault();
+    var updates = {
+      alert_email_to: document.getElementById("emailCfgTo").value.trim(),
+      notify_activity_enabled: document.getElementById("emailCfgActivity").checked ? "1" : "0",
+      alert_email_enabled: document.getElementById("emailCfgAlerts").checked ? "1" : "0",
+      alert_transcriptions_daily: document.getElementById("emailCfgTransLimit").value,
+      alert_visits_daily: document.getElementById("emailCfgVisitLimit").value,
+    };
+    try {
+      var res = await fetch(apiBase() + "/api/admin/config", {
+        method: "PUT",
+        headers: authHeaders(),
+        body: JSON.stringify({ updates: updates }),
+      });
+      if (!res.ok) throw new Error();
+      global.OuviescreviUI.toast("Configuração de email guardada.", "success");
+      loadEmails();
+    } catch (e) {
+      global.OuviescreviUI.toast("Erro ao guardar.", "error");
     }
   }
 
@@ -830,10 +983,6 @@
         var cdata = await cres.json();
         var cfg = cdata.config || {};
         setField("cfgMaxMb", cfg.max_file_size_mb || "");
-        setChecked("cfgAlertEmail", cfg.alert_email_enabled === "1");
-        setField("cfgAlertTo", cfg.alert_email_to || "");
-        setField("cfgAlertTrans", cfg.alert_transcriptions_daily || "");
-        setField("cfgAlertVisits", cfg.alert_visits_daily || "");
         setField("cfgWhisperCost", cfg.whisper_cost_per_minute_usd || "0.006");
         setField("cfgCfZone", cfg.cloudflare_zone_id || "");
         setField("cfgCfToken", "");
@@ -933,10 +1082,6 @@
     e.preventDefault();
     var updates = {
       max_file_size_mb: document.getElementById("cfgMaxMb").value,
-      alert_email_enabled: document.getElementById("cfgAlertEmail").checked ? "1" : "0",
-      alert_email_to: document.getElementById("cfgAlertTo").value,
-      alert_transcriptions_daily: document.getElementById("cfgAlertTrans").value,
-      alert_visits_daily: document.getElementById("cfgAlertVisits").value,
       whisper_cost_per_minute_usd: document.getElementById("cfgWhisperCost").value,
       cloudflare_zone_id: document.getElementById("cfgCfZone").value,
     };
@@ -1001,6 +1146,7 @@
       global.OuviescreviAdmin.carregarDashboard();
     }
     if (tab === "sugestoes") loadSugestoes();
+    if (tab === "emails") loadEmails();
     if (tab === "sistema") {
       loadSystem();
       scheduleServerLogRefresh();
@@ -1026,8 +1172,14 @@
     if (sugUnread) sugUnread.addEventListener("change", loadSugestoes);
     var sugLang = document.getElementById("sugLangFilter");
     if (sugLang) sugLang.addEventListener("change", loadSugestoes);
-    var btnTestEmail = document.getElementById("btnTestAlertEmail");
-    if (btnTestEmail) btnTestEmail.addEventListener("click", testAlertEmail);
+    var emailForm = document.getElementById("emailConfigForm");
+    if (emailForm) emailForm.addEventListener("submit", saveEmailConfig);
+    var btnRefreshEmails = document.getElementById("btnRefreshEmails");
+    if (btnRefreshEmails) btnRefreshEmails.addEventListener("click", loadEmails);
+    var btnTestActivity = document.getElementById("btnTestActivityEmail");
+    if (btnTestActivity) btnTestActivity.addEventListener("click", testActivityEmail);
+    var btnTestAlertEmails = document.getElementById("btnTestAlertEmailEmails");
+    if (btnTestAlertEmails) btnTestAlertEmails.addEventListener("click", testAlertEmail);
     var btnSys = document.getElementById("btnRefreshSystem");
     if (btnSys) btnSys.addEventListener("click", loadSystem);
     var btnLogRefresh = document.getElementById("btnRefreshServerLogs");
@@ -1057,5 +1209,6 @@
     onTab: onTab,
     loadSugestoes: loadSugestoes,
     loadSystem: loadSystem,
+    loadEmails: loadEmails,
   };
 })(window);

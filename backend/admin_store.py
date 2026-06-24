@@ -21,6 +21,7 @@ DEFAULT_CONFIG: dict[str, str] = {
     "file_limit_message_en": "File too large. The limit is {limit} MB.",
     "alert_email_enabled": "0",
     "alert_email_to": "",
+    "notify_activity_enabled": "1",
     "alert_transcriptions_daily": "50",
     "alert_visits_daily": "500",
     "cloudflare_zone_id": "",
@@ -576,35 +577,89 @@ def delete_suggestion(suggestion_id: int) -> None:
 
 
 def send_test_alert_email(actor: str = "admin") -> dict[str, str]:
-    import smtplib
-    from email.message import EmailMessage
+    from email_notify import notify_email_to, send_notification_email
 
-    cfg = get_config()
-    to = cfg.get("alert_email_to") or os.getenv("SMTP_TO", "")
+    to = get_config().get("alert_email_to") or notify_email_to()
     if not to:
-        return {"ok": False, "error": "Configure o email de alertas em Sistema."}
-    smtp_user = os.getenv("SMTP_USER")
-    smtp_password = os.getenv("SMTP_PASSWORD")
-    if not (smtp_user and smtp_password):
-        return {"ok": False, "error": "SMTP_USER/SMTP_PASSWORD não configurados no servidor."}
-    try:
-        msg = EmailMessage()
-        msg["Subject"] = "Teste de alertas — Ouviescrevi"
-        msg["From"] = os.getenv("SMTP_FROM", "notificacoes@ouviescrevi.pt")
-        msg["To"] = to
-        msg.set_content(
-            f"Email de teste enviado pelo backoffice ({actor}). "
-            "Se recebeste isto, os alertas por email estão configurados corretamente."
-        )
-        smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
-        smtp_port = int(os.getenv("SMTP_PORT", "465"))
-        with smtplib.SMTP_SSL(smtp_host, smtp_port, timeout=10) as smtp:
-            smtp.login(smtp_user, smtp_password)
-            smtp.send_message(msg)
+        return {"ok": False, "error": "Configure o email de destino no separador Emails."}
+    ok = send_notification_email(
+        f"Email de teste enviado pelo backoffice ({actor}). "
+        "Se recebeste isto, os alertas por email estão configurados corretamente.",
+        "Teste de alertas — Ouviescrevi",
+        to=to,
+        kind="alert_test",
+        actor=actor,
+    )
+    if ok:
         log_audit(actor, "alert_email_test", to)
         return {"ok": True, "to": to}
-    except Exception as exc:
-        return {"ok": False, "error": str(exc)[:200]}
+    return {
+        "ok": False,
+        "error": "Falha ao enviar. No Render configura RESEND_API_KEY (SMTP costuma estar bloqueado).",
+    }
+
+
+def send_test_activity_email(actor: str = "admin") -> dict[str, str]:
+    from email_notify import notify_email_to, send_notification_email
+
+    to = get_config().get("alert_email_to") or notify_email_to()
+    if not to:
+        return {"ok": False, "error": "Configure o email de destino no separador Emails."}
+    ok = send_notification_email(
+        f"Teste de notificação de atividade (transcrição/IA).\n\nConta: admin:{actor}",
+        "Teste de atividade — Ouviescrevi",
+        to=to,
+        kind="activity_test",
+        actor=actor,
+    )
+    if ok:
+        log_audit(actor, "activity_email_test", to)
+        return {"ok": True, "to": to}
+    return {
+        "ok": False,
+        "error": "Falha ao enviar. No Render configura RESEND_API_KEY (SMTP costuma estar bloqueado).",
+    }
+
+
+def log_email_notification(
+    kind: str,
+    recipient: str,
+    subject: str,
+    status: str,
+    *,
+    detail: str | None = None,
+    actor: str | None = None,
+) -> None:
+    conn = get_connection()
+    try:
+        conn.execute(
+            """
+            INSERT INTO email_notifications (kind, recipient, subject, status, detail, actor, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (kind[:40], recipient[:200], subject[:300], status[:20], detail, actor, _now()),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def list_email_notifications(limit: int = 50) -> list[dict]:
+    limit = max(1, min(int(limit), 200))
+    conn = get_connection()
+    try:
+        rows = conn.execute(
+            """
+            SELECT id, kind, recipient, subject, status, detail, actor, created_at
+            FROM email_notifications
+            ORDER BY id DESC
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+        return [row_to_dict(r) for r in rows]
+    finally:
+        conn.close()
 
 
 def get_active_banner() -> dict | None:
