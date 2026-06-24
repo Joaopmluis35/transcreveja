@@ -622,8 +622,8 @@
         banner.scrollIntoView({ behavior: "smooth", block: "start" });
       });
     }
-    if (global.OuviescreviUI && global.OuviescreviUI.toast) {
-      global.OuviescreviUI.toast("Legendas prontas — descarrega os ficheiros abaixo.", "success");
+    if (window.OuviescreviUI && window.OuviescreviUI.toast) {
+      window.OuviescreviUI.toast("Legendas prontas — descarrega os ficheiros abaixo.", "success");
     }
     syncSubtitleChrome();
   }
@@ -638,8 +638,8 @@
       banner.scrollIntoView({ behavior: "smooth", block: "start" });
     }
     mostrarAlertaUpload(message || "Não foi possível gerar as legendas.");
-    if (global.OuviescreviUI && global.OuviescreviUI.toast) {
-      global.OuviescreviUI.toast("Erro ao legendar o vídeo.", "error");
+    if (window.OuviescreviUI && window.OuviescreviUI.toast) {
+      window.OuviescreviUI.toast("Erro ao legendar o vídeo.", "error");
     }
     syncSubtitleChrome();
   }

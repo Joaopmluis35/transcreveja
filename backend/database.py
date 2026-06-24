@@ -83,11 +83,16 @@ class _TursoCursor:
         return _as_sqlite_row(self, self._cur.fetchone())
 
     def fetchall(self) -> list[Any]:
-        return [_as_sqlite_row(self, row) for row in self._cur.fetchall()]
+        raw = self._cur.fetchall()
+        if raw is None:
+            return []
+        return [_as_sqlite_row(self, row) for row in raw]
 
     def __iter__(self) -> Iterator[Any]:
-        for row in self._cur:
-            yield _as_sqlite_row(self, row)
+        row = self.fetchone()
+        while row is not None:
+            yield row
+            row = self.fetchone()
 
 
 class _TursoConnection:

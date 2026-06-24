@@ -1177,21 +1177,6 @@ def _execute_video_subs_job(
         duration_sec = probe_media_duration_sec(audio_wav_path)
         if duration_sec is None and parts:
             duration_sec = float(len(parts) * SEGMENT_DURATION)
-        try:
-            registar_transcricao(
-                filename + " [legendado]",
-                language=whisper_lang,
-                size_bytes=written,
-                duration_sec=duration_sec,
-                processing_sec=round(time.monotonic() - t_start, 2),
-                status="ok",
-            )
-        except Exception as e:
-            logger.warning("[%s] [video-subs] Falha ao registar DB: %s", rid, e)
-        try:
-            enviar_email_assunto(f"Vídeo legendado gerado: {filename}", "Vídeo legendado no Ouviescrevi")
-        except Exception:
-            pass
 
         processing_ms = round((time.monotonic() - t_start) * 1000)
         result = {
@@ -1209,6 +1194,22 @@ def _execute_video_subs_job(
         if failed_segments:
             result["note"] = f"Alguns segmentos falharam ({failed_segments})."
         _video_job_set(job_id, **result)
+
+        try:
+            registar_transcricao(
+                filename + " [legendado]",
+                language=whisper_lang,
+                size_bytes=written,
+                duration_sec=duration_sec,
+                processing_sec=round(time.monotonic() - t_start, 2),
+                status="ok",
+            )
+        except Exception as e:
+            logger.warning("[%s] [video-subs] Falha ao registar DB: %s", rid, e)
+        try:
+            enviar_email_assunto(f"Vídeo legendado gerado: {filename}", "Vídeo legendado no Ouviescrevi")
+        except Exception:
+            pass
     except Exception as e:
         logger.exception("[%s] [video-subs] job %s falhou", rid, job_id)
         _video_job_set(job_id, status="failed", error=str(e), message="Falha ao processar o vídeo.")
