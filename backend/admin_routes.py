@@ -39,17 +39,24 @@ def _actor(request: Request) -> str:
 
 @router.get("/dashboard")
 def admin_dashboard(request: Request):
+    today_s = date.today().isoformat()
     stats = _safe("visitas", get_visit_stats, {})
     costs = _safe("custos", store.estimate_costs, {})
     conv = _safe("conversao", store.conversion_stats, {})
     maint = _safe("manutencao", store.get_maintenance, {})
     cfg = _safe("config", store.get_config, {})
+    trans_total = _safe("trans_total", store.count_transcriptions, 0)
+    trans_hoje = _safe(
+        "trans_hoje",
+        lambda: store.count_transcriptions(day_from=today_s, day_to=today_s),
+        0,
+    )
     return {
         "manutencao": maint.get("manutencao", False),
         "maintenance_message": maint.get("maintenance_message", ""),
         "block_transcribe_only": maint.get("block_transcribe_only", True),
-        "transcricoes_hoje": costs.get("transcricoes_hoje", 0),
-        "transcricoes_total": costs.get("transcricoes_total", 0),
+        "transcricoes_hoje": trans_hoje,
+        "transcricoes_total": trans_total,
         "visitas": stats,
         "visitas_total": stats.get("visitas_total", 0),
         "visitas_recentes": _safe("visitas_recentes", lambda: get_recent_visits(15), []),

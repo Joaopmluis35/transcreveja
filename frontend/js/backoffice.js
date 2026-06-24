@@ -664,9 +664,10 @@
 
   function renderTransSummary(stats, total) {
     var box = document.getElementById("transSummary");
-    if (!box || !stats) return;
+    if (!box) return;
+    stats = stats || {};
     box.innerHTML =
-      '<div class="oe-admin-mini-stat"><span>Total</span><strong>' + (total || 0) + "</strong></div>" +
+      '<div class="oe-admin-mini-stat"><span>Total</span><strong>' + (total || stats.total || 0) + "</strong></div>" +
       '<div class="oe-admin-mini-stat"><span>Falhas</span><strong>' + (stats.falhas || 0) + "</strong></div>" +
       '<div class="oe-admin-mini-stat"><span>Ficheiros repetidos</span><strong>' + (stats.ficheiros_duplicados || 0) + "</strong></div>" +
       '<div class="oe-admin-mini-stat"><span>Proc. médio</span><strong>' + (stats.media_proc_s || 0) + " s</strong></div>" +

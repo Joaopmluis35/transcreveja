@@ -1045,6 +1045,15 @@ body.oe-admin.oe-admin--dark {
   --bo-alert-info-text: #dbeafe;
 }
 
+body.oe-admin.oe-admin--dark .oe-admin-mini-stat {
+  background: var(--bo-card);
+  border-color: var(--bo-border);
+}
+
+body.oe-admin.oe-admin--dark .oe-admin-mini-stat strong {
+  color: var(--bo-text);
+}
+
 body.oe-admin.oe-admin--dark .oe-admin-login-card,
 body.oe-admin.oe-admin--dark .oe-admin-modal__box,
 body.oe-admin.oe-admin--dark .oe-admin-panel,

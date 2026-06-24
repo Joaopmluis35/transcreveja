@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="stylesheet" href="css/ouviescrevi.css?v=10">
-  <link rel="stylesheet" href="css/index-home.css?v=11">
+  <link rel="stylesheet" href="css/index-home.css?v=12">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <title>Ouviescrevi — Transcrição de Áudio e Vídeo com IA Grátis</title>
   <meta name="description" content="Transcreve áudio e vídeo online com inteligência artificial, grátis e sem registo. Resumos, tradução, legendas SRT e conversão de ficheiros. Feito em Portugal.">
@@ -80,6 +80,130 @@
     </div>
 
     <div id="uploadAlert" class="oe-upload-alert hidden" role="alert"></div>
+
+    <div id="subtitlePanelWrap" class="oe-subtitle-wrap hidden" aria-live="polite">
+      <section id="subtitlePanel" class="oe-subtitle-panel">
+        <header class="oe-subtitle-panel__head">
+          <div class="oe-subtitle-panel__intro">
+            <span class="oe-subtitle-panel__badge">Vídeo selecionado</span>
+            <h2 class="oe-subtitle-panel__title">Estilo das legendas</h2>
+            <p class="oe-subtitle-panel__lead">Ajusta o aspeto das legendas <strong>antes</strong> de clicar em «Legendar vídeo». A pré-visualização atualiza em tempo real com o teu ficheiro.</p>
+          </div>
+          <button type="button" class="oe-subtitle-panel__toggle" id="btnToggleSubtitle" aria-expanded="true" aria-controls="subtitlePanelBody">Recolher</button>
+        </header>
+
+        <div id="subtitlePanelBody" class="oe-subtitle-panel__body">
+          <div class="oe-subtitle-panel__layout">
+            <div class="oe-subtitle-panel__controls">
+              <fieldset class="oe-subtitle-group">
+                <legend>Texto de amostra</legend>
+                <label class="oe-subtitle-field oe-subtitle-field--full" for="subSampleText">Frase para testar o estilo
+                  <input id="subSampleText" type="text" value="Isto é uma linha de legenda de amostra." />
+                </label>
+              </fieldset>
+
+              <fieldset class="oe-subtitle-group">
+                <legend>Aspeto</legend>
+                <div class="oe-subtitle-grid">
+                  <label class="oe-subtitle-field" for="subFontSize">Tamanho (px)
+                    <div class="oe-subtitle-range">
+                      <input id="subFontSize" type="range" min="14" max="72" step="1" value="40" />
+                      <output id="subFontSizeVal" for="subFontSize">40</output>
+                    </div>
+                  </label>
+                  <label class="oe-subtitle-field" for="subColor">Cor do texto
+                    <input id="subColor" type="color" value="#ffffff" />
+                  </label>
+                  <label class="oe-subtitle-field" for="subOutline">Contorno (px)
+                    <div class="oe-subtitle-range">
+                      <input id="subOutline" type="range" min="0" max="8" step="1" value="2" />
+                      <output id="subOutlineVal" for="subOutline">2</output>
+                    </div>
+                  </label>
+                  <label class="oe-subtitle-field" for="subShadow">Sombra
+                    <select id="subShadow">
+                      <option value="none">Sem sombra</option>
+                      <option value="soft" selected>Suave</option>
+                      <option value="strong">Forte</option>
+                    </select>
+                  </label>
+                  <label class="oe-subtitle-field oe-subtitle-field--full oe-subtitle-field--bg" for="subBg">
+                    <span class="oe-subtitle-field__row">
+                      <input id="subBg" type="checkbox" checked />
+                      <span>Caixa de fundo</span>
+                    </span>
+                    <div class="oe-subtitle-range oe-subtitle-range--inline">
+                      <span class="oe-subtitle-range__label">Opacidade</span>
+                      <input id="subBgOpacity" type="range" min="0" max="0.9" step="0.05" value="0.35" aria-label="Opacidade da caixa de fundo" />
+                      <output id="subBgOpacityVal" for="subBgOpacity">0.35</output>
+                    </div>
+                  </label>
+                </div>
+              </fieldset>
+
+              <fieldset class="oe-subtitle-group">
+                <legend>Posição no ecrã</legend>
+                <div class="oe-subtitle-grid">
+                  <label class="oe-subtitle-field" for="subAlign">Alinhamento
+                    <select id="subAlign">
+                      <option value="center" selected>Centro</option>
+                      <option value="left">Esquerda</option>
+                      <option value="right">Direita</option>
+                    </select>
+                  </label>
+                  <label class="oe-subtitle-field" for="subPosition">Posição vertical
+                    <select id="subPosition">
+                      <option value="bottom" selected>Fundo</option>
+                      <option value="top">Topo</option>
+                      <option value="custom">Personalizada (Y)</option>
+                    </select>
+                  </label>
+                  <label class="oe-subtitle-field" for="subMarginV">Margem vertical (px)
+                    <div class="oe-subtitle-range">
+                      <input id="subMarginV" type="range" min="0" max="120" step="2" value="48" />
+                      <output id="subMarginVVal" for="subMarginV">48</output>
+                    </div>
+                  </label>
+                  <label class="oe-subtitle-field" for="subPadding">Padding da caixa (px)
+                    <div class="oe-subtitle-range">
+                      <input id="subPadding" type="range" min="0" max="40" step="2" value="10" />
+                      <output id="subPaddingVal" for="subPadding">10</output>
+                    </div>
+                  </label>
+                  <label class="oe-subtitle-field oe-subtitle-field--full" for="subMaxWidth">Largura máxima do bloco (%)
+                    <div class="oe-subtitle-range">
+                      <input id="subMaxWidth" type="range" min="40" max="100" step="1" value="90" />
+                      <output id="subMaxWidthVal" for="subMaxWidth">90%</output>
+                    </div>
+                  </label>
+                </div>
+              </fieldset>
+            </div>
+
+            <div class="oe-subtitle-panel__previews">
+              <p class="oe-subtitle-panel__previews-title">Pré-visualização no teu vídeo</p>
+              <div class="oe-subtitle-preview-grid">
+                <div class="preview-card">
+                  <h4>Início do vídeo (~25%)</h4>
+                  <canvas id="preview1" width="854" height="480"></canvas>
+                  <div class="preview-actions">
+                    <button id="dlPrev1" type="button">⬇️ Guardar imagem</button>
+                  </div>
+                </div>
+                <div class="preview-card">
+                  <h4>Final do vídeo (~75%)</h4>
+                  <canvas id="preview2" width="854" height="480"></canvas>
+                  <div class="preview-actions">
+                    <button id="dlPrev2" type="button">⬇️ Guardar imagem</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <video id="hiddenVideo" class="hidden" crossorigin="anonymous" playsinline></video>
+    </div>
 
     <div id="output" class="oe-output hidden">
       <div class="oe-output__layout">
@@ -157,7 +281,7 @@
       <div id="legendasBox" class="hidden oe-output__extra">
         <h3>🎞️ Legendas / Vídeo Legendado</h3>
         <div id="legendasInfo">
-          <p id="legendasMsg">Pronto! Escolhe o que queres descarregar:</p>
+          <p id="legendasMsg">Pronto! Os ficheiros estão prontos para descarregar:</p>
           <div>
             <a id="srtDownload" href="#" download>⬇️ Download SRT</a>
             <a id="mp4Download" class="hidden" href="#" download>⬇️ Download Vídeo (MP4)</a>
@@ -166,99 +290,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Painel de estilos + pré-visualização -->
-    <section id="subtitlePanel" class="hidden" aria-live="polite">
-      <h3>🎨 Estilo das legendas & pré-visualização</h3>
-      <div class="sub-grid">
-        <label>Texto de amostra
-          <input id="subSampleText" type="text" value="Isto é uma linha de legenda de amostra." />
-        </label>
-
-        <label>Tamanho (px)
-          <input id="subFontSize" type="range" min="14" max="72" step="1" value="40" />
-          <small id="subFontSizeVal">40</small>
-        </label>
-
-        <label>Cor do texto
-          <input id="subColor" type="color" value="#ffffff" />
-        </label>
-
-        <label>Contorno (px)
-          <input id="subOutline" type="range" min="0" max="8" step="1" value="2" />
-          <small id="subOutlineVal">2</small>
-        </label>
-
-        <label>Sombra
-          <select id="subShadow">
-            <option value="none">Sem sombra</option>
-            <option value="soft" selected>Suave</option>
-            <option value="strong">Forte</option>
-          </select>
-        </label>
-
-        <label>Caixa de fundo
-          <div class="sub-bg-row">
-            <input id="subBg" type="checkbox" checked />
-            <small>opacidade</small>
-            <input id="subBgOpacity" type="range" min="0" max="0.9" step="0.05" value="0.35" />
-            <small id="subBgOpacityVal">0.35</small>
-          </div>
-        </label>
-
-        <label>Alinhamento
-          <select id="subAlign">
-            <option value="center" selected>Centro</option>
-            <option value="left">Esquerda</option>
-            <option value="right">Direita</option>
-          </select>
-        </label>
-
-        <label>Posição
-          <select id="subPosition">
-            <option value="bottom" selected>Fundo</option>
-            <option value="top">Topo</option>
-            <option value="custom">Personalizada (Y)</option>
-          </select>
-        </label>
-
-        <label>Margem vertical (px)
-          <input id="subMarginV" type="range" min="0" max="120" step="2" value="48" />
-          <small id="subMarginVVal">48</small>
-        </label>
-
-        <label>Padding da caixa (px)
-          <input id="subPadding" type="range" min="0" max="40" step="2" value="10" />
-          <small id="subPaddingVal">10</small>
-        </label>
-
-        <label>Largura máx. do bloco (%)
-          <input id="subMaxWidth" type="range" min="40" max="100" step="1" value="90" />
-          <small id="subMaxWidthVal">90%</small>
-        </label>
-
-        <div></div><!-- placeholder para fechar a grid -->
-      </div>
-
-      <div class="preview-wrap">
-        <div class="preview-card">
-          <h4>Pré-visualização – 25% do vídeo</h4>
-          <canvas id="preview1" width="854" height="480"></canvas>
-          <div class="preview-actions">
-            <button id="dlPrev1" type="button">⬇️ Guardar imagem 1</button>
-          </div>
-        </div>
-        <div class="preview-card">
-          <h4>Pré-visualização – 75% do vídeo</h4>
-          <canvas id="preview2" width="854" height="480"></canvas>
-          <div class="preview-actions">
-            <button id="dlPrev2" type="button">⬇️ Guardar imagem 2</button>
-          </div>
-        </div>
-      </div>
-    </section>
-    <video id="hiddenVideo" class="hidden" crossorigin="anonymous" playsinline></video>
-    <!-- /Painel de estilos -->
 
   </div>
 
@@ -648,7 +679,10 @@
   // Painel de legendas – helpers e preview
   // =========================
   const subEls = {
+    wrap: document.getElementById('subtitlePanelWrap'),
     panel: document.getElementById('subtitlePanel'),
+    body: document.getElementById('subtitlePanelBody'),
+    toggle: document.getElementById('btnToggleSubtitle'),
     sample: document.getElementById('subSampleText'),
     size: document.getElementById('subFontSize'),
     sizeVal: document.getElementById('subFontSizeVal'),
@@ -673,6 +707,27 @@
     dl2: document.getElementById('dlPrev2'),
     video: document.getElementById('hiddenVideo')
   };
+
+  function setSubtitlePanelVisible(visible) {
+    if (!subEls.wrap) return;
+    subEls.wrap.classList.toggle('hidden', !visible);
+    if (visible) {
+      subEls.wrap.classList.remove('oe-subtitle-wrap--collapsed');
+      if (subEls.toggle) {
+        subEls.toggle.setAttribute('aria-expanded', 'true');
+        subEls.toggle.textContent = 'Recolher';
+      }
+      subEls.wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
+
+  if (subEls.toggle && subEls.wrap) {
+    subEls.toggle.addEventListener('click', function () {
+      var collapsed = subEls.wrap.classList.toggle('oe-subtitle-wrap--collapsed');
+      subEls.toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+      subEls.toggle.textContent = collapsed ? 'Expandir' : 'Recolher';
+    });
+  }
 
   function getStyle(){
     return {
@@ -1550,8 +1605,7 @@
     document.getElementById("timerGravacao").textContent = "⏱️ 00:00";
 
     btnLegendarVideo.disabled = true;
-    // painel de legendas
-    document.getElementById("subtitlePanel").classList.add("hidden");
+    setSubtitlePanelVisible(false);
     loadedVideoMeta = false;
   }
   function scrollSeInvisivel(id){
@@ -1588,7 +1642,7 @@
       } else {
         fileNameDisplay.textContent = "Nenhum ficheiro selecionado";
         btnLegendarVideo.disabled = true;
-        subEls.panel.classList.add('hidden');
+        setSubtitlePanelVisible(false);
       }
     });
 
@@ -1602,7 +1656,7 @@
           mostrarAlertaUpload(mensagemFicheiroGrande(file));
           btnTranscrever.disabled = true;
           btnLegendarVideo.disabled = true;
-          subEls.panel.classList.add('hidden');
+          setSubtitlePanelVisible(false);
           return;
         }
 
@@ -1618,11 +1672,11 @@
           loadedVideoMeta = false;
           v.onloadedmetadata = async () => {
             loadedVideoMeta = true;
-            subEls.panel.classList.remove('hidden');
+            setSubtitlePanelVisible(true);
             await renderSubtitlePreviews();
           };
         } else {
-          subEls.panel.classList.add('hidden');
+          setSubtitlePanelVisible(false);
           loadedVideoMeta = false;
         }
       });

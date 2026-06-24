@@ -140,6 +140,59 @@ def row_to_dict(row: Any) -> dict[str, Any]:
     return dict(row)
 
 
+def scalar_int(row: Any, key: str, *, index: int = 0, default: int = 0) -> int:
+    if row is None:
+        return default
+    raw: Any = default
+    if isinstance(row, (_DictRow, dict)):
+        data = row.as_dict() if isinstance(row, _DictRow) else row
+        raw = data.get(key, data.get(key.upper(), data.get(key.lower())))
+        if raw is None and index >= 0:
+            try:
+                raw = row[index]
+            except (KeyError, IndexError, TypeError):
+                raw = default
+    else:
+        try:
+            raw = row[index]
+        except (IndexError, TypeError):
+            raw = default
+    if raw is None:
+        return default
+    try:
+        return int(raw)
+    except (TypeError, ValueError):
+        try:
+            return int(float(raw))
+        except (TypeError, ValueError):
+            return default
+
+
+def scalar_float(row: Any, key: str, *, index: int = 0, default: float = 0.0) -> float:
+    if row is None:
+        return default
+    raw: Any = default
+    if isinstance(row, (_DictRow, dict)):
+        data = row.as_dict() if isinstance(row, _DictRow) else row
+        raw = data.get(key, data.get(key.upper(), data.get(key.lower())))
+        if raw is None and index >= 0:
+            try:
+                raw = row[index]
+            except (KeyError, IndexError, TypeError):
+                raw = default
+    else:
+        try:
+            raw = row[index]
+        except (IndexError, TypeError):
+            raw = default
+    if raw is None:
+        return default
+    try:
+        return float(raw)
+    except (TypeError, ValueError):
+        return default
+
+
 def get_connection() -> Any:
     if use_turso():
         import libsql

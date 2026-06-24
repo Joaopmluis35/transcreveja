@@ -4,8 +4,9 @@ from __future__ import annotations
 import hashlib
 import re
 from datetime import date, datetime, timedelta
+from typing import Any
 
-from database import get_connection
+from database import get_connection, row_to_dict, scalar_int
 
 
 def _day_str(when: date | None = None) -> str:
@@ -58,7 +59,7 @@ def _count_visits(since_day: str | None = None) -> int:
             row = conn.execute("SELECT COUNT(*) FROM visitas WHERE day >= ?", (since_day,)).fetchone()
         else:
             row = conn.execute("SELECT COUNT(*) FROM visitas").fetchone()
-        return int(row[0]) if row else 0
+        return scalar_int(row, "COUNT(*)", index=0) if row else 0
     finally:
         conn.close()
 
@@ -67,7 +68,7 @@ def _count_visits_on_day(day: str) -> int:
     conn = get_connection()
     try:
         row = conn.execute("SELECT COUNT(*) FROM visitas WHERE day = ?", (day,)).fetchone()
-        return int(row[0]) if row else 0
+        return scalar_int(row, "COUNT(*)", index=0) if row else 0
     finally:
         conn.close()
 
@@ -79,7 +80,7 @@ def _count_unique_visitors(since_day: str) -> int:
             "SELECT COUNT(DISTINCT visitor_hash) FROM visitas WHERE day >= ?",
             (since_day,),
         ).fetchone()
-        return int(row[0]) if row else 0
+        return scalar_int(row, "COUNT(*)", index=0) if row else 0
     finally:
         conn.close()
 
@@ -91,7 +92,7 @@ def _count_unique_visitors_on_day(day: str) -> int:
             "SELECT COUNT(DISTINCT visitor_hash) FROM visitas WHERE day = ?",
             (day,),
         ).fetchone()
-        return int(row[0]) if row else 0
+        return scalar_int(row, "COUNT(*)", index=0) if row else 0
     finally:
         conn.close()
 
@@ -122,13 +123,7 @@ def get_recent_visits(limit: int = 20) -> list[dict]:
             (max(1, min(limit, 100)),),
         ).fetchall()
         return [
-            {
-                "path": row["path"],
-                "day": row["day"],
-                "created_at": row["created_at"],
-                "referrer": row["referrer"],
-                "device_type": row["device_type"],
-            }
+            row_to_dict(row)
             for row in rows
         ]
     finally:
@@ -146,6 +141,17 @@ def _fill_daily_series(rows: list[tuple[str, int]], days: int) -> list[dict]:
     return out
 
 
+def _pair_day_count(row: Any) -> tuple[str, int]:
+    d = row_to_dict(row)
+    day = str(d.get("day") or "")
+    total = d.get("total", d.get("unicos", 0))
+    try:
+        count = int(total or 0)
+    except (TypeError, ValueError):
+        count = 0
+    return day, count
+
+
 def get_daily_visit_series(days: int = 14) -> list[dict]:
     days = max(1, min(days, 90))
     since = (date.today() - timedelta(days=days - 1)).isoformat()
@@ -158,7 +164,7 @@ def get_daily_visit_series(days: int = 14) -> list[dict]:
             """,
             (since,),
         ).fetchall()
-        totals = _fill_daily_series([(r["day"], r["total"]) for r in rows], days)
+        totals = _fill_daily_series([_pair_day_count(r) for r in rows], days)
         unicos_rows = conn.execute(
             """
             SELECT day, COUNT(DISTINCT visitor_hash) AS unicos
@@ -166,7 +172,7 @@ def get_daily_visit_series(days: int = 14) -> list[dict]:
             """,
             (since,),
         ).fetchall()
-        unicos_map = {r["day"]: int(r["unicos"]) for r in unicos_rows}
+        unicos_map = {day: count for day, count in (_pair_day_count(r) for r in unicos_rows)}
         for item in totals:
             item["unicos"] = unicos_map.get(item["day"], 0)
         return totals
@@ -183,11 +189,11 @@ def get_daily_transcription_series(days: int = 14) -> list[dict]:
             """
             SELECT substr(data, 1, 10) AS day, COUNT(*) AS total
             FROM transcricoes WHERE substr(data, 1, 10) >= ?
-            GROUP BY day ORDER BY day
+            GROUP BY substr(data, 1, 10) ORDER BY day
             """,
             (since,),
         ).fetchall()
-        return _fill_daily_series([(r["day"], r["total"]) for r in rows], days)
+        return _fill_daily_series([_pair_day_count(r) for r in rows], days)
     finally:
         conn.close()
 
@@ -200,15 +206,21 @@ def get_daily_transcription_outcomes(days: int = 14) -> list[dict]:
         rows = conn.execute(
             """
             SELECT substr(data, 1, 10) AS day,
-                   SUM(CASE WHEN COALESCE(status, 'ok') = 'ok' THEN 1 ELSE 0 END) AS ok,
-                   SUM(CASE WHEN COALESCE(status, 'ok') != 'ok' THEN 1 ELSE 0 END) AS erros
+                   SUM(CASE WHEN LOWER(COALESCE(status, 'ok')) = 'ok' THEN 1 ELSE 0 END) AS ok,
+                   SUM(CASE WHEN LOWER(COALESCE(status, 'ok')) != 'ok' THEN 1 ELSE 0 END) AS erros
             FROM transcricoes
             WHERE substr(data, 1, 10) >= ?
-            GROUP BY day ORDER BY day
+            GROUP BY substr(data, 1, 10) ORDER BY day
             """,
             (since,),
         ).fetchall()
-        by_day = {r["day"]: {"ok": int(r["ok"] or 0), "erros": int(r["erros"] or 0)} for r in rows}
+        by_day: dict[str, dict[str, int]] = {}
+        for row in rows:
+            d = row_to_dict(row)
+            day = str(d.get("day") or "")
+            ok = int(d.get("ok") or 0)
+            erros = int(d.get("erros") or 0)
+            by_day[day] = {"ok": ok, "erros": erros}
         out: list[dict] = []
         for i in range(days):
             d = (date.today() - timedelta(days=days - 1 - i)).isoformat()
@@ -239,6 +251,6 @@ def get_top_pages(limit: int = 8) -> list[dict]:
             """,
             (since, max(1, min(limit, 20))),
         ).fetchall()
-        return [{"path": row["path"], "total": int(row["total"])} for row in rows]
+        return [{"path": d.get("path"), "total": int(d.get("total") or 0)} for d in (row_to_dict(row) for row in rows)]
     finally:
         conn.close()

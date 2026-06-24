@@ -11,7 +11,7 @@ import sqlite3
 from datetime import date, datetime, timedelta
 from typing import Any
 
-from database import database_backend, db_path, get_connection, row_to_dict, use_turso
+from database import database_backend, db_path, get_connection, row_to_dict, scalar_float, scalar_int, use_turso
 
 ROLE_LEVEL = {"viewer": 1, "editor": 2, "admin": 3}
 
@@ -354,7 +354,7 @@ def list_transcriptions(
                 WHERE {' AND '.join(clauses)}
                   AND ficheiro IS NOT NULL AND TRIM(ficheiro) != ''
                 GROUP BY ficheiro
-                HAVING c > 1
+                HAVING COUNT(*) > 1
                 """,
                 params[:-2],
             ).fetchall()
@@ -428,7 +428,7 @@ def count_transcriptions(
             f"SELECT COUNT(*) AS c FROM transcricoes WHERE {' AND '.join(clauses)}",
             params,
         ).fetchone()
-        return int(row["c"] if hasattr(row, "keys") else row[0])
+        return int(scalar_int(row, "c", index=0))
     finally:
         conn.close()
 
@@ -472,13 +472,11 @@ def transcription_stats(
             params,
         ).fetchone()
         return {
-            "total": int(row["total"] or 0),
-            "falhas": int(row["falhas"] or 0),
-            "media_proc_s": float(row["media_proc_s"] or 0),
-            "media_dur_s": float(row["media_dur_s"] or 0),
-            "ficheiros_duplicados": int(
-                dup_groups["c"] if hasattr(dup_groups, "keys") else dup_groups[0] or 0
-            ),
+            "total": scalar_int(row, "total", index=0),
+            "falhas": scalar_int(row, "falhas", index=1),
+            "media_proc_s": scalar_float(row, "media_proc_s", index=2),
+            "media_dur_s": scalar_float(row, "media_dur_s", index=3),
+            "ficheiros_duplicados": scalar_int(dup_groups, "c", index=0),
         }
     finally:
         conn.close()
@@ -670,22 +668,29 @@ def get_api_errors(limit: int = 50) -> list[dict]:
 
 def estimate_costs(config: dict | None = None) -> dict:
     config = config or get_config()
-    rate = float(config.get("whisper_cost_per_minute_usd") or "0.006")
+    raw_rate = config.get("whisper_cost_per_minute_usd")
+    try:
+        rate = float(raw_rate) if raw_rate not in (None, "") else 0.006
+    except (TypeError, ValueError):
+        rate = 0.006
     conn = get_connection()
     try:
+        today_s = date.today().isoformat()
         row = conn.execute(
             """
             SELECT COUNT(*) AS total,
                    COALESCE(SUM(duration_sec), 0) AS secs,
                    COALESCE(SUM(CASE WHEN substr(data,1,10)=? THEN 1 ELSE 0 END), 0) AS hoje
-            FROM transcricoes WHERE COALESCE(status,'ok')='ok'
+            FROM transcricoes
+            WHERE LOWER(COALESCE(status, 'ok')) = 'ok'
             """,
-            (date.today().isoformat(),),
+            (today_s,),
         ).fetchone()
-        mins = float(row["secs"] or 0) / 60.0
+        secs = scalar_float(row, "secs", index=1)
+        mins = secs / 60.0
         return {
-            "transcricoes_total": int(row["total"] or 0),
-            "transcricoes_hoje": int(row["hoje"] or 0),
+            "transcricoes_total": scalar_int(row, "total", index=0),
+            "transcricoes_hoje": scalar_int(row, "hoje", index=2),
             "minutos_audio_total": round(mins, 2),
             "custo_estimado_usd": round(mins * rate, 4),
             "taxa_por_minuto_usd": rate,
@@ -698,12 +703,18 @@ def conversion_stats() -> dict:
     conn = get_connection()
     try:
         hoje = date.today().isoformat()
-        visitas = conn.execute(
-            "SELECT COUNT(*) AS c FROM visitas WHERE day = ?", (hoje,)
-        ).fetchone()["c"]
-        trans = conn.execute(
-            "SELECT COUNT(*) AS c FROM transcricoes WHERE substr(data,1,10) = ?", (hoje,)
-        ).fetchone()["c"]
+        visitas = scalar_int(
+            conn.execute("SELECT COUNT(*) AS c FROM visitas WHERE day = ?", (hoje,)).fetchone(),
+            "c",
+            index=0,
+        )
+        trans = scalar_int(
+            conn.execute(
+                "SELECT COUNT(*) AS c FROM transcricoes WHERE substr(data,1,10) = ?", (hoje,)
+            ).fetchone(),
+            "c",
+            index=0,
+        )
         rate = round((trans / visitas * 100), 2) if visitas else 0.0
         return {"visitas_hoje": visitas, "transcricoes_hoje": trans, "taxa_conversao_pct": rate}
     finally:
