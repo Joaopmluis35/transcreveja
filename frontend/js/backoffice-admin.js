@@ -545,10 +545,12 @@
     var dbLabel = h.database_backend === "turso" ? "Turso Cloud" : "SQLite local";
     var persistLabel = h.database_persistent ? "Persistente" : "Efémera";
     var persistStatus = h.database_persistent ? "ok" : "warn";
+    var apiStatus = h.api || "unknown";
+    var openaiStatus = h.openai || "unknown";
     var cards = [
-      { title: "API", value: h.api === "ok" ? "Operacional" : h.api, status: h.api },
-      { title: "Base de dados", value: dbLabel, status: h.database },
-      { title: "OpenAI", value: h.openai === "ok" ? "Ligada" : h.openai, status: h.openai },
+      { title: "API", value: apiStatus === "ok" ? "Operacional" : apiStatus, status: apiStatus },
+      { title: "Base de dados", value: dbLabel, status: h.database || "unknown" },
+      { title: "OpenAI", value: openaiStatus === "ok" ? "Ligada" : openaiStatus, status: openaiStatus },
       { title: "Persistência", value: persistLabel, status: persistStatus },
     ];
     grid.innerHTML = cards.map(function (c) {
@@ -591,6 +593,15 @@
       "<strong>" + (h.database_persistent ? "✓ Dados persistentes" : "⚠ Risco de perda de dados") + "</strong><br>" +
       (h.persistence_note || "") +
       "</div>" +
+      (!h.database_persistent && !h.turso_url_set && !h.turso_token_set
+        ? '<div class="oe-admin-alert oe-admin-alert--warn" style="margin-top:12px">' +
+          "<strong>Como ativar Turso no Render</strong><br>" +
+          "1. Abre <a href=\"https://dashboard.render.com\" target=\"_blank\" rel=\"noopener\">dashboard.render.com</a> → serviço <code class=\"oe-admin-code\">api-ouviescrevi</code><br>" +
+          "2. Menu <strong>Environment</strong> → adiciona <code class=\"oe-admin-code\">TURSO_DATABASE_URL</code> (libsql://…) e <code class=\"oe-admin-code\">TURSO_AUTH_TOKEN</code><br>" +
+          "3. Clica <strong>Save, rebuild, and deploy</strong> (obrigatório — só guardar não chega)<br>" +
+          "4. Volta aqui e clica <strong>Atualizar</strong> — deve aparecer Turso Cloud + Persistente" +
+          "</div>"
+        : "") +
       '<div class="oe-admin-alert ' + (h.cms_locales_ready ? "oe-admin-alert--ok" : "oe-admin-alert--warn") + '" style="margin-top:12px">' +
       "<strong>CMS multi-idioma (API)</strong><br>" +
       (h.cms_locales_ready ? "✓ " : "⚠ ") + (h.cms_locales_note || "—") +
