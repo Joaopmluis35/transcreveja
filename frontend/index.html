@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="stylesheet" href="css/ouviescrevi.css?v=10">
-  <link rel="stylesheet" href="css/index-home.css?v=12">
+  <link rel="stylesheet" href="css/index-home.css?v=13">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <title>Ouviescrevi — Transcrição de Áudio e Vídeo com IA Grátis</title>
   <meta name="description" content="Transcreve áudio e vídeo online com inteligência artificial, grátis e sem registo. Resumos, tradução, legendas SRT e conversão de ficheiros. Feito em Portugal.">
@@ -44,6 +44,13 @@
       <button type="button" id="btnStopRecording" class="hidden">🛑 Parar Gravação</button>
       <button type="button" id="btnLimparTudo" onclick="limparTudo()">🧹 Limpar Tudo</button>
       </div>
+
+      <p id="videoUploadHint" class="oe-video-hint hidden" role="status">
+        Vídeo pronto — podes <strong>transcrever</strong> sem sair desta zona. Para ajustar o aspeto das legendas, usa a opção abaixo (só se fores legendar).
+      </p>
+      <button type="button" id="btnOpenSubtitleStyle" class="oe-subtitle-open hidden">
+        🎨 Personalizar estilo das legendas (opcional)
+      </button>
 
       <p id="timerGravacao" class="hidden">⏱️ 00:00</p>
 
@@ -85,11 +92,14 @@
       <section id="subtitlePanel" class="oe-subtitle-panel">
         <header class="oe-subtitle-panel__head">
           <div class="oe-subtitle-panel__intro">
-            <span class="oe-subtitle-panel__badge">Vídeo selecionado</span>
+            <span class="oe-subtitle-panel__badge">Opcional</span>
             <h2 class="oe-subtitle-panel__title">Estilo das legendas</h2>
-            <p class="oe-subtitle-panel__lead">Ajusta o aspeto das legendas <strong>antes</strong> de clicar em «Legendar vídeo». A pré-visualização atualiza em tempo real com o teu ficheiro.</p>
+            <p class="oe-subtitle-panel__lead">Só precisas disto se fores usar «Legendar vídeo». Ajusta cor, tamanho e posição — a pré-visualização usa o vídeo que escolheste.</p>
           </div>
-          <button type="button" class="oe-subtitle-panel__toggle" id="btnToggleSubtitle" aria-expanded="true" aria-controls="subtitlePanelBody">Recolher</button>
+          <div class="oe-subtitle-panel__head-actions">
+            <button type="button" class="oe-subtitle-panel__toggle" id="btnToggleSubtitle" aria-expanded="true" aria-controls="subtitlePanelBody">Recolher</button>
+            <button type="button" class="oe-subtitle-panel__close" id="btnCloseSubtitle" title="Fechar personalização" aria-label="Fechar personalização">✕</button>
+          </div>
         </header>
 
         <div id="subtitlePanelBody" class="oe-subtitle-panel__body">
@@ -708,7 +718,18 @@
     video: document.getElementById('hiddenVideo')
   };
 
-  function setSubtitlePanelVisible(visible) {
+  function syncSubtitleChrome() {
+    var isVideo = btnLegendarVideo && !btnLegendarVideo.disabled;
+    var panelOpen = subEls.wrap && !subEls.wrap.classList.contains('hidden');
+    var showExtras = isVideo && !panelOpen;
+    var hint = document.getElementById('videoUploadHint');
+    var openBtn = document.getElementById('btnOpenSubtitleStyle');
+    if (hint) hint.classList.toggle('hidden', !showExtras);
+    if (openBtn) openBtn.classList.toggle('hidden', !showExtras);
+  }
+
+  function setSubtitlePanelVisible(visible, opts) {
+    opts = opts || {};
     if (!subEls.wrap) return;
     subEls.wrap.classList.toggle('hidden', !visible);
     if (visible) {
@@ -717,8 +738,28 @@
         subEls.toggle.setAttribute('aria-expanded', 'true');
         subEls.toggle.textContent = 'Recolher';
       }
-      subEls.wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      if (opts.scroll) {
+        subEls.wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+      if (loadedVideoMeta) {
+        renderSubtitlePreviews();
+      }
     }
+    syncSubtitleChrome();
+  }
+
+  var btnOpenSubtitleStyle = document.getElementById('btnOpenSubtitleStyle');
+  if (btnOpenSubtitleStyle) {
+    btnOpenSubtitleStyle.addEventListener('click', function () {
+      setSubtitlePanelVisible(true, { scroll: true });
+    });
+  }
+
+  var btnCloseSubtitle = document.getElementById('btnCloseSubtitle');
+  if (btnCloseSubtitle) {
+    btnCloseSubtitle.addEventListener('click', function () {
+      setSubtitlePanelVisible(false);
+    });
   }
 
   if (subEls.toggle && subEls.wrap) {
@@ -1665,15 +1706,14 @@
         btnLegendarVideo.disabled = !isVid;
 
         if (isVid){
+          setSubtitlePanelVisible(false);
           if (videoObjectURL){ URL.revokeObjectURL(videoObjectURL); }
           videoObjectURL = URL.createObjectURL(file);
           const v = subEls.video;
           v.src = videoObjectURL;
           loadedVideoMeta = false;
-          v.onloadedmetadata = async () => {
+          v.onloadedmetadata = function () {
             loadedVideoMeta = true;
-            setSubtitlePanelVisible(true);
-            await renderSubtitlePreviews();
           };
         } else {
           setSubtitlePanelVisible(false);
