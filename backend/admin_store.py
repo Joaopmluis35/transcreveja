@@ -61,6 +61,26 @@ def log_audit(actor: str, action: str, detail: str | None = None) -> None:
         conn.close()
 
 
+def log_audit_login(actor: str) -> None:
+    """Evita dezenas de entradas «login» quando o browser dispara o formulário várias vezes."""
+    conn = get_connection()
+    try:
+        since = (datetime.now() - timedelta(seconds=90)).isoformat(timespec="seconds") + "Z"
+        row = conn.execute(
+            """
+            SELECT id FROM audit_log
+            WHERE actor = ? AND action = 'login' AND created_at >= ?
+            ORDER BY id DESC LIMIT 1
+            """,
+            (actor, since),
+        ).fetchone()
+        if row:
+            return
+    finally:
+        conn.close()
+    log_audit(actor, "login")
+
+
 def log_api_error(path: str, status_code: int, message: str, client_ip: str = "") -> None:
     conn = get_connection()
     try:
@@ -848,7 +868,7 @@ def system_health(openai_client=None) -> dict:
                 try:
                     row = conn.execute(f"SELECT COUNT(*) AS c FROM {table}").fetchone()
                     health["table_counts"][table] = int(row["c"] if hasattr(row, "keys") else row[0])
-                except sqlite3.Error:
+                except Exception:
                     health["table_counts"][table] = None
             try:
                 row = conn.execute("SELECT MAX(data) AS last FROM transcricoes").fetchone()
@@ -926,6 +946,15 @@ def system_health(openai_client=None) -> dict:
     except Exception as exc:
         health["cms_locales_ready"] = False
         health["cms_locales_note"] = f"Não foi possível verificar CMS: {str(exc)[:80]}"
+
+    health["turso_env_configured"] = bool(
+        os.getenv("TURSO_DATABASE_URL", "").strip() and os.getenv("TURSO_AUTH_TOKEN", "").strip()
+    )
+    if not health["database_persistent"] and health["turso_env_configured"]:
+        health["persistence_note"] = (
+            "Variáveis TURSO_* existem no ambiente mas a API está em SQLite local — "
+            "verifica o token e reinicia o serviço no Render."
+        )
 
     return health
 

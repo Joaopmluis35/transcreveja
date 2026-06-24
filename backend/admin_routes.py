@@ -18,6 +18,7 @@ from analytics import (
     get_visit_stats,
 )
 from cms import get_all_content, get_page_schema, get_seo_overrides, keys_for_page, reset_content, update_content
+from database import database_backend, use_turso
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -57,6 +58,8 @@ def admin_dashboard(request: Request):
         "sugestoes_nao_lidas": len(store.list_suggestions(unread_only=True, limit=200)),
         "alert_transcriptions_daily": int(cfg.get("alert_transcriptions_daily") or 0),
         "alert_visits_daily": int(cfg.get("alert_visits_daily") or 0),
+        "database_backend": database_backend(),
+        "database_persistent": use_turso(),
     }
 
 

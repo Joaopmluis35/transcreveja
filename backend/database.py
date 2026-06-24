@@ -95,6 +95,17 @@ def criar_base() -> None:
             "a base SQLite no Render Free é efémera e perde-se em cada redeploy."
         )
 
+    backend = database_backend()
+    if use_turso():
+        logger.info("Base de dados: Turso (%s)", TURSO_DATABASE_URL.split("/")[2] if "/" in TURSO_DATABASE_URL else "remoto")
+    else:
+        logger.warning(
+            "Base de dados: SQLite local (%s). TURSO_URL=%s TURSO_TOKEN=%s",
+            DB_PATH,
+            "sim" if TURSO_DATABASE_URL else "não",
+            "sim" if TURSO_AUTH_TOKEN else "não",
+        )
+
     conn = get_connection()
     try:
         cur = conn.cursor()

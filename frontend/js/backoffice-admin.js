@@ -92,7 +92,6 @@
   function renderDashboardAlerts(data) {
     var box = document.getElementById("dashboardAlerts");
     if (!box) return;
-    var alerts = [];
     var unread = data.sugestoes_nao_lidas || 0;
     if (unread > 0) {
       alerts.push({
@@ -114,6 +113,14 @@
       alerts.push({
         type: "warn",
         html: "<strong>Limite diário de visitas atingido</strong> — " + vHoje + " hoje (limite " + vLimit + ").",
+      });
+    }
+    if (data.database_persistent === false) {
+      alerts.push({
+        type: "warn",
+        html:
+          "<strong>⚠ Base de dados NÃO persistente (SQLite local)</strong> — visitas e transcrições perdem-se em cada deploy. " +
+          "Configura <code>TURSO_DATABASE_URL</code> e <code>TURSO_AUTH_TOKEN</code> no Render → Environment.",
       });
     }
     if (!alerts.length) {

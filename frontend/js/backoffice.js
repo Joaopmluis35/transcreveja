@@ -23,6 +23,7 @@
   let transOffset = 0;
   const TRANS_PAGE = 50;
   let transTotal = 0;
+  let loginInFlight = false;
 
   function getAdminRole() {
     return sessionStorage.getItem("ouviescrevi_admin_role") || "admin";
@@ -811,6 +812,11 @@
     initTheme();
     document.getElementById("loginForm").addEventListener("submit", async function (e) {
       e.preventDefault();
+      if (loginInFlight) return;
+      loginInFlight = true;
+      var form = document.getElementById("loginForm");
+      var btn = form ? form.querySelector('button[type="submit"]') : null;
+      if (btn) btn.disabled = true;
       try {
         await global.OuviescreviAPI.adminLogin(
           document.getElementById("password").value,
@@ -820,6 +826,9 @@
         mostrarApp();
       } catch (err) {
         global.OuviescreviUI.toast("Palavra-chave incorreta.", "error");
+      } finally {
+        loginInFlight = false;
+        if (btn) btn.disabled = false;
       }
     });
 

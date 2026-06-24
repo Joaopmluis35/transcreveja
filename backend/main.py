@@ -729,11 +729,11 @@ def admin_login(req: AdminLoginRequest):
         if not user:
             raise HTTPException(status_code=403, detail="Credenciais inválidas.")
         token = admin_store.create_session(user["username"], user["role"])
-        admin_store.log_audit(user["username"], "login")
+        admin_store.log_audit_login(user["username"])
         return {"ok": True, "adminToken": token, "role": user["role"], "username": user["username"]}
     if req.password == BACKOFFICE_PASSWORD:
         token = admin_store.create_session("admin", "admin")
-        admin_store.log_audit("admin", "login")
+        admin_store.log_audit_login("admin")
         return {"ok": True, "adminToken": token, "role": "admin", "username": "admin"}
     raise HTTPException(status_code=403, detail="Credenciais inválidas.")
 
