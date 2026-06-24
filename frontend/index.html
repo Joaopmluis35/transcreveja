@@ -1109,6 +1109,8 @@
   async function pollVideoSubsJob(jobId) {
     const maxWait = 900000;
     const started = Date.now();
+    let lastProgress = -1;
+    let lastProgressAt = Date.now();
     while (Date.now() - started < maxWait) {
       await new Promise(function (r) { setTimeout(r, 2500); });
       let stRes;
@@ -1127,11 +1129,25 @@
       if (!stRes.ok) {
         throw new Error(st.detail || st.error || `Erro ${stRes.status}`);
       }
-      if (st.message && statusEl) {
-        statusEl.textContent = "🔄 " + st.message;
+      const localElapsed = Math.floor((Date.now() - started) / 1000);
+      const localFmt = Math.floor(localElapsed / 60) + ":" + String(localElapsed % 60).padStart(2, "0");
+      let msg = st.message || "A processar…";
+      if (st.stage_elapsed_sec != null && st.stage_elapsed_sec > 20) {
+        msg += " (esta fase: " + Math.floor(st.stage_elapsed_sec / 60) + ":" + String(st.stage_elapsed_sec % 60).padStart(2, "0") + ")";
       }
-      if (st.progress && progressBar) {
-        progressBar.style.width = Math.min(95, Number(st.progress) || 0) + "%";
+      if (statusEl) {
+        statusEl.textContent = "🔄 " + msg + " · tempo total " + localFmt;
+      }
+      if (st.progress != null && progressBar) {
+        const pct = Math.min(98, Number(st.progress) || 0);
+        progressBar.style.width = pct + "%";
+        if (pct !== lastProgress) {
+          lastProgress = pct;
+          lastProgressAt = Date.now();
+        } else if (Date.now() - lastProgressAt > 20000 && statusEl) {
+          statusEl.textContent =
+            "🔄 " + msg + " · tempo total " + localFmt + " — o servidor continua (a incorporar legendas pode demorar vários minutos)";
+        }
       }
       if (st.status === "completed") return st;
       if (st.status === "failed") {

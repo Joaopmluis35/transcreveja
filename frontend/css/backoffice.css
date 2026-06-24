@@ -1132,3 +1132,85 @@ body.oe-admin.oe-admin--dark .oe-admin-alert a {
   color: #fde68a;
   font-weight: 600;
 }
+
+.oe-admin-panel__head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.oe-admin-select-inline {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--bo-border);
+  background: var(--bo-card);
+  color: var(--bo-text);
+  font-size: 0.85rem;
+}
+
+.oe-admin-checkbox-inline {
+  font-size: 0.85rem;
+  color: var(--bo-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.oe-admin-hint {
+  margin: 0 0 10px;
+  font-size: 0.85rem;
+  color: var(--bo-muted);
+}
+
+.oe-admin-log-view {
+  margin: 0;
+  max-height: 420px;
+  overflow: auto;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--bo-border);
+  background: #0f172a;
+  color: #e2e8f0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+body.oe-admin.oe-admin--dark .oe-admin-log-view {
+  background: #030712;
+  border-color: #374151;
+}
+
+.oe-admin-jobs-box {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #c4b5fd;
+  background: #f5f3ff;
+}
+
+.oe-admin-jobs-box__title {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #5b21b6;
+}
+
+.oe-admin-jobs-box__item {
+  font-size: 0.85rem;
+  margin: 4px 0;
+  color: #3730a3;
+}
+
+body.oe-admin.oe-admin--dark .oe-admin-jobs-box {
+  background: #1e1b4b;
+  border-color: #6366f1;
+}
+
+body.oe-admin.oe-admin--dark .oe-admin-jobs-box__title,
+body.oe-admin.oe-admin--dark .oe-admin-jobs-box__item {
+  color: #e0e7ff;
+}

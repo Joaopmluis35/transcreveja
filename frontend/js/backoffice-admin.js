@@ -24,6 +24,8 @@
   var seoContent = {};
   var seoCurrentPage = null;
   var chartCloudflare = null;
+  var serverLogTimer = null;
+  var lastServerLogText = "";
 
   function initExports() {
     var base = apiBase();
@@ -683,6 +685,115 @@
     if (el) el.checked = !!checked;
   }
 
+  function serverLogQueryParams() {
+    var filter = document.getElementById("serverLogFilter");
+    var val = filter ? filter.value : "";
+    var params = new URLSearchParams({ limit: "400" });
+    if (val === "ERROR") {
+      params.set("level", "ERROR");
+    } else if (val) {
+      params.set("q", val);
+    }
+    return "?" + params.toString();
+  }
+
+  function renderProcessingJobs(items) {
+    var box = document.getElementById("processingJobsBox");
+    if (!box) return;
+    var active = (items || []).filter(function (j) {
+      return j.status === "processing";
+    });
+    if (!active.length) {
+      box.classList.add("hidden");
+      box.innerHTML = "";
+      return;
+    }
+    box.classList.remove("hidden");
+    box.innerHTML =
+      "<p class='oe-admin-jobs-box__title'>Tarefas em curso</p>" +
+      active
+        .map(function (j) {
+          var pct = j.progress != null ? j.progress + "%" : "—";
+          var msg = j.message || j.status || "";
+          var file = j.filename ? " · " + j.filename : "";
+          return (
+            "<div class='oe-admin-jobs-box__item'><strong>" +
+            pct +
+            "</strong> " +
+            msg +
+            file +
+            "</div>"
+          );
+        })
+        .join("");
+  }
+
+  async function loadServerLogs() {
+    var view = document.getElementById("serverLogView");
+    if (!view) return;
+    if ((sessionStorage.getItem("ouviescrevi_admin_role") || "admin") !== "admin") {
+      view.textContent = "Apenas administradores podem ver os logs do servidor.";
+      return;
+    }
+    try {
+      var res = await fetch(apiBase() + "/api/admin/server-logs" + serverLogQueryParams(), {
+        headers: authHeaders(),
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      var data = await res.json();
+      lastServerLogText = data.text || "(sem registos)";
+      view.textContent = lastServerLogText;
+      view.scrollTop = view.scrollHeight;
+    } catch (e) {
+      view.textContent = "Erro ao carregar logs. Clica Atualizar ou faz logout/login.";
+    }
+    try {
+      var jres = await fetch(apiBase() + "/api/admin/processing-jobs", { headers: authHeaders() });
+      if (jres.ok) {
+        var jdata = await jres.json();
+        renderProcessingJobs(jdata.items || []);
+      }
+    } catch (e2) {
+      /* opcional */
+    }
+  }
+
+  function scheduleServerLogRefresh() {
+    if (serverLogTimer) {
+      clearInterval(serverLogTimer);
+      serverLogTimer = null;
+    }
+    var auto = document.getElementById("serverLogAutoRefresh");
+    if (auto && auto.checked) {
+      serverLogTimer = setInterval(loadServerLogs, 10000);
+    }
+  }
+
+  function copyServerLogs() {
+    if (!lastServerLogText) {
+      global.OuviescreviUI.toast("Nada para copiar.", "error");
+      return;
+    }
+    navigator.clipboard.writeText(lastServerLogText).then(
+      function () {
+        global.OuviescreviUI.toast("Logs copiados.", "success");
+      },
+      function () {
+        global.OuviescreviUI.toast("Não foi possível copiar.", "error");
+      }
+    );
+  }
+
+  function downloadServerLogs() {
+    var blob = new Blob([lastServerLogText || ""], { type: "text/plain;charset=utf-8" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "ouviescrevi-logs-" + new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-") + ".txt";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   async function loadSystem() {
     var health = document.getElementById("systemHealth");
     var grid = document.getElementById("systemHealthCards");
@@ -814,6 +925,8 @@
     } catch (e) {
       /* Config/utilizadores/auditoria são opcionais — o painel de saúde já foi renderizado. */
     }
+    loadServerLogs();
+    scheduleServerLogRefresh();
   }
 
   async function saveConfig(e) {
@@ -888,7 +1001,13 @@
       global.OuviescreviAdmin.carregarDashboard();
     }
     if (tab === "sugestoes") loadSugestoes();
-    if (tab === "sistema") loadSystem();
+    if (tab === "sistema") {
+      loadSystem();
+      scheduleServerLogRefresh();
+    } else if (serverLogTimer) {
+      clearInterval(serverLogTimer);
+      serverLogTimer = null;
+    }
   }
 
   function init() {
@@ -911,6 +1030,18 @@
     if (btnTestEmail) btnTestEmail.addEventListener("click", testAlertEmail);
     var btnSys = document.getElementById("btnRefreshSystem");
     if (btnSys) btnSys.addEventListener("click", loadSystem);
+    var btnLogRefresh = document.getElementById("btnRefreshServerLogs");
+    if (btnLogRefresh) btnLogRefresh.addEventListener("click", loadServerLogs);
+    var btnLogCopy = document.getElementById("btnCopyServerLogs");
+    if (btnLogCopy) btnLogCopy.addEventListener("click", copyServerLogs);
+    var btnLogDl = document.getElementById("btnDownloadServerLogs");
+    if (btnLogDl) btnLogDl.addEventListener("click", downloadServerLogs);
+    var logFilter = document.getElementById("serverLogFilter");
+    if (logFilter) logFilter.addEventListener("change", loadServerLogs);
+    var logAuto = document.getElementById("serverLogAutoRefresh");
+    if (logAuto) {
+      logAuto.addEventListener("change", scheduleServerLogRefresh);
+    }
   }
 
   if (document.readyState === "loading") {

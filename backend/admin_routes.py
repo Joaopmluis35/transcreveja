@@ -227,6 +227,42 @@ def admin_errors(request: Request, limit: int = 50):
     return {"items": store.get_api_errors(limit)}
 
 
+@router.get("/server-logs")
+def admin_server_logs(
+    request: Request,
+    limit: int = 300,
+    q: str = "",
+    level: str = "",
+    fmt: str = "json",
+):
+    store.require_role(getattr(request.state, "admin_session", None), "admin")
+    from log_buffer import format_logs_text, get_memory_logs, tail_log_file
+
+    import main as app_main
+
+    items = get_memory_logs(limit=limit, q=q, level=level)
+    file_tail = tail_log_file(app_main.LOG_FILE, limit=min(limit, 400))
+    text = format_logs_text(items)
+    if file_tail:
+        text = (text + "\n\n--- últimas linhas do ficheiro ---\n" + "\n".join(file_tail)).strip()
+    if fmt == "text":
+        return PlainTextResponse(text or "(sem registos)")
+    return {
+        "items": items,
+        "file_tail": file_tail,
+        "text": text,
+        "log_file": app_main.LOG_FILE,
+    }
+
+
+@router.get("/processing-jobs")
+def admin_processing_jobs(request: Request):
+    store.require_role(getattr(request.state, "admin_session", None), "admin")
+    import main as app_main
+
+    return {"items": app_main.export_video_sub_jobs()}
+
+
 @router.get("/users")
 def admin_users(request: Request):
     store.require_role(getattr(request.state, "admin_session", None), "admin")

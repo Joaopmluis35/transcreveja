@@ -38,6 +38,7 @@ from cms import get_all_content, get_seo_overrides
 from analytics import record_visit, get_visit_stats
 import admin_store
 from admin_routes import router as admin_router
+from log_buffer import attach_memory_handler
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Setup
@@ -103,6 +104,8 @@ if not logger.handlers:
         vh = VercelHTTPHandler(VERCEL_LOG_URL, VERCEL_LOG_TOKEN, level=logging.WARNING)
         vh.setFormatter(JSONFormatter())
         logger.addHandler(vh)
+
+attach_memory_handler(logger, logging.Formatter(LOG_FORMAT, DATE_FMT))
 
 for name in ("uvicorn", "uvicorn.error", "uvicorn.access", "fastapi"):
     logging.getLogger(name).setLevel(getattr(logging, LOG_LEVEL, logging.INFO))
@@ -587,6 +590,54 @@ def safe_run_ffmpeg(cmd: list, desc: str, timeout: int = FFMPEG_TIMEOUT):
         raise
 
 
+def _fmt_elapsed(seconds: float) -> str:
+    s = max(0, int(seconds))
+    return f"{s // 60}:{s % 60:02d}"
+
+
+def safe_run_ffmpeg_with_heartbeat(
+    cmd: list,
+    desc: str,
+    timeout: int,
+    job_id: str,
+    *,
+    progress_start: int = 85,
+    progress_end: int = 96,
+    status_message: str = "A incorporar legendas no vídeo",
+) -> None:
+    """Executa FFmpeg com atualizações periódicas ao job (evita UI parada)."""
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    t0 = time.monotonic()
+    stop = threading.Event()
+
+    def heartbeat() -> None:
+        while not stop.wait(3.0):
+            elapsed = time.monotonic() - t0
+            span = max(progress_end - progress_start, 1)
+            pct = progress_start + min(span - 1, int((elapsed / max(timeout, 30)) * span))
+            _video_job_set(
+                job_id,
+                message=f"{status_message}… ({_fmt_elapsed(elapsed)} — pode demorar vários minutos)",
+                progress=pct,
+            )
+
+    hb = threading.Thread(target=heartbeat, daemon=True)
+    hb.start()
+    try:
+        _, stderr = proc.communicate(timeout=timeout)
+        if proc.returncode != 0:
+            err = (stderr or b"").decode(errors="ignore")
+            raise subprocess.CalledProcessError(proc.returncode, cmd, b"", stderr)
+        logger.info("FFmpeg OK (%s) em %.2fs", desc, time.monotonic() - t0)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.communicate()
+        logger.error("FFmpeg TIMEOUT (%s) após %.2fs", desc, time.monotonic() - t0)
+        raise
+    finally:
+        stop.set()
+
+
 def probe_media_duration_sec(path: str) -> float | None:
     if not path or not os.path.isfile(path) or not FFMPEG:
         return None
@@ -612,7 +663,14 @@ _video_sub_jobs_lock = threading.Lock()
 
 def _video_job_set(job_id: str, **kwargs) -> None:
     with _video_sub_jobs_lock:
-        job = _video_sub_jobs.setdefault(job_id, {})
+        job = _video_sub_jobs.setdefault(job_id, {"job_log": []})
+        new_msg = kwargs.get("message")
+        if new_msg and new_msg != job.get("message"):
+            job["stage_started_at"] = time.monotonic()
+            job.setdefault("job_log", []).append(
+                {"t": datetime.utcnow().strftime("%H:%M:%S"), "msg": new_msg}
+            )
+            job["job_log"] = job["job_log"][-40:]
         job.update(kwargs)
         job["updated_at"] = time.monotonic()
 
@@ -620,7 +678,25 @@ def _video_job_set(job_id: str, **kwargs) -> None:
 def _video_job_get(job_id: str) -> dict | None:
     with _video_sub_jobs_lock:
         job = _video_sub_jobs.get(job_id)
-        return dict(job) if job else None
+        if not job:
+            return None
+        out = dict(job)
+    now = time.monotonic()
+    if out.get("stage_started_at"):
+        out["stage_elapsed_sec"] = int(now - out["stage_started_at"])
+    if out.get("created_at"):
+        out["total_elapsed_sec"] = int(now - out["created_at"])
+    return out
+
+
+def export_video_sub_jobs() -> list[dict]:
+    with _video_sub_jobs_lock:
+        rows = []
+        for jid, job in _video_sub_jobs.items():
+            row = {k: v for k, v in job.items() if k != "updated_at"}
+            row["job_id"] = jid
+            rows.append(row)
+        return sorted(rows, key=lambda r: r.get("created_at", 0), reverse=True)
 
 
 def _prune_video_jobs() -> None:
@@ -1085,7 +1161,13 @@ def _execute_video_subs_job(
         ]
         warning = None
         try:
-            safe_run_ffmpeg(burn, desc="queimar-legendas", timeout=SUBS_TIMEOUT)
+            safe_run_ffmpeg_with_heartbeat(
+                burn,
+                desc="queimar-legendas",
+                timeout=SUBS_TIMEOUT,
+                job_id=job_id,
+                status_message="A incorporar legendas no vídeo",
+            )
             logger.info("[%s] [video-subs] Vídeo legendado gerado", rid)
         except Exception:
             warning = "Não foi possível embutir as legendas (FFmpeg/libass). A entregar apenas o .srt."
@@ -1215,6 +1297,8 @@ async def video_subs(
         message="Ficheiro recebido — a iniciar processamento…",
         progress=5,
         rid=rid,
+        created_at=time.monotonic(),
+        filename=file.filename or "sem_nome",
     )
     threading.Thread(
         target=_execute_video_subs_job,
