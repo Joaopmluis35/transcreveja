@@ -1162,3 +1162,166 @@ main.oe-content {
   justify-content: center;
   margin-top: 1.5rem;
 }
+
+/* Pricing / conversão */
+.oe-pricing {
+  display: grid;
+  gap: 28px;
+}
+
+.oe-pricing-hero {
+  display: grid;
+  gap: 14px;
+  padding: clamp(8px, 2vw, 16px) 0 4px;
+}
+
+.oe-pricing-eyebrow {
+  margin: 0;
+  color: var(--oe-purple-dark);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.oe-pricing-lead {
+  max-width: 760px;
+  margin: 0;
+  color: var(--oe-text-muted);
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+.oe-pricing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.oe-pricing-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+}
+
+@media (min-width: 900px) {
+  .oe-pricing-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: stretch;
+  }
+}
+
+.oe-plan-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  border: 1px solid var(--oe-border);
+  border-radius: var(--oe-radius);
+  background: #fff;
+  box-shadow: var(--oe-shadow-sm);
+}
+
+.oe-plan-card--featured {
+  border: 2px solid var(--oe-purple);
+  box-shadow: 0 18px 46px rgba(124, 58, 237, 0.18);
+}
+
+.oe-plan-card__head {
+  display: grid;
+  gap: 6px;
+}
+
+.oe-plan-card__badge {
+  width: fit-content;
+  margin: 0;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #ede9fe;
+  color: var(--oe-purple-dark);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.oe-plan-card h2 {
+  margin: 0;
+  color: var(--oe-text);
+  font-size: 1.35rem;
+}
+
+.oe-plan-card__price {
+  margin: 0;
+  color: var(--oe-purple-dark);
+  font-size: 1.45rem;
+  font-weight: 900;
+}
+
+.oe-plan-card__desc {
+  margin: 0;
+  color: var(--oe-text-muted);
+  line-height: 1.6;
+}
+
+.oe-plan-card ul,
+.oe-pricing-proof ul {
+  margin: 0;
+  padding-left: 1.15rem;
+  color: var(--oe-text);
+  line-height: 1.75;
+}
+
+.oe-plan-card__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: auto;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: var(--oe-gradient);
+  color: #fff;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.oe-plan-card__cta:hover {
+  filter: brightness(0.96);
+  transform: translateY(-1px);
+}
+
+.oe-pricing-proof {
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+  border-radius: var(--oe-radius);
+  background: #f8fafc;
+  border: 1px solid var(--oe-border);
+}
+
+@media (min-width: 800px) {
+  .oe-pricing-proof {
+    grid-template-columns: minmax(0, 1.1fr) minmax(260px, 0.9fr);
+    align-items: start;
+  }
+}
+
+.oe-pricing-proof h2,
+.oe-pricing-faq h2 {
+  margin-top: 0;
+  color: var(--oe-purple-dark);
+}
+
+.oe-pricing-proof p {
+  margin: 0;
+  color: var(--oe-text-muted);
+  line-height: 1.7;
+}
+
+.oe-pricing-faq h3 {
+  margin: 1.35rem 0 0.35rem;
+  color: var(--oe-text);
+  font-size: 1rem;
+}
