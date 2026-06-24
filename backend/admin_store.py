@@ -586,7 +586,7 @@ def get_active_banner() -> dict | None:
             """,
             (now, now),
         ).fetchone()
-        return dict(row) if row else None
+        return row_to_dict(row) if row else None
     finally:
         conn.close()
 

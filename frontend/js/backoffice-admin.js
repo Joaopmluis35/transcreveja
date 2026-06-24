@@ -92,6 +92,7 @@
   function renderDashboardAlerts(data) {
     var box = document.getElementById("dashboardAlerts");
     if (!box) return;
+    var alerts = [];
     var unread = data.sugestoes_nao_lidas || 0;
     if (unread > 0) {
       alerts.push({
