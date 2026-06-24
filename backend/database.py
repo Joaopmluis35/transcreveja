@@ -4,6 +4,7 @@ from __future__ import annotations
 import logging
 import os
 import sqlite3
+from collections.abc import Iterator, KeysView
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -33,11 +34,29 @@ def db_path() -> str:
     return DB_PATH
 
 
-class _RowDescriptionCursor:
-    """Shim mínimo para construir sqlite3.Row a partir de tuplos libsql."""
+class _DictRow:
+    """Linha estilo sqlite3.Row para resultados libsql (nome ou índice)."""
 
-    def __init__(self, description):
-        self.description = description
+    __slots__ = ("_columns", "_values", "_map")
+
+    def __init__(self, columns: list[str], values: tuple[Any, ...]):
+        self._columns = columns
+        self._values = values
+        self._map = dict(zip(columns, values))
+
+    def __getitem__(self, key: int | str) -> Any:
+        if isinstance(key, int):
+            return self._values[key]
+        return self._map[key]
+
+    def __iter__(self) -> Iterator[Any]:
+        return iter(self._values)
+
+    def __len__(self) -> int:
+        return len(self._values)
+
+    def keys(self) -> KeysView[str]:
+        return self._map.keys()
 
 
 class _TursoCursor:
@@ -82,11 +101,14 @@ class _TursoConnection:
 def _as_sqlite_row(cur: _TursoCursor, row: Any) -> Any:
     if row is None:
         return None
-    if hasattr(row, "keys"):
+    if hasattr(row, "keys") and not isinstance(row, (tuple, list)):
         return row
     if not cur.description:
         return row
-    return sqlite3.Row(_RowDescriptionCursor(cur.description), tuple(row))
+    columns = [col[0] for col in cur.description]
+    if isinstance(row, dict):
+        return _DictRow(columns, tuple(row.get(c) for c in columns))
+    return _DictRow(columns, tuple(row))
 
 
 def _ensure_db_dir() -> None:
