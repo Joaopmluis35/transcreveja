@@ -247,6 +247,15 @@
     if (chartCloudflare) { chartCloudflare.destroy(); chartCloudflare = null; }
   }
 
+  function apiErrorDetail(data) {
+    var d = data && data.detail;
+    if (typeof d === "string") return d;
+    if (Array.isArray(d)) {
+      return d.map(function (x) { return (x && x.msg) || x; }).join(" ");
+    }
+    return (data && data.error) || "Falha no envio";
+  }
+
   async function testAlertEmail() {
     try {
       var res = await fetch(apiBase() + "/api/admin/test-alert-email", {
@@ -254,9 +263,9 @@
         headers: authHeaders(),
       });
       var data = await res.json().catch(function () { return {}; });
-      if (!res.ok) throw new Error(data.detail || "Falha no envio");
+      if (!res.ok) throw new Error(apiErrorDetail(data));
       global.OuviescreviUI.toast("Email de teste enviado para " + (data.to || "destinatário") + ".", "success");
-      loadEmailLogs();
+      loadEmails();
     } catch (e) {
       global.OuviescreviUI.toast(e.message || "Erro ao enviar email de teste.", "error");
     }
@@ -269,9 +278,9 @@
         headers: authHeaders(),
       });
       var data = await res.json().catch(function () { return {}; });
-      if (!res.ok) throw new Error(data.detail || "Falha no envio");
+      if (!res.ok) throw new Error(apiErrorDetail(data));
       global.OuviescreviUI.toast("Notificação de atividade enviada para " + (data.to || "destinatário") + ".", "success");
-      loadEmailLogs();
+      loadEmails();
     } catch (e) {
       global.OuviescreviUI.toast(e.message || "Erro ao enviar notificação de teste.", "error");
     }
@@ -314,8 +323,8 @@
       {
         cls: status.smtp_configured ? "oe-admin-card--blue" : "oe-admin-card--purple",
         label: "SMTP",
-        value: status.smtp_configured ? "Ativo" : "Inativo",
-        sub: "Pode estar bloqueado no Render",
+        value: status.smtp_configured ? (status.smtp_fallback ? "Ativo" : "Ignorado") : "Inativo",
+        sub: status.smtp_fallback ? "Pode estar bloqueado no Render" : "Só Resend (fallback desativado)",
       },
       {
         cls: "oe-admin-card--blue",
@@ -337,6 +346,20 @@
     var hint = document.getElementById("emailEnvHint");
     if (hint && status.render_hint) {
       hint.textContent = status.render_hint;
+    }
+    var failBox = document.getElementById("emailLastFailure");
+    if (failBox) {
+      var lf = status.last_failure;
+      if (lf && lf.status === "failed") {
+        failBox.hidden = false;
+        failBox.innerHTML =
+          "<strong>Último envio falhou</strong> (" + (lf.created_at || "—") + "): " +
+          (lf.detail || "sem detalhe") +
+          (lf.recipient ? " → " + lf.recipient : "");
+      } else {
+        failBox.hidden = true;
+        failBox.textContent = "";
+      }
     }
   }
 
@@ -363,7 +386,7 @@
               row.recipient || "—",
               row.subject || "—",
               emailStatusLabel(row.status),
-              (row.detail || row.actor || "—").toString().slice(0, 80),
+              (row.detail || row.actor || "—").toString().slice(0, 200),
             ];
           })
         )
@@ -394,7 +417,7 @@
   async function saveEmailConfig(e) {
     e.preventDefault();
     var updates = {
-      alert_email_to: document.getElementById("emailCfgTo").value.trim(),
+      alert_email_to: document.getElementById("emailCfgTo").value.trim().replace(/\s+/g, ""),
       notify_activity_enabled: document.getElementById("emailCfgActivity").checked ? "1" : "0",
       alert_email_enabled: document.getElementById("emailCfgAlerts").checked ? "1" : "0",
       alert_transcriptions_daily: document.getElementById("emailCfgTransLimit").value,
@@ -983,6 +1006,8 @@
         var cdata = await cres.json();
         var cfg = cdata.config || {};
         setField("cfgMaxMb", cfg.max_file_size_mb || "");
+        setField("cfgQuotaAnon", cfg.quota_anonymous_daily || "3");
+        setField("cfgQuotaReg", cfg.quota_registered_daily || "20");
         setField("cfgWhisperCost", cfg.whisper_cost_per_minute_usd || "0.006");
         setField("cfgCfZone", cfg.cloudflare_zone_id || "");
         setField("cfgCfToken", "");
@@ -1082,6 +1107,8 @@
     e.preventDefault();
     var updates = {
       max_file_size_mb: document.getElementById("cfgMaxMb").value,
+      quota_anonymous_daily: document.getElementById("cfgQuotaAnon").value,
+      quota_registered_daily: document.getElementById("cfgQuotaReg").value,
       whisper_cost_per_minute_usd: document.getElementById("cfgWhisperCost").value,
       cloudflare_zone_id: document.getElementById("cfgCfZone").value,
     };

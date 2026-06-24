@@ -165,6 +165,7 @@ SUBS_BURN_MAX_WIDTH = int(os.getenv("SUBS_BURN_MAX_WIDTH", "1280"))
 SUBS_BURN_SEC_PER_SEC = float(os.getenv("SUBS_BURN_SEC_PER_SEC", "1.0"))
 SUBS_TRANSCRIBE_SEC_PER_SEC = float(os.getenv("SUBS_TRANSCRIBE_SEC_PER_SEC", "0.25"))
 VIDEO_CLEANUP_MAX_AGE_HOURS = float(os.getenv("VIDEO_CLEANUP_MAX_AGE_HOURS", "36"))
+UPLOAD_CLEANUP_MAX_AGE_HOURS = float(os.getenv("UPLOAD_CLEANUP_MAX_AGE_HOURS", "2"))
 
 # Modelos
 SUM_MODEL = os.getenv("SUM_MODEL", "gpt-4o-mini")
@@ -204,7 +205,7 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 @app.on_event("startup")
 def _on_startup() -> None:
-    threading.Thread(target=_cleanup_old_video_files, daemon=True).start()
+    threading.Thread(target=_run_startup_cleanup, daemon=True).start()
 
 
 @app.middleware("http")
@@ -389,6 +390,64 @@ def activity_actor_label(request: Request) -> str:
     return "anónimo"
 
 
+def _transcription_has_content(transcription: str, formatted: str) -> bool:
+    texto = (transcription or "").strip()
+    if texto:
+        return True
+    formatado = (formatted or "").strip()
+    if not formatado:
+        return False
+    if re.search(r"\[Falha no segmento\]", formatado, re.I):
+        return False
+    return True
+
+
+def enforce_transcribe_quota(request: Request) -> dict:
+    actor = resolve_site_actor(request)
+    status = admin_store.transcribe_quota_status(request, actor)
+    if not status.get("unlimited") and status.get("remaining", 1) <= 0:
+        raise HTTPException(status_code=429, detail=status.get("message", "Limite diário atingido."))
+    return status
+
+
+def record_transcribe_success(
+    request: Request | None = None,
+    *,
+    actor: dict | None = None,
+    usage_key: str | None = None,
+    filename: str | None = None,
+    language: str | None = None,
+    size_bytes: int | None = None,
+    duration_sec: float | None = None,
+    transcription: str = "",
+    formatted: str = "",
+) -> None:
+    if actor is None and request is not None:
+        actor = resolve_site_actor(request)
+    actor = actor or {"type": "anonymous"}
+    if usage_key is None and request is not None:
+        usage_key, _tier = admin_store.usage_key_for_request(request, actor)
+    try:
+        if usage_key:
+            admin_store.increment_daily_transcribe(usage_key)
+    except Exception as exc:
+        logger.warning("Falha ao registar quota diária: %s", exc)
+    if actor.get("type") != "user" or not (transcription or formatted).strip():
+        return
+    try:
+        admin_store.save_user_transcription(
+            actor["email"],
+            filename=filename,
+            language=language,
+            size_bytes=size_bytes,
+            duration_sec=duration_sec,
+            transcription=transcription,
+            formatted=formatted,
+        )
+    except Exception as exc:
+        logger.warning("Falha ao guardar histórico do utilizador: %s", exc)
+
+
 def maybe_notify_activity(
     request: Request | None,
     mensagem: str,
@@ -418,9 +477,9 @@ def maybe_notify_activity(
     def _send() -> None:
         from email_notify import send_notification_email
 
-        ok = send_notification_email(mensagem, assunto, kind="activity", actor=label)
+        ok, err = send_notification_email(mensagem, assunto, kind="activity", actor=label)
         if not ok:
-            logger.warning("Falha ao enviar notificação: %s", assunto)
+            logger.warning("Falha ao enviar notificação: %s — %s", assunto, err)
 
     threading.Thread(target=_send, daemon=True).start()
 
@@ -862,6 +921,47 @@ def _cleanup_old_video_files() -> int:
     return removed
 
 
+def _cleanup_temp_uploads() -> int:
+    """Remove ficheiros temporários órfãos (uploads de transcrição/legendas)."""
+    tmp = tempfile.gettempdir()
+    max_age = UPLOAD_CLEANUP_MAX_AGE_HOURS * 3600
+    now = time.time()
+    removed = 0
+    prefixes = ("input_", "audio_", "subs_", "vid_", "split_")
+    try:
+        for name in os.listdir(tmp):
+            path = os.path.join(tmp, name)
+            try:
+                if name.startswith("split_") and os.path.isdir(path):
+                    if now - os.path.getmtime(path) > max_age:
+                        shutil.rmtree(path, ignore_errors=True)
+                        removed += 1
+                    continue
+                if not os.path.isfile(path):
+                    continue
+                if not name.startswith(prefixes):
+                    continue
+                if now - os.path.getmtime(path) > max_age:
+                    os.remove(path)
+                    removed += 1
+            except Exception:
+                pass
+    except Exception as exc:
+        logger.warning("Limpeza de temporários falhou: %s", exc)
+    if removed:
+        logger.info(
+            "Limpeza uploads temporários: %d item(ns) (>%.1fh)",
+            removed,
+            UPLOAD_CLEANUP_MAX_AGE_HOURS,
+        )
+    return removed
+
+
+def _run_startup_cleanup() -> None:
+    _cleanup_old_video_files()
+    _cleanup_temp_uploads()
+
+
 def _build_burn_subtitles_cmd(
     video_path: str,
     srt_path: str,
@@ -1146,8 +1246,10 @@ def site_login(req: SiteLoginRequest, request: Request):
 def site_me(request: Request):
     actor = resolve_site_actor(request)
     if actor["type"] == "anonymous":
-        return {"loggedIn": False}
+        quota = admin_store.transcribe_quota_status(request, actor)
+        return {"loggedIn": False, "quota": quota}
     out = {"loggedIn": True, "type": actor["type"]}
+    out["quota"] = admin_store.transcribe_quota_status(request, actor)
     if actor["type"] == "user":
         out["email"] = actor.get("email")
         out["isStaff"] = False
@@ -1156,6 +1258,42 @@ def site_me(request: Request):
         out["role"] = actor.get("role")
         out["isStaff"] = True
     return out
+
+
+@app.get("/api/usage")
+def api_usage(request: Request):
+    actor = resolve_site_actor(request)
+    return admin_store.transcribe_quota_status(request, actor)
+
+
+@app.get("/api/auth/history")
+def user_history(request: Request, limit: int = 30, offset: int = 0):
+    actor = resolve_site_actor(request)
+    if actor["type"] != "user":
+        raise HTTPException(status_code=403, detail="Inicia sessão para ver o histórico.")
+    items = admin_store.list_user_transcriptions(actor["email"], limit=limit, offset=offset)
+    return {"items": items}
+
+
+@app.get("/api/auth/history/{item_id}")
+def user_history_item(request: Request, item_id: int):
+    actor = resolve_site_actor(request)
+    if actor["type"] != "user":
+        raise HTTPException(status_code=403, detail="Inicia sessão para ver o histórico.")
+    row = admin_store.get_user_transcription(actor["email"], item_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Transcrição não encontrada.")
+    return row
+
+
+@app.delete("/api/auth/history/{item_id}")
+def user_history_delete(request: Request, item_id: int):
+    actor = resolve_site_actor(request)
+    if actor["type"] != "user":
+        raise HTTPException(status_code=403, detail="Inicia sessão para apagar do histórico.")
+    if not admin_store.delete_user_transcription(actor["email"], item_id):
+        raise HTTPException(status_code=404, detail="Transcrição não encontrada.")
+    return {"ok": True}
 
 
 class AdminLoginRequest(BaseModel):
@@ -1245,6 +1383,7 @@ async def transcribe(
 ):
     require_api_token(request, token)
     require_not_maintenance()
+    enforce_transcribe_quota(request)
     enforce_rate_limit(request, "transcribe", RATE_LIMIT_TRANSCRIBE, RATE_LIMIT_TRANSCRIBE_WINDOW)
     rid = str(uuid.uuid4())
     t_start = time.monotonic()
@@ -1308,6 +1447,7 @@ async def transcribe(
         failed_segments = 0
         processed_segments = 0
         quota_exceeded = False
+        duration_sec = None
 
         for idx, part in enumerate(parts):
             if (time.monotonic() - t_start) > TOTAL_TRANSCRIBE_TIMEOUT:
@@ -1376,6 +1516,17 @@ async def transcribe(
         if watchdog_hit:
             payload["warning"] = (payload.get("warning", "") + " " if payload.get("warning") else "") + "Tempo total excedido (parcial devolvido)."
 
+        if _transcription_has_content(transcription_out, formatted_out):
+            record_transcribe_success(
+                request,
+                filename=file.filename,
+                language=whisper_lang,
+                size_bytes=written,
+                duration_sec=duration_sec,
+                transcription=transcription_out,
+                formatted=formatted_out,
+            )
+
         dur_total = time.monotonic() - t_start
         logger.info("[%s] FIM transcribe em %.2fs | processed=%d failed=%d watchdog=%s", rid, dur_total, processed_segments, failed_segments, watchdog_hit)
         return payload
@@ -1413,6 +1564,8 @@ def _execute_video_subs_job(
     burn_mp4: bool,
     notify_email: bool,
     actor_label: str,
+    actor_snapshot: dict | None = None,
+    usage_key: str | None = None,
 ) -> None:
     audio_wav_path = os.path.join(tempfile.gettempdir(), f"subs_{uuid.uuid4()}.wav")
     split_dir = tempfile.mkdtemp(prefix="subs_split_")
@@ -1502,6 +1655,17 @@ def _execute_video_subs_job(
         if not burn_mp4:
             processing_ms = round((time.monotonic() - t_start) * 1000)
             _video_job_set(job_id, processing_ms=processing_ms)
+            if _transcription_has_content(transcription, formatted):
+                record_transcribe_success(
+                    actor=actor_snapshot,
+                    usage_key=usage_key,
+                    filename=f"{filename} [legendado]",
+                    language=whisper_lang,
+                    size_bytes=written,
+                    duration_sec=duration_sec,
+                    transcription=transcription,
+                    formatted=formatted,
+                )
             _schedule_video_subs_notify(
                 rid, filename, whisper_lang, written, duration_sec, t_start,
                 notify_email=notify_email, actor_label=actor_label,
@@ -1553,6 +1717,17 @@ def _execute_video_subs_job(
         if failed_segments:
             result["note"] = f"Alguns segmentos falharam ({failed_segments})."
         _video_job_set(job_id, **result)
+        if _transcription_has_content(transcription, formatted):
+            record_transcribe_success(
+                actor=actor_snapshot,
+                usage_key=usage_key,
+                filename=f"{filename} [legendado]",
+                language=whisper_lang,
+                size_bytes=written,
+                duration_sec=duration_sec,
+                transcription=transcription,
+                formatted=formatted,
+            )
         _schedule_video_subs_notify(
             rid, filename, whisper_lang, written, duration_sec, t_start,
             notify_email=notify_email, actor_label=actor_label,
@@ -1627,12 +1802,16 @@ async def video_subs(
     language: str | None = Form(None),
 ):
     require_api_token(request, token)
+    require_not_maintenance()
+    enforce_transcribe_quota(request)
     enforce_rate_limit(request, "video-subs", RATE_LIMIT_VIDEO_SUBS, RATE_LIMIT_VIDEO_SUBS_WINDOW)
     whisper_lang = resolve_whisper_language(language)
     want_burn_mp4 = str(burn_mp4 or "true").strip().lower() not in ("0", "false", "no", "off")
+    actor = resolve_site_actor(request)
+    usage_key, _tier = admin_store.usage_key_for_request(request, actor)
     notify_email = should_notify_activity(request)
     actor_label = activity_actor_label(request)
-    threading.Thread(target=_cleanup_old_video_files, daemon=True).start()
+    threading.Thread(target=_run_startup_cleanup, daemon=True).start()
     """
     Upload de vídeo → resposta imediata com job_id → processamento em segundo plano.
     Consultar GET /video-subs/jobs/{job_id} até status=completed.
@@ -1692,7 +1871,7 @@ async def video_subs(
         args=(
             job_id, rid, tmp_video, file.filename or "sem_nome",
             whisper_lang, written, t_start, style, want_burn_mp4,
-            notify_email, actor_label,
+            notify_email, actor_label, dict(actor), usage_key,
         ),
         daemon=True,
     ).start()
@@ -2047,13 +2226,13 @@ def test_email(request: Request):
     require_admin_token(request)
     from email_notify import send_notification_email
 
-    ok = send_notification_email(
+    ok, err = send_notification_email(
         "Teste de envio do Ouviescrevi.\n\nSe recebeste isto, as notificações estão a funcionar.",
         "Teste de notificação Ouviescrevi",
     )
     if not ok:
         raise HTTPException(
             status_code=502,
-            detail="Falha ao enviar. No Render usa RESEND_API_KEY (SMTP costuma estar bloqueado).",
+            detail=err or "Falha ao enviar. No Render usa RESEND_API_KEY (SMTP costuma estar bloqueado).",
         )
     return {"status": "ok", "sent": True}

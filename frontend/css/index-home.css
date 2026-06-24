@@ -1261,3 +1261,116 @@ body.oe-page--home .oe-seo-features {
   display: inline-block;
   line-height: 1.8;
 }
+
+body.oe-page--home .oe-quota-badge {
+  max-width: 720px;
+  margin: 0 auto 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(165, 80, 247, 0.12);
+  border: 1px solid rgba(165, 80, 247, 0.35);
+  color: #e8d9ff;
+  font-size: 0.92rem;
+  text-align: center;
+}
+
+body.oe-page--home .oe-quota-badge--warn {
+  background: rgba(234, 88, 12, 0.15);
+  border-color: rgba(234, 88, 12, 0.45);
+  color: #ffd7c2;
+}
+
+body.oe-page--home .oe-history-panel {
+  max-width: 720px;
+  margin: 20px auto 28px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: rgba(15, 15, 25, 0.55);
+  border: 1px solid rgba(165, 80, 247, 0.25);
+}
+
+body.oe-page--home .oe-history-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+body.oe-page--home .oe-history-panel__title {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #f3e8ff;
+}
+
+body.oe-page--home .oe-history-panel__refresh {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: #ddd;
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+body.oe-page--home .oe-history-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+body.oe-page--home .oe-history-item {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+
+body.oe-page--home .oe-history-item__open {
+  flex: 1;
+  text-align: left;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  color: inherit;
+}
+
+body.oe-page--home .oe-history-item__name {
+  display: block;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 2px;
+}
+
+body.oe-page--home .oe-history-item__meta {
+  display: block;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+body.oe-page--home .oe-history-item__preview {
+  display: block;
+  font-size: 0.82rem;
+  opacity: 0.85;
+  margin-top: 4px;
+}
+
+body.oe-page--home .oe-history-item__del {
+  width: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.2);
+  color: #f88;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+body.oe-page--home .oe-history-empty,
+body.oe-page--home .oe-history-loading {
+  margin: 0;
+  opacity: 0.8;
+  font-size: 0.9rem;
+}

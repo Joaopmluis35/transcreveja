@@ -367,6 +367,7 @@
         <div id="emailStatusCards" class="oe-admin-health-grid" aria-live="polite">
           <p class="oe-admin-empty">A carregar estado do email…</p>
         </div>
+        <div id="emailLastFailure" class="oe-admin-alert oe-admin-alert--warn" hidden role="alert" style="margin:12px 0"></div>
 
         <div class="oe-admin-panel">
           <div class="oe-admin-panel__head oe-admin-panel__head--row">
@@ -452,6 +453,8 @@
           <div class="oe-admin-panel__body">
             <form id="configForm" class="oe-admin-form">
               <div class="oe-admin-field"><label>Limite ficheiro (MB) — vazio = env</label><input name="max_file_size_mb" id="cfgMaxMb"></div>
+              <div class="oe-admin-field"><label>Quota anónimos / dia</label><input name="quota_anonymous_daily" id="cfgQuotaAnon" type="number" min="0" step="1"></div>
+              <div class="oe-admin-field"><label>Quota registados / dia</label><input name="quota_registered_daily" id="cfgQuotaReg" type="number" min="0" step="1"></div>
               <div class="oe-admin-field"><label>Custo Whisper USD/min</label><input name="whisper_cost_per_minute_usd" id="cfgWhisperCost"></div>
               <div class="oe-admin-field"><label>Cloudflare Zone ID</label><input name="cloudflare_zone_id" id="cfgCfZone"></div>
               <div class="oe-admin-field"><label>Cloudflare API Token</label><input name="cloudflare_api_token" id="cfgCfToken" type="password"></div>

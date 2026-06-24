@@ -116,6 +116,16 @@
     </form>
 
     <div id="uploadAlert" class="oe-upload-alert hidden" role="alert"></div>
+    <p id="quotaBadge" class="oe-quota-badge hidden" aria-live="polite"></p>
+
+    <section id="historyPanel" class="oe-history-panel hidden" aria-labelledby="historyPanelTitle">
+      <header class="oe-history-panel__head">
+        <h2 id="historyPanelTitle" class="oe-history-panel__title">As tuas transcrições</h2>
+        <button type="button" id="btnRefreshHistory" class="oe-history-panel__refresh">Atualizar</button>
+      </header>
+      <ul id="historyList" class="oe-history-list" aria-live="polite"></ul>
+      <p id="historyEmpty" class="oe-history-empty hidden">Ainda não tens transcrições guardadas nesta conta.</p>
+    </section>
 
     <div id="subtitlePanelWrap" class="oe-subtitle-wrap hidden" aria-live="polite">
       <section id="subtitlePanel" class="oe-subtitle-panel">
@@ -392,6 +402,7 @@
 <script src="/js/ouviescrevi-seo.js"></script>
 <script src="js/ouviescrevi-ui.js?v=2"></script>
 <script src="js/ouviescrevi-api.js"></script>
+<script src="js/history-ui.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
   const ADMIN_EMAIL = "admin@ouviescrevi.pt";
@@ -422,7 +433,10 @@
     }
   }
 
-  document.addEventListener("DOMContentLoaded", loadSiteContent);
+  document.addEventListener("DOMContentLoaded", function () {
+    loadSiteContent();
+    if (window.OuviescreviHistory) window.OuviescreviHistory.init();
+  });
 
   let mediaRecorder;
   let audioChunks = [];
@@ -498,8 +512,11 @@
     return true;
   }
 
-  function mensagemErroTranscricao(data, file){
+  function mensagemErroTranscricao(data, file, httpStatus){
     const hint = [data.warning, data.error, data.detail].filter(Boolean).join(" ");
+    if (httpStatus === 429 || /limite diário/i.test(hint)) {
+      return "🚫 " + (data.detail || hint || "Limite diário de transcrições atingido. Cria uma conta gratuita para mais transcrições por dia.");
+    }
     if (/insufficient_quota|exceeded your current quota|sem créditos/i.test(hint)) {
       return "💳 A conta OpenAI não tem créditos ativos. Adiciona um método de pagamento em https://platform.openai.com/settings/organization/billing e tenta novamente.";
     }
@@ -577,6 +594,7 @@
     transcriptionText.value = texto || "";
     atualizarMetaTranscricao();
   }
+  window.definirTranscricao = definirTranscricao;
   const statusEl = document.getElementById("transcricaoStatus");
   const btnTranscrever = document.getElementById("btnTranscrever");
   const btnStartRec = document.getElementById("btnStartRec");
@@ -763,6 +781,7 @@
 
     let sucesso = false;
     let data = {};
+    let lastHttpStatus = 0;
     const MAX_TRIES = 3;
 
     for (let tentativa = 1; tentativa <= MAX_TRIES && !sucesso; tentativa++){
@@ -785,10 +804,15 @@
         clearTimeout(to);
 
         let jsonText = await res.text();
+        lastHttpStatus = res.status;
         try{ data = JSON.parse(jsonText); } catch{ data = { error: `Resposta inválida do servidor (${res.status})` }; }
         if (!res.ok) {
           if (res.status === 413) {
             data = { detail: data.detail || data.error || `Ficheiro > ${getMaxFileMb()}MB.` };
+            break;
+          }
+          if (res.status === 429) {
+            data = { detail: data.detail || data.error || "Limite diário atingido." };
             break;
           }
           throw new Error(data.error || data.detail || `Erro ${res.status}`);
@@ -815,8 +839,9 @@
       definirTranscricao(textoFinal);
       output.classList.remove("hidden");
       statusEl.textContent = "✅ Transcrição concluída com sucesso!";
+      if (window.OuviescreviHistory) window.OuviescreviHistory.refresh();
     } else {
-      const msg = mensagemErroTranscricao(data, file);
+      const msg = mensagemErroTranscricao(data, file, lastHttpStatus);
       if (erroDeTamanho(msg)) {
         mostrarAlertaUpload(msg);
         output.classList.add("hidden");

@@ -6,6 +6,7 @@ import hashlib
 import io
 import json
 import os
+import re
 import secrets
 import sqlite3
 from datetime import date, datetime, timedelta
@@ -24,6 +25,8 @@ DEFAULT_CONFIG: dict[str, str] = {
     "notify_activity_enabled": "1",
     "alert_transcriptions_daily": "50",
     "alert_visits_daily": "500",
+    "quota_anonymous_daily": "3",
+    "quota_registered_daily": "20",
     "cloudflare_zone_id": "",
     "cloudflare_api_token": "",
     "whisper_cost_per_minute_usd": "0.006",
@@ -204,6 +207,211 @@ def authenticate_site_user(email: str, password: str) -> dict[str, str] | None:
         conn.close()
 
 
+def _usage_day() -> str:
+    return date.today().isoformat()
+
+
+def _quota_limits() -> tuple[int, int]:
+    cfg = get_config()
+    anon = int(cfg.get("quota_anonymous_daily") or os.getenv("QUOTA_ANONYMOUS_DAILY", "3") or "0")
+    reg = int(cfg.get("quota_registered_daily") or os.getenv("QUOTA_REGISTERED_DAILY", "20") or "0")
+    return max(0, anon), max(0, reg)
+
+
+def usage_key_for_request(request, actor: dict) -> tuple[str, str]:
+    """Retorna (usage_key, tier) onde tier é anonymous|registered|staff."""
+    actor_type = actor.get("type", "anonymous")
+    if actor_type == "admin":
+        return "", "staff"
+    if actor_type == "user":
+        email = (actor.get("email") or actor.get("username") or "").strip().lower()
+        return f"user:{email}", "registered"
+    from security import client_ip
+
+    ip = client_ip(request)
+    digest = hashlib.sha256(ip.encode("utf-8")).hexdigest()[:32]
+    return f"anon:{digest}", "anonymous"
+
+
+def get_daily_transcribe_count(usage_key: str) -> int:
+    if not usage_key:
+        return 0
+    conn = get_connection()
+    try:
+        row = conn.execute(
+            "SELECT transcribe_count FROM daily_usage WHERE usage_key = ? AND usage_day = ?",
+            (usage_key, _usage_day()),
+        ).fetchone()
+        return int(row["transcribe_count"]) if row else 0
+    finally:
+        conn.close()
+
+
+def increment_daily_transcribe(usage_key: str) -> int:
+    if not usage_key:
+        return 0
+    now = _now()
+    day = _usage_day()
+    conn = get_connection()
+    try:
+        conn.execute(
+            """
+            INSERT INTO daily_usage (usage_key, usage_day, transcribe_count, updated_at)
+            VALUES (?, ?, 1, ?)
+            ON CONFLICT(usage_key, usage_day) DO UPDATE SET
+                transcribe_count = transcribe_count + 1,
+                updated_at = excluded.updated_at
+            """,
+            (usage_key, day, now),
+        )
+        conn.commit()
+        row = conn.execute(
+            "SELECT transcribe_count FROM daily_usage WHERE usage_key = ? AND usage_day = ?",
+            (usage_key, day),
+        ).fetchone()
+        return int(row["transcribe_count"]) if row else 1
+    finally:
+        conn.close()
+
+
+def transcribe_quota_status(request, actor: dict) -> dict:
+    anon_limit, reg_limit = _quota_limits()
+    actor_type = actor.get("type", "anonymous")
+    if actor_type == "admin":
+        return {
+            "tier": "staff",
+            "limit": 0,
+            "used": 0,
+            "remaining": None,
+            "unlimited": True,
+        }
+    usage_key, tier = usage_key_for_request(request, actor)
+    limit = reg_limit if tier == "registered" else anon_limit
+    used = get_daily_transcribe_count(usage_key)
+    if limit <= 0:
+        return {
+            "tier": tier,
+            "limit": 0,
+            "used": used,
+            "remaining": None,
+            "unlimited": True,
+        }
+    remaining = max(0, limit - used)
+    out = {
+        "tier": tier,
+        "limit": limit,
+        "used": used,
+        "remaining": remaining,
+        "unlimited": False,
+    }
+    if remaining <= 0:
+        if tier == "anonymous":
+            out["message"] = (
+                f"Limite diário atingido ({limit} transcrições). "
+                "Cria uma conta gratuita para mais transcrições por dia."
+            )
+        else:
+            out["message"] = f"Limite diário atingido ({limit} transcrições). Tenta amanhã."
+    return out
+
+
+def save_user_transcription(
+    user_email: str,
+    *,
+    filename: str | None = None,
+    language: str | None = None,
+    size_bytes: int | None = None,
+    duration_sec: float | None = None,
+    transcription: str | None = None,
+    formatted: str | None = None,
+) -> int:
+    email = user_email.strip().lower()
+    now = _now()
+    text = (transcription or "")[:200_000] or None
+    fmt = (formatted or "")[:200_000] or None
+    conn = get_connection()
+    try:
+        cur = conn.execute(
+            """
+            INSERT INTO user_transcriptions (
+                user_email, filename, language, size_bytes, duration_sec,
+                transcription, formatted, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (email, filename, language, size_bytes, duration_sec, text, fmt, now),
+        )
+        new_id = int(cur.lastrowid)
+        rows = conn.execute(
+            "SELECT id FROM user_transcriptions WHERE user_email = ? ORDER BY id DESC",
+            (email,),
+        ).fetchall()
+        if len(rows) > 100:
+            drop_ids = [int(r["id"]) for r in rows[100:]]
+            placeholders = ",".join("?" * len(drop_ids))
+            conn.execute(
+                f"DELETE FROM user_transcriptions WHERE id IN ({placeholders})",
+                drop_ids,
+            )
+        conn.commit()
+        return new_id
+    finally:
+        conn.close()
+
+
+def list_user_transcriptions(user_email: str, *, limit: int = 30, offset: int = 0) -> list[dict]:
+    limit = max(1, min(limit, 100))
+    offset = max(0, offset)
+    email = user_email.strip().lower()
+    conn = get_connection()
+    try:
+        rows = conn.execute(
+            """
+            SELECT id, filename, language, size_bytes, duration_sec, created_at,
+                   substr(COALESCE(formatted, transcription, ''), 1, 160) AS preview
+            FROM user_transcriptions
+            WHERE user_email = ?
+            ORDER BY id DESC
+            LIMIT ? OFFSET ?
+            """,
+            (email, limit, offset),
+        ).fetchall()
+        return [row_to_dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+def get_user_transcription(user_email: str, item_id: int) -> dict | None:
+    email = user_email.strip().lower()
+    conn = get_connection()
+    try:
+        row = conn.execute(
+            """
+            SELECT id, filename, language, size_bytes, duration_sec,
+                   transcription, formatted, created_at
+            FROM user_transcriptions
+            WHERE user_email = ? AND id = ?
+            """,
+            (email, item_id),
+        ).fetchone()
+        return row_to_dict(row) if row else None
+    finally:
+        conn.close()
+
+
+def delete_user_transcription(user_email: str, item_id: int) -> bool:
+    email = user_email.strip().lower()
+    conn = get_connection()
+    try:
+        cur = conn.execute(
+            "DELETE FROM user_transcriptions WHERE user_email = ? AND id = ?",
+            (email, item_id),
+        )
+        conn.commit()
+        return cur.rowcount > 0
+    finally:
+        conn.close()
+
+
 def list_users() -> list[dict]:
     conn = get_connection()
     try:
@@ -252,6 +460,8 @@ def get_config() -> dict[str, str]:
 
 def set_config(updates: dict[str, str], actor: str = "admin") -> dict[str, str]:
     now = _now()
+    if "alert_email_to" in updates:
+        updates["alert_email_to"] = re.sub(r"\s+", "", (updates.get("alert_email_to") or "").strip())
     conn = get_connection()
     try:
         for key, value in updates.items():
@@ -582,7 +792,7 @@ def send_test_alert_email(actor: str = "admin") -> dict[str, str]:
     to = get_config().get("alert_email_to") or notify_email_to()
     if not to:
         return {"ok": False, "error": "Configure o email de destino no separador Emails."}
-    ok = send_notification_email(
+    ok, err = send_notification_email(
         f"Email de teste enviado pelo backoffice ({actor}). "
         "Se recebeste isto, os alertas por email estão configurados corretamente.",
         "Teste de alertas — Ouviescrevi",
@@ -595,7 +805,7 @@ def send_test_alert_email(actor: str = "admin") -> dict[str, str]:
         return {"ok": True, "to": to}
     return {
         "ok": False,
-        "error": "Falha ao enviar. No Render configura RESEND_API_KEY (SMTP costuma estar bloqueado).",
+        "error": err or "Falha ao enviar. Configura RESEND_API_KEY no Render.",
     }
 
 
@@ -605,7 +815,7 @@ def send_test_activity_email(actor: str = "admin") -> dict[str, str]:
     to = get_config().get("alert_email_to") or notify_email_to()
     if not to:
         return {"ok": False, "error": "Configure o email de destino no separador Emails."}
-    ok = send_notification_email(
+    ok, err = send_notification_email(
         f"Teste de notificação de atividade (transcrição/IA).\n\nConta: admin:{actor}",
         "Teste de atividade — Ouviescrevi",
         to=to,
@@ -617,7 +827,7 @@ def send_test_activity_email(actor: str = "admin") -> dict[str, str]:
         return {"ok": True, "to": to}
     return {
         "ok": False,
-        "error": "Falha ao enviar. No Render configura RESEND_API_KEY (SMTP costuma estar bloqueado).",
+        "error": err or "Falha ao enviar. Configura RESEND_API_KEY no Render.",
     }
 
 
@@ -980,6 +1190,9 @@ def system_health(openai_client=None) -> dict:
                 "sugestoes",
                 "admin_users",
                 "audit_log",
+                "site_users",
+                "user_transcriptions",
+                "daily_usage",
             ):
                 try:
                     row = conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()

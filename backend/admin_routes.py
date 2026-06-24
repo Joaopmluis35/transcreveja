@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from datetime import date
 
 from fastapi import APIRouter, HTTPException, Request
@@ -188,7 +189,8 @@ def admin_email_status(request: Request):
 
     status = get_email_status()
     cfg = store.get_config()
-    status["alert_email_to"] = cfg.get("alert_email_to") or status.get("default_to") or ""
+    raw_to = cfg.get("alert_email_to") or status.get("default_to") or ""
+    status["alert_email_to"] = re.sub(r"\s+", "", raw_to.strip())
     return status
 
 

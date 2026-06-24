@@ -406,6 +406,34 @@ def criar_base() -> None:
             )
         """)
 
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS user_transcriptions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_email TEXT NOT NULL,
+                filename TEXT,
+                language TEXT,
+                size_bytes INTEGER,
+                duration_sec REAL,
+                transcription TEXT,
+                formatted TEXT,
+                created_at TEXT NOT NULL
+            )
+        """)
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_user_transcriptions_email "
+            "ON user_transcriptions(user_email, created_at DESC)"
+        )
+
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS daily_usage (
+                usage_key TEXT NOT NULL,
+                usage_day TEXT NOT NULL,
+                transcribe_count INTEGER NOT NULL DEFAULT 0,
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY (usage_key, usage_day)
+            )
+        """)
+
         conn.commit()
     finally:
         conn.close()

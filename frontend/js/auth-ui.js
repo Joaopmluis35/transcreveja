@@ -148,6 +148,7 @@
   }
 
   function refreshChrome() {
+    document.dispatchEvent(new CustomEvent("oe-auth-change"));
     var userEl = document.getElementById("oeAuthUser");
     var loginBtn = document.getElementById("oeAuthLogin");
     var regBtn = document.getElementById("oeAuthRegister");
