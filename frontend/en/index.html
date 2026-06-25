@@ -31,25 +31,6 @@
       text-align:center;
     }
 
-    /* ── Updates ticker (agora não-sticky para não sobrepor) ───────── */
-    .ticker{
-      width:100%;
-      overflow:hidden;
-      background:rgba(255,255,255,0.12);
-      backdrop-filter:blur(4px);
-      border-bottom:1px solid rgba(255,255,255,.2);
-    }
-    .ticker__inner{
-      display:inline-block;
-      white-space:nowrap;
-      padding:8px 0;
-      animation:ticker-scroll 24s linear infinite;
-    }
-    .ticker__item{ display:inline-flex; align-items:center; gap:8px; margin:0 28px; font-weight:700; color:#fff; text-shadow:0 1px 0 rgba(0,0,0,.15); }
-    .ticker__dot{opacity:.7;}
-    @keyframes ticker-scroll{ 0%{transform:translateX(100%)} 100%{transform:translateX(-100%)} }
-    @media (prefers-reduced-motion:reduce){ .ticker__inner{animation:none} }
-
     header{ padding:20px; }
     header h1{ margin:0; font-size:2em; }
 
@@ -179,11 +160,6 @@
 <a class="oe-skip" href="#mainContent">Skip to content</a>
 
 <div id="header"></div>
-
-<!-- Updates ticker -->
-<div class="ticker" aria-live="polite">
-  <div class="ticker__inner" id="updatesTrack"></div>
-</div>
 
 <main id="mainContent">
   <div id="adminContent">
@@ -874,23 +850,6 @@
         btnSubtitleVideo.disabled=true;
       }
     });
-
-    // Ticker items with today's date
-    const today=new Date().toLocaleDateString('en-GB');
-    const updates=[
-      `🆕 ${today} – Share on WhatsApp available`,
-      `🆕 ${today} – Video subtitling (SRT + MP4)`,
-    ];
-    const track=document.getElementById("updatesTrack");
-    track.innerHTML=`
-      <span class="ticker__item">${updates[0]}</span>
-      <span class="ticker__dot">•</span>
-      <span class="ticker__item">${updates[1]}</span>
-      <span class="ticker__dot">•</span>
-      <span class="ticker__item">${updates[0]}</span>
-      <span class="ticker__dot">•</span>
-      <span class="ticker__item">${updates[1]}</span>
-    `;
 
     // Garante modal fechado ao carregar (caso algum CSS externo interfira)
     const m=document.getElementById("modalTraducao");
