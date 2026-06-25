@@ -408,6 +408,7 @@
 <script src="js/pricing-visibility.js"></script>
 <script src="js/history-ui.js"></script>
 <script src="js/upsell-ui.js"></script>
+<script src="/js/suggestion-fab.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
   const ADMIN_EMAIL = "admin@ouviescrevi.pt";
@@ -2201,27 +2202,6 @@
       setTimeout(() => exportText(type), 0);
     });
   })();
-  const fab = document.getElementById("fabSugestao");
-const painel = document.getElementById("sugestaoPanel");
-const enviarBtn = document.getElementById("enviarSugestao");
-const fecharBtn = document.getElementById("fecharSugestao");
-
-fab.addEventListener("click", () => {
-  painel.classList.toggle("show");
-});
-
-fecharBtn.addEventListener("click", () => painel.classList.remove("show"));
-
-enviarBtn.addEventListener("click", () => {
-  const txt = document.getElementById("sugestaoTexto").value.trim();
-  if (!txt) {
-    alert("⚠️ Escreve algo antes de enviar.");
-    return;
-  }
-  alert("✅ Obrigado pela tua sugestão!");
-  document.getElementById("sugestaoTexto").value = "";
-  painel.classList.remove("show");
-});
 
 </script>
 </body>

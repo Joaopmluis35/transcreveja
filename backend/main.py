@@ -484,6 +484,17 @@ def maybe_notify_activity(
     threading.Thread(target=_send, daemon=True).start()
 
 
+def _run_in_background(fn) -> None:
+    """Executa em thread; síncrono quando TEST_SYNC_NOTIFICATIONS=1 (pytest)."""
+    if os.getenv("TEST_SYNC_NOTIFICATIONS") == "1":
+        try:
+            fn()
+        except Exception:
+            logger.exception("Notificação em background falhou")
+        return
+    threading.Thread(target=fn, daemon=True).start()
+
+
 def enforce_rate_limit(request: Request, bucket: str, limit: int, window: int) -> None:
     RATE_LIMITER.check(client_ip(request), bucket, limit, window)
 
@@ -1274,6 +1285,15 @@ def site_register(req: SiteRegisterRequest, request: Request):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     token = admin_store.create_session(user["email"], SITE_USER_ROLE, hours=720)
+
+    def _welcome() -> None:
+        from email_notify import send_welcome_email
+
+        ok, err = send_welcome_email(user["email"], user.get("name"))
+        if not ok:
+            logger.warning("Falha email boas-vindas %s: %s", user["email"], err)
+
+    _run_in_background(_welcome)
     return {
         "sessionToken": token,
         "email": user["email"],
@@ -1435,6 +1455,19 @@ def public_suggestion(request: Request, body: SuggestionRequest):
     if not (body.mensagem or "").strip():
         raise HTTPException(status_code=400, detail="Mensagem vazia.")
     sid = admin_store.add_suggestion(body.nome, body.mensagem.strip(), body.lang or "pt")
+    referer = request.headers.get("referer") or request.headers.get("Referer")
+    msg = body.mensagem.strip()
+    lang = body.lang or "pt"
+    nome = body.nome
+
+    def _notify() -> None:
+        from email_notify import send_suggestion_notification
+
+        ok, err = send_suggestion_notification(sid, nome, msg, lang, referer)
+        if not ok:
+            logger.warning("Falha email sugestão #%s: %s", sid, err)
+
+    _run_in_background(_notify)
     return {"ok": True, "id": sid}
 
 

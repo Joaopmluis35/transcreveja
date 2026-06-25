@@ -233,7 +233,7 @@
         closeModal();
         refreshChrome();
         if (global.OuviescreviUI && global.OuviescreviUI.toast) {
-          global.OuviescreviUI.toast("Conta criada com sucesso!", "success");
+          global.OuviescreviUI.toast("Conta criada — 20 transcrições por dia!", "success");
         }
       } catch (err) {
         showError("oeAuthRegisterError", err.message || "Erro ao registar.");

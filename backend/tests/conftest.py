@@ -26,6 +26,7 @@ os.environ["BILLING_ENABLED"] = "0"
 os.environ["PRICING_HIDDEN"] = "1"
 os.environ["RATE_LIMIT_TRANSCRIBE"] = "9999"
 os.environ["RATE_LIMIT_AI"] = "9999"
+os.environ["TEST_SYNC_NOTIFICATIONS"] = "1"
 
 
 def _try_import_app():

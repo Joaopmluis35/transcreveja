@@ -374,6 +374,13 @@
     document.getElementById("statTransHoje").textContent = data.transcricoes_hoje ?? "0";
     document.getElementById("statTransTotal").textContent = data.transcricoes_total ?? "0";
 
+    var usersTotal = document.getElementById("statUsersTotal");
+    if (usersTotal) usersTotal.textContent = String(data.utilizadores_total ?? "0");
+    var usersHoje = document.getElementById("statUsersHoje");
+    if (usersHoje) usersHoje.textContent = String(data.utilizadores_hoje ?? "0");
+    var emailFails = document.getElementById("statEmailFails");
+    if (emailFails) emailFails.textContent = String(data.emails_falhados_24h ?? "0");
+
     var conv = data.conversao || {};
     var convEl = document.getElementById("statConversao");
     if (convEl) convEl.textContent = (conv.taxa_conversao_pct || 0) + "%";

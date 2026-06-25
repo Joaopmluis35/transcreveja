@@ -760,6 +760,43 @@ def transcription_stats(
         conn.close()
 
 
+def count_site_users() -> int:
+    conn = get_connection()
+    try:
+        row = conn.execute("SELECT COUNT(*) AS c FROM site_users").fetchone()
+        return int(row["c"]) if row else 0
+    finally:
+        conn.close()
+
+
+def count_site_users_today() -> int:
+    today = date.today().isoformat() + "T00:00:00Z"
+    conn = get_connection()
+    try:
+        row = conn.execute(
+            "SELECT COUNT(*) AS c FROM site_users WHERE created_at >= ?",
+            (today,),
+        ).fetchone()
+        return int(row["c"]) if row else 0
+    finally:
+        conn.close()
+
+
+def count_email_failures_since(since_iso: str) -> int:
+    conn = get_connection()
+    try:
+        row = conn.execute(
+            """
+            SELECT COUNT(*) AS c FROM email_notifications
+            WHERE status = 'failed' AND created_at >= ?
+            """,
+            (since_iso,),
+        ).fetchone()
+        return int(row["c"]) if row else 0
+    finally:
+        conn.close()
+
+
 def add_suggestion(nome: str | None, mensagem: str, lang: str = "pt") -> int:
     conn = get_connection()
     try:

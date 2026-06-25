@@ -268,3 +268,57 @@ def send_notification_email(
     detail = last_err or "Falha SMTP e Resend."
     _record_email_log(kind, recipient, assunto, "failed", detail=detail, actor=actor)
     return False, detail
+
+
+def send_welcome_email(to: str, name: str | None = None) -> tuple[bool, str | None]:
+    """Email de boas-vindas após registo no site."""
+    recipient = _normalize_email(to)
+    if not recipient or not _EMAIL_RE.match(recipient):
+        return False, "Email de destino inválido."
+    display = (name or "").strip() or recipient.split("@")[0]
+    subject = "Bem-vindo ao Ouviescrevi"
+    body = (
+        f"Olá {display},\n\n"
+        "Obrigado por te registares no Ouviescrevi!\n\n"
+        "Com a tua conta tens 20 transcrições por dia (em vez de 3 sem registo), "
+        "histórico das transcrições e acesso às novidades em primeira mão.\n\n"
+        "Começa já em https://ouviescrevi.pt\n\n"
+        "— Equipa Ouviescrevi"
+    )
+    return send_notification_email(
+        body, subject, to=recipient, kind="welcome", actor=recipient
+    )
+
+
+def send_suggestion_notification(
+    suggestion_id: int,
+    nome: str | None,
+    mensagem: str,
+    lang: str = "pt",
+    referer: str | None = None,
+) -> tuple[bool, str | None]:
+    """Notifica o administrador de uma nova sugestão."""
+    who = (nome or "").strip() or "Anónimo"
+    subject = f"Nova sugestão #{suggestion_id} — Ouviescrevi"
+    lines = [
+        f"Nova sugestão no site (ID {suggestion_id}):",
+        "",
+        f"De: {who}",
+        f"Idioma: {lang or 'pt'}",
+    ]
+    if referer:
+        lines.append(f"Origem: {referer}")
+    lines.extend(
+        [
+            "",
+            "Mensagem:",
+            "—" * 40,
+            mensagem,
+            "",
+            "—" * 40,
+            "Ver no backoffice → separador Sugestões.",
+        ]
+    )
+    return send_notification_email(
+        "\n".join(lines), subject, kind="suggestion", actor=who
+    )

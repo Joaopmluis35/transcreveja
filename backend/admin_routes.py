@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 import logging
 import re
-from datetime import date
+from datetime import date, datetime, timedelta
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse, PlainTextResponse
@@ -52,12 +52,20 @@ def admin_dashboard(request: Request):
         lambda: store.count_transcriptions(day_from=today_s, day_to=today_s),
         0,
     )
+    since_24h = (datetime.utcnow() - timedelta(hours=24)).isoformat(timespec="seconds") + "Z"
     return {
         "manutencao": maint.get("manutencao", False),
         "maintenance_message": maint.get("maintenance_message", ""),
         "block_transcribe_only": maint.get("block_transcribe_only", True),
         "transcricoes_hoje": trans_hoje,
         "transcricoes_total": trans_total,
+        "utilizadores_total": _safe("utilizadores_total", store.count_site_users, 0),
+        "utilizadores_hoje": _safe("utilizadores_hoje", store.count_site_users_today, 0),
+        "emails_falhados_24h": _safe(
+            "emails_falhados",
+            lambda: store.count_email_failures_since(since_24h),
+            0,
+        ),
         "visitas": stats,
         "visitas_total": stats.get("visitas_total", 0),
         "visitas_recentes": _safe("visitas_recentes", lambda: get_recent_visits(15), []),
