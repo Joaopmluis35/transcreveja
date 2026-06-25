@@ -12,6 +12,21 @@
     return global.OuviescreviAPI.adminAuthHeaders({ "Content-Type": "application/json" });
   }
 
+  function normalizeQuotaValue(value, fallback) {
+    if (value === undefined || value === null || String(value).trim() === "") {
+      return fallback !== undefined ? normalizeQuotaValue(fallback, "0") : "0";
+    }
+    var n = parseInt(String(value).trim(), 10);
+    if (isNaN(n) || n < 0) return "0";
+    return String(n);
+  }
+
+  function readQuotaInput(id, fallback) {
+    var el = document.getElementById(id);
+    if (!el) return normalizeQuotaValue(fallback, "0");
+    return normalizeQuotaValue(el.value, fallback);
+  }
+
   function billingConfigSlice(cfg) {
     cfg = cfg || {};
     return {
@@ -21,8 +36,8 @@
       stripe_price_id_pro: cfg.stripe_price_id_pro || "",
       pro_quota_daily: cfg.pro_quota_daily || "200",
       pro_price_label: cfg.pro_price_label || "9,99 €/mês",
-      quota_anonymous_daily: cfg.quota_anonymous_daily || "3",
-      quota_registered_daily: cfg.quota_registered_daily || "20",
+      quota_anonymous_daily: normalizeQuotaValue(cfg.quota_anonymous_daily, "3"),
+      quota_registered_daily: normalizeQuotaValue(cfg.quota_registered_daily, "20"),
       stripe_secret_set: Boolean(cfg.stripe_secret_set || cfg.stripe_secret_key),
       stripe_webhook_set: Boolean(cfg.stripe_webhook_set || cfg.stripe_webhook_secret),
     };
@@ -31,15 +46,15 @@
   function applyQuotaFields(cfg) {
     var quotaAnon = document.getElementById("billingCfgQuotaAnon");
     var quotaReg = document.getElementById("billingCfgQuotaReg");
-    if (quotaAnon) quotaAnon.value = cfg.quota_anonymous_daily || "3";
-    if (quotaReg) quotaReg.value = cfg.quota_registered_daily || "20";
+    if (quotaAnon) quotaAnon.value = normalizeQuotaValue(cfg.quota_anonymous_daily, "3");
+    if (quotaReg) quotaReg.value = normalizeQuotaValue(cfg.quota_registered_daily, "20");
   }
 
   function syncSistemaQuotaFields(cfg) {
     var elAnon = document.getElementById("cfgQuotaAnon");
     var elReg = document.getElementById("cfgQuotaReg");
-    if (elAnon) elAnon.value = cfg.quota_anonymous_daily || "3";
-    if (elReg) elReg.value = cfg.quota_registered_daily || "20";
+    if (elAnon) elAnon.value = normalizeQuotaValue(cfg.quota_anonymous_daily, "3");
+    if (elReg) elReg.value = normalizeQuotaValue(cfg.quota_registered_daily, "20");
   }
 
   function mergeBillingConfig(cfg) {
@@ -80,13 +95,13 @@
       {
         cls: "oe-admin-card--purple",
         label: "Quota anónimos",
-        value: (siteCfg.quota_anonymous_daily || "3") + "/dia",
+        value: normalizeQuotaValue(siteCfg.quota_anonymous_daily, "3") + "/dia",
         sub: "Por IP — transcrições + legendagens",
       },
       {
         cls: "oe-admin-card--blue",
         label: "Quota registados",
-        value: (siteCfg.quota_registered_daily || "20") + "/dia",
+        value: normalizeQuotaValue(siteCfg.quota_registered_daily, "20") + "/dia",
         sub: "Contas gratuitas",
       },
       {
@@ -204,8 +219,10 @@
   async function saveQuotas(e) {
     e.preventDefault();
     var btn = document.getElementById("btnSaveQuotas");
-    var anonWanted = String(document.getElementById("billingCfgQuotaAnon").value || "").trim();
-    var regWanted = String(document.getElementById("billingCfgQuotaReg").value || "").trim();
+    var regFallback =
+      (lastBillingData && lastBillingData.config && lastBillingData.config.quota_registered_daily) || "20";
+    var anonWanted = readQuotaInput("billingCfgQuotaAnon", "3");
+    var regWanted = readQuotaInput("billingCfgQuotaReg", regFallback);
     var progressTimer = null;
 
     global.OuviescreviUI.setButtonLoading(btn, true, "A guardar…");
@@ -237,15 +254,18 @@
         throw new Error(data.detail || "Erro ao guardar quotas.");
       }
       var cfg = data.config || {};
-      if (
-        String(cfg.quota_anonymous_daily) !== anonWanted ||
-        String(cfg.quota_registered_daily) !== regWanted
-      ) {
+      var anonSaved = normalizeQuotaValue(cfg.quota_anonymous_daily, "3");
+      var regSaved = normalizeQuotaValue(cfg.quota_registered_daily, "20");
+      if (anonSaved !== anonWanted || regSaved !== regWanted) {
         throw new Error(
-          "O servidor não confirmou os valores (" +
-            (cfg.quota_anonymous_daily || "?") +
+          "O servidor não confirmou os valores (pedido " +
+            anonWanted +
             "/" +
-            (cfg.quota_registered_daily || "?") +
+            regWanted +
+            ", recebido " +
+            anonSaved +
+            "/" +
+            regSaved +
             ")."
         );
       }
