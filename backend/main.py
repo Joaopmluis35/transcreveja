@@ -982,10 +982,13 @@ def _entries_to_transcription(
     return transcription, formatted
 
 
-def _estimate_transcribe_seconds(duration_sec: float | None) -> int:
-    if not duration_sec or duration_sec <= 0:
-        return 30
-    return max(15, int(duration_sec * SUBS_TRANSCRIBE_SEC_PER_SEC) + 10)
+def _estimate_transcribe_seconds(duration_sec: float | None, size_bytes: int | None = None) -> int:
+    if duration_sec and duration_sec > 0:
+        return max(15, int(duration_sec * SUBS_TRANSCRIBE_SEC_PER_SEC) + 10)
+    if size_bytes and size_bytes > 0:
+        mb = size_bytes / (1024 * 1024)
+        return max(20, int(mb * 2) + 15)
+    return 45
 
 
 def _estimate_burn_seconds(duration_sec: float | None) -> int:
@@ -1132,6 +1135,46 @@ def _prune_video_jobs() -> None:
         stale = [jid for jid, j in _video_sub_jobs.items() if j.get("updated_at", 0) < cutoff]
         for jid in stale:
             _video_sub_jobs.pop(jid, None)
+
+
+_transcribe_jobs: dict[str, dict] = {}
+_transcribe_jobs_lock = threading.Lock()
+
+
+def _transcribe_job_set(job_id: str, **kwargs) -> None:
+    with _transcribe_jobs_lock:
+        job = _transcribe_jobs.setdefault(job_id, {"job_log": []})
+        new_msg = kwargs.get("message")
+        if new_msg and new_msg != job.get("message"):
+            job["stage_started_at"] = time.monotonic()
+            job.setdefault("job_log", []).append(
+                {"t": datetime.utcnow().strftime("%H:%M:%S"), "msg": new_msg}
+            )
+            job["job_log"] = job["job_log"][-40:]
+        job.update(kwargs)
+        job["updated_at"] = time.monotonic()
+
+
+def _transcribe_job_get(job_id: str) -> dict | None:
+    with _transcribe_jobs_lock:
+        job = _transcribe_jobs.get(job_id)
+        if not job:
+            return None
+        out = dict(job)
+    now = time.monotonic()
+    if out.get("stage_started_at"):
+        out["stage_elapsed_sec"] = int(now - out["stage_started_at"])
+    if out.get("created_at"):
+        out["total_elapsed_sec"] = int(now - out["created_at"])
+    return out
+
+
+def _prune_transcribe_jobs() -> None:
+    cutoff = time.monotonic() - 3600
+    with _transcribe_jobs_lock:
+        stale = [jid for jid, j in _transcribe_jobs.items() if j.get("updated_at", 0) < cutoff]
+        for jid in stale:
+            _transcribe_jobs.pop(jid, None)
 
 
 def split_audio(input_path, output_dir, segment_duration=SEGMENT_DURATION):
@@ -1584,14 +1627,20 @@ async def transcribe(
     trim_start_sec: str | None = Form(None),
     trim_end_sec: str | None = Form(None),
 ):
+    """
+    Upload → job_id imediato → processamento em segundo plano.
+    Consultar GET /transcribe/jobs/{job_id} até status=completed.
+    """
     require_api_token(request, token)
     require_not_maintenance()
     enforce_transcribe_quota(request)
     enforce_rate_limit(request, "transcribe", RATE_LIMIT_TRANSCRIBE, RATE_LIMIT_TRANSCRIBE_WINDOW)
     rid = str(uuid.uuid4())
-    t_start = time.monotonic()
     whisper_lang = resolve_whisper_language(language)
-    logger.info("[%s] Upload recebido (transcribe): nome=%s ct=%s cl=%s lang=%s", rid, file.filename, file.content_type, request.headers.get("content-length"), whisper_lang or "auto")
+    logger.info(
+        "[%s] Upload recebido (transcribe): nome=%s ct=%s cl=%s lang=%s",
+        rid, file.filename, file.content_type, request.headers.get("content-length"), whisper_lang or "auto",
+    )
     _reject_oversized_upload(request)
 
     orig_ext = os.path.splitext(file.filename or "")[1].lower() or ".bin"
@@ -1607,13 +1656,17 @@ async def transcribe(
         raise
     except Exception as e:
         logger.exception("[%s] Falha ao gravar upload", rid)
-        return {"transcription": "", "formatted": "", "warning": f"Falha ao gravar ficheiro: {e}"}
+        raise HTTPException(status_code=400, detail=f"Falha ao gravar ficheiro: {e}") from e
 
     if size_mb > MAX_FILE_SIZE_MB:
-        try: os.remove(tmp_path)
-        except: pass
-        logger.warning("[%s] Ficheiro > %dMB (%0.2f MB).", rid, MAX_FILE_SIZE_MB, size_mb)
-        return {"transcription": "", "formatted": "", "warning": f"Ficheiro demasiado grande ({size_mb:.0f} MB). O limite é {MAX_FILE_SIZE_MB} MB."}
+        try:
+            os.remove(tmp_path)
+        except OSError:
+            pass
+        raise HTTPException(
+            status_code=413,
+            detail=f"Ficheiro demasiado grande ({size_mb:.0f} MB). O limite é {MAX_FILE_SIZE_MB} MB.",
+        )
 
     trim_start, trim_end = _parse_trim_form(trim_start_sec, trim_end_sec)
     if trim_start is not None or trim_end is not None:
@@ -1624,36 +1677,109 @@ async def transcribe(
             size_mb = _fmt_mb(written)
         except Exception as exc:
             logger.warning("[%s] Falha ao cortar trecho antes de transcrever: %s", rid, exc)
-            return {
-                "transcription": "",
-                "formatted": "",
-                "warning": "Não foi possível cortar o trecho pedido. Tenta outras marcas de início/fim.",
-            }
+            try:
+                os.remove(tmp_path)
+            except OSError:
+                pass
+            raise HTTPException(
+                status_code=400,
+                detail="Não foi possível cortar o trecho pedido. Tenta outras marcas de início/fim.",
+            ) from exc
 
+    actor = resolve_site_actor(request)
+    usage_key, _tier = admin_store.usage_key_for_request(request, actor)
+    notify_email = should_notify_activity(request)
+    actor_label = activity_actor_label(request)
+    duration_sec = probe_media_duration_sec(tmp_path)
+    estimate_sec = _estimate_transcribe_seconds(duration_sec, written)
+
+    job_id = str(uuid.uuid4())
+    _prune_transcribe_jobs()
+    _transcribe_job_set(
+        job_id,
+        status="processing",
+        message="Ficheiro recebido — a iniciar transcrição…",
+        progress=8,
+        rid=rid,
+        created_at=time.monotonic(),
+        filename=file.filename or "sem_nome",
+        duration_sec=duration_sec,
+        estimate_transcribe_sec=estimate_sec,
+    )
+    threading.Thread(
+        target=_execute_transcribe_job,
+        args=(
+            job_id,
+            rid,
+            tmp_path,
+            file.filename or "sem_nome",
+            written,
+            whisper_lang,
+            actor,
+            usage_key,
+            notify_email,
+            actor_label,
+        ),
+        daemon=True,
+    ).start()
+    return {
+        "job_id": job_id,
+        "status": "processing",
+        "rid": rid,
+        "estimate_transcribe_sec": estimate_sec,
+        "duration_sec": duration_sec,
+    }
+
+
+@app.get("/transcribe/jobs/{job_id}")
+def transcribe_job_status(job_id: str, request: Request):
+    require_api_token(request)
+    job = _transcribe_job_get(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Trabalho não encontrado ou expirado.")
+    return job
+
+
+def _execute_transcribe_job(
+    job_id: str,
+    rid: str,
+    tmp_path: str,
+    filename: str,
+    written: int,
+    whisper_lang: str | None,
+    actor: dict,
+    usage_key: str,
+    notify_email: bool,
+    actor_label: str,
+) -> None:
+    t_start = time.monotonic()
     audio_wav_path = os.path.join(tempfile.gettempdir(), f"audio_{uuid.uuid4()}.wav")
+    split_dir = tempfile.mkdtemp(prefix="split_")
     converted_ok = False
     try:
-        conv = [FFMPEG, "-nostdin", "-hide_banner", "-loglevel", "error", "-y", "-i", tmp_path, "-vn", "-sn",
-                "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", audio_wav_path]
-        safe_run_ffmpeg(conv, desc="conversao-wav", timeout=FFMPEG_TIMEOUT)
-        converted_ok = True
-    except Exception:
-        converted_ok = False
-        logger.warning("[%s] Conversão WAV falhou; seguir com original.", rid)
-
-    split_dir = tempfile.mkdtemp(prefix="split_")
-    parts = []
-    used_source = None
-    watchdog_hit = False
-
-    try:
+        _transcribe_job_set(job_id, message="A converter áudio…", progress=15)
         try:
+            conv = [
+                FFMPEG, "-nostdin", "-hide_banner", "-loglevel", "error", "-y", "-i", tmp_path,
+                "-vn", "-sn", "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", audio_wav_path,
+            ]
+            safe_run_ffmpeg(conv, desc="conversao-wav", timeout=FFMPEG_TIMEOUT)
+            converted_ok = True
+        except Exception:
+            converted_ok = False
+            logger.warning("[%s] Conversão WAV falhou; seguir com original.", rid)
+
+        parts: list[str] = []
+        used_source = None
+        watchdog_hit = False
+        try:
+            _transcribe_job_set(job_id, message="A preparar segmentos de áudio…", progress=20)
             source_for_split = audio_wav_path if converted_ok else tmp_path
             parts = split_audio(source_for_split, split_dir)
             used_source = source_for_split
             logger.info("[%s] Segmentos criados: %d", rid, len(parts))
         except Exception as e:
-            logger.warning("[%s] Falha ao partir áudio (%s). Vai sem split. Erro: %s", rid, file.filename, str(e)[:300])
+            logger.warning("[%s] Falha ao partir áudio (%s). Vai sem split. Erro: %s", rid, filename, str(e)[:300])
             parts = []
 
         if not parts:
@@ -1666,23 +1792,31 @@ async def transcribe(
         processed_segments = 0
         quota_exceeded = False
         duration_sec = None
+        total_parts = len(parts)
 
         for idx, part in enumerate(parts):
             if (time.monotonic() - t_start) > TOTAL_TRANSCRIBE_TIMEOUT:
                 watchdog_hit = True
-                logger.error("[%s] Watchdog TOTAL_TRANSCRIBE_TIMEOUT atingido aos %.2fs. Interrompendo.",
-                             rid, time.monotonic() - t_start)
+                logger.error("[%s] Watchdog TOTAL_TRANSCRIBE_TIMEOUT atingido.", rid)
                 break
+            pct = 22 + int((idx / max(1, total_parts)) * 68)
+            _transcribe_job_set(
+                job_id,
+                message=f"A transcrever segmento {idx + 1}/{total_parts}…",
+                progress=pct,
+            )
             try:
                 result = transcrever_parte_c_com_retries(
                     part, retries=3, sleep_base=1.0, timeout=WHISPER_TIMEOUT, language=whisper_lang
                 )
-                text_piece, formatted_piece, kept_segs = process_whisper_result(result, whisper_lang, offset_seconds)
+                text_piece, formatted_piece, kept_segs = process_whisper_result(
+                    result, whisper_lang, offset_seconds
+                )
                 full_text_chunks.append(text_piece)
                 formatted_chunks.append(formatted_piece)
                 logger.info(
                     "[%s] Chunk %d/%d transcrito. segs=%d len(text)=%d",
-                    rid, idx + 1, len(parts), len(kept_segs), len(text_piece),
+                    rid, idx + 1, total_parts, len(kept_segs), len(text_piece),
                 )
             except Exception as e:
                 failed_segments += 1
@@ -1693,7 +1827,7 @@ async def transcribe(
                     quota_exceeded = True
             finally:
                 processed_segments += 1
-                if len(parts) > 1:
+                if total_parts > 1:
                     offset_seconds += SEGMENT_DURATION
 
         try:
@@ -1703,7 +1837,7 @@ async def transcribe(
                 duration_sec = float(len(parts) * SEGMENT_DURATION)
             processing_sec = time.monotonic() - t_start
             registar_transcricao(
-                file.filename or "sem_nome",
+                filename,
                 language=whisper_lang,
                 size_bytes=written,
                 duration_sec=duration_sec,
@@ -1716,28 +1850,36 @@ async def transcribe(
 
         try:
             maybe_notify_activity(
-                request,
-                f"Nova transcrição recebida: {file.filename}",
+                None,
+                f"Nova transcrição recebida: {filename}",
                 "Nova transcrição no Ouviescrevi",
+                actor_label=actor_label,
+                notify=notify_email,
             )
         except Exception as e:
             logger.warning("[%s] Falha ao agendar email de notificação: %s", rid, e)
 
-        transcription_out = clean_transcription_text("\n".join(t for t in full_text_chunks if t).strip(), whisper_lang)
-        formatted_out = clean_transcription_text("\n\n".join(t for t in formatted_chunks if t).strip(), whisper_lang)
+        transcription_out = clean_transcription_text(
+            "\n".join(t for t in full_text_chunks if t).strip(), whisper_lang
+        )
+        formatted_out = clean_transcription_text(
+            "\n\n".join(t for t in formatted_chunks if t).strip(), whisper_lang
+        )
 
-        payload = {"transcription": transcription_out, "formatted": formatted_out}
+        warning = None
         if quota_exceeded:
-            payload["warning"] = "Conta OpenAI sem créditos (insufficient_quota). Adiciona billing em platform.openai.com."
+            warning = "Conta OpenAI sem créditos (insufficient_quota). Adiciona billing em platform.openai.com."
         elif failed_segments > 0:
-            payload["warning"] = f"{failed_segments} de {processed_segments} segmentos falharam (aplicado retry/fallback)."
+            warning = f"{failed_segments} de {processed_segments} segmentos falharam (aplicado retry/fallback)."
         if watchdog_hit:
-            payload["warning"] = (payload.get("warning", "") + " " if payload.get("warning") else "") + "Tempo total excedido (parcial devolvido)."
+            extra = "Tempo total excedido (parcial devolvido)."
+            warning = f"{warning} {extra}" if warning else extra
 
         if _transcription_has_content(transcription_out, formatted_out):
             record_transcribe_success(
-                request,
-                filename=file.filename,
+                actor=actor,
+                usage_key=usage_key,
+                filename=filename,
                 language=whisper_lang,
                 size_bytes=written,
                 duration_sec=duration_sec,
@@ -1745,29 +1887,57 @@ async def transcribe(
                 formatted=formatted_out,
             )
 
-        dur_total = time.monotonic() - t_start
-        logger.info("[%s] FIM transcribe em %.2fs | processed=%d failed=%d watchdog=%s", rid, dur_total, processed_segments, failed_segments, watchdog_hit)
-        return payload
+        if not _transcription_has_content(transcription_out, formatted_out) and not warning:
+            _transcribe_job_set(
+                job_id,
+                status="failed",
+                progress=100,
+                error="Não foi possível obter a transcrição.",
+                message="Falha na transcrição.",
+            )
+            return
 
+        _transcribe_job_set(
+            job_id,
+            status="completed",
+            progress=100,
+            message="Transcrição concluída.",
+            transcription=transcription_out,
+            formatted=formatted_out,
+            warning=warning,
+            duration_sec=duration_sec,
+            processing_ms=int((time.monotonic() - t_start) * 1000),
+        )
+        logger.info(
+            "[%s] FIM transcribe job %s em %.2fs | processed=%d failed=%d",
+            rid, job_id, time.monotonic() - t_start, processed_segments, failed_segments,
+        )
     except Exception as e:
-        logger.exception("[%s] Erro inesperado no processamento", rid)
-        return {"transcription": "", "formatted": "", "warning": f"Erro ao processar: {e}"}
+        logger.exception("[%s] Erro inesperado no job transcribe %s", rid, job_id)
+        _transcribe_job_set(
+            job_id,
+            status="failed",
+            progress=100,
+            error=str(e),
+            message="Erro ao processar o ficheiro.",
+        )
     finally:
         for p in (audio_wav_path, tmp_path):
             try:
                 if p and os.path.exists(p):
                     os.remove(p)
-            except:
+            except OSError:
                 pass
         try:
             for f in os.listdir(split_dir):
                 try:
                     os.remove(os.path.join(split_dir, f))
-                except:
+                except OSError:
                     pass
             os.rmdir(split_dir)
-        except:
+        except OSError:
             pass
+
 
 # ── NOVO: Vídeo com legendas embutidas ───────────────────────────────────────
 def _execute_video_subs_job(

@@ -409,7 +409,7 @@
 <script src="js/history-ui.js"></script>
 <script src="js/upsell-ui.js"></script>
 <script src="/js/suggestion-fab.js" defer></script>
-<script src="/js/media-trim-ui.js?v=6" defer></script>
+<script src="/js/media-trim-ui.js?v=7" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
   const ADMIN_EMAIL = "admin@ouviescrevi.pt";
@@ -846,6 +846,7 @@
     document.getElementById("legendasBox").classList.add("hidden");
     document.getElementById("legendasWarn").classList.add("hidden");
     startJobLoading("transcribe");
+    updateTranscribeEta(estimateTranscribeDurationSec(), null);
 
     btnTranscrever.disabled = true;
     btnStartRec.disabled = true;
@@ -858,7 +859,7 @@
 
     // progresso "fake" até 90%
     let progress = 0;
-    const interval = setInterval(() => {
+    let interval = setInterval(() => {
       if (progress < 90) {
         progress += Math.random() * 5;
         progressBar.style.width = `${progress.toFixed(1)}%`;
@@ -971,6 +972,21 @@
           }
           throw new Error(data.error || data.detail || `Erro ${res.status}`);
         }
+        if (data.job_id) {
+          clearInterval(interval);
+          pararFrasesAnimadas(statusEl);
+          updateTranscribeEta(data.duration_sec || estimateTranscribeDurationSec(), data);
+          statusEl.textContent = "✅ Ficheiro enviado — a transcrever no servidor…";
+          progressBar.style.width = "45%";
+          try {
+            data = await pollTranscribeJob(data.job_id);
+            sucesso = transcricaoRecebidaComSucesso(data);
+          } catch (pollErr) {
+            data = { error: pollErr.message };
+            sucesso = false;
+          }
+          break;
+        }
         sucesso = transcricaoRecebidaComSucesso(data);
       }catch(err){
         if (err.name === "AbortError"){
@@ -994,6 +1010,7 @@
       output.classList.remove("hidden");
       focusTranscriptionResult();
       statusEl.textContent = "✅ Transcrição concluída com sucesso!";
+      if (data.warning) statusEl.textContent = "⚠️ " + data.warning;
       if (window.OuviescreviHistory) {
         window.OuviescreviHistory.refreshQuota().then(function (q) {
           if (window.OuviescreviUpsell) OuviescreviUpsell.afterTranscriptionSuccess(q);
@@ -1026,6 +1043,8 @@
     }
 
     setTimeout(() => {
+      var etaHide = document.getElementById("legendarEta");
+      if (etaHide) etaHide.classList.add("hidden");
       endJobLoading();
       progressBar.style.width = "0%";
       document.getElementById("btnRetry").classList.toggle("hidden", !ultimaTentativaFalhada);
@@ -1343,6 +1362,95 @@
     return "~" + m + " min";
   }
 
+  function estimateTranscribeDurationSec() {
+    var v = subEls.video;
+    if (!v || !v.duration || !isFinite(v.duration)) return 0;
+    if (window.OuviescreviMediaTrim) {
+      var ts = OuviescreviMediaTrim.getSelection();
+      if (ts && ts.mode === "segment" && ts.endSec > ts.startSec) {
+        return ts.endSec - ts.startSec;
+      }
+    }
+    return v.duration;
+  }
+
+  function estimateTranscribeSeconds(durationSec, sizeMb) {
+    if (durationSec > 0) return Math.max(15, Math.round(durationSec * 0.25) + 10);
+    if (sizeMb > 0) return Math.max(20, Math.round(sizeMb * 2) + 15);
+    return 45;
+  }
+
+  function updateTranscribeEta(durationSec, serverEst) {
+    var etaEl = document.getElementById("legendarEta");
+    if (!etaEl) return;
+    var estSec =
+      serverEst && serverEst.estimate_transcribe_sec != null
+        ? serverEst.estimate_transcribe_sec
+        : estimateTranscribeSeconds(durationSec, 0);
+    var parts = [];
+    if (durationSec > 0) {
+      var dm = Math.floor(durationSec / 60);
+      var ds = Math.floor(durationSec % 60);
+      parts.push("Áudio: " + dm + ":" + String(ds).padStart(2, "0"));
+    }
+    parts.push("Estimativa transcrição: " + formatEtaSeconds(estSec));
+    etaEl.textContent = parts.join(" · ");
+    etaEl.classList.remove("hidden");
+  }
+
+  async function pollTranscribeJob(jobId) {
+    const maxWait = 900000;
+    const started = Date.now();
+    let lastProgress = -1;
+    let lastProgressAt = Date.now();
+    while (Date.now() - started < maxWait) {
+      await new Promise(function (r) { setTimeout(r, 2500); });
+      let stRes;
+      try {
+        stRes = await fetch(`${API_BASE}/transcribe/jobs/${jobId}`, {
+          headers: OuviescreviAPI.authHeaders(),
+        });
+      } catch (netErr) {
+        if (statusEl && netErr.message === "Failed to fetch") {
+          statusEl.textContent = "🔄 Ligação interrompida — a verificar se o servidor ainda transcreve…";
+        }
+        continue;
+      }
+      let st = {};
+      try { st = await stRes.json(); } catch { st = {}; }
+      if (!stRes.ok) {
+        throw new Error(st.detail || st.error || `Erro ${stRes.status}`);
+      }
+      if (st.duration_sec != null || st.estimate_transcribe_sec != null) {
+        updateTranscribeEta(st.duration_sec || 0, st);
+      }
+      const localElapsed = Math.floor((Date.now() - started) / 1000);
+      const localFmt = Math.floor(localElapsed / 60) + ":" + String(localElapsed % 60).padStart(2, "0");
+      let msg = st.message || "A transcrever no servidor…";
+      if (st.stage_elapsed_sec != null && st.stage_elapsed_sec > 20) {
+        msg += " (esta fase: " + Math.floor(st.stage_elapsed_sec / 60) + ":" + String(st.stage_elapsed_sec % 60).padStart(2, "0") + ")";
+      }
+      if (statusEl) {
+        statusEl.textContent = "🔄 " + msg + " · tempo total " + localFmt;
+      }
+      if (st.progress != null && progressBar) {
+        const pct = Math.min(99, 45 + Math.round((Number(st.progress) || 0) * 0.55));
+        progressBar.style.width = pct + "%";
+        if (pct !== lastProgress) {
+          lastProgress = pct;
+          lastProgressAt = Date.now();
+        } else if (Date.now() - lastProgressAt > 20000 && statusEl) {
+          statusEl.textContent = "🔄 " + msg + " · tempo total " + localFmt + " — o servidor continua a processar";
+        }
+      }
+      if (st.status === "completed") return st;
+      if (st.status === "failed") {
+        throw new Error(st.error || st.warning || "Falha na transcrição.");
+      }
+    }
+    throw new Error("Tempo limite excedido (15 min). Tenta um trecho mais curto.");
+  }
+
   function estimateLegendarSeconds(durationSec, burnMp4) {
     if (!durationSec || durationSec <= 0) return { transcribe: 30, burn: burnMp4 ? 120 : 0, total: burnMp4 ? 150 : 30 };
     var transcribe = Math.max(15, Math.round(durationSec * 0.25) + 10);
@@ -1455,7 +1563,7 @@
 
     const burnMp4El = document.getElementById("burnMp4");
     const wantBurnMp4 = !burnMp4El || burnMp4El.checked;
-    const videoDur = (loadedVideoMeta && loadedVideoMeta.duration) ? loadedVideoMeta.duration : 0;
+    const videoDur = estimateTranscribeDurationSec();
 
     // reset UI
     output.classList.add("hidden");
