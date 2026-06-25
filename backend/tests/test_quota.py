@@ -52,3 +52,27 @@ def test_anonymous_quota_reads_backoffice_config(monkeypatch):
         assert status["remaining"] == 7
     finally:
         admin_store.set_config({"quota_anonymous_daily": "3"}, "pytest")
+
+
+def test_admin_config_persists_quotas(client):
+    headers = {"Authorization": "Bearer test-admin-token"}
+    payload = {
+        "updates": {
+            "quota_anonymous_daily": "30",
+            "quota_registered_daily": "25",
+        }
+    }
+    put = client.put("/api/admin/config", json=payload, headers=headers)
+    assert put.status_code == 200
+    cfg = put.json()["config"]
+    assert cfg["quota_anonymous_daily"] == "30"
+    assert cfg["quota_registered_daily"] == "25"
+    get = client.get("/api/admin/billing", headers=headers)
+    assert get.status_code == 200
+    assert get.json()["config"]["quota_anonymous_daily"] == "30"
+    assert get.json()["config"]["quota_registered_daily"] == "25"
+    client.put(
+        "/api/admin/config",
+        json={"updates": {"quota_anonymous_daily": "3", "quota_registered_daily": "20"}},
+        headers=headers,
+    )

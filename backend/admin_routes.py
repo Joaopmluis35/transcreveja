@@ -427,8 +427,23 @@ def admin_billing_config(request: Request, body: BillingConfigUpdate):
     updates = {k: v for k, v in body.updates.items() if k in allowed}
     if not updates:
         raise HTTPException(status_code=400, detail="Nada para atualizar.")
-    store.set_config(updates, actor=_actor(request))
+    cfg = store.set_config(updates, actor=_actor(request))
     store.log_audit(_actor(request), "billing_config", json.dumps(list(updates.keys())))
     from billing import billing_config
 
-    return {"ok": True, "status": billing_config()}
+    return {
+        "ok": True,
+        "status": billing_config(),
+        "config": {
+            "billing_enabled": cfg.get("billing_enabled", "0"),
+            "pricing_hidden": cfg.get("pricing_hidden", "1"),
+            "stripe_public_key": cfg.get("stripe_public_key", ""),
+            "stripe_price_id_pro": cfg.get("stripe_price_id_pro", ""),
+            "pro_quota_daily": cfg.get("pro_quota_daily", "200"),
+            "pro_price_label": cfg.get("pro_price_label", "9,99 €/mês"),
+            "quota_anonymous_daily": cfg.get("quota_anonymous_daily", "3"),
+            "quota_registered_daily": cfg.get("quota_registered_daily", "20"),
+            "stripe_secret_set": bool(cfg.get("stripe_secret_key") or ""),
+            "stripe_webhook_set": bool(cfg.get("stripe_webhook_secret") or ""),
+        },
+    }

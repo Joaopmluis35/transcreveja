@@ -456,7 +456,11 @@
                   <small class="oe-admin-hint">Contas gratuitas com login.</small>
                 </div>
               </div>
-              <button type="submit" class="oe-admin-btn oe-admin-btn--primary">Guardar quotas</button>
+              <div id="quotasSaveProgress" class="oe-admin-save-progress hidden" aria-hidden="true" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                <div class="oe-admin-save-progress__bar" id="quotasSaveProgressBar"></div>
+              </div>
+              <p id="quotasSaveStatus" class="oe-admin-save-status hidden" aria-live="polite"></p>
+              <button type="submit" id="btnSaveQuotas" class="oe-admin-btn oe-admin-btn--primary">Guardar quotas</button>
             </form>
           </div>
         </div>
@@ -624,6 +628,6 @@
 <script src="js/backoffice-cms-locales.js?v=5"></script>
 <script src="js/backoffice.js?v=16"></script>
 <script src="js/backoffice-admin.js?v=20"></script>
-<script src="js/backoffice-billing.js?v=2"></script>
+<script src="js/backoffice-billing.js?v=3"></script>
 </body>
 </html>

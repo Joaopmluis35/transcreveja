@@ -16,6 +16,18 @@ from database import database_backend, db_path, get_connection, row_to_dict, sca
 
 ROLE_LEVEL = {"viewer": 1, "editor": 2, "admin": 3}
 
+_QUOTA_CONFIG_KEYS = frozenset({"quota_anonymous_daily", "quota_registered_daily", "pro_quota_daily"})
+
+
+def _normalize_config_value(key: str, value: str) -> str:
+    if key in _QUOTA_CONFIG_KEYS:
+        try:
+            return str(max(0, int(str(value).strip() or "0")))
+        except ValueError:
+            return "0"
+    return str(value)
+
+
 DEFAULT_CONFIG: dict[str, str] = {
     "max_file_size_mb": "",
     "file_limit_message_pt": "Ficheiro demasiado grande. O limite é {limit} MB.",
@@ -497,12 +509,13 @@ def set_config(updates: dict[str, str], actor: str = "admin") -> dict[str, str]:
         for key, value in updates.items():
             if key not in DEFAULT_CONFIG and not key.startswith("custom_"):
                 continue
+            normalized = _normalize_config_value(key, str(value))
             conn.execute(
                 """
                 INSERT INTO site_config (key, value, updated_at) VALUES (?, ?, ?)
                 ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
                 """,
-                (key, str(value), now),
+                (key, normalized, now),
             )
         conn.commit()
     finally:

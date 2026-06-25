@@ -655,6 +655,28 @@ table.oe-admin-table td code {
   font-style: italic;
 }
 
+.oe-admin-save-progress {
+  margin-top: 12px;
+  height: 8px;
+  background: var(--bo-border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.oe-admin-save-progress__bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #7c3aed, #6366f1);
+  border-radius: 999px;
+  transition: width 0.25s ease;
+}
+
+.oe-admin-save-status {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: var(--bo-muted);
+}
+
 /* Sistema — saúde e base de dados */
 .oe-admin-health-grid {
   display: grid;
