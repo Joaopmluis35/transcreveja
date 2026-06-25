@@ -1,3 +1,25 @@
--r requirements.txt
+# Dependências só para testes locais (pytest).
+# Não inclui libsql/Turso — os testes usam SQLite temporário.
+#
+# Instalar:  pip install -r requirements-dev.txt
+# Correr:     python -m pytest -v
+#
+# Ambiente completo (produção / Turso): pip install -r requirements.txt
+# No Windows: libsql precisa de Python 3.11 ou 3.12 (não há wheel para 3.14).
+
 pytest>=8.0
 httpx>=0.27
+fastapi
+python-dotenv
+python-multipart
+pydantic
+openai
+requests
+beautifulsoup4
+python-docx
+stripe
+jinja2
+imageio-ffmpeg
+gtts
+moviepy==1.0.3
+mammoth
