@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="stylesheet" href="css/ouviescrevi.css?v=11">
-  <link rel="stylesheet" href="css/index-home.css?v=18">
+  <link rel="stylesheet" href="css/index-home.css?v=20">
   <link rel="stylesheet" href="css/pricing-visibility.css">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <title>Ouviescrevi — Transcrição de Áudio e Vídeo com IA Grátis</title>
@@ -24,15 +24,14 @@
 <main id="mainContent">
   <h1 class="oe-visually-hidden">Ouviescrevi — Transcrição de Áudio e Vídeo com IA Grátis</h1>
   <div id="adminContent">
-    <p id="cmsHomeIntro" data-cms-key="home_intro_html" data-cms-mode="html">
-      <strong>🧠 Ouviescrevi</strong> é o teu assistente com IA para
-      <br><strong>transcrever</strong> 🎙️, <strong>traduzir</strong> 🌍, <strong>resumir</strong> 📌 e <strong>converter ficheiros</strong> 📄
-      <br>— simples, rápido e gratuito.
+    <p id="cmsHomeIntro" class="oe-home-intro" data-cms-key="home_intro_html" data-cms-mode="html">
+      <strong>Transcreve áudio e vídeo com IA</strong> — grátis, em português, sem complicações.
     </p>
 
     <form id="uploadForm">
-      <div id="dropZone">
-        <p>📁 <strong>Arrasta o ficheiro aqui</strong> ou clica para escolher</p>
+      <div id="dropZone" class="oe-drop-zone--empty">
+        <p class="oe-drop-zone__lead">📁 <strong>Arrasta o ficheiro aqui</strong> ou clica para escolher</p>
+        <p class="oe-drop-zone__hint">Experimenta com um MP3, WAV ou vídeo curto</p>
         <input type="file" id="fileInput" accept="audio/*,video/*" required>
         <span id="fileName">Nenhum ficheiro selecionado</span>
         <small class="oe-file-hint">Limite: 500 MB — para ficheiros maiores, extrai só o áudio.</small>
@@ -43,7 +42,7 @@
       </div>
 
       <div class="oe-upload-actions">
-      <button type="submit" id="btnTranscrever">Transcrever</button>
+      <button type="submit" id="btnTranscrever">🎙️ Transcrever</button>
       <button type="button" id="btnLegendarVideo" disabled>🎬 Legendar Vídeo (SRT + MP4)</button>
       <button type="button" id="btnStartRec">🎤 Gravar Áudio</button>
       <button type="button" id="btnStopRecording" class="hidden">🛑 Parar Gravação</button>
@@ -115,6 +114,8 @@
 
       <p id="recordingStatus"></p>
     </form>
+
+    <p class="oe-home-trust">🇵🇹 Feito em Portugal · sem registo obrigatório</p>
 
     <div id="uploadAlert" class="oe-upload-alert hidden" role="alert"></div>
     <p id="quotaBadge" class="oe-quota-badge hidden" aria-live="polite"></p>
@@ -599,6 +600,34 @@
     atualizarMetaTranscricao();
   }
   window.definirTranscricao = definirTranscricao;
+
+  function focusTranscriptionResult() {
+    if (!output) return;
+    output.classList.add("oe-output--fresh");
+    output.scrollIntoView({ behavior: "smooth", block: "start" });
+    var sidebar = output.querySelector(".oe-output__sidebar");
+    if (sidebar) {
+      sidebar.classList.add("oe-output__sidebar--highlight");
+      setTimeout(function () {
+        sidebar.classList.remove("oe-output__sidebar--highlight");
+        output.classList.remove("oe-output--fresh");
+      }, 2800);
+    } else {
+      setTimeout(function () {
+        output.classList.remove("oe-output--fresh");
+      }, 2800);
+    }
+  }
+  window.focusTranscriptionResult = focusTranscriptionResult;
+
+  function updateDropZoneState(hasFile) {
+    var zone = document.getElementById("dropZone");
+    if (!zone) return;
+    zone.classList.toggle("oe-drop-zone--empty", !hasFile);
+    zone.classList.toggle("oe-drop-zone--has-file", !!hasFile);
+    zone.classList.remove("oe-drop-zone--dragover");
+  }
+  window.updateDropZoneState = updateDropZoneState;
   const statusEl = document.getElementById("transcricaoStatus");
   const btnTranscrever = document.getElementById("btnTranscrever");
   const btnStartRec = document.getElementById("btnStartRec");
@@ -844,6 +873,7 @@
       if (identificar) textoFinal = aplicarLocutores(textoFinal);
       definirTranscricao(textoFinal);
       output.classList.remove("hidden");
+      focusTranscriptionResult();
       statusEl.textContent = "✅ Transcrição concluída com sucesso!";
       if (window.OuviescreviHistory) {
         window.OuviescreviHistory.refreshQuota().then(function (q) {
@@ -2006,6 +2036,7 @@
     if (videoObjectURL){ URL.revokeObjectURL(videoObjectURL); videoObjectURL=null; }
     fileInput.value = "";
     document.getElementById("fileName").textContent = "Nenhum ficheiro selecionado";
+    updateDropZoneState(false);
     limparAlertaUpload();
     hideLegendarBanners();
     definirTranscricao("");
@@ -2067,10 +2098,16 @@
     const fileNameDisplay = document.getElementById("fileName");
 
     dropZone.addEventListener("click", () => fileInput.click());
-    dropZone.addEventListener("dragover", (e) => { e.preventDefault(); dropZone.style.background = "#e0d7ff"; });
-    dropZone.addEventListener("dragleave", () => { dropZone.style.background = "#fafafa"; });
+    dropZone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      dropZone.classList.add("oe-drop-zone--dragover");
+    });
+    dropZone.addEventListener("dragleave", () => {
+      dropZone.classList.remove("oe-drop-zone--dragover");
+    });
     dropZone.addEventListener("drop", (e) => {
-      e.preventDefault(); dropZone.style.background = "#fafafa";
+      e.preventDefault();
+      dropZone.classList.remove("oe-drop-zone--dragover");
       if (e.dataTransfer.files.length > 0){
         fileInput.files = e.dataTransfer.files;
         handleFileSelected(fileInput.files[0], fileNameDisplay);
@@ -2083,10 +2120,12 @@
         fileNameDisplay.textContent = "Nenhum ficheiro selecionado";
         btnLegendarVideo.disabled = true;
         setSubtitlePanelVisible(false);
+        updateDropZoneState(false);
       }
     });
 
     function handleFileSelected(file, labelEl){
+      updateDropZoneState(!!file);
       ensureApi().then(() => {
         const mb = formatMb(fileSizeMb(file));
         labelEl.textContent = `Ficheiro: ${file.name} (${mb} MB)`;

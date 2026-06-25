@@ -40,13 +40,30 @@
   function renderQuota(quota) {
     var el = document.getElementById("quotaBadge");
     if (!el) return;
-    var text = formatQuota(quota);
-    if (!text) {
+    if (!quota || quota.unlimited) {
       el.classList.add("hidden");
       el.textContent = "";
       return;
     }
-    el.textContent = text;
+    var rem = quota.remaining;
+    var lim = quota.limit;
+    if (lim <= 0) {
+      el.classList.add("hidden");
+      el.textContent = "";
+      return;
+    }
+    if (quota.plan === "pro") {
+      el.textContent = "Pro: " + rem + " de " + lim + " transcrições hoje";
+    } else if (quota.tier === "registered") {
+      el.textContent = "Conta: " + rem + " de " + lim + " transcrições hoje";
+    } else {
+      el.innerHTML =
+        "Anónimo: " +
+        rem +
+        " de " +
+        lim +
+        ' transcrições hoje — <a href="#" class="oe-quota-badge__link" data-oe-register>Regista-te</a> para mais';
+    }
     el.classList.remove("hidden");
     if (quota.remaining === 0) el.classList.add("oe-quota-badge--warn");
     else el.classList.remove("oe-quota-badge--warn");
@@ -142,7 +159,11 @@
       var output = document.getElementById("output");
       if (output) {
         output.classList.remove("hidden");
-        output.scrollIntoView({ behavior: "smooth", block: "start" });
+        if (typeof global.focusTranscriptionResult === "function") {
+          global.focusTranscriptionResult();
+        } else {
+          output.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
       }
       if (global.OuviescreviUI && global.OuviescreviUI.toast) {
         global.OuviescreviUI.toast("Transcrição carregada do histórico.", "success");
@@ -184,6 +205,17 @@
   function bind() {
     var btn = document.getElementById("btnRefreshHistory");
     if (btn) btn.addEventListener("click", loadHistory);
+    var quotaEl = document.getElementById("quotaBadge");
+    if (quotaEl) {
+      quotaEl.addEventListener("click", function (e) {
+        var link = e.target.closest("[data-oe-register]");
+        if (!link) return;
+        e.preventDefault();
+        if (global.OuviescreviAuth && global.OuviescreviAuth.openModal) {
+          global.OuviescreviAuth.openModal("register");
+        }
+      });
+    }
     document.addEventListener("oe-auth-change", refresh);
   }
 

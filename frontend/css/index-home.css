@@ -1,5 +1,117 @@
 /* Ouviescrevi — página inicial (index.html) */
 
+/* Intro + confiança */
+body.oe-page--home .oe-home-intro {
+  margin: 0 0 4px;
+  max-width: 32rem;
+  text-align: center;
+  font-size: 1.05rem;
+  line-height: 1.55;
+  color: var(--pro-text-secondary, #475569);
+}
+
+body.oe-page--home .oe-home-intro strong {
+  color: var(--pro-text, #0f172a);
+  font-weight: 700;
+}
+
+body.oe-page--home .oe-home-trust {
+  max-width: 640px;
+  margin: 10px auto 0;
+  text-align: center;
+  font-size: 0.88rem;
+  color: var(--pro-text-muted, #64748b);
+}
+
+/* Drop zone — estado vazio */
+@keyframes oe-drop-pulse {
+  0%, 100% {
+    border-color: #c4b5fd;
+    box-shadow: 0 0 0 0 rgba(124, 58, 237, 0);
+  }
+  50% {
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 5px rgba(124, 58, 237, 0.14);
+  }
+}
+
+body.oe-page--home #dropZone.oe-drop-zone--empty {
+  animation: oe-drop-pulse 2.8s ease-in-out infinite;
+}
+
+body.oe-page--home #dropZone.oe-drop-zone--has-file {
+  animation: none;
+  border-color: #8b5cf6;
+  background: #f5f3ff;
+}
+
+body.oe-page--home #dropZone.oe-drop-zone--dragover {
+  animation: none;
+  border-color: #7c3aed;
+  background: #ede9fe;
+  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.18);
+}
+
+body.oe-page--home .oe-drop-zone__hint {
+  margin: 6px 0 0;
+  font-size: 0.85rem;
+  color: #7c3aed;
+  font-weight: 500;
+}
+
+body.oe-page--home #dropZone.oe-drop-zone--has-file .oe-drop-zone__hint {
+  display: none;
+}
+
+body.oe-page--home .oe-drop-zone__lead {
+  margin: 0;
+}
+
+/* Resultado — scroll + destaque exportar */
+@keyframes oe-export-glow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.35);
+    background: transparent;
+  }
+  35% {
+    box-shadow: 0 0 0 10px rgba(124, 58, 237, 0.12);
+    background: #f5f3ff;
+    border-radius: 12px;
+  }
+  100% {
+    box-shadow: none;
+    background: transparent;
+  }
+}
+
+body.oe-page--home .oe-output__sidebar--highlight {
+  animation: oe-export-glow 2.4s ease;
+  padding: 8px;
+  margin: -8px;
+}
+
+body.oe-page--home .oe-output--fresh {
+  scroll-margin-top: 88px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.oe-page--home #dropZone.oe-drop-zone--empty {
+    animation: none;
+  }
+  body.oe-page--home .oe-output__sidebar--highlight {
+    animation: none;
+    background: #f5f3ff;
+    border-radius: 12px;
+  }
+}
+
+/* Mobile — botões secundários em coluna */
+@media (max-width: 640px) {
+  body.oe-page--home #uploadForm .oe-upload-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
 body.oe-page--home #uploadForm .oe-video-hint {
   margin: 10px 0 0;
   padding: 12px 14px;
@@ -1263,30 +1375,48 @@ body.oe-page--home .oe-seo-features {
 }
 
 body.oe-page--home .oe-quota-badge {
-  max-width: 720px;
-  margin: 0 auto 12px;
-  padding: 10px 14px;
-  border-radius: 10px;
-  background: rgba(165, 80, 247, 0.12);
-  border: 1px solid rgba(165, 80, 247, 0.35);
-  color: #e8d9ff;
+  max-width: 640px;
+  margin: 16px auto 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: #f5f3ff;
+  border: 1px solid #c4b5fd;
+  color: #5b21b6;
   font-size: 0.92rem;
+  font-weight: 600;
   text-align: center;
+  line-height: 1.5;
 }
 
 body.oe-page--home .oe-quota-badge--warn {
-  background: rgba(234, 88, 12, 0.15);
-  border-color: rgba(234, 88, 12, 0.45);
-  color: #ffd7c2;
+  background: #fff7ed;
+  border-color: #fdba74;
+  color: #c2410c;
+}
+
+body.oe-page--home .oe-quota-badge__link {
+  color: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+body.oe-page--home .oe-quota-badge__link:hover {
+  color: #5b21b6;
+}
+
+body.oe-page--home .oe-quota-badge--warn .oe-quota-badge__link:hover {
+  color: #9a3412;
 }
 
 body.oe-page--home .oe-history-panel {
-  max-width: 720px;
+  max-width: 640px;
   margin: 20px auto 28px;
   padding: 16px 18px;
   border-radius: 14px;
-  background: rgba(15, 15, 25, 0.55);
-  border: 1px solid rgba(165, 80, 247, 0.25);
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
 }
 
 body.oe-page--home .oe-history-panel__head {
@@ -1300,17 +1430,22 @@ body.oe-page--home .oe-history-panel__head {
 body.oe-page--home .oe-history-panel__title {
   margin: 0;
   font-size: 1.05rem;
-  color: #f3e8ff;
+  color: #0f172a;
 }
 
 body.oe-page--home .oe-history-panel__refresh {
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: transparent;
-  color: #ddd;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #475569;
   border-radius: 8px;
   padding: 6px 10px;
   cursor: pointer;
   font-size: 0.85rem;
+}
+
+body.oe-page--home .oe-history-panel__refresh:hover {
+  border-color: #8b5cf6;
+  color: #6d28d9;
 }
 
 body.oe-page--home .oe-history-list {
@@ -1331,41 +1466,51 @@ body.oe-page--home .oe-history-item {
 body.oe-page--home .oe-history-item__open {
   flex: 1;
   text-align: left;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
   border-radius: 10px;
   padding: 10px 12px;
   cursor: pointer;
   color: inherit;
 }
 
+body.oe-page--home .oe-history-item__open:hover {
+  border-color: #c4b5fd;
+  background: #f5f3ff;
+}
+
 body.oe-page--home .oe-history-item__name {
   display: block;
   font-weight: 600;
-  color: #fff;
+  color: #0f172a;
   margin-bottom: 2px;
 }
 
 body.oe-page--home .oe-history-item__meta {
   display: block;
   font-size: 0.8rem;
-  opacity: 0.7;
+  color: #64748b;
 }
 
 body.oe-page--home .oe-history-item__preview {
   display: block;
   font-size: 0.82rem;
-  opacity: 0.85;
+  color: #475569;
   margin-top: 4px;
 }
 
 body.oe-page--home .oe-history-item__del {
   width: 36px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(0, 0, 0, 0.2);
-  color: #f88;
+  border: 1px solid #fecaca;
+  background: #fff;
+  color: #dc2626;
   border-radius: 10px;
   cursor: pointer;
+}
+
+body.oe-page--home .oe-history-item__del:hover {
+  background: #fef2f2;
+  border-color: #f87171;
 }
 
 body.oe-page--home .oe-history-empty,
@@ -1441,13 +1586,14 @@ body.oe-page--home .oe-pro-tag {
   color: #eee;
 }
 body.oe-page--home .oe-success-upsell {
-  max-width: 720px;
+  max-width: 640px;
   margin: 12px auto;
   padding: 12px 16px;
-  border-radius: 10px;
-  background: rgba(0, 195, 255, 0.1);
-  border: 1px solid rgba(0, 195, 255, 0.35);
+  border-radius: 12px;
+  background: #eff6ff;
+  border: 1px solid #93c5fd;
+  color: #1e3a8a;
   font-size: 0.92rem;
   text-align: center;
 }
-body.oe-page--home .oe-success-upsell a { color: #7dd3fc; }
+body.oe-page--home .oe-success-upsell a { color: #6d28d9; font-weight: 600; }
