@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="stylesheet" href="css/ouviescrevi.css?v=12">
-  <link rel="stylesheet" href="css/index-home.css?v=20">
+  <link rel="stylesheet" href="css/index-home.css?v=21">
   <link rel="stylesheet" href="css/pricing-visibility.css">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <title>Ouviescrevi — Transcrição de Áudio e Vídeo com IA Grátis</title>
@@ -34,7 +34,7 @@
         <p class="oe-drop-zone__hint">Experimenta com um MP3, WAV ou vídeo curto</p>
         <input type="file" id="fileInput" accept="audio/*,video/*" required>
         <span id="fileName">Nenhum ficheiro selecionado</span>
-        <small class="oe-file-hint">Limite: 500 MB — para ficheiros maiores, extrai só o áudio.</small>
+        <small class="oe-file-hint">Limite: 500 MB — ficheiros longos? Escolhe só o trecho que queres transcrever.</small>
       </div>
 
       <div id="videoPreviewWrap" class="oe-video-preview hidden" aria-label="Pré-visualização do vídeo">
@@ -409,6 +409,7 @@
 <script src="js/history-ui.js"></script>
 <script src="js/upsell-ui.js"></script>
 <script src="/js/suggestion-fab.js" defer></script>
+<script src="/js/media-trim-ui.js" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
   const ADMIN_EMAIL = "admin@ouviescrevi.pt";
@@ -772,13 +773,32 @@
     return ["mp4","mov","m4v","mkv","avi","webm","ts","m2ts","flv"].includes(ext);
   }
 
+  function refreshUploadButtons(file) {
+    if (!file) return;
+    var blocked =
+      window.OuviescreviMediaTrim && !window.OuviescreviMediaTrim.canUploadFile(file);
+    if (blocked) {
+      mostrarAlertaUpload(window.OuviescreviMediaTrim.uploadBlockReason(file));
+      btnTranscrever.disabled = true;
+      btnLegendarVideo.disabled = true;
+      return;
+    }
+    if (!isFileTooLarge(file)) limparAlertaUpload();
+    btnTranscrever.disabled = false;
+    btnLegendarVideo.disabled = !isVideoFile(file);
+  }
+
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     await ensureApi();
     const file = document.getElementById("fileInput").files[0];
     if (!file) return;
 
-    if (isFileTooLarge(file)) {
+    if (window.OuviescreviMediaTrim && !OuviescreviMediaTrim.canUploadFile(file)) {
+      mostrarAlertaUpload(OuviescreviMediaTrim.uploadBlockReason(file));
+      return;
+    }
+    if (!window.OuviescreviMediaTrim && isFileTooLarge(file)) {
       mostrarAlertaUpload(mensagemFicheiroGrande(file));
       return;
     }
@@ -811,7 +831,29 @@
 
     // pedido com retries
     const formData = new FormData();
-    formData.append("file", file);
+    let uploadFile = file;
+    try {
+      if (window.OuviescreviMediaTrim) {
+        statusEl.textContent = "✂️ A preparar ficheiro…";
+        var prepared = await OuviescreviMediaTrim.prepareForUpload(file, function (msg) {
+          statusEl.textContent = msg;
+        });
+        uploadFile = prepared.file;
+        formData.append("file", uploadFile);
+        if (!prepared.trimmed) OuviescreviMediaTrim.appendToFormData(formData);
+      } else {
+        formData.append("file", file);
+      }
+    } catch (prepErr) {
+      pararFrasesAnimadas(statusEl);
+      endJobLoading();
+      btnTranscrever.disabled = false;
+      btnStartRec.disabled = false;
+      mostrarAlertaUpload(prepErr.message || "Não foi possível preparar o trecho.");
+      return;
+    }
+    pararFrasesAnimadas(statusEl);
+    iniciarFrasesAnimadas(statusEl);
     const lang = document.getElementById("transcribeLanguage").value;
     if (lang && lang !== "auto") formData.append("language", lang);
 
@@ -1361,7 +1403,26 @@
     }, 200);
 
     const formData = new FormData();
-    formData.append("file", file);
+    let uploadFile = file;
+    try {
+      if (window.OuviescreviMediaTrim) {
+        statusEl.textContent = "✂️ A preparar trecho do vídeo…";
+        var preparedVid = await OuviescreviMediaTrim.prepareForUpload(file, function (msg) {
+          statusEl.textContent = msg;
+        });
+        uploadFile = preparedVid.file;
+        formData.append("file", uploadFile);
+        if (!preparedVid.trimmed) OuviescreviMediaTrim.appendToFormData(formData);
+      } else {
+        formData.append("file", file);
+      }
+    } catch (prepErr) {
+      clearInterval(interval);
+      endJobLoading();
+      showLegendarError(prepErr.message || "Não foi possível preparar o trecho.");
+      btnLegendarVideo.disabled = !isVideoFile(file);
+      return;
+    }
     const lang = document.getElementById("transcribeLanguage").value;
     if (lang && lang !== "auto") formData.append("language", lang);
     formData.append("style", JSON.stringify(getStyle()));
@@ -2079,6 +2140,7 @@
       uploadPreview.load();
     }
     if (previewWrap) previewWrap.classList.add("hidden");
+    if (window.OuviescreviMediaTrim) OuviescreviMediaTrim.hide();
   }
   function scrollSeInvisivel(id){
     const el = document.getElementById(id);
@@ -2090,8 +2152,15 @@
     ensureApi().then(() => {
       const hint = document.querySelector(".oe-file-hint");
       if (hint) {
-        hint.textContent = `Limite: ${getMaxFileMb()} MB — para ficheiros maiores, extrai só o áudio.`;
+        hint.textContent = `Limite: ${getMaxFileMb()} MB — ficheiros longos? Escolhe só o trecho que queres transcrever.`;
       }
+      if (window.OuviescreviMediaTrim) {
+        OuviescreviMediaTrim.setMaxFileMb(getMaxFileMb());
+      }
+    });
+    document.addEventListener("oe-trim-change", function () {
+      var f = document.getElementById("fileInput").files[0];
+      if (f) refreshUploadButtons(f);
     });
 
     const dropZone = document.getElementById("dropZone");
@@ -2132,7 +2201,7 @@
         labelEl.textContent = `Ficheiro: ${file.name} (${mb} MB)`;
         const isVid = isVideoFile(file);
 
-        if (isFileTooLarge(file)) {
+        if (isFileTooLarge(file) && !window.OuviescreviMediaTrim) {
           mostrarAlertaUpload(mensagemFicheiroGrande(file));
           btnTranscrever.disabled = true;
           btnLegendarVideo.disabled = true;
@@ -2171,6 +2240,16 @@
             uploadPreview.load();
           }
           if (previewWrap) previewWrap.classList.add("hidden");
+        }
+
+        var trimUrl = isVid ? videoObjectURL : URL.createObjectURL(file);
+        if (window.OuviescreviMediaTrim) {
+          OuviescreviMediaTrim.onFileSelected(file, {
+            objectUrl: trimUrl,
+            isVideo: isVid,
+          }).then(function () {
+            refreshUploadButtons(file);
+          });
         }
       });
     }

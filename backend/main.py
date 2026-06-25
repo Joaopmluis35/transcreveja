@@ -810,6 +810,89 @@ def probe_video_dimensions(path: str) -> tuple[int | None, int | None]:
         return None, None
 
 
+def _parse_trim_form(
+    trim_start: str | None,
+    trim_end: str | None,
+) -> tuple[float | None, float | None]:
+    def _to_float(value: str | None) -> float | None:
+        if value is None or str(value).strip() == "":
+            return None
+        try:
+            return float(value)
+        except ValueError:
+            return None
+
+    start = _to_float(trim_start)
+    end = _to_float(trim_end)
+    if start is None and end is None:
+        return None, None
+    if start is not None and start < 0:
+        start = 0.0
+    if start is not None and end is not None and end <= start + 0.5:
+        return None, None
+    return start, end
+
+
+def trim_media_file(
+    src: str,
+    dst: str,
+    start_sec: float | None,
+    end_sec: float | None,
+    *,
+    desc: str = "trim",
+    audio_only: bool = False,
+) -> None:
+    """Corta um ficheiro de media com ffmpeg (trecho start_sec → end_sec)."""
+    if start_sec is None and end_sec is None:
+        raise ValueError("trim sem intervalo")
+    start = max(0.0, start_sec or 0.0)
+    if end_sec is not None and end_sec <= start + 0.5:
+        raise ValueError("fim do trecho inválido")
+    cmd = [
+        FFMPEG,
+        "-nostdin",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-y",
+        "-ss",
+        f"{start:.3f}",
+        "-i",
+        src,
+    ]
+    if end_sec is not None:
+        cmd.extend(["-t", f"{(end_sec - start):.3f}"])
+    if audio_only:
+        cmd.extend(["-vn", "-sn", "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le"])
+    else:
+        cmd.extend(["-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-c:a", "aac", "-movflags", "+faststart"])
+    cmd.append(dst)
+    safe_run_ffmpeg(cmd, desc=desc, timeout=FFMPEG_TIMEOUT)
+
+
+def apply_upload_trim(
+    src_path: str,
+    start_sec: float | None,
+    end_sec: float | None,
+    *,
+    rid: str,
+    audio_only: bool = False,
+) -> tuple[str, int]:
+    """Aplica corte opcional; devolve (path_a_usar, size_bytes)."""
+    if start_sec is None and end_sec is None:
+        return src_path, os.path.getsize(src_path)
+    ext = ".wav" if audio_only else (os.path.splitext(src_path)[1] or ".mp4")
+    dst = os.path.join(tempfile.gettempdir(), f"trim_{uuid.uuid4()}{ext}")
+    trim_media_file(src_path, dst, start_sec, end_sec, desc="trim-upload", audio_only=audio_only)
+    try:
+        os.remove(src_path)
+    except OSError:
+        pass
+    size = os.path.getsize(dst)
+    logger.info("[%s] Trecho cortado: %.1fs → %.1fs (%d bytes)", rid, start_sec or 0, end_sec or -1, size)
+    return dst, size
+
+
 def probe_video_width(path: str) -> int | None:
     w, _ = probe_video_dimensions(path)
     return w
@@ -1498,6 +1581,8 @@ async def transcribe(
     file: UploadFile = File(...),
     token: str | None = Form(None),
     language: str | None = Form(None),
+    trim_start_sec: str | None = Form(None),
+    trim_end_sec: str | None = Form(None),
 ):
     require_api_token(request, token)
     require_not_maintenance()
@@ -1529,6 +1614,21 @@ async def transcribe(
         except: pass
         logger.warning("[%s] Ficheiro > %dMB (%0.2f MB).", rid, MAX_FILE_SIZE_MB, size_mb)
         return {"transcription": "", "formatted": "", "warning": f"Ficheiro demasiado grande ({size_mb:.0f} MB). O limite é {MAX_FILE_SIZE_MB} MB."}
+
+    trim_start, trim_end = _parse_trim_form(trim_start_sec, trim_end_sec)
+    if trim_start is not None or trim_end is not None:
+        try:
+            tmp_path, written = apply_upload_trim(
+                tmp_path, trim_start, trim_end, rid=rid, audio_only=False
+            )
+            size_mb = _fmt_mb(written)
+        except Exception as exc:
+            logger.warning("[%s] Falha ao cortar trecho antes de transcrever: %s", rid, exc)
+            return {
+                "transcription": "",
+                "formatted": "",
+                "warning": "Não foi possível cortar o trecho pedido. Tenta outras marcas de início/fim.",
+            }
 
     audio_wav_path = os.path.join(tempfile.gettempdir(), f"audio_{uuid.uuid4()}.wav")
     converted_ok = False
@@ -1918,6 +2018,8 @@ async def video_subs(
     burn_mp4: str | None = Form("true"),
     token: str | None = Form(None),
     language: str | None = Form(None),
+    trim_start_sec: str | None = Form(None),
+    trim_end_sec: str | None = Form(None),
 ):
     require_api_token(request, token)
     require_not_maintenance()
@@ -1972,6 +2074,20 @@ async def video_subs(
         except Exception:
             pass
         raise HTTPException(status_code=413, detail=f"Ficheiro > {MAX_FILE_SIZE_MB}MB. Reduz o tamanho e tenta novamente.")
+
+    trim_start, trim_end = _parse_trim_form(trim_start_sec, trim_end_sec)
+    if trim_start is not None or trim_end is not None:
+        try:
+            tmp_video, written = apply_upload_trim(
+                tmp_video, trim_start, trim_end, rid=rid, audio_only=False
+            )
+            size_mb = _fmt_mb(written)
+        except Exception as exc:
+            logger.warning("[%s] [video-subs] Falha ao cortar trecho: %s", rid, exc)
+            raise HTTPException(
+                status_code=400,
+                detail="Não foi possível cortar o trecho pedido. Ajusta início e fim.",
+            ) from exc
 
     job_id = str(uuid.uuid4())
     _prune_video_jobs()
