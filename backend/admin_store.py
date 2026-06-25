@@ -28,6 +28,7 @@ DEFAULT_CONFIG: dict[str, str] = {
     "quota_anonymous_daily": "3",
     "quota_registered_daily": "20",
     "billing_enabled": "0",
+    "pricing_hidden": "1",
     "stripe_public_key": "",
     "stripe_secret_key": "",
     "stripe_webhook_secret": "",
@@ -282,7 +283,7 @@ def increment_daily_transcribe(usage_key: str) -> int:
 
 
 def transcribe_quota_status(request, actor: dict) -> dict:
-    from billing import billing_enabled, get_user_plan, pro_quota_limit
+    from billing import billing_enabled, get_user_plan, pricing_hidden, pro_quota_limit
 
     anon_limit, reg_limit = _quota_limits()
     actor_type = actor.get("type", "anonymous")
@@ -332,10 +333,13 @@ def transcribe_quota_status(request, actor: dict) -> dict:
                 "Cria uma conta gratuita para mais transcrições por dia."
             )
         elif plan != "pro":
-            out["message"] = (
-                f"Limite diário atingido ({limit} transcrições). "
-                "Passa ao plano Pro para mais transcrições e exportação DOCX."
-            )
+            if billing_enabled() and not pricing_hidden():
+                out["message"] = (
+                    f"Limite diário atingido ({limit} transcrições). "
+                    "Passa ao plano Pro para mais transcrições e exportação DOCX."
+                )
+            else:
+                out["message"] = f"Limite diário atingido ({limit} transcrições). Tenta amanhã."
         else:
             out["message"] = f"Limite diário Pro atingido ({limit} transcrições). Tenta amanhã."
     return out

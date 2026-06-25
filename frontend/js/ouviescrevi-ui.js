@@ -142,6 +142,42 @@
     });
   }
 
+  function ensurePricingVisibilityScript() {
+    if (global.OuviescreviPricingVisibility) {
+      return global.OuviescreviPricingVisibility.init();
+    }
+    var existing = document.querySelector('script[data-oe-pricing-vis="1"]');
+    if (existing) {
+      if (existing.getAttribute("data-ready") === "1" && global.OuviescreviPricingVisibility) {
+        return global.OuviescreviPricingVisibility.init();
+      }
+      return new Promise(function (resolve) {
+        existing.addEventListener("load", function () {
+          if (global.OuviescreviPricingVisibility) {
+            global.OuviescreviPricingVisibility.init().then(resolve);
+          } else {
+            resolve();
+          }
+        }, { once: true });
+      });
+    }
+    return new Promise(function (resolve) {
+      var s = document.createElement("script");
+      s.src = "/js/pricing-visibility.js";
+      s.dataset.oePricingVis = "1";
+      s.onload = function () {
+        s.setAttribute("data-ready", "1");
+        if (global.OuviescreviPricingVisibility) {
+          global.OuviescreviPricingVisibility.init().then(resolve);
+        } else {
+          resolve();
+        }
+      };
+      s.onerror = resolve;
+      document.head.appendChild(s);
+    });
+  }
+
   var LAYOUT_V = "4";
 
   function withLayoutVersion(url) {
@@ -195,6 +231,7 @@
         if (global.OuviescreviAuth && global.OuviescreviAuth.init) {
           global.OuviescreviAuth.init();
         }
+        return ensurePricingVisibilityScript();
       })
       .catch(function (err) {
         console.error("OuviescreviUI: falha ao carregar", url, err);

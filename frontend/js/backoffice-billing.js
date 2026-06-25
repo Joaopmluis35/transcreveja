@@ -17,6 +17,12 @@
     var cfg = st.status || {};
     var cards = [
       {
+        cls: cfg.pricing_hidden ? "oe-admin-card--green" : "oe-admin-card--blue",
+        label: "Preços no site",
+        value: cfg.pricing_hidden ? "Escondidos" : "Visíveis",
+        sub: cfg.pricing_hidden ? "Modo gratuito público" : "Planos e valores visíveis",
+      },
+      {
         cls: cfg.enabled ? "oe-admin-card--green" : "oe-admin-card--amber",
         label: "Pagamentos",
         value: cfg.enabled ? "Ativos" : "Desativados",
@@ -31,8 +37,8 @@
       {
         cls: "oe-admin-card--blue",
         label: "Preço Pro",
-        value: cfg.price_label || "—",
-        sub: "Quota " + (cfg.pro_quota_daily || "—") + "/dia",
+        value: cfg.pricing_hidden ? "—" : (cfg.price_label || "—"),
+        sub: cfg.pricing_hidden ? "Oculto no site" : "Quota " + (cfg.pro_quota_daily || "—") + "/dia",
       },
       {
         cls: "oe-admin-card--blue",
@@ -96,6 +102,7 @@
       var data = await res.json();
       var cfg = data.config || {};
       document.getElementById("billingCfgEnabled").checked = cfg.billing_enabled === "1";
+      document.getElementById("billingCfgPricingHidden").checked = cfg.pricing_hidden !== "0";
       document.getElementById("billingCfgPriceLabel").value = cfg.pro_price_label || "";
       document.getElementById("billingCfgProQuota").value = cfg.pro_quota_daily || "200";
       document.getElementById("billingCfgStripePk").value = cfg.stripe_public_key || "";
@@ -120,6 +127,7 @@
     e.preventDefault();
     var updates = {
       billing_enabled: document.getElementById("billingCfgEnabled").checked ? "1" : "0",
+      pricing_hidden: document.getElementById("billingCfgPricingHidden").checked ? "1" : "0",
       pro_price_label: document.getElementById("billingCfgPriceLabel").value.trim(),
       pro_quota_daily: document.getElementById("billingCfgProQuota").value,
       stripe_public_key: document.getElementById("billingCfgStripePk").value.trim(),

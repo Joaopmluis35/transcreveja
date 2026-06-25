@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="css/ouviescrevi.css">
   <link rel="stylesheet" href="css/ouviescrevi-pro.css">
   <link rel="stylesheet" href="css/index-home.css?v=17">
+  <script src="js/pricing-visibility.js" defer></script>
   <script src="/js/ouviescrevi-seo.js" defer></script>
   <script src="js/ouviescrevi-ui.js" defer></script>
   <style>
@@ -21,20 +22,30 @@
     body.oe-page--landing-pro .oe-lp-lead { font-size: 1.1rem; opacity: .92; max-width: 640px; margin: 0 auto 28px; }
     body.oe-page--landing-pro .oe-lp-cta-row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-bottom: 40px; }
     body.oe-page--landing-pro .oe-lp-btn {
-      display: inline-block; padding: 14px 22px; border-radius: 12px; font-weight: 700;
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      min-height: 48px; padding: 14px 26px; border-radius: 12px; font-weight: 700;
       text-decoration: none; border: none; cursor: pointer; font-size: 1rem;
+      transition: transform .15s ease, box-shadow .15s ease;
     }
-    body.oe-page--landing-pro .oe-lp-btn--primary { background: linear-gradient(135deg,#a550f7,#00c3ff); color: #fff; }
-    body.oe-page--landing-pro .oe-lp-btn--ghost { background: rgba(255,255,255,.08); color: #eee; border: 1px solid rgba(255,255,255,.2); }
+    body.oe-page--landing-pro .oe-lp-btn:hover { transform: translateY(-1px); }
+    body.oe-page--landing-pro .oe-lp-btn--primary {
+      background: linear-gradient(135deg, #7c3aed, #2563eb); color: #fff;
+      box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
+    }
+    body.oe-page--landing-pro .oe-lp-btn--ghost {
+      background: #fff; color: #6d28d9; border: 2px solid #8b5cf6;
+      box-shadow: 0 2px 12px rgba(139, 92, 246, 0.15);
+    }
     body.oe-page--landing-pro .oe-lp-grid {
       display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: 16px; max-width: 960px; margin: 0 auto 40px; padding: 0 16px;
     }
     body.oe-page--landing-pro .oe-lp-card {
-      background: rgba(15,15,25,.55); border: 1px solid rgba(165,80,247,.25);
+      background: var(--pro-surface, #fff); border: 1px solid var(--pro-border, #e2e8f0);
       border-radius: 14px; padding: 20px;
+      box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
     }
-    body.oe-page--landing-pro .oe-lp-card h2 { font-size: 1.05rem; margin: 0 0 8px; color: #e8d9ff; }
+    body.oe-page--landing-pro .oe-lp-card h2 { font-size: 1.05rem; margin: 0 0 8px; color: var(--pro-text, #0f172a); }
     body.oe-page--landing-pro .oe-lp-steps { max-width: 720px; margin: 0 auto 48px; padding: 0 20px; }
     body.oe-page--landing-pro .oe-lp-steps ol { line-height: 1.8; }
     body.oe-page--landing-pro .oe-lp-proof {
@@ -56,7 +67,7 @@
     </p>
     <div class="oe-lp-cta-row">
       <a href="index.html" class="oe-lp-btn oe-lp-btn--primary">🎙️ Transcrever aula grátis</a>
-      <a href="precos.html" class="oe-lp-btn oe-lp-btn--ghost">Ver plano Pro (DOCX)</a>
+      <a href="precos.html" class="oe-lp-btn oe-lp-btn--ghost" data-pricing-only>Ver plano Pro (DOCX)</a>
     </div>
   </section>
 
@@ -67,7 +78,7 @@
     </article>
     <article class="oe-lp-card">
       <h2>📚 Materiais para alunos</h2>
-      <p>Exporta em PDF, TXT ou <strong>DOCX (Pro)</strong>. Combina com resumos e perguntas de estudo no mesmo site.</p>
+      <p>Exporta em PDF, TXT ou <strong><span data-pricing-only>DOCX (Pro)</span><span data-pricing-free-only hidden>DOCX</span></strong>. Combina com resumos e perguntas de estudo no mesmo site.</p>
     </article>
     <article class="oe-lp-card">
       <h2>🇵🇹 Português primeiro</h2>

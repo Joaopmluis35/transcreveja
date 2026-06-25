@@ -1218,7 +1218,7 @@ class ExportDocxRequest(BaseModel):
 
 @app.post("/api/export/docx")
 def export_docx_pro(request: Request, body: ExportDocxRequest):
-    from billing import billing_enabled, build_docx_bytes, is_pro_user
+    from billing import billing_enabled, build_docx_bytes, is_pro_user, pricing_hidden
     from fastapi.responses import Response
 
     text = (body.text or "").strip()
@@ -1227,12 +1227,15 @@ def export_docx_pro(request: Request, body: ExportDocxRequest):
     actor = resolve_site_actor(request)
     if billing_enabled():
         if actor["type"] != "user" or not is_pro_user(actor.get("email") or ""):
-            raise HTTPException(
-                status_code=403,
-                detail="Exportação DOCX disponível no plano Pro. Vê ouviescrevi.pt/precos.html",
-            )
+            detail = "Exportação DOCX disponível no plano Pro. Vê ouviescrevi.pt/precos.html"
+            if pricing_hidden():
+                detail = "Exportação DOCX em breve."
+            raise HTTPException(status_code=403, detail=detail)
     else:
-        raise HTTPException(status_code=503, detail="Plano Pro em breve — exportação DOCX ainda não disponível.")
+        detail = "Plano Pro em breve — exportação DOCX ainda não disponível."
+        if pricing_hidden():
+            detail = "Exportação DOCX em breve."
+        raise HTTPException(status_code=503, detail=detail)
     try:
         data = build_docx_bytes(text, title=body.title or "Transcrição Ouviescrevi")
     except ValueError as exc:
@@ -1248,7 +1251,7 @@ def export_docx_pro(request: Request, body: ExportDocxRequest):
 def frontend_config(request: Request):
     if not origin_is_allowed(request, ALLOWED_ORIGINS):
         raise HTTPException(status_code=403, detail="Origem não autorizada.")
-    return {"apiBase": PUBLIC_API_BASE, "token": API_TOKEN, "maxFileSizeMb": MAX_FILE_SIZE_MB}
+    return {"apiBase": PUBLIC_API_BASE, "token": API_TOKEN, "maxFileSizeMb": MAX_FILE_SIZE_MB, "pricingHidden": __import__("billing").pricing_hidden()}
 
 
 class SiteRegisterRequest(BaseModel):

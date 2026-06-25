@@ -382,6 +382,7 @@ def admin_billing_status(request: Request):
     return {
         "config": {
             "billing_enabled": cfg.get("billing_enabled", "0"),
+            "pricing_hidden": cfg.get("pricing_hidden", "1"),
             "stripe_public_key": cfg.get("stripe_public_key", ""),
             "stripe_price_id_pro": cfg.get("stripe_price_id_pro", ""),
             "pro_quota_daily": cfg.get("pro_quota_daily", "200"),
@@ -403,6 +404,7 @@ def admin_billing_config(request: Request, body: BillingConfigUpdate):
     store.require_role(getattr(request.state, "admin_session", None), "admin")
     allowed = {
         "billing_enabled",
+        "pricing_hidden",
         "stripe_public_key",
         "stripe_secret_key",
         "stripe_webhook_secret",

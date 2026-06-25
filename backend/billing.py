@@ -23,18 +23,28 @@ def billing_enabled() -> bool:
     return os.getenv("BILLING_ENABLED", "").strip().lower() in ("1", "true", "yes")
 
 
+def pricing_hidden() -> bool:
+    cfg = _store().get_config()
+    if cfg.get("pricing_hidden", "1") == "0":
+        return False
+    env = (os.getenv("PRICING_HIDDEN") or "1").strip().lower()
+    return env not in ("0", "false", "no", "off")
+
+
 def billing_config() -> dict[str, Any]:
     cfg = _store().get_config()
     stripe_pk = (os.getenv("STRIPE_PUBLIC_KEY") or cfg.get("stripe_public_key") or "").strip()
     price_label = cfg.get("pro_price_label") or "9,99 €/mês"
     pro_quota = int(cfg.get("pro_quota_daily") or os.getenv("PRO_QUOTA_DAILY", "200") or "200")
+    hidden = pricing_hidden()
     return {
         "enabled": billing_enabled(),
+        "pricing_hidden": hidden,
         "stripe_configured": bool(stripe_secret_key()),
-        "stripe_public_key": stripe_pk if billing_enabled() else "",
-        "price_label": price_label,
-        "pro_quota_daily": pro_quota,
-        "checkout_ready": billing_enabled() and bool(stripe_secret_key() and stripe_price_id()),
+        "stripe_public_key": stripe_pk if billing_enabled() and not hidden else "",
+        "price_label": price_label if not hidden else "",
+        "pro_quota_daily": pro_quota if not hidden else 0,
+        "checkout_ready": billing_enabled() and not hidden and bool(stripe_secret_key() and stripe_price_id()),
     }
 
 
@@ -54,7 +64,8 @@ def stripe_price_id() -> str:
 
 
 def pro_quota_limit() -> int:
-    return int(billing_config()["pro_quota_daily"])
+    cfg = _store().get_config()
+    return int(cfg.get("pro_quota_daily") or os.getenv("PRO_QUOTA_DAILY", "200") or "200")
 
 
 def get_user_plan(email: str) -> str:

@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="stylesheet" href="css/ouviescrevi.css?v=11">
-  <link rel="stylesheet" href="css/index-home.css?v=16">
+  <link rel="stylesheet" href="css/index-home.css?v=18">
+  <link rel="stylesheet" href="css/pricing-visibility.css">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <title>Ouviescrevi — Transcrição de Áudio e Vídeo com IA Grátis</title>
   <meta name="description" content="Transcreve áudio e vídeo online com inteligência artificial, grátis e sem registo. Resumos, tradução, legendas SRT e conversão de ficheiros. Feito em Portugal.">
@@ -281,7 +282,7 @@
               <button type="button" id="exportBtn" aria-haspopup="true" aria-expanded="false"><span>📁 Exportar ▼</span></button>
               <div class="dropdown-content" id="exportOptions">
                 <button type="button" data-export="pdf"><span>📄 Exportar PDF</span></button>
-                <button type="button" data-export="docx" id="exportDocxBtn"><span>📝 Exportar DOCX <small class="oe-pro-tag">Pro</small></span></button>
+                <button type="button" data-export="docx" id="exportDocxBtn" data-pricing-only><span>📝 Exportar DOCX <small class="oe-pro-tag">Pro</small></span></button>
                 <button type="button" data-export="doc"><span>📝 Exportar DOC (simples)</span></button>
                 <button type="button" data-export="txt"><span>📃 Exportar TXT</span></button>
                 <button type="button" data-export="srt"><span>🎞️ Exportar SRT</span></button>
@@ -403,6 +404,7 @@
 <script src="/js/ouviescrevi-seo.js"></script>
 <script src="js/ouviescrevi-ui.js?v=2"></script>
 <script src="js/ouviescrevi-api.js"></script>
+<script src="js/pricing-visibility.js"></script>
 <script src="js/history-ui.js"></script>
 <script src="js/upsell-ui.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
