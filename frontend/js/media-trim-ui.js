@@ -7,6 +7,8 @@
   var CLIENT_TRIM_MIN_MB = 50;
   var CLIENT_TRIM_MAX_SEGMENT_RATIO = 0.85;
   var CLIENT_TRIM_LARGE_MB = 120;
+  /** Acima disto o FFmpeg.wasm tende a falhar — usar gravação via <video>/<audio>. */
+  var WASM_TRIM_MAX_BYTES = 150 * 1024 * 1024;
 
   var state = {
     file: null,
@@ -93,7 +95,7 @@
       '<button type="button" class="oe-trim-preset" data-sec="3600">Primeira hora</button>' +
       "</div>" +
       '<p class="oe-trim-summary" id="oeTrimSummary"></p>' +
-      '<p class="oe-trim-panel__note">Com um trecho escolhido, vídeos grandes podem ser cortados no teu dispositivo antes do envio — acelera muito o upload.</p>' +
+      '<p class="oe-trim-panel__note">Com um trecho escolhido, extraímos o áudio no teu dispositivo antes do envio (demora alguns minutos, mas evita enviar o vídeo completo).</p>' +
       '<button type="button" class="oe-trim-play" id="oeTrimPlay">▶ Ouvir / ver trecho</button>' +
       "</div>";
     var anchor = $("videoPreviewWrap") || $("dropZone");
@@ -319,7 +321,7 @@
 
   function canUploadFile(file) {
     if (!file) return false;
-    if (!state.visible || state.file !== file) return !isOverUploadLimit(file);
+    if (!state.visible || !isSameFile(state.file, file)) return !isOverUploadLimit(file);
     var sel = getSelection();
     if (isOverUploadLimit(file) && sel.mode !== "segment") return false;
     if (sel.mode === "segment" && !sel.isValid) return false;
@@ -461,9 +463,158 @@
     return false;
   }
 
+  function isSameFile(a, b) {
+    return !!a && !!b && a.name === b.name && a.size === b.size && a.lastModified === b.lastModified;
+  }
+
+  function pickRecorderMime() {
+    var types = ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus", "audio/mp4"];
+    for (var i = 0; i < types.length; i++) {
+      if (typeof MediaRecorder !== "undefined" && MediaRecorder.isTypeSupported(types[i])) {
+        return types[i];
+      }
+    }
+    return "";
+  }
+
+  function mimeToAudioExt(mime) {
+    if (!mime) return "webm";
+    if (mime.indexOf("ogg") >= 0) return "ogg";
+    if (mime.indexOf("mp4") >= 0 || mime.indexOf("m4a") >= 0) return "m4a";
+    return "webm";
+  }
+
+  /**
+   * Extrai áudio do trecho via o elemento de pré-visualização (sem carregar o ficheiro inteiro no WASM).
+   * Grava em tempo real — ~1 min de espera por cada minuto de trecho, mas o upload fica pequeno.
+   */
+  function extractAudioSegmentViaMedia(startSec, endSec, onProgress) {
+    onProgress = onProgress || function () {};
+    var media = getMediaEl();
+    if (!media) return Promise.reject(new Error("Pré-visualização do vídeo indisponível."));
+    var mime = pickRecorderMime();
+    if (!mime) {
+      return Promise.reject(new Error("O browser não consegue gravar áudio deste vídeo."));
+    }
+    var segmentSec = Math.max(0.5, endSec - startSec);
+    onProgress(
+      "A gravar áudio do trecho (~" +
+        Math.max(1, Math.ceil(segmentSec / 60)) +
+        " min em tempo real — não enviamos o vídeo completo)…"
+    );
+
+    return new Promise(function (resolve, reject) {
+      stopSegmentPreview();
+      var chunks = [];
+      var capture =
+        typeof media.captureStream === "function"
+          ? media.captureStream()
+          : typeof media.mozCaptureStream === "function"
+            ? media.mozCaptureStream()
+            : null;
+      if (!capture || !capture.getAudioTracks().length) {
+        reject(new Error("Não foi possível capturar áudio do vídeo."));
+        return;
+      }
+      var audioStream = new MediaStream(capture.getAudioTracks());
+      var recorder;
+      try {
+        recorder = new MediaRecorder(audioStream, { mimeType: mime, audioBitsPerSecond: 64000 });
+      } catch (err) {
+        reject(err);
+        return;
+      }
+      var tickTimer = null;
+      var startedAt = 0;
+
+      function cleanup() {
+        if (tickTimer) clearInterval(tickTimer);
+        tickTimer = null;
+        media.pause();
+      }
+
+      recorder.ondataavailable = function (ev) {
+        if (ev.data && ev.data.size) chunks.push(ev.data);
+      };
+      recorder.onerror = function () {
+        cleanup();
+        reject(new Error("Falha ao gravar áudio do trecho."));
+      };
+      recorder.onstop = function () {
+        cleanup();
+        var blob = new Blob(chunks, { type: mime });
+        if (!blob.size) {
+          reject(new Error("Não foi possível extrair áudio do trecho."));
+          return;
+        }
+        onProgress("Áudio do trecho pronto (" + Math.max(1, Math.round(blob.size / (1024 * 1024))) + " MB).");
+        var base = (state.file.name || "media").replace(/\.[^.]+$/, "");
+        resolve(new File([blob], base + "_trecho." + mimeToAudioExt(mime), { type: mime }));
+      };
+
+      function startRecording() {
+        chunks = [];
+        try {
+          recorder.start(400);
+        } catch (err) {
+          reject(err);
+          return;
+        }
+        startedAt = Date.now();
+        tickTimer = setInterval(function () {
+          var elapsed = (Date.now() - startedAt) / 1000;
+          var pct = Math.min(99, Math.round((elapsed / segmentSec) * 100));
+          onProgress("A gravar áudio do trecho… " + pct + "%");
+        }, 400);
+
+        function onTimeUpdate() {
+          if (media.currentTime >= endSec - 0.08 || media.ended) {
+            media.removeEventListener("timeupdate", onTimeUpdate);
+            media.pause();
+            try {
+              if (recorder.state !== "inactive") recorder.stop();
+            } catch (_) {}
+          }
+        }
+        media.addEventListener("timeupdate", onTimeUpdate);
+        var playPromise = media.play();
+        if (playPromise && playPromise.catch) {
+          playPromise.catch(function (err) {
+            cleanup();
+            reject(err);
+          });
+        }
+      }
+
+      media.pause();
+      var seekTo = Math.max(0, startSec);
+      function afterSeek() {
+        startRecording();
+      }
+      if (Math.abs(media.currentTime - seekTo) < 0.12 && media.readyState >= 2) {
+        afterSeek();
+        return;
+      }
+      var onSeeked = function () {
+        media.removeEventListener("seeked", onSeeked);
+        afterSeek();
+      };
+      media.addEventListener("seeked", onSeeked);
+      try {
+        media.currentTime = seekTo;
+      } catch (err) {
+        media.removeEventListener("seeked", onSeeked);
+        reject(err);
+      }
+    });
+  }
+
   async function trimClientSide(file, startSec, endSec, onProgress, opts) {
     onProgress = onProgress || function () {};
     opts = opts || {};
+    if (opts.audioOnly && file.size > WASM_TRIM_MAX_BYTES) {
+      return extractAudioSegmentViaMedia(startSec, endSec, onProgress);
+    }
     var ffmpeg = await loadFfmpeg(onProgress);
     var fetchFile = ffmpeg._fetchFile;
     var ext = (file.name.split(".").pop() || "mp4").toLowerCase();
@@ -531,7 +682,7 @@
   async function prepareForUpload(file, onProgress, opts) {
     opts = opts || {};
     var sel = getSelection();
-    if (!state.visible || state.file !== file || sel.mode === "full") {
+    if (!state.visible || !isSameFile(state.file, file) || sel.mode === "full") {
       return { file: file, trimmed: false };
     }
     if (!sel.isValid) {
@@ -550,8 +701,12 @@
             "Não foi possível cortar no browser. Tenta um trecho mais curto ou comprime o vídeo antes de enviar."
           );
         }
-        onProgress("Corte local falhou — a enviar com corte no servidor (pode demorar mais)…");
-        return { file: file, trimmed: false, trimStart: sel.startSec, trimEnd: sel.endSec };
+        onProgress(
+          "Corte local falhou — a enviar ficheiro completo (" +
+            Math.round(fileSizeMb(file)) +
+            " MB). O servidor usa só o trecho (mais lento)."
+        );
+        return { file: file, trimmed: false, trimStart: sel.startSec, trimEnd: sel.endSec, fallbackServerTrim: true };
       }
     }
     return { file: file, trimmed: false, trimStart: sel.startSec, trimEnd: sel.endSec };

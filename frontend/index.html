@@ -409,7 +409,7 @@
 <script src="js/history-ui.js"></script>
 <script src="js/upsell-ui.js"></script>
 <script src="/js/suggestion-fab.js" defer></script>
-<script src="/js/media-trim-ui.js?v=4" defer></script>
+<script src="/js/media-trim-ui.js?v=5" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
   const ADMIN_EMAIL = "admin@ouviescrevi.pt";
@@ -889,6 +889,20 @@
       return;
     }
     pararFrasesAnimadas(statusEl);
+    if (uploadFile !== file && fileSizeMb(uploadFile) < fileSizeMb(file) * 0.5) {
+      statusEl.textContent =
+        "✅ Trecho preparado (" + formatMb(fileSizeMb(uploadFile)) + " MB) — a enviar…";
+      await new Promise(function (r) { setTimeout(r, 900); });
+    } else if (window.OuviescreviMediaTrim) {
+      var trimSel = OuviescreviMediaTrim.getSelection();
+      if (trimSel.mode === "segment" && fileSizeMb(uploadFile) > 80) {
+        statusEl.textContent =
+          "⚠️ A enviar ficheiro completo (" +
+          formatMb(fileSizeMb(uploadFile)) +
+          " MB). O servidor corta ao trecho — mais lento.";
+        await new Promise(function (r) { setTimeout(r, 2200); });
+      }
+    }
     iniciarFrasesAnimadas(statusEl);
     const lang = document.getElementById("transcribeLanguage").value;
     if (lang && lang !== "auto") formData.append("language", lang);
