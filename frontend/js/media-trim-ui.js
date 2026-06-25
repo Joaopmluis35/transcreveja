@@ -95,7 +95,7 @@
       '<button type="button" class="oe-trim-preset" data-sec="3600">Primeira hora</button>' +
       "</div>" +
       '<p class="oe-trim-summary" id="oeTrimSummary"></p>' +
-      '<p class="oe-trim-panel__note">Com um trecho escolhido, extraímos o áudio no teu dispositivo antes do envio (demora alguns minutos, mas evita enviar o vídeo completo).</p>' +
+      '<p class="oe-trim-panel__note">Com um trecho escolhido, extraímos o áudio no teu dispositivo antes do envio — em MP4 costuma levar segundos a poucos minutos, não o tempo inteiro do trecho.</p>' +
       '<button type="button" class="oe-trim-play" id="oeTrimPlay">▶ Ouvir / ver trecho</button>' +
       "</div>";
     var anchor = $("videoPreviewWrap") || $("dropZone");
@@ -484,9 +484,130 @@
     return "webm";
   }
 
+  function isMp4LikeFile(file) {
+    if (!file) return false;
+    var ext = (file.name.split(".").pop() || "").toLowerCase();
+    if (ext === "mp4" || ext === "m4v" || ext === "mov") return true;
+    var type = (file.type || "").toLowerCase();
+    return type.indexOf("mp4") >= 0 || type.indexOf("quicktime") >= 0;
+  }
+
+  var avCliperLoadPromise = null;
+
+  function loadAvCliper() {
+    if (avCliperLoadPromise) return avCliperLoadPromise;
+    avCliperLoadPromise = import("https://esm.sh/@webav/av-cliper@1.2.8").catch(function (err) {
+      avCliperLoadPromise = null;
+      throw err;
+    });
+    return avCliperLoadPromise;
+  }
+
+  async function readReadableStreamToBlob(stream, mime) {
+    var reader = stream.getReader();
+    var parts = [];
+    while (true) {
+      var chunk = await reader.read();
+      if (chunk.done) break;
+      if (chunk.value) parts.push(chunk.value);
+    }
+    return new Blob(parts, { type: mime || "application/octet-stream" });
+  }
+
+  function destroyClipSafe(clip) {
+    if (clip && typeof clip.destroy === "function") {
+      try {
+        clip.destroy();
+      } catch (_) {}
+    }
+  }
+
+  function pickAudioExportClip(tracks, fallback) {
+    if (!tracks || !tracks.length) return fallback;
+    for (var i = 0; i < tracks.length; i++) {
+      var meta = tracks[i].meta || {};
+      if (meta.audioChanCount > 0 && (!meta.width || meta.width <= 2)) return tracks[i];
+    }
+    for (var j = 0; j < tracks.length; j++) {
+      if ((tracks[j].meta || {}).audioChanCount > 0) return tracks[j];
+    }
+    return fallback;
+  }
+
   /**
-   * Extrai áudio do trecho via o elemento de pré-visualização (sem carregar o ficheiro inteiro no WASM).
-   * Grava em tempo real — ~1 min de espera por cada minuto de trecho, mas o upload fica pequeno.
+   * Corte rápido de MP4/MOV via WebCodecs (sem gravar em tempo real).
+   */
+  async function extractAudioSegmentViaWebAV(file, startSec, endSec, onProgress) {
+    onProgress = onProgress || function () {};
+    onProgress("A carregar motor de corte rápido…");
+    var mod = await loadAvCliper();
+    var MP4Clip = mod.MP4Clip;
+    var Combinator = mod.Combinator;
+    var OffscreenSprite = mod.OffscreenSprite;
+    if (Combinator && Combinator.isSupported) {
+      var supported = await Combinator.isSupported();
+      if (!supported) throw new Error("WebCodecs indisponível neste browser.");
+    }
+
+    onProgress("A analisar vídeo…");
+    var sourceClip = new MP4Clip(file.stream());
+    await sourceClip.ready;
+    var startUs = Math.round(startSec * 1e6);
+    var durationUs = Math.round(Math.max(0.5, endSec - startSec) * 1e6);
+    var splitHead = await sourceClip.split(startUs);
+    var afterStart = splitHead[1];
+    destroyClipSafe(sourceClip);
+    var splitSegment = await afterStart.split(durationUs);
+    var segment = splitSegment[0];
+    destroyClipSafe(afterStart);
+    destroyClipSafe(splitSegment[1]);
+
+    var exportClip = segment;
+    var splitTracks = null;
+    try {
+      splitTracks = await segment.splitTrack();
+      exportClip = pickAudioExportClip(splitTracks, segment);
+      if (splitTracks) {
+        splitTracks.forEach(function (track) {
+          if (track !== exportClip) destroyClipSafe(track);
+        });
+      }
+    } catch (_) {}
+
+    onProgress("A extrair áudio do trecho (rápido)… 0%");
+    var sprite = new OffscreenSprite(exportClip);
+    var meta = exportClip.meta || {};
+    var com = new Combinator({
+      width: Math.max(2, meta.width || 2),
+      height: Math.max(2, meta.height || 2),
+      bitrate: 500000,
+    });
+    var stopProgress = null;
+    if (com.on) {
+      stopProgress = com.on("OutputProgress", function (progress) {
+        onProgress("A extrair áudio do trecho (rápido)… " + Math.round(progress * 100) + "%");
+      });
+    }
+    try {
+      await com.addSprite(sprite, { main: true });
+      var outBlob = await readReadableStreamToBlob(com.output(), "audio/mp4");
+      if (!outBlob.size) throw new Error("Trecho de áudio vazio.");
+      onProgress(
+        "Áudio do trecho pronto (" + Math.max(1, Math.round(outBlob.size / (1024 * 1024))) + " MB)."
+      );
+      var base = (file.name || "media").replace(/\.[^.]+$/, "");
+      return new File([outBlob], base + "_trecho.m4a", { type: outBlob.type || "audio/mp4" });
+    } finally {
+      if (stopProgress) stopProgress();
+      com.destroy();
+      destroyClipSafe(sprite);
+      destroyClipSafe(exportClip);
+      if (exportClip !== segment) destroyClipSafe(segment);
+    }
+  }
+
+  /**
+   * Fallback: grava em tempo real via <video>/<audio> (mais lento).
    */
   function extractAudioSegmentViaMedia(startSec, endSec, onProgress) {
     onProgress = onProgress || function () {};
@@ -500,7 +621,7 @@
     onProgress(
       "A gravar áudio do trecho (~" +
         Math.max(1, Math.ceil(segmentSec / 60)) +
-        " min em tempo real — não enviamos o vídeo completo)…"
+        " min em tempo real — método lento)…"
     );
 
     return new Promise(function (resolve, reject) {
@@ -613,6 +734,13 @@
     onProgress = onProgress || function () {};
     opts = opts || {};
     if (opts.audioOnly && file.size > WASM_TRIM_MAX_BYTES) {
+      if (isMp4LikeFile(file)) {
+        try {
+          return await extractAudioSegmentViaWebAV(file, startSec, endSec, onProgress);
+        } catch (err) {
+          console.warn("OuviescreviMediaTrim: WebAV falhou, fallback tempo real", err);
+        }
+      }
       return extractAudioSegmentViaMedia(startSec, endSec, onProgress);
     }
     var ffmpeg = await loadFfmpeg(onProgress);
