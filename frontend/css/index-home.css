@@ -1746,6 +1746,11 @@ body.oe-page--home .oe-trim-preset:hover,
 body.oe-page--home .oe-trim-play:hover {
   background: #ede9fe;
 }
+body.oe-page--home .oe-trim-play[aria-pressed="true"] {
+  background: #fef2f2;
+  border-color: #f87171;
+  color: #b91c1c;
+}
 body.oe-page--home .oe-trim-summary {
   margin: 12px 0 0;
   font-weight: 700;

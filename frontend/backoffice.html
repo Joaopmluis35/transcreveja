@@ -437,6 +437,30 @@
           <p class="oe-admin-empty">A carregar planos…</p>
         </div>
         <div class="oe-admin-panel">
+          <div class="oe-admin-panel__head">Quotas diárias (modo gratuito)</div>
+          <div class="oe-admin-panel__body">
+            <p class="oe-admin-hint">
+              Limites de <strong>transcrições e legendagens</strong> por dia. Anónimos contam por IP;
+              registados contam por conta. Alterações aplicam-se de imediato no site.
+            </p>
+            <form id="quotasConfigForm" class="oe-admin-form">
+              <div class="oe-admin-grid-2">
+                <div class="oe-admin-field">
+                  <label for="billingCfgQuotaAnon">Anónimos / dia</label>
+                  <input id="billingCfgQuotaAnon" type="number" min="0" step="1" placeholder="3">
+                  <small class="oe-admin-hint">Visitantes sem conta. <code>0</code> = sem limite (não recomendado).</small>
+                </div>
+                <div class="oe-admin-field">
+                  <label for="billingCfgQuotaReg">Registados / dia</label>
+                  <input id="billingCfgQuotaReg" type="number" min="0" step="1" placeholder="20">
+                  <small class="oe-admin-hint">Contas gratuitas com login.</small>
+                </div>
+              </div>
+              <button type="submit" class="oe-admin-btn oe-admin-btn--primary">Guardar quotas</button>
+            </form>
+          </div>
+        </div>
+        <div class="oe-admin-panel">
           <div class="oe-admin-panel__head oe-admin-panel__head--row">
             <span>Configuração Stripe / Pro</span>
             <button type="button" id="btnRefreshBilling" class="oe-admin-btn oe-admin-btn--secondary oe-admin-btn--sm">🔄 Atualizar</button>
@@ -600,6 +624,6 @@
 <script src="js/backoffice-cms-locales.js?v=5"></script>
 <script src="js/backoffice.js?v=16"></script>
 <script src="js/backoffice-admin.js?v=20"></script>
-<script src="js/backoffice-billing.js?v=1"></script>
+<script src="js/backoffice-billing.js?v=2"></script>
 </body>
 </html>

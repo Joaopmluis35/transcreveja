@@ -89,7 +89,7 @@
       '<button type="button" class="oe-trim-preset" data-sec="3600">Primeira hora</button>' +
       "</div>" +
       '<p class="oe-trim-summary" id="oeTrimSummary"></p>' +
-      '<button type="button" class="oe-trim-play" id="oeTrimPlay" type="button">▶ Ouvir / ver trecho</button>' +
+      '<button type="button" class="oe-trim-play" id="oeTrimPlay">▶ Ouvir / ver trecho</button>' +
       "</div>";
     var anchor = $("videoPreviewWrap") || $("dropZone");
     if (anchor && anchor.parentNode) {
@@ -152,6 +152,7 @@
     var start = $("oeTrimStart");
     var end = $("oeTrimEnd");
     if (!start || !end || !state.duration) return;
+    stopSegmentPreview();
     state.startSec = Math.min(parseInt(start.value, 10) / 10, state.duration);
     state.endSec = Math.min(parseInt(end.value, 10) / 10, state.duration);
     if (state.endSec <= state.startSec + 1) {
@@ -162,6 +163,7 @@
   }
 
   function setMode(mode) {
+    stopSegmentPreview();
     state.mode = mode;
     var segment = $("oeTrimSegment");
     var radios = document.querySelectorAll('input[name="oeTrimMode"]');
@@ -194,6 +196,7 @@
 
   function applyPreset(seconds) {
     if (!state.duration) return;
+    stopSegmentPreview();
     state.startSec = 0;
     state.endSec = Math.min(state.duration, seconds);
     updateSummary();
@@ -217,17 +220,11 @@
     var playBtn = $("oeTrimPlay");
     if (playBtn) {
       playBtn.addEventListener("click", function () {
-        var media = getMediaEl();
-        if (!media) return;
-        media.currentTime = state.startSec;
-        media.play();
-        function onTime() {
-          if (media.currentTime >= state.endSec - 0.05) {
-            media.pause();
-            media.removeEventListener("timeupdate", onTime);
-          }
+        if (isSegmentPreviewPlaying()) {
+          stopSegmentPreview();
+        } else {
+          playSegmentPreview();
         }
-        media.addEventListener("timeupdate", onTime);
       });
     }
   }
@@ -261,6 +258,7 @@
       var media = isVideo ? video : audio;
       media.src = objectUrl || "";
       media.load();
+      bindPreviewMediaEvents();
     }
 
     panel.classList.remove("hidden");
@@ -274,6 +272,7 @@
   }
 
   function hidePanel() {
+    stopSegmentPreview();
     var panel = $("oeTrimPanel");
     if (panel) panel.classList.add("hidden");
     state.file = null;
@@ -335,6 +334,69 @@
 
   var ffmpegCache = null;
   var ffmpegLoadPromise = null;
+  var previewTimeListener = null;
+
+  var PREVIEW_LABEL_PLAY = "▶ Ouvir / ver trecho";
+  var PREVIEW_LABEL_STOP = "⏹ Parar";
+
+  function stopSegmentPreview() {
+    var media = getMediaEl();
+    var playBtn = $("oeTrimPlay");
+    if (media) {
+      media.pause();
+      if (previewTimeListener) {
+        media.removeEventListener("timeupdate", previewTimeListener);
+        previewTimeListener = null;
+      }
+    }
+    if (playBtn) {
+      playBtn.textContent = PREVIEW_LABEL_PLAY;
+      playBtn.setAttribute("aria-pressed", "false");
+    }
+  }
+
+  function isSegmentPreviewPlaying() {
+    var media = getMediaEl();
+    return !!(media && !media.paused && !media.ended);
+  }
+
+  function playSegmentPreview() {
+    var media = getMediaEl();
+    var playBtn = $("oeTrimPlay");
+    if (!media) return;
+    stopSegmentPreview();
+    media.currentTime = state.startSec;
+    var playPromise = media.play();
+    if (playBtn) {
+      playBtn.textContent = PREVIEW_LABEL_STOP;
+      playBtn.setAttribute("aria-pressed", "true");
+    }
+    previewTimeListener = function () {
+      if (media.currentTime >= state.endSec - 0.05) {
+        stopSegmentPreview();
+      }
+    };
+    media.addEventListener("timeupdate", previewTimeListener);
+    if (playPromise && playPromise.catch) {
+      playPromise.catch(function () {
+        stopSegmentPreview();
+      });
+    }
+  }
+
+  function bindPreviewMediaEvents() {
+    ["oeTrimVideo", "oeTrimAudio"].forEach(function (id) {
+      var media = $(id);
+      if (!media || media.dataset.oeTrimBound) return;
+      media.dataset.oeTrimBound = "1";
+      media.addEventListener("pause", function () {
+        if ($("oeTrimPlay") && $("oeTrimPlay").getAttribute("aria-pressed") === "true") {
+          stopSegmentPreview();
+        }
+      });
+      media.addEventListener("ended", stopSegmentPreview);
+    });
+  }
 
   async function loadFfmpeg(onProgress) {
     if (ffmpegCache) return ffmpegCache;

@@ -395,6 +395,8 @@ def admin_billing_status(request: Request):
             "stripe_price_id_pro": cfg.get("stripe_price_id_pro", ""),
             "pro_quota_daily": cfg.get("pro_quota_daily", "200"),
             "pro_price_label": cfg.get("pro_price_label", "9,99 €/mês"),
+            "quota_anonymous_daily": cfg.get("quota_anonymous_daily", "3"),
+            "quota_registered_daily": cfg.get("quota_registered_daily", "20"),
             "stripe_secret_set": bool(cfg.get("stripe_secret_key") or ""),
             "stripe_webhook_set": bool(cfg.get("stripe_webhook_secret") or ""),
         },
@@ -419,6 +421,8 @@ def admin_billing_config(request: Request, body: BillingConfigUpdate):
         "stripe_price_id_pro",
         "pro_quota_daily",
         "pro_price_label",
+        "quota_anonymous_daily",
+        "quota_registered_daily",
     }
     updates = {k: v for k, v in body.updates.items() if k in allowed}
     if not updates:

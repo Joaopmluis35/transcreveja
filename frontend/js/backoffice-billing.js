@@ -10,12 +10,25 @@
     return global.OuviescreviAPI.adminAuthHeaders({ "Content-Type": "application/json" });
   }
 
-  function renderBillingCards(status) {
+  function renderBillingCards(data) {
     var grid = document.getElementById("billingStatusCards");
     if (!grid) return;
-    var st = status || {};
+    var st = data || {};
     var cfg = st.status || {};
+    var siteCfg = st.config || {};
     var cards = [
+      {
+        cls: "oe-admin-card--purple",
+        label: "Quota anónimos",
+        value: (siteCfg.quota_anonymous_daily || "3") + "/dia",
+        sub: "Por IP — transcrições + legendagens",
+      },
+      {
+        cls: "oe-admin-card--blue",
+        label: "Quota registados",
+        value: (siteCfg.quota_registered_daily || "20") + "/dia",
+        sub: "Contas gratuitas",
+      },
       {
         cls: cfg.pricing_hidden ? "oe-admin-card--green" : "oe-admin-card--blue",
         label: "Preços no site",
@@ -101,6 +114,10 @@
       if (!res.ok) throw new Error();
       var data = await res.json();
       var cfg = data.config || {};
+      var quotaAnon = document.getElementById("billingCfgQuotaAnon");
+      var quotaReg = document.getElementById("billingCfgQuotaReg");
+      if (quotaAnon) quotaAnon.value = cfg.quota_anonymous_daily || "3";
+      if (quotaReg) quotaReg.value = cfg.quota_registered_daily || "20";
       document.getElementById("billingCfgEnabled").checked = cfg.billing_enabled === "1";
       document.getElementById("billingCfgPricingHidden").checked = cfg.pricing_hidden !== "0";
       document.getElementById("billingCfgPriceLabel").value = cfg.pro_price_label || "";
@@ -120,6 +137,26 @@
     } catch (e) {
       var grid = document.getElementById("billingStatusCards");
       if (grid) grid.innerHTML = "<p class='oe-admin-empty'>Erro ao carregar planos.</p>";
+    }
+  }
+
+  async function saveQuotas(e) {
+    e.preventDefault();
+    var updates = {
+      quota_anonymous_daily: document.getElementById("billingCfgQuotaAnon").value,
+      quota_registered_daily: document.getElementById("billingCfgQuotaReg").value,
+    };
+    try {
+      var res = await fetch(apiBase() + "/api/admin/billing", {
+        method: "PUT",
+        headers: authHeaders(),
+        body: JSON.stringify({ updates: updates }),
+      });
+      if (!res.ok) throw new Error();
+      global.OuviescreviUI.toast("Quotas guardadas.", "success");
+      loadBilling();
+    } catch (e) {
+      global.OuviescreviUI.toast("Erro ao guardar quotas.", "error");
     }
   }
 
@@ -154,6 +191,8 @@
   function init() {
     var form = document.getElementById("billingConfigForm");
     if (form) form.addEventListener("submit", saveBilling);
+    var quotasForm = document.getElementById("quotasConfigForm");
+    if (quotasForm) quotasForm.addEventListener("submit", saveQuotas);
     var btn = document.getElementById("btnRefreshBilling");
     if (btn) btn.addEventListener("click", loadBilling);
   }
