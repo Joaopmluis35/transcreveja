@@ -3,6 +3,10 @@
 
   var DURATION_THRESHOLD_SEC = 300;
   var SIZE_THRESHOLD_MB = 50;
+  /** Cortar localmente se o ficheiro for grande e o trecho for claramente mais curto. */
+  var CLIENT_TRIM_MIN_MB = 50;
+  var CLIENT_TRIM_MAX_SEGMENT_RATIO = 0.85;
+  var CLIENT_TRIM_LARGE_MB = 120;
 
   var state = {
     file: null,
@@ -89,6 +93,7 @@
       '<button type="button" class="oe-trim-preset" data-sec="3600">Primeira hora</button>' +
       "</div>" +
       '<p class="oe-trim-summary" id="oeTrimSummary"></p>' +
+      '<p class="oe-trim-panel__note">Com um trecho escolhido, vídeos grandes podem ser cortados no teu dispositivo antes do envio — acelera muito o upload.</p>' +
       '<button type="button" class="oe-trim-play" id="oeTrimPlay">▶ Ouvir / ver trecho</button>' +
       "</div>";
     var anchor = $("videoPreviewWrap") || $("dropZone");
@@ -439,18 +444,39 @@
     }
   }
 
-  async function trimClientSide(file, startSec, endSec, onProgress) {
+  function segmentDurationSec(sel) {
+    if (!sel || sel.mode !== "segment") return 0;
+    return Math.max(0, sel.endSec - sel.startSec);
+  }
+
+  function shouldTrimClientSide(file, sel) {
+    if (!file || !sel || sel.mode !== "segment" || !sel.isValid) return false;
+    if (isOverUploadLimit(file)) return true;
+    var sizeMb = fileSizeMb(file);
+    var segmentSec = segmentDurationSec(sel);
+    var totalSec = state.duration || segmentSec || 1;
+    var ratio = segmentSec > 0 ? segmentSec / totalSec : 1;
+    if (sizeMb >= CLIENT_TRIM_MIN_MB && ratio < CLIENT_TRIM_MAX_SEGMENT_RATIO) return true;
+    if (sizeMb >= CLIENT_TRIM_LARGE_MB && ratio < 0.95) return true;
+    return false;
+  }
+
+  async function trimClientSide(file, startSec, endSec, onProgress, opts) {
     onProgress = onProgress || function () {};
+    opts = opts || {};
     var ffmpeg = await loadFfmpeg(onProgress);
     var fetchFile = ffmpeg._fetchFile;
     var ext = (file.name.split(".").pop() || "mp4").toLowerCase();
     var inName = "input." + ext;
-    var outName = "trecho." + ext;
+    var outName = opts.audioOnly ? "trecho.wav" : "trecho." + ext;
+    onProgress(
+      opts.audioOnly
+        ? "A extrair só o áudio do trecho no browser…"
+        : "A cortar o trecho no browser…"
+    );
     await ffmpeg.writeFile(inName, await fetchFile(file));
-    var args = ["-ss", String(startSec), "-to", String(endSec), "-i", inName, "-c", "copy", outName];
-    try {
-      await ffmpeg.exec(args);
-    } catch (err) {
+    var args;
+    if (opts.audioOnly) {
       args = [
         "-ss",
         String(startSec),
@@ -458,25 +484,52 @@
         String(endSec),
         "-i",
         inName,
-        "-c:v",
-        "libx264",
-        "-preset",
-        "ultrafast",
-        "-crf",
-        "28",
+        "-vn",
+        "-sn",
+        "-ar",
+        "16000",
+        "-ac",
+        "1",
         "-c:a",
-        "aac",
+        "pcm_s16le",
         outName,
       ];
       await ffmpeg.exec(args);
+    } else {
+      args = ["-ss", String(startSec), "-to", String(endSec), "-i", inName, "-c", "copy", outName];
+      try {
+        await ffmpeg.exec(args);
+      } catch (err) {
+        args = [
+          "-ss",
+          String(startSec),
+          "-to",
+          String(endSec),
+          "-i",
+          inName,
+          "-c:v",
+          "libx264",
+          "-preset",
+          "ultrafast",
+          "-crf",
+          "28",
+          "-c:a",
+          "aac",
+          outName,
+        ];
+        await ffmpeg.exec(args);
+      }
     }
     var data = await ffmpeg.readFile(outName);
-    var blob = new Blob([data.buffer], { type: file.type || "application/octet-stream" });
+    var mime = opts.audioOnly ? "audio/wav" : file.type || "application/octet-stream";
+    var blob = new Blob([data.buffer], { type: mime });
     var base = (file.name || "media").replace(/\.[^.]+$/, "");
-    return new File([blob], base + "_trecho." + ext, { type: blob.type || file.type });
+    var outExt = opts.audioOnly ? "wav" : ext;
+    return new File([blob], base + "_trecho." + outExt, { type: mime });
   }
 
-  async function prepareForUpload(file, onProgress) {
+  async function prepareForUpload(file, onProgress, opts) {
+    opts = opts || {};
     var sel = getSelection();
     if (!state.visible || state.file !== file || sel.mode === "full") {
       return { file: file, trimmed: false };
@@ -484,15 +537,21 @@
     if (!sel.isValid) {
       throw new Error("Trecho inválido — ajusta início e fim.");
     }
-    if (isOverUploadLimit(file)) {
+    if (shouldTrimClientSide(file, sel)) {
       try {
-        var trimmed = await trimClientSide(file, sel.startSec, sel.endSec, onProgress);
+        var trimmed = await trimClientSide(file, sel.startSec, sel.endSec, onProgress, {
+          audioOnly: !!opts.audioOnly,
+        });
         return { file: trimmed, trimmed: true };
       } catch (err) {
         console.warn("OuviescreviMediaTrim: corte no browser falhou", err);
-        throw new Error(
-          "Não foi possível cortar no browser. Tenta um trecho mais curto ou comprime o vídeo antes de enviar."
-        );
+        if (isOverUploadLimit(file)) {
+          throw new Error(
+            "Não foi possível cortar no browser. Tenta um trecho mais curto ou comprime o vídeo antes de enviar."
+          );
+        }
+        onProgress("Corte local falhou — a enviar com corte no servidor (pode demorar mais)…");
+        return { file: file, trimmed: false, trimStart: sel.startSec, trimEnd: sel.endSec };
       }
     }
     return { file: file, trimmed: false, trimStart: sel.startSec, trimEnd: sel.endSec };
@@ -557,5 +616,6 @@
     canUploadFile: canUploadFile,
     uploadBlockReason: uploadBlockReason,
     setMaxFileMb: setMaxFileMb,
+    shouldTrimClientSide: shouldTrimClientSide,
   };
 })(window);

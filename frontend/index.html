@@ -409,7 +409,7 @@
 <script src="js/history-ui.js"></script>
 <script src="js/upsell-ui.js"></script>
 <script src="/js/suggestion-fab.js" defer></script>
-<script src="/js/media-trim-ui.js?v=3" defer></script>
+<script src="/js/media-trim-ui.js?v=4" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
   const ADMIN_EMAIL = "admin@ouviescrevi.pt";
@@ -540,6 +540,42 @@
 
   function formatMb(mb){
     return mb >= 100 ? Math.round(mb) : mb.toFixed(1);
+  }
+
+  function postFormWithUploadProgress(url, formData, headers, onProgress, signal) {
+    return new Promise(function (resolve, reject) {
+      var xhr = new XMLHttpRequest();
+      xhr.open("POST", url);
+      Object.keys(headers || {}).forEach(function (k) {
+        xhr.setRequestHeader(k, headers[k]);
+      });
+      if (signal) {
+        if (signal.aborted) {
+          var already = new Error("AbortError");
+          already.name = "AbortError";
+          reject(already);
+          return;
+        }
+        signal.addEventListener("abort", function () { xhr.abort(); });
+      }
+      xhr.upload.onprogress = function (ev) {
+        if (ev.lengthComputable && onProgress) onProgress(ev.loaded / ev.total);
+      };
+      xhr.onload = function () {
+        resolve({
+          ok: xhr.status >= 200 && xhr.status < 300,
+          status: xhr.status,
+          text: function () { return Promise.resolve(xhr.responseText); },
+        });
+      };
+      xhr.onerror = function () { reject(new Error("Erro de rede ao enviar ficheiro.")); };
+      xhr.onabort = function () {
+        var err = new Error("AbortError");
+        err.name = "AbortError";
+        reject(err);
+      };
+      xhr.send(formData);
+    });
   }
 
   function getMaxFileMb(){
@@ -837,7 +873,7 @@
         statusEl.textContent = "✂️ A preparar ficheiro…";
         var prepared = await OuviescreviMediaTrim.prepareForUpload(file, function (msg) {
           statusEl.textContent = msg;
-        });
+        }, { audioOnly: true });
         uploadFile = prepared.file;
         formData.append("file", uploadFile);
         if (!prepared.trimmed) OuviescreviMediaTrim.appendToFormData(formData);
@@ -873,12 +909,38 @@
 
         const controller = new AbortController();
         const to = setTimeout(() => controller.abort(), 600000);
-        const res = await fetch(`${API_BASE}/transcribe`, {
-          method:"POST",
-          body: formData,
-          headers: OuviescreviAPI.authHeaders(),
-          signal: controller.signal
-        });
+        const uploadMb = fileSizeMb(uploadFile);
+        const useUploadProgress = uploadMb > 5;
+        let res;
+        if (useUploadProgress) {
+          clearInterval(interval);
+          pararFrasesAnimadas(statusEl);
+          res = await postFormWithUploadProgress(
+            `${API_BASE}/transcribe`,
+            formData,
+            OuviescreviAPI.authHeaders(),
+            function (pct) {
+              statusEl.textContent = `📤 A enviar (${formatMb(uploadMb)} MB)… ${Math.round(pct * 100)}%`;
+              progressBar.style.width = `${Math.min(42, Math.round(pct * 42))}%`;
+            },
+            controller.signal
+          );
+          progress = 42;
+          iniciarFrasesAnimadas(statusEl);
+          interval = setInterval(() => {
+            if (progress < 90) {
+              progress += Math.random() * 4;
+              progressBar.style.width = `${progress.toFixed(1)}%`;
+            }
+          }, 200);
+        } else {
+          res = await fetch(`${API_BASE}/transcribe`, {
+            method:"POST",
+            body: formData,
+            headers: OuviescreviAPI.authHeaders(),
+            signal: controller.signal
+          });
+        }
         clearTimeout(to);
 
         let jsonText = await res.text();
@@ -1447,12 +1509,35 @@
     try{
       const controller = new AbortController();
       const to = setTimeout(() => controller.abort(), 900000);
-      const res = await fetch(`${API_BASE}/video-subs`, {
-        method:"POST",
-        body: formData,
-        headers: OuviescreviAPI.authHeaders(),
-        signal: controller.signal
-      });
+      const uploadMb = fileSizeMb(uploadFile);
+      const useUploadProgress = uploadMb > 5;
+      let res;
+      if (useUploadProgress) {
+        clearInterval(interval);
+        pararFrasesAnimadas(statusEl);
+        res = await postFormWithUploadProgress(
+          `${API_BASE}/video-subs`,
+          formData,
+          OuviescreviAPI.authHeaders(),
+          function (pct) {
+            statusEl.textContent = `📤 A enviar vídeo (${formatMb(uploadMb)} MB)… ${Math.round(pct * 100)}%`;
+            progressBar.style.width = `${Math.min(42, Math.round(pct * 42))}%`;
+          },
+          controller.signal
+        );
+        p = 42;
+        iniciarFrasesAnimadas(statusEl);
+        interval = setInterval(() => {
+          if (p < 90) { p += Math.random() * 4; progressBar.style.width = `${p.toFixed(1)}%`; }
+        }, 200);
+      } else {
+        res = await fetch(`${API_BASE}/video-subs`, {
+          method:"POST",
+          body: formData,
+          headers: OuviescreviAPI.authHeaders(),
+          signal: controller.signal
+        });
+      }
       clearTimeout(to);
 
       let data = {};

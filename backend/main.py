@@ -1619,7 +1619,7 @@ async def transcribe(
     if trim_start is not None or trim_end is not None:
         try:
             tmp_path, written = apply_upload_trim(
-                tmp_path, trim_start, trim_end, rid=rid, audio_only=False
+                tmp_path, trim_start, trim_end, rid=rid, audio_only=True
             )
             size_mb = _fmt_mb(written)
         except Exception as exc:
