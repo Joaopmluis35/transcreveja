@@ -3,7 +3,6 @@
 
   var DURATION_THRESHOLD_SEC = 300;
   var SIZE_THRESHOLD_MB = 50;
-  var CLIENT_TRIM_MB = 100;
 
   var state = {
     file: null,
@@ -48,10 +47,6 @@
 
   function shouldOfferTrim(durationSec, sizeMb) {
     return durationSec > DURATION_THRESHOLD_SEC || sizeMb > SIZE_THRESHOLD_MB;
-  }
-
-  function needsClientTrim(file) {
-    return file && fileSizeMb(file) > CLIENT_TRIM_MB;
   }
 
   function isOverUploadLimit(file) {
@@ -188,8 +183,9 @@
         " MB — escolhe «Só um trecho». Cortamos no teu browser antes de enviar.";
       note.classList.remove("hidden");
       if (state.mode === "full") setMode("segment");
-    } else if (needsClientTrim(state.file) && state.mode === "segment") {
-      note.textContent = "Vamos cortar o trecho no teu browser para acelerar o envio.";
+    } else if (isOverUploadLimit(state.file) && state.mode === "segment") {
+      note.textContent =
+        "Vamos cortar o trecho no teu browser antes de enviar (ficheiro acima do limite).";
       note.classList.remove("hidden");
     } else {
       note.classList.add("hidden");
@@ -337,28 +333,54 @@
     return "";
   }
 
+  var ffmpegCache = null;
+  var ffmpegLoadPromise = null;
+
+  async function loadFfmpeg(onProgress) {
+    if (ffmpegCache) return ffmpegCache;
+    if (ffmpegLoadPromise) return ffmpegLoadPromise;
+
+    ffmpegLoadPromise = (async function () {
+      onProgress = onProgress || function () {};
+      onProgress("A carregar ferramenta de corte…");
+      var ffmpegMod = await import(
+        "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js"
+      );
+      var utilMod = await import(
+        "https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/esm/index.js"
+      );
+      var FFmpeg = ffmpegMod.FFmpeg;
+      var fetchFile = utilMod.fetchFile;
+      var toBlobURL = utilMod.toBlobURL;
+      var ffmpeg = new FFmpeg();
+      ffmpeg.on("progress", function (ev) {
+        var pct = ev && ev.progress != null ? Math.round(ev.progress * 100) : 0;
+        onProgress("A cortar no browser… " + pct + "%");
+      });
+      var coreBase = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm";
+      var pkgBase = "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/esm";
+      await ffmpeg.load({
+        coreURL: await toBlobURL(coreBase + "/ffmpeg-core.js", "text/javascript"),
+        wasmURL: await toBlobURL(coreBase + "/ffmpeg-core.wasm", "application/wasm"),
+        workerURL: await toBlobURL(pkgBase + "/worker.js", "text/javascript"),
+      });
+      ffmpegCache = ffmpeg;
+      ffmpeg._fetchFile = fetchFile;
+      return ffmpeg;
+    })();
+
+    try {
+      return await ffmpegLoadPromise;
+    } catch (err) {
+      ffmpegLoadPromise = null;
+      throw err;
+    }
+  }
+
   async function trimClientSide(file, startSec, endSec, onProgress) {
     onProgress = onProgress || function () {};
-    onProgress("A carregar ferramenta de corte…");
-    var ffmpegMod = await import(
-      "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js"
-    );
-    var utilMod = await import(
-      "https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/esm/index.js"
-    );
-    var FFmpeg = ffmpegMod.FFmpeg;
-    var fetchFile = utilMod.fetchFile;
-    var toBlobURL = utilMod.toBlobURL;
-    var ffmpeg = new FFmpeg();
-    ffmpeg.on("progress", function (ev) {
-      var pct = ev && ev.progress != null ? Math.round(ev.progress * 100) : 0;
-      onProgress("A cortar no browser… " + pct + "%");
-    });
-    var coreBase = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm";
-    await ffmpeg.load({
-      coreURL: await toBlobURL(coreBase + "/ffmpeg-core.js", "text/javascript"),
-      wasmURL: await toBlobURL(coreBase + "/ffmpeg-core.wasm", "application/wasm"),
-    });
+    var ffmpeg = await loadFfmpeg(onProgress);
+    var fetchFile = ffmpeg._fetchFile;
     var ext = (file.name.split(".").pop() || "mp4").toLowerCase();
     var inName = "input." + ext;
     var outName = "trecho." + ext;
@@ -400,9 +422,16 @@
     if (!sel.isValid) {
       throw new Error("Trecho inválido — ajusta início e fim.");
     }
-    if (needsClientTrim(file) || isOverUploadLimit(file)) {
-      var trimmed = await trimClientSide(file, sel.startSec, sel.endSec, onProgress);
-      return { file: trimmed, trimmed: true };
+    if (isOverUploadLimit(file)) {
+      try {
+        var trimmed = await trimClientSide(file, sel.startSec, sel.endSec, onProgress);
+        return { file: trimmed, trimmed: true };
+      } catch (err) {
+        console.warn("OuviescreviMediaTrim: corte no browser falhou", err);
+        throw new Error(
+          "Não foi possível cortar no browser. Tenta um trecho mais curto ou comprime o vídeo antes de enviar."
+        );
+      }
     }
     return { file: file, trimmed: false, trimStart: sel.startSec, trimEnd: sel.endSec };
   }
