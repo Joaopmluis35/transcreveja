@@ -1165,6 +1165,85 @@ def _write_srt(entries: list[tuple[float, float, str]], out_path: str):
 # ──────────────────────────────────────────────────────────────────────────────
 # Rotas — configuração e admin
 # ──────────────────────────────────────────────────────────────────────────────
+@app.get("/api/billing/status")
+def billing_status_public():
+    from billing import billing_config
+
+    return billing_config()
+
+
+class BillingCheckoutRequest(BaseModel):
+    success_url: str | None = None
+    cancel_url: str | None = None
+
+
+@app.post("/api/billing/checkout")
+def billing_checkout(request: Request, body: BillingCheckoutRequest):
+    actor = resolve_site_actor(request)
+    if actor["type"] != "user":
+        raise HTTPException(status_code=403, detail="Inicia sessão para subscrever o plano Pro.")
+    from billing import create_checkout_session
+
+    origin = request.headers.get("origin") or PUBLIC_API_BASE.replace("api.", "www.").rstrip("/")
+    if "api." in origin:
+        origin = origin.replace("api.", "www.", 1)
+    success = body.success_url or f"{origin}/precos.html?ok=1"
+    cancel = body.cancel_url or f"{origin}/precos.html?cancel=1"
+    try:
+        session = create_checkout_session(actor["email"], success_url=success, cancel_url=cancel)
+    except ValueError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    return session
+
+
+@app.post("/api/billing/webhook")
+async def billing_webhook(request: Request):
+    from billing import handle_stripe_webhook
+
+    payload = await request.body()
+    sig = request.headers.get("stripe-signature", "")
+    try:
+        return handle_stripe_webhook(payload, sig)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        logger.warning("Stripe webhook erro: %s", exc)
+        raise HTTPException(status_code=400, detail="Webhook inválido.") from exc
+
+
+class ExportDocxRequest(BaseModel):
+    text: str
+    title: str | None = None
+
+
+@app.post("/api/export/docx")
+def export_docx_pro(request: Request, body: ExportDocxRequest):
+    from billing import billing_enabled, build_docx_bytes, is_pro_user
+    from fastapi.responses import Response
+
+    text = (body.text or "").strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="Texto em falta.")
+    actor = resolve_site_actor(request)
+    if billing_enabled():
+        if actor["type"] != "user" or not is_pro_user(actor.get("email") or ""):
+            raise HTTPException(
+                status_code=403,
+                detail="Exportação DOCX disponível no plano Pro. Vê ouviescrevi.pt/precos.html",
+            )
+    else:
+        raise HTTPException(status_code=503, detail="Plano Pro em breve — exportação DOCX ainda não disponível.")
+    try:
+        data = build_docx_bytes(text, title=body.title or "Transcrição Ouviescrevi")
+    except ValueError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    return Response(
+        content=data,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        headers={"Content-Disposition": 'attachment; filename="transcricao.docx"'},
+    )
+
+
 @app.get("/api/frontend-config")
 def frontend_config(request: Request):
     if not origin_is_allowed(request, ALLOWED_ORIGINS):
@@ -1253,6 +1332,9 @@ def site_me(request: Request):
     if actor["type"] == "user":
         out["email"] = actor.get("email")
         out["isStaff"] = False
+        from billing import get_user_plan
+
+        out["plan"] = get_user_plan(actor.get("email") or "")
     else:
         out["username"] = actor.get("username")
         out["role"] = actor.get("role")

@@ -434,6 +434,18 @@ def criar_base() -> None:
             )
         """)
 
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS user_subscriptions (
+                user_email TEXT PRIMARY KEY,
+                plan TEXT NOT NULL DEFAULT 'free',
+                status TEXT,
+                stripe_customer_id TEXT,
+                stripe_subscription_id TEXT,
+                current_period_end TEXT,
+                updated_at TEXT NOT NULL
+            )
+        """)
+
         conn.commit()
     finally:
         conn.close()

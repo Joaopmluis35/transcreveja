@@ -281,7 +281,8 @@
               <button type="button" id="exportBtn" aria-haspopup="true" aria-expanded="false"><span>📁 Exportar ▼</span></button>
               <div class="dropdown-content" id="exportOptions">
                 <button type="button" data-export="pdf"><span>📄 Exportar PDF</span></button>
-                <button type="button" data-export="doc"><span>📝 Exportar DOC</span></button>
+                <button type="button" data-export="docx" id="exportDocxBtn"><span>📝 Exportar DOCX <small class="oe-pro-tag">Pro</small></span></button>
+                <button type="button" data-export="doc"><span>📝 Exportar DOC (simples)</span></button>
                 <button type="button" data-export="txt"><span>📃 Exportar TXT</span></button>
                 <button type="button" data-export="srt"><span>🎞️ Exportar SRT</span></button>
                 <button type="button" data-export="json"><span>🔢 Exportar JSON</span></button>
@@ -403,6 +404,7 @@
 <script src="js/ouviescrevi-ui.js?v=2"></script>
 <script src="js/ouviescrevi-api.js"></script>
 <script src="js/history-ui.js"></script>
+<script src="js/upsell-ui.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
   const ADMIN_EMAIL = "admin@ouviescrevi.pt";
@@ -697,6 +699,8 @@
 
   function startJobLoading(mode) {
     if (mode === "legendar") hideLegendarBanners();
+    var su = document.getElementById("oeSuccessUpsell");
+    if (su) su.classList.add("hidden");
     var eyebrow = document.getElementById("loadingEyebrow");
     var hint = document.getElementById("videoUploadHint");
     var openBtn = document.getElementById("btnOpenSubtitleStyle");
@@ -839,9 +843,24 @@
       definirTranscricao(textoFinal);
       output.classList.remove("hidden");
       statusEl.textContent = "✅ Transcrição concluída com sucesso!";
-      if (window.OuviescreviHistory) window.OuviescreviHistory.refresh();
+      if (window.OuviescreviHistory) {
+        window.OuviescreviHistory.refreshQuota().then(function (q) {
+          if (window.OuviescreviUpsell) OuviescreviUpsell.afterTranscriptionSuccess(q);
+        });
+      } else if (window.OuviescreviUpsell) {
+        OuviescreviUpsell.afterTranscriptionSuccess();
+      }
     } else {
       const msg = mensagemErroTranscricao(data, file, lastHttpStatus);
+      if (lastHttpStatus === 429 && window.OuviescreviUpsell) {
+        if (window.OuviescreviHistory) {
+          window.OuviescreviHistory.refreshQuota().then(function (q) {
+            OuviescreviUpsell.showLimit(q);
+          });
+        } else {
+          OuviescreviUpsell.showLimit({});
+        }
+      }
       if (erroDeTamanho(msg)) {
         mostrarAlertaUpload(msg);
         output.classList.add("hidden");
@@ -1424,6 +1443,11 @@
     const text = transcriptionText.value || "";
     if (!text) return;
 
+    if (type === "docx") {
+      exportDocxPro(text);
+      return;
+    }
+
     if (type === 'pdf'){
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
@@ -1472,6 +1496,40 @@
       const a = document.createElement('a');
       a.href = url; a.download = "transcricao.srt"; a.click();
       URL.revokeObjectURL(url);
+    }
+  }
+
+  async function exportDocxPro(text) {
+    await ensureApi();
+    try {
+      const res = await fetch(`${API_BASE}/api/export/docx`, {
+        method: "POST",
+        headers: Object.assign({ "Content-Type": "application/json" }, OuviescreviAPI.authHeaders()),
+        body: JSON.stringify({ text: text, title: "Transcrição Ouviescrevi" }),
+      });
+      if (res.status === 403 || res.status === 503) {
+        const err = await res.json().catch(() => ({}));
+        if (window.OuviescreviUpsell) {
+          OuviescreviUpsell.show(
+            "Exportação DOCX — plano Pro",
+            err.detail || "Disponível no plano Pro.",
+            { hideRegister: true }
+          );
+        } else {
+          alert(err.detail || "Disponível no plano Pro.");
+        }
+        return;
+      }
+      if (!res.ok) throw new Error("Falha na exportação");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "transcricao.docx";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      alert("Não foi possível exportar DOCX.");
     }
   }
 

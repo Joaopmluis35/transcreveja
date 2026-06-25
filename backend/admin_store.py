@@ -27,6 +27,13 @@ DEFAULT_CONFIG: dict[str, str] = {
     "alert_visits_daily": "500",
     "quota_anonymous_daily": "3",
     "quota_registered_daily": "20",
+    "billing_enabled": "0",
+    "stripe_public_key": "",
+    "stripe_secret_key": "",
+    "stripe_webhook_secret": "",
+    "stripe_price_id_pro": "",
+    "pro_quota_daily": "200",
+    "pro_price_label": "9,99 €/mês",
     "cloudflare_zone_id": "",
     "cloudflare_api_token": "",
     "whisper_cost_per_minute_usd": "0.006",
@@ -275,34 +282,48 @@ def increment_daily_transcribe(usage_key: str) -> int:
 
 
 def transcribe_quota_status(request, actor: dict) -> dict:
+    from billing import billing_enabled, get_user_plan, pro_quota_limit
+
     anon_limit, reg_limit = _quota_limits()
     actor_type = actor.get("type", "anonymous")
     if actor_type == "admin":
         return {
             "tier": "staff",
+            "plan": "staff",
             "limit": 0,
             "used": 0,
             "remaining": None,
             "unlimited": True,
+            "billing_enabled": billing_enabled(),
         }
     usage_key, tier = usage_key_for_request(request, actor)
+    plan = "free"
     limit = reg_limit if tier == "registered" else anon_limit
+    if tier == "registered":
+        email = (actor.get("email") or "").strip().lower()
+        if email and billing_enabled() and get_user_plan(email) == "pro":
+            plan = "pro"
+            limit = pro_quota_limit()
     used = get_daily_transcribe_count(usage_key)
     if limit <= 0:
         return {
             "tier": tier,
+            "plan": plan,
             "limit": 0,
             "used": used,
             "remaining": None,
             "unlimited": True,
+            "billing_enabled": billing_enabled(),
         }
     remaining = max(0, limit - used)
     out = {
         "tier": tier,
+        "plan": plan,
         "limit": limit,
         "used": used,
         "remaining": remaining,
         "unlimited": False,
+        "billing_enabled": billing_enabled(),
     }
     if remaining <= 0:
         if tier == "anonymous":
@@ -310,8 +331,13 @@ def transcribe_quota_status(request, actor: dict) -> dict:
                 f"Limite diário atingido ({limit} transcrições). "
                 "Cria uma conta gratuita para mais transcrições por dia."
             )
+        elif plan != "pro":
+            out["message"] = (
+                f"Limite diário atingido ({limit} transcrições). "
+                "Passa ao plano Pro para mais transcrições e exportação DOCX."
+            )
         else:
-            out["message"] = f"Limite diário atingido ({limit} transcrições). Tenta amanhã."
+            out["message"] = f"Limite diário Pro atingido ({limit} transcrições). Tenta amanhã."
     return out
 
 
@@ -1193,6 +1219,7 @@ def system_health(openai_client=None) -> dict:
                 "site_users",
                 "user_transcriptions",
                 "daily_usage",
+                "user_subscriptions",
             ):
                 try:
                     row = conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()

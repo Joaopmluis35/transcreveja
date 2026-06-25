@@ -54,6 +54,9 @@
       <button type="button" data-tab="emails" data-min-role="admin" aria-selected="false">
         <span class="oe-admin-nav-icon">📧</span> Emails
       </button>
+      <button type="button" data-tab="planos" data-min-role="admin" aria-selected="false">
+        <span class="oe-admin-nav-icon">💳</span> Planos Pro
+      </button>
       <button type="button" data-tab="sistema" aria-selected="false">
         <span class="oe-admin-nav-icon">⚙️</span> Sistema
       </button>
@@ -419,6 +422,64 @@
         </div>
       </div>
 
+      <!-- Planos Pro / Stripe -->
+      <div data-panel="planos" class="hidden" data-admin-only="admin">
+        <div id="billingStatusCards" class="oe-admin-health-grid" aria-live="polite">
+          <p class="oe-admin-empty">A carregar planos…</p>
+        </div>
+        <div class="oe-admin-panel">
+          <div class="oe-admin-panel__head oe-admin-panel__head--row">
+            <span>Configuração Stripe / Pro</span>
+            <button type="button" id="btnRefreshBilling" class="oe-admin-btn oe-admin-btn--secondary oe-admin-btn--sm">🔄 Atualizar</button>
+          </div>
+          <div class="oe-admin-panel__body">
+            <p class="oe-admin-hint" id="billingEnvHint">
+              Pagamentos <strong>desativados</strong> por defeito. Ativa só quando tiveres chaves Stripe e domínio verificado.
+              Segredos também podem ir em <code>STRIPE_SECRET_KEY</code>, <code>STRIPE_WEBHOOK_SECRET</code>, <code>STRIPE_PRICE_ID_PRO</code> no Render.
+            </p>
+            <form id="billingConfigForm" class="oe-admin-form">
+              <div class="oe-admin-field">
+                <label><input type="checkbox" id="billingCfgEnabled"> Ativar pagamentos (Stripe checkout + DOCX Pro)</label>
+              </div>
+              <div class="oe-admin-grid-2">
+                <div class="oe-admin-field">
+                  <label for="billingCfgPriceLabel">Preço mostrado no site</label>
+                  <input id="billingCfgPriceLabel" placeholder="9,99 €/mês">
+                </div>
+                <div class="oe-admin-field">
+                  <label for="billingCfgProQuota">Quota Pro / dia</label>
+                  <input id="billingCfgProQuota" type="number" min="1" step="1" placeholder="200">
+                </div>
+              </div>
+              <div class="oe-admin-field">
+                <label for="billingCfgStripePk">Stripe publishable key</label>
+                <input id="billingCfgStripePk" placeholder="pk_live_...">
+              </div>
+              <div class="oe-admin-field">
+                <label for="billingCfgStripePrice">Stripe Price ID (Pro)</label>
+                <input id="billingCfgStripePrice" placeholder="price_...">
+              </div>
+              <div class="oe-admin-field">
+                <label for="billingCfgStripeSecret">Stripe secret key (opcional aqui — preferir env)</label>
+                <input id="billingCfgStripeSecret" type="password" placeholder="sk_live_...">
+              </div>
+              <div class="oe-admin-field">
+                <label for="billingCfgStripeWebhook">Stripe webhook secret</label>
+                <input id="billingCfgStripeWebhook" type="password" placeholder="whsec_...">
+                <small class="oe-admin-hint">Webhook URL: <code id="billingWebhookUrl">/api/billing/webhook</code></small>
+              </div>
+              <button type="submit" class="oe-admin-btn oe-admin-btn--primary">Guardar planos</button>
+            </form>
+          </div>
+        </div>
+        <div class="oe-admin-panel">
+          <div class="oe-admin-panel__head">Subscrições Pro</div>
+          <div class="oe-admin-panel__body oe-admin-table-wrap" id="billingSubsTable">
+            <p class="oe-admin-empty">Ainda sem subscrições.</p>
+          </div>
+        </div>
+      </div>
+
       <!-- Sistema -->
       <div data-panel="sistema" class="hidden">
         <div id="systemHealthCards" class="oe-admin-health-grid" aria-live="polite"></div>
@@ -524,7 +585,8 @@
 <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 <script src="js/ouviescrevi-api.js"></script>
 <script src="js/backoffice-cms-locales.js?v=5"></script>
-<script src="js/backoffice.js?v=15"></script>
-<script src="js/backoffice-admin.js?v=19"></script>
+<script src="js/backoffice.js?v=16"></script>
+<script src="js/backoffice-admin.js?v=20"></script>
+<script src="js/backoffice-billing.js?v=1"></script>
 </body>
 </html>

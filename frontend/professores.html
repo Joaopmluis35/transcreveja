@@ -3,28 +3,99 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Ferramentas de IA para professores: transcrição de aulas, resumo automático e tradução. Ideal para preparar conteúdos.">
-  <meta name="keywords" content="professores IA, transcrição de aulas, resumo de aulas, ensino digital, Ouviescrevi educação">
+  <meta name="description" content="Transcreve aulas e gravações para professores. IA em português, resumos, perguntas de estudo e exportação DOCX. Experimenta grátis.">
+  <meta name="keywords" content="transcrição aulas professores, IA educação Portugal, legendas aulas, Ouviescrevi professores">
   <meta name="robots" content="index, follow">
-  <title>Professores | Ouviescrevi</title>
+  <title>Transcrição de aulas para professores | Ouviescrevi</title>
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
   <link rel="stylesheet" href="css/ouviescrevi.css">
+  <link rel="stylesheet" href="css/ouviescrevi-pro.css">
+  <link rel="stylesheet" href="css/index-home.css?v=17">
   <script src="/js/ouviescrevi-seo.js" defer></script>
   <script src="js/ouviescrevi-ui.js" defer></script>
+  <style>
+    body.oe-page--landing-pro .oe-lp-hero {
+      max-width: 920px; margin: 0 auto; padding: 40px 20px 24px; text-align: center;
+    }
+    body.oe-page--landing-pro .oe-lp-hero h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.15; margin-bottom: 16px; }
+    body.oe-page--landing-pro .oe-lp-lead { font-size: 1.1rem; opacity: .92; max-width: 640px; margin: 0 auto 28px; }
+    body.oe-page--landing-pro .oe-lp-cta-row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-bottom: 40px; }
+    body.oe-page--landing-pro .oe-lp-btn {
+      display: inline-block; padding: 14px 22px; border-radius: 12px; font-weight: 700;
+      text-decoration: none; border: none; cursor: pointer; font-size: 1rem;
+    }
+    body.oe-page--landing-pro .oe-lp-btn--primary { background: linear-gradient(135deg,#a550f7,#00c3ff); color: #fff; }
+    body.oe-page--landing-pro .oe-lp-btn--ghost { background: rgba(255,255,255,.08); color: #eee; border: 1px solid rgba(255,255,255,.2); }
+    body.oe-page--landing-pro .oe-lp-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px; max-width: 960px; margin: 0 auto 40px; padding: 0 16px;
+    }
+    body.oe-page--landing-pro .oe-lp-card {
+      background: rgba(15,15,25,.55); border: 1px solid rgba(165,80,247,.25);
+      border-radius: 14px; padding: 20px;
+    }
+    body.oe-page--landing-pro .oe-lp-card h2 { font-size: 1.05rem; margin: 0 0 8px; color: #e8d9ff; }
+    body.oe-page--landing-pro .oe-lp-steps { max-width: 720px; margin: 0 auto 48px; padding: 0 20px; }
+    body.oe-page--landing-pro .oe-lp-steps ol { line-height: 1.8; }
+    body.oe-page--landing-pro .oe-lp-proof {
+      text-align: center; max-width: 560px; margin: 0 auto 48px; padding: 20px;
+      border-top: 1px solid rgba(255,255,255,.1); font-style: italic; opacity: .9;
+    }
+  </style>
 </head>
-<body class="oe-page oe-pro">
+<body class="oe-page oe-pro oe-page--landing-pro">
 <a class="oe-skip" href="#conteudo">Saltar para o conteúdo</a>
 <div id="header"></div>
-<main class="oe-content oe-landing" id="conteudo">
-  <h1 data-cms-key="professores_title" data-cms-mode="text">🎓 Professores</h1>
-  <div data-cms-key="professores_body" data-cms-mode="html">
-  <h2 style="font-size:1.2rem;color:var(--oe-purple);margin-top:0;">Transforma as tuas aulas em texto com IA</h2>
-  <p>Grava explicações, aulas ou feedback e converte tudo automaticamente em texto estruturado. Ideal para criar resumos, materiais de apoio ou registos para alunos.</p>
-  <p>Podes ainda traduzir, resumir ou exportar em vários formatos (PDF, Word, TXT, etc.).</p>
+<main class="oe-content" id="conteudo">
+  <section class="oe-lp-hero">
+    <p class="oe-lp-badge" style="opacity:.8;margin-bottom:8px">🎓 Para professores e formadores</p>
+    <h1>Grava a aula. Recebe texto, resumo e materiais em minutos.</h1>
+    <p class="oe-lp-lead">
+      O Ouviescrevi transforma áudio e vídeo de aulas em transcrição editável — ideal para apoios de estudo,
+      alunos com necessidades especiais, minutas e preparação de testes.
+    </p>
+    <div class="oe-lp-cta-row">
+      <a href="index.html" class="oe-lp-btn oe-lp-btn--primary">🎙️ Transcrever aula grátis</a>
+      <a href="precos.html" class="oe-lp-btn oe-lp-btn--ghost">Ver plano Pro (DOCX)</a>
+    </div>
+  </section>
+
+  <div class="oe-lp-grid">
+    <article class="oe-lp-card">
+      <h2>⏱️ Poupa horas</h2>
+      <p>Uma aula de 60 minutos deixa de ser horas de escuta e escrita manual. Revê e corrige o texto gerado pela IA.</p>
+    </article>
+    <article class="oe-lp-card">
+      <h2>📚 Materiais para alunos</h2>
+      <p>Exporta em PDF, TXT ou <strong>DOCX (Pro)</strong>. Combina com resumos e perguntas de estudo no mesmo site.</p>
+    </article>
+    <article class="oe-lp-card">
+      <h2>🇵🇹 Português primeiro</h2>
+      <p>Deteção automática de idioma, sotaques portugueses e interface feita em Portugal.</p>
+    </article>
+    <article class="oe-lp-card">
+      <h2>🔒 Privacidade</h2>
+      <p>Ficheiros temporários apagados automaticamente. Conta grátis com histórico das tuas transcrições.</p>
+    </article>
   </div>
-  <div class="oe-landing-actions">
-    <a href="index.html" class="oe-btn">🎙️ Começar a transcrever</a>
-    <a href="perguntas.html" class="oe-btn">❓ Gerar perguntas</a>
+
+  <section class="oe-lp-steps">
+    <h2 style="text-align:center;margin-bottom:16px">Como funciona</h2>
+    <ol>
+      <li>Grava a aula no telemóvel ou exporta o vídeo da plataforma (Zoom, Teams, etc.).</li>
+      <li>Carrega o ficheiro em <a href="index.html">Transcrever</a> — até 500 MB grátis.</li>
+      <li>Edita o texto, identifica locutores se quiseres, exporta ou gera perguntas de revisão.</li>
+    </ol>
+  </section>
+
+  <blockquote class="oe-lp-proof">
+    «Uso para transformar explicações gravadas em apontamentos para os alunos — em minutos em vez de horas.»
+    <br><small>— Caso de uso típico de professor universitário</small>
+  </blockquote>
+
+  <div class="oe-lp-cta-row">
+    <a href="index.html" class="oe-lp-btn oe-lp-btn--primary">Experimentar agora — grátis</a>
+    <a href="perguntas.html" class="oe-lp-btn oe-lp-btn--ghost">Gerar perguntas de estudo</a>
   </div>
 </main>
 <div id="footer"></div>

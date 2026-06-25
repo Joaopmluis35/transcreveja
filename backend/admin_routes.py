@@ -371,3 +371,50 @@ def admin_reset_site_content(request: Request, body: dict | None = None):
     content = reset_content(keys)
     store.log_audit(_actor(request), "cms_reset", page or "all")
     return {"ok": True, "content": content}
+
+
+@router.get("/billing")
+def admin_billing_status(request: Request):
+    store.require_role(getattr(request.state, "admin_session", None), "admin")
+    from billing import billing_config, list_subscriptions
+
+    cfg = store.get_config()
+    return {
+        "config": {
+            "billing_enabled": cfg.get("billing_enabled", "0"),
+            "stripe_public_key": cfg.get("stripe_public_key", ""),
+            "stripe_price_id_pro": cfg.get("stripe_price_id_pro", ""),
+            "pro_quota_daily": cfg.get("pro_quota_daily", "200"),
+            "pro_price_label": cfg.get("pro_price_label", "9,99 €/mês"),
+            "stripe_secret_set": bool(cfg.get("stripe_secret_key") or ""),
+            "stripe_webhook_set": bool(cfg.get("stripe_webhook_secret") or ""),
+        },
+        "status": billing_config(),
+        "subscriptions": list_subscriptions(30),
+    }
+
+
+class BillingConfigUpdate(BaseModel):
+    updates: dict[str, str]
+
+
+@router.put("/billing")
+def admin_billing_config(request: Request, body: BillingConfigUpdate):
+    store.require_role(getattr(request.state, "admin_session", None), "admin")
+    allowed = {
+        "billing_enabled",
+        "stripe_public_key",
+        "stripe_secret_key",
+        "stripe_webhook_secret",
+        "stripe_price_id_pro",
+        "pro_quota_daily",
+        "pro_price_label",
+    }
+    updates = {k: v for k, v in body.updates.items() if k in allowed}
+    if not updates:
+        raise HTTPException(status_code=400, detail="Nada para atualizar.")
+    store.set_config(updates, actor=_actor(request))
+    store.log_audit(_actor(request), "billing_config", json.dumps(list(updates.keys())))
+    from billing import billing_config
+
+    return {"ok": True, "status": billing_config()}

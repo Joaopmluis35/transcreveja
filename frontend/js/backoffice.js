@@ -24,6 +24,7 @@
   const TRANS_PAGE = 50;
   let transTotal = 0;
   let loginInFlight = false;
+  let cmsLoaded = false;
   const DASH_CACHE_KEY = "oe_admin_dashboard_v1";
 
   function getAdminRole() {
@@ -120,7 +121,7 @@
     document.querySelectorAll("[data-panel]").forEach(function (panel) {
       panel.classList.toggle("hidden", panel.dataset.panel !== tab);
     });
-    var titles = { dashboard: "Painel", conteudo: "Conteúdo do site", seo: "SEO", transcricoes: "Transcrições", sugestoes: "Sugestões", emails: "Emails", sistema: "Sistema" };
+    var titles = { dashboard: "Painel", conteudo: "Conteúdo do site", seo: "SEO", transcricoes: "Transcrições", sugestoes: "Sugestões", emails: "Emails", planos: "Planos Pro", sistema: "Sistema" };
     if (tab !== "conteudo") {
       setPageTitle(titles[tab] || "Backoffice");
     } else if (cmsCurrentPage) {
@@ -130,7 +131,15 @@
     }
     document.getElementById("adminSidebar").classList.remove("is-open");
     if (tab === "transcricoes") carregarLogs();
+    if (tab === "conteudo" || tab === "seo") ensureConteudoLoaded();
     if (global.OuviescreviAdminExt) global.OuviescreviAdminExt.onTab(tab);
+  }
+
+  function ensureConteudoLoaded() {
+    if (!roleAtLeast("editor")) return Promise.resolve();
+    if (cmsLoaded) return Promise.resolve();
+    cmsLoaded = true;
+    return carregarConteudo();
   }
 
   function atualizarStatusManutencao(on) {
@@ -849,8 +858,9 @@
     document.getElementById("adminApp").classList.remove("hidden");
     applyRoleUI();
     hydrateDashboardFromCache();
-    carregarDashboard();
-    if (roleAtLeast("editor")) carregarConteudo();
+    setTimeout(function () {
+      carregarDashboard();
+    }, 0);
   }
 
   function logout() {
@@ -876,19 +886,26 @@
       loginInFlight = true;
       var form = document.getElementById("loginForm");
       var btn = form ? form.querySelector('button[type="submit"]') : null;
-      if (btn) btn.disabled = true;
+      var btnLabel = btn ? btn.textContent : "";
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = "A entrar…";
+      }
       try {
         await global.OuviescreviAPI.adminLogin(
           document.getElementById("password").value,
           (document.getElementById("adminUsername") || {}).value
         );
-        global.OuviescreviUI.toast("Sessão iniciada.", "success");
         mostrarApp();
+        global.OuviescreviUI.toast("Sessão iniciada.", "success");
       } catch (err) {
         global.OuviescreviUI.toast("Palavra-chave incorreta.", "error");
       } finally {
         loginInFlight = false;
-        if (btn) btn.disabled = false;
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = btnLabel || "Entrar";
+        }
       }
     });
 
@@ -968,7 +985,7 @@
     });
 
     if (global.OuviescreviAPI.isAdminSession()) {
-      global.OuviescreviAPI.init().then(mostrarApp);
+      mostrarApp();
     }
   }
 

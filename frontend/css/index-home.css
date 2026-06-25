@@ -1374,3 +1374,80 @@ body.oe-page--home .oe-history-loading {
   opacity: 0.8;
   font-size: 0.9rem;
 }
+
+body.oe-page--home .oe-pro-tag {
+  font-size: 0.7em;
+  background: rgba(165, 80, 247, 0.35);
+  padding: 2px 6px;
+  border-radius: 6px;
+  margin-left: 4px;
+}
+
+.oe-upsell-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.oe-upsell-modal.hidden { display: none; }
+.oe-upsell-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+}
+.oe-upsell-modal__card {
+  position: relative;
+  max-width: 440px;
+  width: 100%;
+  background: #1a1a2e;
+  border: 1px solid rgba(165, 80, 247, 0.4);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+.oe-upsell-modal__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  color: #aaa;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+.oe-upsell-modal__title { margin: 0 0 12px; font-size: 1.25rem; }
+.oe-upsell-modal__text { margin: 0 0 20px; line-height: 1.5; opacity: 0.92; }
+.oe-upsell-modal__actions { display: flex; flex-direction: column; gap: 8px; }
+.oe-upsell-btn {
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  font-size: 0.95rem;
+}
+.oe-upsell-btn--primary {
+  background: linear-gradient(135deg, #a550f7, #00c3ff);
+  color: #fff;
+}
+.oe-upsell-btn--ghost {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #eee;
+}
+body.oe-page--home .oe-success-upsell {
+  max-width: 720px;
+  margin: 12px auto;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: rgba(0, 195, 255, 0.1);
+  border: 1px solid rgba(0, 195, 255, 0.35);
+  font-size: 0.92rem;
+  text-align: center;
+}
+body.oe-page--home .oe-success-upsell a { color: #7dd3fc; }

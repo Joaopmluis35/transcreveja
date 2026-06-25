@@ -1174,6 +1174,7 @@
     }
     if (tab === "sugestoes") loadSugestoes();
     if (tab === "emails") loadEmails();
+    if (tab === "planos" && global.OuviescreviBillingAdmin) global.OuviescreviBillingAdmin.loadBilling();
     if (tab === "sistema") {
       loadSystem();
       scheduleServerLogRefresh();

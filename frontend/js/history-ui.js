@@ -18,6 +18,9 @@
     var rem = q.remaining;
     var lim = q.limit;
     if (lim <= 0) return "";
+    if (q.plan === "pro") {
+      return "Pro: " + rem + " de " + lim + " transcrições hoje";
+    }
     if (q.tier === "registered") {
       return "Conta: " + rem + " de " + lim + " transcrições hoje";
     }
