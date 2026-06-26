@@ -1134,7 +1134,7 @@ body.oe-pro .oe-landing .oe-btn:hover {
 
 body.oe-pro .oe-btn,
 body.oe-pro .container button,
-body.oe-pro .oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle) {
+body.oe-pro .oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(#oeThemeToggle) {
   border-radius: 10px;
   font-weight: 600;
 }
@@ -1522,11 +1522,12 @@ body.oe-pro.oe-page--home #cmsSeoClosing {
   min-width: 0;
   margin: 0;
   border: 1px solid var(--pro-border-strong);
-  background: var(--pro-surface);
+  background: transparent;
   color: var(--pro-text) !important;
+  box-shadow: none;
 }
 .oe-pro-auth .oe-pro-btn--ghost:hover {
-  background: var(--pro-accent-soft);
+  background: var(--pro-accent-muted);
   border-color: var(--pro-accent);
   color: var(--pro-accent) !important;
   transform: none;

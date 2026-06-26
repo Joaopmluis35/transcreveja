@@ -69,20 +69,32 @@ html.oe-theme-dark .oe-pro-btn--ghost:hover {
   background: var(--pro-accent-muted);
 }
 
-html.oe-theme-dark .oe-pro-auth .oe-pro-btn--ghost {
-  background: var(--pro-surface);
-  color: var(--pro-text) !important;
-  border-color: var(--pro-border-strong);
+html.oe-theme-dark .oe-pro-auth .oe-pro-btn--ghost,
+html.oe-theme-dark #oeAuthLogin,
+html.oe-theme-dark #oeAuthRegister,
+html.oe-theme-dark #oeAuthLogout {
+  background: transparent !important;
+  color: #e2e8f0 !important;
+  border: 1px solid rgba(226, 232, 240, 0.45) !important;
 }
 
-html.oe-theme-dark .oe-pro-auth .oe-pro-btn--ghost:hover {
-  background: var(--pro-accent-muted);
-  border-color: var(--pro-accent);
-  color: var(--pro-accent) !important;
+html.oe-theme-dark .oe-pro-auth .oe-pro-btn--ghost:hover,
+html.oe-theme-dark #oeAuthLogin:hover,
+html.oe-theme-dark #oeAuthRegister:hover,
+html.oe-theme-dark #oeAuthLogout:hover {
+  background: rgba(167, 139, 250, 0.14) !important;
+  border-color: #a78bfa !important;
+  color: #ddd6fe !important;
 }
 
 html.oe-theme-dark .oe-pro-auth__user {
   color: var(--pro-text-secondary);
+}
+
+@media (max-width: 899px) {
+  html.oe-theme-dark .oe-pro-header {
+    background: rgba(11, 17, 32, 0.98);
+  }
 }
 
 html.oe-theme-dark .oe-pro-footer {
