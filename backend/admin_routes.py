@@ -314,7 +314,21 @@ class UserCreateRequest(BaseModel):
 @router.post("/users")
 def admin_create_user(request: Request, body: UserCreateRequest):
     store.require_role(getattr(request.state, "admin_session", None), "admin")
-    user = store.create_user(body.username, body.password, body.role)
+    try:
+        user = store.create_user(body.username, body.password, body.role)
+    except ValueError as exc:
+        code = str(exc)
+        if code == "username_exists":
+            raise HTTPException(
+                status_code=409,
+                detail="Este nome de utilizador já existe.",
+            ) from exc
+        if code == "username_required":
+            raise HTTPException(
+                status_code=400,
+                detail="Indica um nome de utilizador.",
+            ) from exc
+        raise HTTPException(status_code=400, detail="Dados inválidos.") from exc
     store.log_audit(_actor(request), "user_create", body.username)
     return {"ok": True, "user": user}
 

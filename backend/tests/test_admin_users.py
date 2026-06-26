@@ -38,3 +38,19 @@ def test_admin_cannot_demote_last_admin(client):
     )
     assert res.status_code == 400
     assert "administrador" in res.json()["detail"].lower()
+
+
+def test_admin_create_user_rejects_duplicate_username(client):
+    headers = {"Authorization": "Bearer test-admin-token"}
+    payload = {"username": "pytest_dup_user", "password": "TestPass123!", "role": "viewer"}
+
+    first = client.post("/api/admin/users", json=payload, headers=headers)
+    assert first.status_code == 200
+
+    duplicate = client.post("/api/admin/users", json=payload, headers=headers)
+    assert duplicate.status_code == 409
+    assert "já existe" in duplicate.json()["detail"].lower()
+
+    users = admin_store.list_users()
+    row = next(u for u in users if u["username"] == "pytest_dup_user")
+    admin_store.delete_user(row["id"])

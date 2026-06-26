@@ -1301,7 +1301,11 @@
 
   async function addUser(e) {
     e.preventDefault();
-    var fd = new FormData(e.target);
+    var form = e.target;
+    var submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn && submitBtn.disabled) return;
+    if (submitBtn) submitBtn.disabled = true;
+    var fd = new FormData(form);
     try {
       var res = await fetch(apiBase() + "/api/admin/users", {
         method: "POST",
@@ -1312,12 +1316,20 @@
           role: fd.get("role"),
         }),
       });
-      if (!res.ok) throw new Error();
-      e.target.reset();
+      if (!res.ok) {
+        var errBody = await res.json().catch(function () { return {}; });
+        var detail = errBody.detail;
+        throw new Error(
+          typeof detail === "string" ? detail : "Erro ao criar utilizador."
+        );
+      }
+      form.reset();
       global.OuviescreviUI.toast("Utilizador criado.", "success");
       loadSystem();
-    } catch (e) {
-      global.OuviescreviUI.toast("Erro ao criar utilizador.", "error");
+    } catch (err) {
+      global.OuviescreviUI.toast(err.message || "Erro ao criar utilizador.", "error");
+    } finally {
+      if (submitBtn) submitBtn.disabled = false;
     }
   }
 

@@ -468,8 +468,17 @@ def list_users() -> list[dict]:
 def create_user(username: str, password: str, role: str) -> dict:
     if role not in ROLE_LEVEL:
         role = "editor"
+    username = (username or "").strip()
+    if not username:
+        raise ValueError("username_required")
     conn = get_connection()
     try:
+        existing = conn.execute(
+            "SELECT id FROM admin_users WHERE username = ?",
+            (username,),
+        ).fetchone()
+        if existing:
+            raise ValueError("username_exists")
         conn.execute(
             "INSERT INTO admin_users (username, password_hash, role, created_at) VALUES (?, ?, ?, ?)",
             (username, _hash_password(password), role, _now()),
