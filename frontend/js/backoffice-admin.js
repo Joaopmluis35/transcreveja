@@ -20,7 +20,17 @@
       .replace(/"/g, "&quot;");
   }
 
-  function roleLabel(role) {
+  function apiErrorMessage(body, fallback) {
+    var detail = body && body.detail;
+    if (typeof detail === "string" && detail.trim()) return detail;
+    if (Array.isArray(detail) && detail.length) {
+      var first = detail[0];
+      if (first && typeof first.msg === "string") return first.msg;
+    }
+    if (body && typeof body.error === "string" && body.error.trim()) return body.error;
+    return fallback || "Ocorreu um erro.";
+  }
+
     if (role === "admin") return "Admin";
     if (role === "editor") return "Editor";
     if (role === "viewer") return "Viewer";
@@ -1318,10 +1328,7 @@
       });
       if (!res.ok) {
         var errBody = await res.json().catch(function () { return {}; });
-        var detail = errBody.detail;
-        throw new Error(
-          typeof detail === "string" ? detail : "Erro ao criar utilizador."
-        );
+        throw new Error(apiErrorMessage(errBody, "Erro ao criar utilizador."));
       }
       form.reset();
       global.OuviescreviUI.toast("Utilizador criado.", "success");
