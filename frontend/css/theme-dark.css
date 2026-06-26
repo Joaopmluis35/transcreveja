@@ -69,6 +69,22 @@ html.oe-theme-dark .oe-pro-btn--ghost:hover {
   background: var(--pro-accent-muted);
 }
 
+html.oe-theme-dark .oe-pro-auth .oe-pro-btn--ghost {
+  background: var(--pro-surface);
+  color: var(--pro-text) !important;
+  border-color: var(--pro-border-strong);
+}
+
+html.oe-theme-dark .oe-pro-auth .oe-pro-btn--ghost:hover {
+  background: var(--pro-accent-muted);
+  border-color: var(--pro-accent);
+  color: var(--pro-accent) !important;
+}
+
+html.oe-theme-dark .oe-pro-auth__user {
+  color: var(--pro-text-secondary);
+}
+
 html.oe-theme-dark .oe-pro-footer {
   background: #0a0f1a;
   border-top-color: var(--pro-border);

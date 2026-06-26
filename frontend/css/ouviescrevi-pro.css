@@ -1522,7 +1522,7 @@ body.oe-pro.oe-page--home #cmsSeoClosing {
   min-width: 0;
   margin: 0;
   border: 1px solid var(--pro-border-strong);
-  background: #fff;
+  background: var(--pro-surface);
   color: var(--pro-text) !important;
 }
 .oe-pro-auth .oe-pro-btn--ghost:hover {
