@@ -20,6 +20,12 @@
   --oe-font: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --oe-max: 880px;
   --oe-header-h: auto;
+  --oe-btn-bg: #ede9fe;
+  --oe-btn-border: #c4b5fd;
+  --oe-btn-text: #1e293b;
+  --oe-dropzone-bg: #faf5ff;
+  --oe-dropzone-hover-bg: #f3e8ff;
+  --oe-result-bg: #f8fafc;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -402,7 +408,7 @@ nav#nichoMenu button span { position: relative; z-index: 1; }
   font-size: 1rem;
   font-family: inherit;
   color: var(--oe-text);
-  background: #f8fafc;
+  background: var(--oe-result-bg);
   border: 2px solid var(--oe-border);
   border-radius: var(--oe-radius-sm);
   transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
@@ -433,9 +439,9 @@ nav#nichoMenu button span { position: relative; z-index: 1; }
   font-size: 1rem;
   font-weight: 700;
   font-family: inherit;
-  color: var(--oe-text);
-  background: #ede9fe;
-  border: 2px solid #c4b5fd;
+  color: var(--oe-btn-text);
+  background: var(--oe-btn-bg);
+  border: 2px solid var(--oe-btn-border);
   border-radius: var(--oe-radius-sm);
   cursor: pointer;
   transition: background 0.2s, color 0.2s, transform 0.15s, box-shadow 0.2s;
@@ -472,7 +478,7 @@ nav#nichoMenu button span { position: relative; z-index: 1; }
   border-radius: var(--oe-radius-sm);
   padding: 28px 16px;
   margin-bottom: 16px;
-  background: #faf5ff;
+  background: var(--oe-dropzone-bg);
   color: var(--oe-text-muted);
   cursor: pointer;
   text-align: center;
@@ -482,7 +488,7 @@ nav#nichoMenu button span { position: relative; z-index: 1; }
 .oe-dropzone:hover,
 #dropZone:focus-within,
 .oe-dropzone:focus-within {
-  background: #f3e8ff;
+  background: var(--oe-dropzone-hover-bg);
   border-color: var(--oe-purple);
 }
 
@@ -490,7 +496,7 @@ nav#nichoMenu button span { position: relative; z-index: 1; }
 pre#resultado,
 .oe-result {
   margin-top: 24px;
-  background: #f8fafc;
+  background: var(--oe-result-bg);
   border-left: 4px solid var(--oe-cyan);
   padding: 18px 20px;
   white-space: pre-wrap;
@@ -533,7 +539,7 @@ pre#resultado,
   max-width: var(--oe-max);
   margin: 24px auto 40px;
   width: calc(100% - 32px);
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--oe-surface);
   padding: 24px;
   border-radius: var(--oe-radius);
   color: var(--oe-text);
@@ -654,7 +660,7 @@ body.oe-backoffice {
   gap: 12px;
   margin-top: 20px;
   padding: 12px;
-  background: #f8fafc;
+  background: var(--oe-result-bg);
   border-radius: var(--oe-radius-sm);
   cursor: pointer;
 }
@@ -711,7 +717,7 @@ table.logs tr:nth-child(even) { background: #fafafa; }
 
 .oe-bo-tab {
   border: 1px solid var(--oe-border);
-  background: #f8fafc;
+  background: var(--oe-result-bg);
   padding: 10px 14px;
   border-radius: var(--oe-radius-sm);
   cursor: pointer;
@@ -733,7 +739,7 @@ table.logs tr:nth-child(even) { background: #fafafa; }
 }
 
 .oe-bo-stat {
-  background: #f8fafc;
+  background: var(--oe-result-bg);
   border: 1px solid var(--oe-border);
   border-radius: var(--oe-radius-sm);
   padding: 14px;
@@ -757,7 +763,7 @@ table.logs tr:nth-child(even) { background: #fafafa; }
   justify-content: space-between;
   gap: 12px;
   padding: 12px;
-  background: #f8fafc;
+  background: var(--oe-result-bg);
   border-radius: var(--oe-radius-sm);
   margin-bottom: 8px;
 }
@@ -828,7 +834,7 @@ table.logs tr:nth-child(even) { background: #fafafa; }
 }
 
 .oe-btn--ghost:hover {
-  background: #f8fafc;
+  background: var(--oe-result-bg);
 }
 
 .oe-maintenance-banner {
@@ -928,7 +934,7 @@ main.oe-content {
 .oe-contact {
   margin-top: 2rem;
   padding: 1.25rem;
-  background: #f8fafc;
+  background: var(--oe-result-bg);
   border-radius: var(--oe-radius-sm);
   border: 1px solid var(--oe-border);
 }
@@ -962,7 +968,7 @@ main.oe-content {
 }
 
 .oe-legal-nav {
-  background: #f8fafc;
+  background: var(--oe-result-bg);
   border: 1px solid var(--oe-border);
   border-radius: var(--oe-radius-sm);
   padding: 1rem 1.25rem;

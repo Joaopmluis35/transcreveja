@@ -23,6 +23,13 @@ html.oe-theme-dark {
   --oe-shadow-sm: 0 4px 14px rgba(0, 0, 0, 0.35);
   --oe-gradient: linear-gradient(135deg, #4c1d95 0%, #0e7490 100%);
   --oe-gradient-soft: linear-gradient(160deg, #312e81 0%, #0c4a6e 100%);
+  --oe-purple-dark: #c4b5fd;
+  --oe-btn-bg: #1e1b4b;
+  --oe-btn-border: #7c3aed;
+  --oe-btn-text: #e9d5ff;
+  --oe-dropzone-bg: #151f32;
+  --oe-dropzone-hover-bg: #2e1065;
+  --oe-result-bg: #0f172a;
 }
 
 html.oe-theme-dark body.oe-page {
@@ -117,6 +124,16 @@ html.oe-theme-dark textarea {
   background: #0f172a;
   border-color: var(--pro-border);
   color: var(--pro-text);
+}
+
+html.oe-theme-dark .container textarea:focus,
+html.oe-theme-dark .container input:focus,
+html.oe-theme-dark .container select:focus,
+html.oe-theme-dark .oe-page textarea:focus,
+html.oe-theme-dark .oe-page input:focus,
+html.oe-theme-dark .oe-page select:focus {
+  background: #111827;
+  border-color: var(--pro-accent);
 }
 
 html.oe-theme-dark input::placeholder,
@@ -263,4 +280,167 @@ html.oe-theme-dark .oe-lp-section {
 html.oe-theme-dark .oe-lp-card {
   background: var(--pro-surface);
   border-color: var(--pro-border);
+}
+
+/* ── Ferramentas (resumo, perguntas, conversor, etc.) ─────────────────── */
+html.oe-theme-dark .container,
+html.oe-theme-dark .oe-card {
+  background: var(--pro-surface);
+  color: var(--pro-text);
+  border-color: var(--pro-border);
+}
+
+html.oe-theme-dark .oe-hero h1 {
+  color: var(--pro-text);
+}
+
+html.oe-theme-dark .oe-lead,
+html.oe-theme-dark .container > p,
+html.oe-theme-dark .oe-seo-block p {
+  color: var(--pro-text-secondary);
+}
+
+html.oe-theme-dark .oe-btn,
+html.oe-theme-dark .oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(#oeThemeToggle),
+html.oe-theme-dark .container button:not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close) {
+  background: var(--oe-btn-bg) !important;
+  color: var(--oe-btn-text) !important;
+  border-color: var(--oe-btn-border) !important;
+}
+
+html.oe-theme-dark .oe-btn:hover:not(:disabled),
+html.oe-theme-dark .oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(#oeThemeToggle):hover:not(:disabled),
+html.oe-theme-dark .container button:not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):hover:not(:disabled) {
+  background: var(--oe-gradient) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+}
+
+html.oe-theme-dark #dropZone,
+html.oe-theme-dark .oe-dropzone {
+  background: var(--oe-dropzone-bg) !important;
+  border-color: #6d28d9 !important;
+  color: var(--pro-text-secondary) !important;
+}
+
+html.oe-theme-dark #dropZone:hover,
+html.oe-theme-dark .oe-dropzone:hover,
+html.oe-theme-dark #dropZone:focus-within,
+html.oe-theme-dark .oe-dropzone:focus-within {
+  background: var(--oe-dropzone-hover-bg) !important;
+  border-color: #a78bfa !important;
+  color: var(--pro-text) !important;
+}
+
+html.oe-theme-dark #resultado,
+html.oe-theme-dark pre#resultado,
+html.oe-theme-dark .oe-result {
+  background: var(--oe-result-bg) !important;
+  color: var(--pro-text) !important;
+  border-left-color: #22d3ee;
+}
+
+html.oe-theme-dark .oe-seo-block {
+  background: var(--pro-surface);
+  color: var(--pro-text-secondary);
+  border: 1px solid var(--pro-border);
+}
+
+html.oe-theme-dark .oe-seo-block h2 {
+  color: var(--oe-purple-dark);
+}
+
+html.oe-theme-dark .oe-btn--ghost {
+  background: transparent !important;
+  color: #c4b5fd !important;
+  border-color: var(--pro-border-strong) !important;
+}
+
+html.oe-theme-dark .oe-btn--ghost:hover {
+  background: var(--pro-accent-muted) !important;
+  color: #ddd6fe !important;
+}
+
+/* Homepage — exportar / ações */
+html.oe-theme-dark body.oe-page--home .btn-group button,
+html.oe-theme-dark body.oe-page--home .oe-output__actions.btn-group button {
+  background: var(--oe-btn-bg) !important;
+  color: var(--oe-btn-text) !important;
+  border-color: var(--oe-btn-border) !important;
+}
+
+html.oe-theme-dark body.oe-page--home .btn-group button:hover:not(:disabled),
+html.oe-theme-dark body.oe-page--home .oe-output__actions.btn-group button:hover:not(:disabled) {
+  color: #fff !important;
+  border-color: transparent !important;
+}
+
+html.oe-theme-dark body.oe-page--home #uploadForm button:not(#btnTranscrever):not(#btnTranscribe):not(#btnStopRecording) {
+  background: var(--oe-btn-bg) !important;
+  color: var(--oe-btn-text) !important;
+  border-color: var(--oe-btn-border) !important;
+}
+
+html.oe-theme-dark body.oe-page--home #btnLimparTudo,
+html.oe-theme-dark body.oe-page--home #uploadForm #btnLimparTudo,
+html.oe-theme-dark body.oe-page--home #uploadForm #btnClear {
+  background: transparent !important;
+  color: var(--pro-text-secondary) !important;
+  border-color: var(--pro-border) !important;
+}
+
+/* Landing pages */
+html.oe-theme-dark body.oe-page--landing .oe-lp-btn--ghost,
+html.oe-theme-dark body.oe-page--landing-pro .oe-lp-btn--ghost {
+  background: transparent !important;
+  color: #e9d5ff !important;
+  border-color: rgba(167, 139, 250, 0.45) !important;
+}
+
+html.oe-theme-dark body.oe-page--landing .oe-lp-btn--ghost:hover,
+html.oe-theme-dark body.oe-page--landing-pro .oe-lp-btn--ghost:hover {
+  background: var(--pro-accent-muted) !important;
+  color: #fff !important;
+}
+
+/* Modal auth */
+html.oe-theme-dark .oe-auth-modal__card {
+  background: var(--pro-surface);
+  color: var(--pro-text);
+}
+
+html.oe-theme-dark .oe-auth-tabs__btn {
+  background: #0f172a;
+  color: var(--pro-text-secondary);
+  border-color: var(--pro-border);
+}
+
+html.oe-theme-dark .oe-auth-tabs__btn--active {
+  background: var(--pro-accent);
+  color: #fff;
+}
+
+html.oe-theme-dark .oe-auth-modal__close {
+  background: #1e293b;
+  color: var(--pro-text-secondary);
+}
+
+html.oe-theme-dark .oe-auth-modal__close:hover {
+  background: #334155;
+  color: var(--pro-text);
+}
+
+/* Sugestões / modais */
+html.oe-theme-dark body.oe-page--home #sugestaoPanel .sug-card,
+html.oe-theme-dark #sugestaoPanel .sug-card {
+  background: var(--pro-surface);
+  color: var(--pro-text);
+  border-color: var(--pro-border);
+}
+
+html.oe-theme-dark body.oe-page--home #sugestaoPanel .sug-card button,
+html.oe-theme-dark #sugestaoPanel .sug-card button {
+  background: var(--oe-btn-bg) !important;
+  color: var(--oe-btn-text) !important;
+  border-color: var(--oe-btn-border) !important;
 }
