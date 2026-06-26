@@ -1274,7 +1274,10 @@ body.oe-pro.oe-page--home #uploadForm button {
   transition: background 0.15s, border-color 0.15s, color 0.15s !important;
 }
 body.oe-pro.oe-page--home #uploadForm #btnTranscrever,
-body.oe-pro.oe-page--home #uploadForm #btnTranscribe {
+body.oe-pro.oe-page--home #uploadForm #btnTranscribe,
+body.oe-pro.oe-page--home #uploadForm #btnTranscribir,
+body.oe-pro.oe-page--home #uploadForm #btnTranscrire,
+body.oe-pro.oe-page--home #uploadForm #btnTranskribieren {
   grid-column: 1 / -1;
   min-height: 52px !important;
   font-size: 1.05rem !important;
@@ -1285,7 +1288,10 @@ body.oe-pro.oe-page--home #uploadForm #btnTranscribe {
   box-shadow: 0 6px 22px rgba(124, 58, 237, 0.38) !important;
 }
 body.oe-pro.oe-page--home #uploadForm #btnTranscrever:hover:not(:disabled),
-body.oe-pro.oe-page--home #uploadForm #btnTranscribe:hover:not(:disabled) {
+body.oe-pro.oe-page--home #uploadForm #btnTranscribe:hover:not(:disabled),
+body.oe-pro.oe-page--home #uploadForm #btnTranscribir:hover:not(:disabled),
+body.oe-pro.oe-page--home #uploadForm #btnTranscrire:hover:not(:disabled),
+body.oe-pro.oe-page--home #uploadForm #btnTranskribieren:hover:not(:disabled) {
   background: linear-gradient(135deg, #6d28d9, #1d4ed8) !important;
   border: none !important;
   color: #fff !important;

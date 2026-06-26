@@ -98,6 +98,19 @@
     #dropZone:hover{ background:#f0f0f0; }
     #dropZone input[type=file]{ display:none; }
     #fileName{ display:block; margin-top:10px; color:#555; font-size:14px; font-style:italic; }
+    .oe-drop-zone__hint{ margin:6px 0 0; font-size:13px; color:#666; }
+    .oe-file-hint{ display:block; margin-top:6px; font-size:12px; color:#888; font-style:normal; }
+    #uploadForm .oe-btn-transcribe{
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      gap:2px; line-height:1.25; padding-top:10px; padding-bottom:10px;
+      background:linear-gradient(135deg,#7c3aed,#2563eb); color:#fff; border:none;
+      font-size:1.05rem; min-height:52px; font-weight:700;
+    }
+    #uploadForm .oe-btn-transcribe:hover:not(:disabled){
+      background:linear-gradient(135deg,#6d28d9,#1d4ed8); color:#fff; border:none;
+    }
+    #uploadForm .oe-btn-transcribe__hint{ font-size:0.78rem; font-weight:500; opacity:0.92; }
+    #uploadForm .oe-btn-transcribe__label{ font-weight:700; }
 
     /* Switch */
     .switch-container{ display:flex; align-items:center; gap:10px; margin-top:10px; font-size:14px; }
@@ -164,20 +177,24 @@
 <main id="mainContent">
   <div id="adminContent">
     <p id="cmsHomeIntro" data-cms-key="en_home_intro_html" data-cms-mode="html">
-      <strong>🧠 Ouviescrevi</strong> is your AI assistant to
-      <br><strong>transcribe</strong> 🎙️, <strong>translate</strong> 🌍, <strong>summarise</strong> 📌 and <strong>convert files</strong> 📄
-      <br>— simple, fast, and free.
+      <strong>Upload audio or video and get text in minutes.</strong><br>
+      Transcribe 🎙️ · Translate 🌍 · Summarise 📌 · Convert files 📄 — simple, fast and free.
     </p>
 
     <form id="uploadForm">
       <div id="dropZone">
-        <p>📁 <strong>Drag your file here</strong> or click to choose</p>
+        <p>📁 <strong>Drag your audio or video here</strong> or click to choose</p>
+        <p class="oe-drop-zone__hint">MP3, WAV, MP4 and other common formats</p>
         <input type="file" id="fileInput" accept="audio/*,video/*" required>
         <span id="fileName">No file selected</span>
+        <small class="oe-file-hint">Limit: 500 MB — long file? Pick only the part you need as text.</small>
       </div>
 
       <div class="oe-upload-actions">
-      <button type="submit" id="btnTranscribe">Transcribe</button>
+      <button type="submit" id="btnTranscribe" class="oe-btn-transcribe">
+        <span class="oe-btn-transcribe__label">🎙️ Transcribe</span>
+        <span class="oe-btn-transcribe__hint">Audio &amp; video → editable text</span>
+      </button>
       <button type="button" id="btnSubtitleVideo" disabled>🎬 Subtitle Video (SRT + MP4)</button>
       <button type="button" id="btnStartRec">🎤 Record Audio</button>
       <button type="button" id="btnStopRecording" class="hidden">🛑 Stop Recording</button>

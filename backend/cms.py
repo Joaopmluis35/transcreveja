@@ -605,9 +605,9 @@ PAGE_SCHEMA.sort(
 
 DEFAULT_SITE_CONTENT: dict[str, str] = {
     "home_intro_html": (
-        "<p><strong>🧠 Ouviescrevi</strong> é o teu assistente com IA para<br>"
-        "<strong>transcrever</strong> 🎙️, <strong>traduzir</strong> 🌍, <strong>resumir</strong> 📌 "
-        "e <strong>converter ficheiros</strong> 📄<br>— simples, rápido e gratuito.</p>"
+        "<p><strong>Cola áudio ou vídeo e obtém o texto em minutos.</strong><br>"
+        "Transcrever 🎙️ · Traduzir 🌍 · Resumir 📌 · Converter ficheiros 📄 "
+        "— grátis, em português.</p>"
     ),
     "seo_title": "🧠 O que é o Ouviescrevi?",
     "seo_p1": (
@@ -665,9 +665,24 @@ DEFAULT_SITE_CONTENT: dict[str, str] = {
     "en_sugestoes_title": "💡 Suggestions",
     "en_sugestoes_lead": "Your feedback helps us improve Ouviescrevi.",
     "en_home_intro_html": (
-        "<p><strong>🧠 Ouviescrevi</strong> is your AI assistant to<br>"
-        "<strong>transcribe</strong> 🎙️, <strong>translate</strong> 🌍, <strong>summarise</strong> 📌 "
-        "and <strong>convert files</strong> 📄<br>— simple, fast and free.</p>"
+        "<p><strong>Upload audio or video and get text in minutes.</strong><br>"
+        "Transcribe 🎙️ · Translate 🌍 · Summarise 📌 · Convert files 📄 "
+        "— simple, fast and free.</p>"
+    ),
+    "es_home_intro_html": (
+        "<p><strong>Sube audio o vídeo y obtén el texto en minutos.</strong><br>"
+        "Transcribir 🎙️ · Traducir 🌍 · Resumir 📌 · Convertir archivos 📄 "
+        "— simple, rápido y gratis.</p>"
+    ),
+    "fr_home_intro_html": (
+        "<p><strong>Déposez un audio ou une vidéo et obtenez le texte en quelques minutes.</strong><br>"
+        "Transcrire 🎙️ · Traduire 🌍 · Résumer 📌 · Convertir des fichiers 📄 "
+        "— simple, rapide et gratuit.</p>"
+    ),
+    "de_home_intro_html": (
+        "<p><strong>Lade Audio oder Video hoch und erhalte den Text in wenigen Minuten.</strong><br>"
+        "Transkribieren 🎙️ · Übersetzen 🌍 · Zusammenfassen 📌 · Dateien konvertieren 📄 "
+        "— einfach, schnell und kostenlos.</p>"
     ),
     "en_resumo_title": "📌 Smart Summary",
     "en_resumo_lead": "Paste your text or upload a PDF or Word file, then choose a summary style.",

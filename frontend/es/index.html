@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="stylesheet" href="../css/ouviescrevi.css?v=10">
-  <link rel="stylesheet" href="../css/index-home.css?v=10">
+  <link rel="stylesheet" href="../css/index-home.css?v=22">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <title>Ouviescrevi — Transcripción de audio y vídeo con IA gratis</title>
   <meta name="description" content="Transcribe audio y vídeo online con inteligencia artificial, gratis y sin registro. Resúmenes, traducción, subtítulos SRT y conversión de archivos.">
@@ -24,21 +24,24 @@
   <h1 class="oe-visually-hidden">Ouviescrevi — Transcrição de Áudio y Vídeo com IA Grátis</h1>
   <div id="adminContent">
     <p id="cmsHomeIntro" data-cms-key="es_home_intro_html" data-cms-mode="html">
-      <strong>🧠 Ouviescrevi</strong> es tu asistente con IA para
-      <br><strong>transcribir</strong> 🎙️, <strong>traducir</strong> 🌍, <strong>resumir</strong> 📌 y <strong>convertir archivos</strong> 📄
-      <br>— simples, rápido y gratuito.
+      <strong>Sube audio o vídeo y obtén el texto en minutos.</strong><br>
+      Transcribir 🎙️ · Traducir 🌍 · Resumir 📌 · Convertir archivos 📄 — simple, rápido y gratis.
     </p>
 
     <form id="uploadForm">
       <div id="dropZone">
-        <p>📁 <strong>Arrasta o ficheiro aqui</strong> ou clica para escolher</p>
+        <p class="oe-drop-zone__lead">📁 <strong>Arrastra aquí el audio o vídeo</strong> o haz clic para elegir</p>
+        <p class="oe-drop-zone__hint">MP3, WAV, MP4 y otros formatos habituales</p>
         <input type="file" id="fileInput" accept="audio/*,video/*" required>
         <span id="fileName">Ningún archivo seleccionado</span>
-        <small class="oe-file-hint">Límite: 500 MB — para archivos más grandes, extrae solo el audio.</small>
+        <small class="oe-file-hint">Límite: 500 MB — ¿archivo largo? Elige solo el fragmento que quieras en texto.</small>
       </div>
 
       <div class="oe-upload-actions">
-      <button type="submit" id="btnTranscribir">Transcribir</button>
+      <button type="submit" id="btnTranscribir" class="oe-btn-transcribe">
+        <span class="oe-btn-transcribe__label">🎙️ Transcribir</span>
+        <span class="oe-btn-transcribe__hint">Audio y vídeo → texto editable</span>
+      </button>
       <button type="button" id="btnLegendarVideo" disabled>🎬 Subtitular vídeo (SRT + MP4)</button>
       <button type="button" id="btnStartRec">🎤 Grabar audio</button>
       <button type="button" id="btnStopRecording" class="hidden">🛑 Detener grabación</button>

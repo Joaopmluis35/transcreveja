@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="stylesheet" href="../css/ouviescrevi.css?v=10">
-  <link rel="stylesheet" href="../css/index-home.css?v=10">
+  <link rel="stylesheet" href="../css/index-home.css?v=22">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <title>Ouviescrevi — Kostenlose KI-Audio- und Video-Transkription</title>
   <meta name="description" content="Transkribiere Audio und Video online mit KI, kostenlos und ohne Anmeldung. Zusammenfassungen, Übersetzung, SRT-Untertitel und Dateikonvertierung.">
@@ -24,21 +24,24 @@
   <h1 class="oe-visually-hidden">Ouviescrevi — Transcrição de Áudio und Vídeo com IA Grátis</h1>
   <div id="adminContent">
     <p id="cmsHomeIntro" data-cms-key="de_home_intro_html" data-cms-mode="html">
-      <strong>🧠 Ouviescrevi</strong> ist dein KI-Assistent zum
-      <br><strong>Transkribieren</strong> 🎙️, <strong>Übersetzen</strong> 🌍, <strong>Zusammenfassen</strong> 📌 und <strong>Dateien konvertieren</strong> 📄
-      <br>— simples, rápido und gratuito.
+      <strong>Lade Audio oder Video hoch und erhalte den Text in wenigen Minuten.</strong><br>
+      Transkribieren 🎙️ · Übersetzen 🌍 · Zusammenfassen 📌 · Dateien konvertieren 📄 — einfach, schnell und kostenlos.
     </p>
 
     <form id="uploadForm">
       <div id="dropZone">
-        <p>📁 <strong>Arrasta o ficheiro aqui</strong> ou clica para escolher</p>
+        <p class="oe-drop-zone__lead">📁 <strong>Audio oder Video hierher ziehen</strong> oder klicken zum Auswählen</p>
+        <p class="oe-drop-zone__hint">MP3, WAV, MP4 und andere gängige Formate</p>
         <input type="file" id="fileInput" accept="audio/*,video/*" required>
         <span id="fileName">Keine Datei ausgewählt</span>
-        <small class="oe-file-hint">Limit: 500 MB — bei größeren Dateien nur Audio extrahieren.</small>
+        <small class="oe-file-hint">Limit: 500 MB — lange Datei? Wähle nur den Abschnitt, den du als Text brauchst.</small>
       </div>
 
       <div class="oe-upload-actions">
-      <button type="submit" id="btnTranskribieren">Transkribieren</button>
+      <button type="submit" id="btnTranskribieren" class="oe-btn-transcribe">
+        <span class="oe-btn-transcribe__label">🎙️ Transkribieren</span>
+        <span class="oe-btn-transcribe__hint">Audio &amp; Video → bearbeitbarer Text</span>
+      </button>
       <button type="button" id="btnLegendarVideo" disabled>🎬 Video untertiteln (SRT + MP4)</button>
       <button type="button" id="btnStartRec">🎤 Audio aufnehmen</button>
       <button type="button" id="btnStopRecording" class="hidden">🛑 Aufnahme stoppen</button>

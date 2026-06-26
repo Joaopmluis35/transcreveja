@@ -944,6 +944,30 @@ body.oe-page--home .oe-file-hint {
   font-style: normal;
 }
 
+body.oe-page--home #uploadForm .oe-btn-transcribe,
+#uploadForm .oe-btn-transcribe {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  line-height: 1.25;
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+}
+
+body.oe-page--home #uploadForm .oe-btn-transcribe__hint,
+#uploadForm .oe-btn-transcribe__hint {
+  font-size: 0.78rem;
+  font-weight: 500;
+  opacity: 0.92;
+}
+
+body.oe-page--home #uploadForm .oe-btn-transcribe__label,
+#uploadForm .oe-btn-transcribe__label {
+  font-weight: 700;
+}
+
 body.oe-page--home .oe-lang-select {
   display: flex;
   flex-direction: column;
