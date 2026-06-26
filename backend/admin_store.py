@@ -489,6 +489,35 @@ def delete_user(user_id: int) -> None:
         conn.close()
 
 
+def update_user_role(user_id: int, role: str) -> dict:
+    if role not in ROLE_LEVEL:
+        raise ValueError("invalid_role")
+    conn = get_connection()
+    try:
+        row = conn.execute(
+            "SELECT id, username, role, created_at FROM admin_users WHERE id = ?",
+            (user_id,),
+        ).fetchone()
+        if not row:
+            raise ValueError("not_found")
+        if row["role"] == "admin" and role != "admin":
+            admin_count = scalar_int(
+                conn.execute("SELECT COUNT(*) AS c FROM admin_users WHERE role = 'admin'").fetchone(),
+                "c",
+            )
+            if admin_count <= 1:
+                raise ValueError("last_admin")
+        conn.execute("UPDATE admin_users SET role = ? WHERE id = ?", (role, user_id))
+        conn.commit()
+        updated = conn.execute(
+            "SELECT id, username, role, created_at FROM admin_users WHERE id = ?",
+            (user_id,),
+        ).fetchone()
+        return row_to_dict(updated) if updated else {}
+    finally:
+        conn.close()
+
+
 def get_config() -> dict[str, str]:
     out = dict(DEFAULT_CONFIG)
     conn = get_connection()

@@ -1040,6 +1040,46 @@ table.oe-admin-table td code {
   white-space: pre-wrap;
 }
 
+.oe-admin-modal__box--wide {
+  max-width: min(640px, calc(100vw - 32px));
+}
+
+.oe-admin-modal__footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--bo-border, #e2e8f0);
+}
+
+.oe-admin-message-box {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--bo-border, #e2e8f0);
+  background: var(--bo-input-bg, #f8fafc);
+  color: var(--bo-text, #0f172a);
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.55;
+  max-height: min(50vh, 360px);
+  overflow-y: auto;
+  font-size: 0.95rem;
+}
+
+.oe-admin-row--clickable {
+  cursor: pointer;
+}
+
+.oe-admin-row--clickable:hover td {
+  background: rgba(124, 58, 237, 0.06);
+}
+
+.oe-admin-role-select {
+  min-width: 110px;
+}
+
 .oe-admin-card--pulse {
   animation: oe-admin-pulse 2s ease-in-out infinite;
 }
@@ -1098,13 +1138,23 @@ body.oe-admin.oe-admin--dark .oe-admin-mini-stat strong {
   color: var(--bo-text);
 }
 
-body.oe-admin.oe-admin--dark .oe-admin-login-card,
 body.oe-admin.oe-admin--dark .oe-admin-modal__box,
+body.oe-admin.oe-admin--dark .oe-admin-login-card,
 body.oe-admin.oe-admin--dark .oe-admin-panel,
 body.oe-admin.oe-admin--dark .oe-admin-card,
 body.oe-admin.oe-admin--dark .oe-admin-health-card {
   background: var(--bo-card);
   color: var(--bo-text);
+}
+
+body.oe-admin.oe-admin--dark .oe-admin-message-box {
+  background: var(--bo-input-bg);
+  border-color: var(--bo-border);
+  color: var(--bo-text);
+}
+
+body.oe-admin.oe-admin--dark .oe-admin-row--clickable:hover td {
+  background: rgba(167, 139, 250, 0.08);
 }
 
 body.oe-admin.oe-admin--dark .oe-admin-topbar {

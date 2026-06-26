@@ -7,7 +7,7 @@
   <title>Backoffice | Ouviescrevi</title>
   <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png">
   <link rel="stylesheet" href="css/ouviescrevi.css">
-  <link rel="stylesheet" href="css/backoffice.css?v=16">
+  <link rel="stylesheet" href="css/backoffice.css?v=17">
   <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
   <script src="js/ouviescrevi-ui.js" defer></script>
 </head>
@@ -372,6 +372,15 @@
             <p class="oe-admin-empty">A carregar...</p>
           </div>
         </div>
+        <div id="sugDetailModal" class="oe-admin-modal hidden" role="dialog" aria-modal="true" aria-labelledby="sugDetailTitle">
+          <div class="oe-admin-modal__backdrop" data-close-sug-modal></div>
+          <div class="oe-admin-modal__box oe-admin-modal__box--wide">
+            <button type="button" class="oe-admin-modal__close" id="sugDetailClose" aria-label="Fechar">×</button>
+            <h3 id="sugDetailTitle">Sugestão</h3>
+            <div id="sugDetailBody" class="oe-admin-modal__body"></div>
+            <div class="oe-admin-modal__footer" id="sugDetailActions"></div>
+          </div>
+        </div>
       </div>
 
       <!-- Emails -->
@@ -627,7 +636,7 @@
 <script src="js/ouviescrevi-api.js"></script>
 <script src="js/backoffice-cms-locales.js?v=5"></script>
 <script src="js/backoffice.js?v=16"></script>
-<script src="js/backoffice-admin.js?v=20"></script>
+<script src="js/backoffice-admin.js?v=21"></script>
 <script src="js/backoffice-billing.js?v=4"></script>
 </body>
 </html>

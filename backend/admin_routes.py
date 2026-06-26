@@ -331,6 +331,29 @@ def admin_delete_user(request: Request, user_id: int):
     return {"ok": True}
 
 
+class UserUpdateRequest(BaseModel):
+    role: str
+
+
+@router.patch("/users/{user_id}")
+def admin_update_user(request: Request, user_id: int, body: UserUpdateRequest):
+    store.require_role(getattr(request.state, "admin_session", None), "admin")
+    try:
+        user = store.update_user_role(user_id, body.role)
+    except ValueError as exc:
+        code = str(exc)
+        if code == "not_found":
+            raise HTTPException(status_code=404, detail="Utilizador não encontrado.") from exc
+        if code == "last_admin":
+            raise HTTPException(
+                status_code=400,
+                detail="Não é possível alterar o papel do único administrador.",
+            ) from exc
+        raise HTTPException(status_code=400, detail="Papel inválido.") from exc
+    store.log_audit(_actor(request), "user_role_update", f"{user.get('username')}:{body.role}")
+    return {"ok": True, "user": user}
+
+
 @router.get("/export/{table}")
 def admin_export(request: Request, table: str):
     store.require_role(getattr(request.state, "admin_session", None), "viewer")
