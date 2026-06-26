@@ -380,7 +380,12 @@ body.oe-nav-open { overflow: hidden; }
 }
 
 /* Language switcher */
-.oe-pro-lang { position: relative; }
+.oe-pro-lang {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 .oe-pro-lang__btn {
   display: flex;
   align-items: center;
@@ -394,6 +399,25 @@ body.oe-nav-open { overflow: hidden; }
   cursor: pointer;
 }
 .oe-pro-lang__btn img { display: block; border-radius: 2px; width: 22px; height: 16px; object-fit: cover; }
+
+.oe-pro-theme__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--pro-border);
+  border-radius: 10px;
+  background: var(--pro-surface);
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+.oe-pro-theme__btn:hover {
+  background: var(--pro-accent-muted);
+}
+
 .oe-pro-lang__menu {
   display: none;
   position: absolute;
