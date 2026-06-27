@@ -16,7 +16,10 @@
       needText: "Introduz texto para gerar perguntas.",
       errorGenerate: "Erro ao gerar perguntas.",
       resultsReady: "%n perguntas geradas",
-      resultsLead: "Escolhe como queres usar o resultado",
+      resultsLead: "Revê as perguntas abaixo e escolhe o que fazer a seguir",
+      questionsTitle: "As tuas perguntas",
+      questionsHint: "Cada pergunta inclui resposta correta e explicação",
+      toolsTitle: "O que queres fazer a seguir?",
       shareTitle: "Estudar e partilhar",
       shareHint: "Com respostas e explicações — para rever ou enviar",
       studyPdf: "PDF estudo",
@@ -48,7 +51,10 @@
       needText: "Paste some text first.",
       errorGenerate: "Error generating questions.",
       resultsReady: "%n questions generated",
-      resultsLead: "Choose how to use the result",
+      resultsLead: "Review the questions below and choose your next step",
+      questionsTitle: "Your questions",
+      questionsHint: "Each question includes the correct answer and an explanation",
+      toolsTitle: "What would you like to do next?",
       shareTitle: "Study and share",
       shareHint: "With answers and explanations — to review or send",
       studyPdf: "Study PDF",
@@ -80,7 +86,10 @@
       needText: "Introduce texto primero.",
       errorGenerate: "Error al generar preguntas.",
       resultsReady: "%n preguntas generadas",
-      resultsLead: "Elige cómo usar el resultado",
+      resultsLead: "Revisa las preguntas abajo y elige el siguiente paso",
+      questionsTitle: "Tus preguntas",
+      questionsHint: "Cada pregunta incluye respuesta correcta y explicación",
+      toolsTitle: "¿Qué quieres hacer ahora?",
       shareTitle: "Estudiar y compartir",
       shareHint: "Con respuestas y explicaciones — para repasar o enviar",
       studyPdf: "PDF estudio",
@@ -112,7 +121,10 @@
       needText: "Collez du texte d'abord.",
       errorGenerate: "Erreur lors de la génération.",
       resultsReady: "%n questions générées",
-      resultsLead: "Choisissez comment utiliser le résultat",
+      resultsLead: "Relisez les questions ci-dessous et choisissez la suite",
+      questionsTitle: "Vos questions",
+      questionsHint: "Chaque question inclut la bonne réponse et une explication",
+      toolsTitle: "Que souhaitez-vous faire ensuite ?",
       shareTitle: "Réviser et partager",
       shareHint: "Avec réponses et explications — pour réviser ou envoyer",
       studyPdf: "PDF révision",
@@ -144,7 +156,10 @@
       needText: "Zuerst Text einfügen.",
       errorGenerate: "Fehler beim Erstellen der Fragen.",
       resultsReady: "%n Fragen erstellt",
-      resultsLead: "Wähle, wie du das Ergebnis nutzen möchtest",
+      resultsLead: "Sieh dir die Fragen unten an und wähle den nächsten Schritt",
+      questionsTitle: "Deine Fragen",
+      questionsHint: "Jede Frage enthält die richtige Antwort und eine Erklärung",
+      toolsTitle: "Was möchtest du als Nächstes tun?",
       shareTitle: "Lernen und teilen",
       shareHint: "Mit Antworten und Erklärungen — zum Wiederholen oder Senden",
       studyPdf: "Lern-PDF",
@@ -366,8 +381,8 @@
     }
 
     var shareSection =
-      '<div class="oe-quiz-panel__section">' +
-      '<h3 class="oe-quiz-panel__section-title">' +
+      '<div class="oe-quiz-panel__section oe-quiz-panel__section--share">' +
+      '<h4 class="oe-quiz-panel__section-title">' +
       escapeHtml(t("shareTitle")) +
       "</h3>" +
       '<p class="oe-quiz-panel__section-hint">' +
@@ -454,6 +469,23 @@
       })
       .join("");
 
+    var questionsSection =
+      '<section class="oe-quiz-questions" id="oeQuizQuestions">' +
+      '<div class="oe-quiz-questions__head">' +
+      "<div>" +
+      '<h3 class="oe-quiz-questions__title">' +
+      escapeHtml(t("questionsTitle")) +
+      "</h3>" +
+      '<p class="oe-quiz-questions__hint">' +
+      escapeHtml(t("questionsHint")) +
+      "</p></div>" +
+      '<span class="oe-quiz-questions__badge">' +
+      escapeHtml(String(questions.length)) +
+      "</span></div>" +
+      '<div class="oe-quiz-cards">' +
+      cards +
+      "</div></section>";
+
     container.innerHTML =
       '<div class="oe-quiz">' +
       '<section class="oe-quiz-panel">' +
@@ -466,20 +498,16 @@
       '<p class="oe-quiz-panel__lead">' +
       escapeHtml(t("resultsLead")) +
       "</p></div></header>" +
+      questionsSection +
+      '<div class="oe-quiz-panel__tools">' +
+      '<p class="oe-quiz-panel__tools-title">' +
+      escapeHtml(t("toolsTitle")) +
+      "</p>" +
       shareSection +
       '<div class="oe-quiz-panel__divider" role="separator"></div>' +
       '<div class="oe-quiz-panel__section oe-quiz-panel__section--classroom">' +
       builderHtml +
-      "</div>" +
-      '<details class="oe-quiz-details">' +
-      '<summary class="oe-quiz-details__summary">📝 ' +
-      escapeHtml(t("viewGenerated")) +
-      " (" +
-      questions.length +
-      ")</summary>" +
-      '<div class="oe-quiz-cards">' +
-      cards +
-      "</div></details></section></div>";
+      "</div></div></section></div>";
     container.classList.remove("oe-result--error");
     container.hidden = false;
 
@@ -619,7 +647,12 @@
       var data = await res.json();
       if (data.questions) {
         renderQuestions(out, data.questions);
-        out.scrollIntoView({ behavior: "smooth", block: "start" });
+        var questionsEl = out.querySelector("#oeQuizQuestions");
+        if (questionsEl) {
+          questionsEl.scrollIntoView({ behavior: "smooth", block: "start" });
+        } else {
+          out.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
       } else {
         showError(out, data.error || data.detail || "Erro inesperado.");
       }
