@@ -2481,6 +2481,81 @@ async def generate_questions(req: QuestionRequest, request: Request):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+def extract_url_article_text(html_bytes: bytes) -> str:
+    soup = BeautifulSoup(html_bytes, "html.parser")
+    for tag in soup(["script", "style", "nav", "footer", "noscript", "iframe", "svg", "form"]):
+        tag.decompose()
+
+    def paragraphs_from(node):
+        if not node:
+            return []
+        return [
+            p.get_text(" ", strip=True)
+            for p in node.find_all("p")
+            if len(p.get_text(strip=True)) >= 15
+        ]
+
+    candidates = []
+    for root in (
+        soup.find("article"),
+        soup.find("main"),
+        soup.find(attrs={"role": "main"}),
+    ):
+        if root:
+            candidates.append(paragraphs_from(root))
+
+    for sel in (
+        ".article-body",
+        ".article-content",
+        ".content-body",
+        ".post-content",
+        ".entry-content",
+        "#article-body",
+        "[class*='article']",
+    ):
+        el = soup.select_one(sel)
+        if el:
+            candidates.append(paragraphs_from(el))
+
+    best = max(candidates, key=len, default=[])
+    if len(best) < 2:
+        best = paragraphs_from(soup.body or soup)
+
+    full_text = " ".join(best)
+
+    for script in soup.find_all("script", type="application/ld+json"):
+        try:
+            payload = json.loads(script.string or "")
+            items = payload if isinstance(payload, list) else [payload]
+            for item in items:
+                if not isinstance(item, dict):
+                    continue
+                body = item.get("articleBody") or item.get("description")
+                if body and isinstance(body, str) and len(body) > len(full_text):
+                    full_text = body.strip()
+        except (json.JSONDecodeError, TypeError, ValueError):
+            continue
+
+    if len(full_text) < 300:
+        extras = []
+        for meta in soup.find_all("meta"):
+            name = (meta.get("name") or meta.get("property") or "").lower()
+            if name in ("description", "og:description", "twitter:description"):
+                content = (meta.get("content") or "").strip()
+                if len(content) > 40:
+                    extras.append(content)
+        if extras:
+            full_text = (full_text + " " + " ".join(extras)).strip()
+
+    if len(full_text) < 150:
+        root = soup.body or soup
+        raw = root.get_text(" ", strip=True)
+        raw = re.sub(r"\s+", " ", raw)
+        if len(raw) > len(full_text):
+            full_text = raw[:12000]
+
+    return full_text.strip()
+
 @app.post("/summarize-url")
 async def summarize_url(req: Request):
     data = await req.json()
@@ -2494,12 +2569,14 @@ async def summarize_url(req: Request):
         raise HTTPException(status_code=400, detail="URL em falta.")
     validate_public_http_url(url)
     try:
-        headers = {"User-Agent": "OuviescreviBot/1.0 (+https://ouviescrevi.pt)"}
         r = safe_http_get(url, timeout=12)
-        soup = BeautifulSoup(r.content, "html.parser")
-        paragraphs = soup.find_all("p")
-        full_text = " ".join(p.get_text(strip=True) for p in paragraphs if len(p.get_text()) > 40)
-        if not full_text:
+        full_text = extract_url_article_text(r.content)
+        if not full_text or len(full_text) < 80:
+            if len(r.content) < 8000:
+                raise HTTPException(
+                    status_code=400,
+                    detail="O site pode estar a bloquear leitura automática ou o artigo não está acessível.",
+                )
             raise HTTPException(status_code=400, detail="Não foi possível extrair conteúdo útil da URL.")
         chunks = textwrap.wrap(full_text, 3000)
         summaries = []

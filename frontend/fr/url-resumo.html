@@ -3,110 +3,69 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta name="description" content="Generate automatic summaries from online article links using AI.">
-  <meta name="keywords" content="url summary, article summary, AI summary, smart summary, Ouviescrevi">
+  <meta name="description" content="Générez des résumés automatiques à partir de liens d'articles en ligne avec l'IA.">
+  <meta name="keywords" content="résumé URL, résumé d'article, résumé automatique, IA, Ouviescrevi">
   <meta name="robots" content="index, follow">
   <title>Résumé par URL - Ouviescrevi</title>
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
-  <link rel="stylesheet" href="../css/ouviescrevi.css">
+  <link rel="stylesheet" href="../css/ouviescrevi.css?v=15">
+  <link rel="stylesheet" href="../css/url-resumo.css?v=1">
+  <script src="../js/theme-ui.js"></script>
   <script src="/js/ouviescrevi-seo.js" defer></script>
   <script src="../js/ouviescrevi-ui.js" defer></script>
 </head>
-<body class="oe-page oe-pro">
+<body class="oe-page oe-pro oe-page--url-resumo">
 <a class="oe-skip" href="#conteudo">Aller au contenu</a>
 <div id="header"></div>
 
-<div class="oe-hero" id="conteudo">
-  <h1 data-cms-key="fr_url_resumo_title" data-cms-mode="text">🔗 Smart Summary from URL</h1>
-  <p class="oe-lead" data-cms-key="fr_url_resumo_lead" data-cms-mode="text">Paste an article link to generate an automatic AI summary.</p>
-</div>
+<div class="oe-url-layout" id="conteudo">
+  <header class="oe-url-hero">
+    <h1 data-cms-key="fr_url_resumo_title" data-cms-mode="text">🔗 Résumé intelligent par URL</h1>
+    <p class="oe-lead" data-cms-key="fr_url_resumo_lead" data-cms-mode="text">Collez le lien d'un article ou d'une page en ligne pour générer un résumé automatique avec l'IA.</p>
+  </header>
 
-<div class="container">
-  <input type="url" id="urlInput" placeholder="https://example.com/article" autocomplete="url" />
-  <button type="button" class="oe-btn oe-btn--block" id="btnUrlResumo" onclick="summarizeArticleFromURL()">Generate Summary</button>
-  <div class="progress-container" id="progressContainer" style="display: none;">
-    <div class="progress-bar" id="progressBar"></div>
+  <div class="container oe-url-page">
+    <section class="oe-url-form" aria-labelledby="urlFormTitle">
+      <div class="oe-url-form__head">
+        <p class="oe-url-form__eyebrow" id="urlFormEyebrow">Articles · Actualités · Blogs</p>
+        <h2 class="oe-url-form__title" id="urlFormTitle">Lien de l'article</h2>
+        <p class="oe-url-form__hint" id="urlFormHint">Collez une URL publique avec du texte lisible — idéal pour articles, blogs et actualités.</p>
+      </div>
+      <input type="url" id="urlInput" class="oe-url-input" placeholder="https://exemple.com/article" autocomplete="url" aria-labelledby="urlFormTitle" />
+      <div class="oe-url-form__footer">
+        <div class="oe-url-form__mode">
+          <label for="urlModo" id="urlModoLabel">Style de résumé</label>
+          <select id="urlModo">
+            <option value="normal">Classique et direct</option>
+            <option value="minuta">Compte-rendu en puces</option>
+          </select>
+        </div>
+        <button type="button" class="oe-url-form__submit" id="btnUrlResumo">Générer le résumé</button>
+      </div>
+      <p class="oe-url-form__note" id="urlFormNote">Les sites payants, avec login ou vidéo seule peuvent échouer. Collez le texte dans Résumé Intelligent.</p>
+    </section>
+
+    <div class="oe-url-progress" id="urlProgress" hidden>
+      <div class="oe-url-progress__track">
+        <div class="oe-url-progress__bar" id="progressBar"></div>
+      </div>
+      <p class="oe-url-progress__phrase" id="loadingPhrase"></p>
+    </div>
+
+    <div id="resultado" class="oe-url-output" hidden></div>
   </div>
-  <div class="loading-phrase" id="loadingPhrase"></div>
-  <pre id="resultado" class="oe-result"></pre>
 </div>
-
-<script src="../js/ouviescrevi-api.js"></script>
-<script>
-  const frases = [
-    "🧠 Reading the article...",
-    "✍️ Summarizing key points...",
-    "📚 Organizing content...",
-    "💡 Creating smart summary...",
-    "⏳ Almost done..."
-  ];
-
-  async function summarizeArticleFromURL() {
-    const url = document.getElementById("urlInput").value.trim();
-    const btn = document.getElementById("btnUrlResumo");
-    const output = document.getElementById("resultado");
-    const progressBar = document.getElementById("progressBar");
-    const progressContainer = document.getElementById("progressContainer");
-    const loadingPhrase = document.getElementById("loadingPhrase");
-
-    if (!url) {
-      OuviescreviUI.toast("Enter a valid URL.", "error");
-      return;
-    }
-
-    OuviescreviUI.setButtonLoading(btn, true, "Summarizing...");
-    output.textContent = "";
-    output.classList.remove("oe-result--error");
-    progressContainer.style.display = "block";
-    progressBar.style.width = "0%";
-
-    let percent = 0;
-    let fraseIndex = 0;
-    const interval = setInterval(() => {
-      if (percent >= 92) return;
-      percent += Math.floor(Math.random() * 5) + 1;
-      progressBar.style.width = percent + "%";
-      loadingPhrase.textContent = frases[fraseIndex];
-      fraseIndex = (fraseIndex + 1) % frases.length;
-    }, 700);
-
-    await OuviescreviAPI.init();
-    fetch(`${OuviescreviAPI.getBase()}/summarize-url`, {
-      method: "POST",
-      headers: OuviescreviAPI.authHeaders({ "Content-Type": "application/json" }),
-      body: JSON.stringify(OuviescreviAPI.authJson({ url: url, lang: "en" }))
-    })
-    .then(res => res.json())
-    .then(data => {
-      clearInterval(interval);
-      progressBar.style.width = "100%";
-      loadingPhrase.textContent = "";
-      if (data.summary) {
-        output.textContent = data.summary;
-      } else {
-        output.textContent = data.error || data.detail || "An unexpected error occurred.";
-        output.classList.add("oe-result--error");
-      }
-    })
-    .catch(err => {
-      clearInterval(interval);
-      progressBar.style.width = "100%";
-      loadingPhrase.textContent = "";
-      console.error(err);
-      output.textContent = "Failed to contact the server.";
-      output.classList.add("oe-result--error");
-    })
-    .finally(() => {
-      OuviescreviUI.setButtonLoading(btn, false);
-      setTimeout(() => { progressContainer.style.display = "none"; }, 800);
-    });
-  }
-</script>
 
 <div id="footer"></div>
+
+<script src="../js/ouviescrevi-api.js"></script>
+<script src="../js/url-resumo-ui.js?v=1" defer></script>
 <script>
-  OuviescreviUI.loadHeader("header.html");
-  OuviescreviUI.loadFooter("footer.html");
+  document.addEventListener("DOMContentLoaded", function () {
+    UrlResumoUI.init({ lang: "fr", apiLang: "pt" });
+    OuviescreviUI.loadHeader("header.html");
+    OuviescreviUI.loadFooter("footer.html");
+  });
 </script>
 </body>
 </html>

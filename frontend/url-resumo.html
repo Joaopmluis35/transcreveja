@@ -9,110 +9,64 @@
   <title>Resumo por URL - Ouviescrevi</title>
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <link rel="stylesheet" href="css/ouviescrevi.css?v=15" />
+  <link rel="stylesheet" href="css/url-resumo.css?v=1" />
   <script src="js/theme-ui.js"></script>
   <script src="/js/ouviescrevi-seo.js" defer></script>
   <script src="js/ouviescrevi-ui.js" defer></script>
 </head>
-<body class="oe-page oe-pro">
+<body class="oe-page oe-pro oe-page--url-resumo">
 <a class="oe-skip" href="#conteudo">Saltar para o conteúdo</a>
 
   <div id="header"></div>
 
-  <div class="oe-hero" id="conteudo">
-    <h1 data-cms-key="url_resumo_title" data-cms-mode="text">🔗 Resumo Inteligente por URL</h1>
-    <p class="oe-lead" data-cms-key="url_resumo_lead" data-cms-mode="text">Insere o link de um artigo ou página online para gerar um resumo automático com IA.</p>
-  </div>
+  <div class="oe-url-layout" id="conteudo">
+    <header class="oe-url-hero">
+      <h1 data-cms-key="url_resumo_title" data-cms-mode="text">🔗 Resumo Inteligente por URL</h1>
+      <p class="oe-lead" data-cms-key="url_resumo_lead" data-cms-mode="text">Insere o link de um artigo ou página online para gerar um resumo automático com IA.</p>
+    </header>
 
-  <div class="container">
-    <input type="url" id="urlInput" placeholder="https://exemplo.com/artigo" autocomplete="url" />
-    <button type="button" class="oe-btn oe-btn--block" id="btnUrlResumo" onclick="resumirArtigoPorURL()">Gerar Resumo</button>
+    <div class="container oe-url-page">
+      <section class="oe-url-form" aria-labelledby="urlFormTitle">
+        <div class="oe-url-form__head">
+          <p class="oe-url-form__eyebrow" id="urlFormEyebrow">Artigos · Notícias · Blogues</p>
+          <h2 class="oe-url-form__title" id="urlFormTitle">Link do artigo</h2>
+          <p class="oe-url-form__hint" id="urlFormHint">Cola o URL público de uma página com texto — ideal para notícias, blogues e artigos online.</p>
+        </div>
+        <input type="url" id="urlInput" class="oe-url-input" placeholder="https://exemplo.com/artigo" autocomplete="url" aria-labelledby="urlFormTitle" />
+        <div class="oe-url-form__footer">
+          <div class="oe-url-form__mode">
+            <label for="urlModo" id="urlModoLabel">Estilo de resumo</label>
+            <select id="urlModo">
+              <option value="normal">Clássico e direto</option>
+              <option value="minuta">Minuta em tópicos</option>
+            </select>
+          </div>
+          <button type="button" class="oe-url-form__submit" id="btnUrlResumo">Gerar Resumo</button>
+        </div>
+        <p class="oe-url-form__note" id="urlFormNote">Sites com paywall, login ou vídeo podem não funcionar. Nesse caso, cola o texto em Resumo Inteligente.</p>
+      </section>
 
-    <div class="progress-container" id="progressContainer" style="display: none;">
-      <div class="progress-bar" id="progressBar"></div>
+      <div class="oe-url-progress" id="urlProgress" hidden>
+        <div class="oe-url-progress__track">
+          <div class="oe-url-progress__bar" id="progressBar"></div>
+        </div>
+        <p class="oe-url-progress__phrase" id="loadingPhrase"></p>
+      </div>
+
+      <div id="resultado" class="oe-url-output" hidden></div>
     </div>
-    <div class="loading-phrase" id="loadingPhrase"></div>
-
-    <pre id="resultado" class="oe-result"></pre>
   </div>
-
-  <script src="js/ouviescrevi-api.js"></script>
-  <script>
-    const frases = [
-      "🔍 A ler o artigo com atenção...",
-      "📚 A organizar as ideias principais...",
-      "🧠 A pensar como um humano...",
-      "✍️ A resumir com clareza...",
-      "📦 A preparar a resposta final..."
-    ];
-
-    async function resumirArtigoPorURL() {
-      const url = document.getElementById("urlInput").value.trim();
-      const btn = document.getElementById("btnUrlResumo");
-      const output = document.getElementById("resultado");
-      const progressBar = document.getElementById("progressBar");
-      const progressContainer = document.getElementById("progressContainer");
-      const loadingPhrase = document.getElementById("loadingPhrase");
-
-      if (!url) {
-        OuviescreviUI.toast("Introduz um link válido.", "error");
-        return;
-      }
-
-      OuviescreviUI.setButtonLoading(btn, true, "A resumir...");
-      output.textContent = "";
-      output.classList.remove("oe-result--error");
-      progressContainer.style.display = "block";
-      progressBar.style.width = "0%";
-
-      let percent = 0;
-      let fraseIndex = 0;
-
-      const interval = setInterval(() => {
-        if (percent >= 92) return;
-        percent += Math.floor(Math.random() * 5) + 1;
-        progressBar.style.width = percent + "%";
-        loadingPhrase.textContent = frases[fraseIndex];
-        fraseIndex = (fraseIndex + 1) % frases.length;
-      }, 700);
-
-      await OuviescreviAPI.init();
-      fetch(`${OuviescreviAPI.getBase()}/summarize-url`, {
-        method: "POST",
-        headers: OuviescreviAPI.authHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify(OuviescreviAPI.authJson({ url: url }))
-      })
-      .then(res => res.json())
-      .then(data => {
-        clearInterval(interval);
-        progressBar.style.width = "100%";
-        loadingPhrase.textContent = "";
-        if (data.summary) {
-          output.textContent = data.summary;
-        } else {
-          output.textContent = data.error || data.detail || "Ocorreu um erro inesperado.";
-          output.classList.add("oe-result--error");
-        }
-      })
-      .catch(err => {
-        clearInterval(interval);
-        progressBar.style.width = "100%";
-        loadingPhrase.textContent = "";
-        console.error(err);
-        output.textContent = "Erro ao contactar o servidor.";
-        output.classList.add("oe-result--error");
-      })
-      .finally(() => {
-        OuviescreviUI.setButtonLoading(btn, false);
-        setTimeout(() => { progressContainer.style.display = "none"; }, 800);
-      });
-    }
-  </script>
 
   <div id="footer"></div>
-  <script>
-    OuviescreviUI.loadHeader();
-    OuviescreviUI.loadFooter();
-  </script>
 
+  <script src="js/ouviescrevi-api.js"></script>
+  <script src="js/url-resumo-ui.js?v=1" defer></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      UrlResumoUI.init({ lang: "pt", apiLang: "pt" });
+      OuviescreviUI.loadHeader();
+      OuviescreviUI.loadFooter();
+    });
+  </script>
 </body>
 </html>

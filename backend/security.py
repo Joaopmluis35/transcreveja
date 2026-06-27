@@ -106,9 +106,22 @@ def validate_public_http_url(url: str, *, allow_localhost: bool = False) -> str:
     return url
 
 
-def safe_http_get(url: str, *, timeout: int = 12, max_bytes: int = 2_000_000) -> requests.Response:
+def safe_http_get(
+    url: str,
+    *,
+    timeout: int = 12,
+    max_bytes: int = 2_000_000,
+    headers: dict | None = None,
+) -> requests.Response:
     validate_public_http_url(url)
-    with requests.get(url, timeout=timeout, stream=True, allow_redirects=True) as resp:
+    hdrs = {
+        "User-Agent": "Mozilla/5.0 (compatible; OuviescreviBot/1.0; +https://ouviescrevi.pt)",
+        "Accept": "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "pt-PT,pt;q=0.9,en;q=0.8",
+    }
+    if headers:
+        hdrs.update(headers)
+    with requests.get(url, timeout=timeout, stream=True, allow_redirects=True, headers=hdrs) as resp:
         resp.raise_for_status()
         content = resp.raw.read(max_bytes + 1, decode_content=True)
         if len(content) > max_bytes:
