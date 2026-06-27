@@ -4,14 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Genera preguntas de opción múltiple con IA a partir de cualquier texto. Ideal para estudiar o preparar exámenes.">
+  <meta name="robots" content="index, follow">
   <title>📘 Generador de preguntas con IA</title>
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
   <link rel="stylesheet" href="../css/ouviescrevi.css">
-  <link rel="stylesheet" href="../css/perguntas.css?v=1">
+  <link rel="stylesheet" href="../css/perguntas.css?v=2">
+  <script src="../js/theme-ui.js"></script>
   <script src="/js/ouviescrevi-seo.js" defer></script>
   <script src="../js/ouviescrevi-ui.js" defer></script>
 </head>
-<body class="oe-page oe-pro">
+<body class="oe-page oe-pro oe-page--perguntas">
 <a class="oe-skip" href="#conteudo">Saltar al contenido</a>
 <div id="header"></div>
 
@@ -20,9 +22,26 @@
   <p class="oe-lead" data-cms-key="es_perguntas_lead" data-cms-mode="text">Pega tu texto y genera preguntas de opción múltiple con respuestas y explicaciones.</p>
 </div>
 
-<div class="container">
-  <textarea id="texto" placeholder="Pega aquí el contenido a estudiar..."></textarea>
-  <button type="button" class="oe-btn oe-btn--block" id="btnPerguntas">🎓 Generar preguntas</button>
+<div class="container oe-quiz-page">
+  <section class="oe-quiz-form" aria-labelledby="quizFormTitle">
+    <div class="oe-quiz-form__head">
+      <p class="oe-quiz-form__eyebrow" id="quizFormEyebrow">Estudio · Exámenes · Clases</p>
+      <h2 class="oe-quiz-form__title" id="quizFormTitle">Texto de origen</h2>
+      <p class="oe-quiz-form__hint" id="quizFormHint">Pega una clase, artículo o capítulo. La IA genera preguntas de opción múltiple con respuesta y explicación.</p>
+    </div>
+    <textarea id="texto" aria-labelledby="quizFormTitle"></textarea>
+    <div class="oe-quiz-form__footer">
+      <label class="oe-quiz-form__count" for="quizNumQuestions">
+        <span id="quizCountLabel">N.º de preguntas</span>
+        <select id="quizNumQuestions">
+          <option value="3" selected>3</option>
+          <option value="5">5</option>
+          <option value="10">10</option>
+        </select>
+      </label>
+      <button type="button" class="oe-quiz-form__submit" id="btnPerguntas">🎓 Generar preguntas</button>
+    </div>
+  </section>
   <div id="resultado" class="oe-quiz-output" hidden></div>
 </div>
 
@@ -30,7 +49,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="../js/ouviescrevi-api.js"></script>
-<script src="../js/perguntas-ui.js?v=1"></script>
+<script src="../js/perguntas-ui.js?v=2"></script>
 <script>
   PerguntasUI.init({ lang: "es", numQuestions: 3 });
   OuviescreviUI.loadHeader();

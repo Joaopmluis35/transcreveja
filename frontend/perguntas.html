@@ -8,12 +8,12 @@
   <title>📘 Gerador de Perguntas com IA</title>
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
   <link rel="stylesheet" href="css/ouviescrevi.css?v=15">
-  <link rel="stylesheet" href="css/perguntas.css?v=1">
+  <link rel="stylesheet" href="css/perguntas.css?v=2">
   <script src="js/theme-ui.js"></script>
   <script src="/js/ouviescrevi-seo.js" defer></script>
   <script src="js/ouviescrevi-ui.js" defer></script>
 </head>
-<body class="oe-page oe-pro">
+<body class="oe-page oe-pro oe-page--perguntas">
 <a class="oe-skip" href="#conteudo">Saltar para o conteúdo</a>
 <div id="header"></div>
 
@@ -22,41 +22,38 @@
   <p class="oe-lead" data-cms-key="perguntas_lead" data-cms-mode="text">Cola aqui o teu texto e gera perguntas de escolha múltipla com respostas e explicações.</p>
 </div>
 
-<div class="container">
-  <textarea id="texto" placeholder="Cola aqui o conteúdo a estudar..."></textarea>
-  <button type="button" class="oe-btn oe-btn--block" id="btnPerguntas">🎓 Gerar Perguntas</button>
+<div class="container oe-quiz-page">
+  <section class="oe-quiz-form" aria-labelledby="quizFormTitle">
+    <div class="oe-quiz-form__head">
+      <p class="oe-quiz-form__eyebrow" id="quizFormEyebrow">Estudo · Testes · Aulas</p>
+      <h2 class="oe-quiz-form__title" id="quizFormTitle">Texto de origem</h2>
+      <p class="oe-quiz-form__hint" id="quizFormHint">Cola uma aula, artigo ou capítulo. A IA gera perguntas de escolha múltipla com resposta e explicação.</p>
+    </div>
+    <textarea id="texto" aria-labelledby="quizFormTitle"></textarea>
+    <div class="oe-quiz-form__footer">
+      <label class="oe-quiz-form__count" for="quizNumQuestions">
+        <span id="quizCountLabel">N.º de perguntas</span>
+        <select id="quizNumQuestions">
+          <option value="3" selected>3</option>
+          <option value="5">5</option>
+          <option value="10">10</option>
+        </select>
+      </label>
+      <button type="button" class="oe-quiz-form__submit" id="btnPerguntas">🎓 Gerar Perguntas</button>
+    </div>
+  </section>
   <div id="resultado" class="oe-quiz-output" hidden></div>
 </div>
 
+<div id="footer"></div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="js/ouviescrevi-api.js"></script>
-<script src="js/perguntas-ui.js?v=1"></script>
+<script src="js/perguntas-ui.js?v=2"></script>
 <script>
   PerguntasUI.init({ lang: "pt", numQuestions: 3 });
-</script>
-<script>
-  fetch("header.html")
-    .then(response => response.text())
-    .then(html => {
-      document.getElementById("header").innerHTML = html;
-      const tempDiv = document.createElement("div");
-      tempDiv.innerHTML = html;
-      tempDiv.querySelectorAll("script").forEach(oldScript => {
-        const newScript = document.createElement("script");
-        if (oldScript.src) newScript.src = oldScript.src;
-        else newScript.textContent = oldScript.textContent;
-        document.body.appendChild(newScript);
-      });
-      if (window.OuviescreviUI) OuviescreviUI.markCurrentNav();
-    });
-  fetch("footer.html")
-    .then(res => res.text())
-    .then(html => {
-      const f = document.createElement("div");
-      f.id = "footer";
-      f.innerHTML = html;
-      document.body.appendChild(f);
-    });
+  OuviescreviUI.loadHeader();
+  OuviescreviUI.loadFooter();
 </script>
 </body>
 </html>

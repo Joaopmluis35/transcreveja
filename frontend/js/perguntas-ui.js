@@ -4,6 +4,15 @@
 (function (global) {
   var STRINGS = {
     pt: {
+      eyebrow: "Estudo · Testes · Aulas",
+      formTitle: "Texto de origem",
+      formHint: "Cola uma aula, artigo ou capítulo. A IA gera perguntas de escolha múltipla com resposta e explicação.",
+      placeholder: "Cola aqui o conteúdo a estudar — por exemplo uma aula, artigo ou capítulo...",
+      btnGenerate: "🎓 Gerar Perguntas",
+      countLabel: "N.º de perguntas",
+      loading: "A gerar perguntas...",
+      needText: "Introduz texto para gerar perguntas.",
+      errorGenerate: "Erro ao gerar perguntas.",
       exportLabel: "Exportar",
       pdf: "PDF",
       whatsapp: "WhatsApp",
@@ -20,6 +29,15 @@
       empty: "Sem perguntas para exportar.",
     },
     en: {
+      eyebrow: "Study · Quizzes · Classes",
+      formTitle: "Source text",
+      formHint: "Paste a lesson, article or chapter. AI creates multiple-choice questions with answers and explanations.",
+      placeholder: "Paste the content to study here — e.g. a lesson, article or chapter...",
+      btnGenerate: "🎓 Generate Questions",
+      countLabel: "Number of questions",
+      loading: "Generating...",
+      needText: "Paste some text first.",
+      errorGenerate: "Error generating questions.",
       exportLabel: "Export",
       pdf: "PDF",
       whatsapp: "WhatsApp",
@@ -36,6 +54,15 @@
       empty: "Nothing to export.",
     },
     es: {
+      eyebrow: "Estudio · Exámenes · Clases",
+      formTitle: "Texto de origen",
+      formHint: "Pega una clase, artículo o capítulo. La IA genera preguntas de opción múltiple con respuesta y explicación.",
+      placeholder: "Pega aquí el contenido a estudiar — por ejemplo una clase, artículo o capítulo...",
+      btnGenerate: "🎓 Generar preguntas",
+      countLabel: "N.º de preguntas",
+      loading: "Generando...",
+      needText: "Introduce texto primero.",
+      errorGenerate: "Error al generar preguntas.",
       exportLabel: "Exportar",
       pdf: "PDF",
       whatsapp: "WhatsApp",
@@ -52,6 +79,15 @@
       empty: "Nada que exportar.",
     },
     fr: {
+      eyebrow: "Révision · Quiz · Cours",
+      formTitle: "Texte source",
+      formHint: "Collez un cours, un article ou un chapitre. L'IA génère des QCM avec réponses et explications.",
+      placeholder: "Collez ici le contenu à étudier — par ex. un cours, article ou chapitre...",
+      btnGenerate: "🎓 Générer des questions",
+      countLabel: "Nombre de questions",
+      loading: "Génération...",
+      needText: "Collez du texte d'abord.",
+      errorGenerate: "Erreur lors de la génération.",
       exportLabel: "Exporter",
       pdf: "PDF",
       whatsapp: "WhatsApp",
@@ -68,6 +104,15 @@
       empty: "Rien à exporter.",
     },
     de: {
+      eyebrow: "Lernen · Tests · Unterricht",
+      formTitle: "Quelltext",
+      formHint: "Füge eine Lektion, einen Artikel oder ein Kapitel ein. Die KI erstellt Multiple-Choice-Fragen mit Antworten und Erklärungen.",
+      placeholder: "Füge hier den Lernstoff ein — z. B. eine Lektion, einen Artikel oder ein Kapitel...",
+      btnGenerate: "🎓 Fragen generieren",
+      countLabel: "Anzahl Fragen",
+      loading: "Wird erstellt...",
+      needText: "Zuerst Text einfügen.",
+      errorGenerate: "Fehler beim Erstellen der Fragen.",
       exportLabel: "Exportieren",
       pdf: "PDF",
       whatsapp: "WhatsApp",
@@ -91,6 +136,30 @@
   function t(key) {
     var pack = STRINGS[config.lang] || STRINGS.pt;
     return pack[key] || STRINGS.pt[key] || key;
+  }
+
+  function applyFormLabels() {
+    var map = [
+      ["quizFormEyebrow", "eyebrow"],
+      ["quizFormTitle", "formTitle"],
+      ["quizFormHint", "formHint"],
+      ["quizCountLabel", "countLabel"],
+    ];
+    map.forEach(function (pair) {
+      var el = document.getElementById(pair[0]);
+      if (el) el.textContent = t(pair[1]);
+    });
+    var textarea = document.getElementById("texto");
+    if (textarea) textarea.placeholder = t("placeholder");
+    var btn = document.getElementById("btnPerguntas");
+    if (btn) btn.textContent = t("btnGenerate");
+  }
+
+  function readNumQuestions() {
+    var sel = document.getElementById("quizNumQuestions");
+    if (!sel) return config.numQuestions;
+    var n = parseInt(sel.value, 10);
+    return n > 0 ? n : config.numQuestions;
   }
 
   function stripMd(text) {
@@ -391,37 +460,12 @@
 
     var texto = textoEl.value.trim();
     if (!texto) {
-      if (global.OuviescreviUI) {
-        global.OuviescreviUI.toast(
-          config.lang === "en"
-            ? "Paste some text first."
-            : config.lang === "es"
-              ? "Introduce texto primero."
-              : config.lang === "fr"
-                ? "Collez du texte d'abord."
-                : config.lang === "de"
-                  ? "Zuerst Text einfügen."
-                  : "Introduz texto para gerar perguntas.",
-          "error"
-        );
-      }
+      if (global.OuviescreviUI) global.OuviescreviUI.toast(t("needText"), "error");
       return;
     }
 
     if (global.OuviescreviUI) {
-      global.OuviescreviUI.setButtonLoading(
-        btn,
-        true,
-        config.lang === "en"
-          ? "Generating..."
-          : config.lang === "es"
-            ? "Generando..."
-            : config.lang === "fr"
-              ? "Génération..."
-              : config.lang === "de"
-                ? "Wird erstellt..."
-                : "A gerar perguntas..."
-      );
+      global.OuviescreviUI.setButtonLoading(btn, true, t("loading"));
     }
 
     try {
@@ -430,7 +474,7 @@
       var payload = {
         text: texto,
         lang: apiLang,
-        num_questions: config.numQuestions,
+        num_questions: readNumQuestions(),
       };
       var res = await fetch(global.OuviescreviAPI.getBase() + "/generate-questions", {
         method: "POST",
@@ -445,12 +489,7 @@
         showError(out, data.error || data.detail || "Erro inesperado.");
       }
     } catch (e) {
-      if (global.OuviescreviUI) {
-        global.OuviescreviUI.toast(
-          config.lang === "en" ? "Error generating questions." : "Erro ao gerar perguntas.",
-          "error"
-        );
-      }
+      if (global.OuviescreviUI) global.OuviescreviUI.toast(t("errorGenerate"), "error");
       console.error(e);
     } finally {
       if (global.OuviescreviUI) global.OuviescreviUI.setButtonLoading(btn, false);
@@ -459,9 +498,14 @@
 
   function init(opts) {
     config = Object.assign({}, config, opts || {});
+    applyFormLabels();
     var btn = document.getElementById("btnPerguntas");
-    if (btn) {
-      btn.addEventListener("click", generateFromPage);
+    if (btn) btn.addEventListener("click", generateFromPage);
+    var countSel = document.getElementById("quizNumQuestions");
+    if (countSel) {
+      countSel.addEventListener("change", function () {
+        config.numQuestions = readNumQuestions();
+      });
     }
     global.gerarPerguntas = generateFromPage;
   }

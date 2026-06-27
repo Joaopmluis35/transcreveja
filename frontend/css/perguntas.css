@@ -1,4 +1,133 @@
-/* Perguntas — resultado em cards + exportação */
+/* Perguntas — formulário + resultado em cards */
+
+body.oe-page--perguntas .container.oe-quiz-page {
+  max-width: 720px;
+  margin: 0 auto 48px;
+  padding: 0 20px 24px;
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+.oe-quiz-form {
+  padding: 22px 22px 20px;
+  border-radius: 16px;
+  border: 1px solid var(--pro-border, #e2e8f0);
+  background: var(--pro-surface, #fff);
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
+}
+
+.oe-quiz-form__head {
+  margin-bottom: 14px;
+}
+
+.oe-quiz-form__eyebrow {
+  display: inline-block;
+  margin: 0 0 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6d28d9;
+  background: rgba(124, 58, 237, 0.1);
+}
+
+.oe-quiz-form__title {
+  margin: 0 0 6px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--pro-text, #0f172a);
+}
+
+.oe-quiz-form__hint {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--pro-text-muted, #64748b);
+}
+
+.oe-quiz-form textarea,
+.oe-quiz-form #texto {
+  width: 100%;
+  min-height: 200px;
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--pro-border, #e2e8f0);
+  background: var(--oe-result-bg, #f8fafc);
+  color: var(--pro-text, #0f172a);
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  resize: vertical;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.oe-quiz-form textarea:focus,
+.oe-quiz-form #texto:focus {
+  outline: none;
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+}
+
+.oe-quiz-form__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.oe-quiz-form__count {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--pro-text-secondary, #475569);
+}
+
+.oe-quiz-form__count select {
+  min-width: 88px;
+  margin: 0;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--pro-border, #e2e8f0);
+  background: var(--pro-surface, #fff);
+  color: var(--pro-text, #0f172a);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.oe-quiz-form__submit {
+  flex: 1 1 220px;
+  min-height: 48px;
+  margin: 0 !important;
+  padding: 12px 20px !important;
+  border: none !important;
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, #7c3aed, #2563eb) !important;
+  color: #fff !important;
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.oe-quiz-form__submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.42);
+  color: #fff !important;
+}
+
+.oe-quiz-form__submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
 
 .oe-quiz-output {
   margin-top: 1.25rem;
@@ -203,16 +332,15 @@
 }
 
 @media print {
-  body.oe-page .oe-hero,
-  body.oe-page .container > textarea,
-  body.oe-page .container > .oe-btn,
-  body.oe-page #header,
-  body.oe-page #footer,
-  body.oe-page .oe-quiz-toolbar {
+  body.oe-page--perguntas .oe-hero,
+  body.oe-page--perguntas .oe-quiz-form,
+  body.oe-page--perguntas #header,
+  body.oe-page--perguntas #footer,
+  body.oe-page--perguntas .oe-quiz-toolbar {
     display: none !important;
   }
 
-  body.oe-page .container {
+  body.oe-page--perguntas .container.oe-quiz-page {
     max-width: none;
     padding: 0;
   }
@@ -223,6 +351,24 @@
     border: 1px solid #ccc;
     margin-bottom: 12px;
   }
+}
+
+html.oe-theme-dark .oe-quiz-form {
+  background: var(--pro-surface, #1e293b);
+  border-color: var(--pro-border, #334155);
+}
+
+html.oe-theme-dark .oe-quiz-form textarea,
+html.oe-theme-dark .oe-quiz-form #texto {
+  background: #0f172a;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+
+html.oe-theme-dark .oe-quiz-form__count select {
+  background: #0f172a;
+  border-color: #334155;
+  color: #e2e8f0;
 }
 
 html.oe-theme-dark .oe-quiz-toolbar,
