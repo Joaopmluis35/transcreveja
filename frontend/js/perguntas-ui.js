@@ -27,6 +27,7 @@
       pdfFail: "Não foi possível gerar PDF.",
       signature: "\n\n— Gerado com Ouviescrevi: https://ouviescrevi.pt/perguntas.html",
       empty: "Sem perguntas para exportar.",
+      viewGenerated: "Ver perguntas geradas",
     },
     en: {
       eyebrow: "Study · Quizzes · Classes",
@@ -52,6 +53,7 @@
       pdfFail: "Could not generate PDF.",
       signature: "\n\n— Generated with Ouviescrevi: https://ouviescrevi.pt/en/perguntas.html",
       empty: "Nothing to export.",
+      viewGenerated: "View generated questions",
     },
     es: {
       eyebrow: "Estudio · Exámenes · Clases",
@@ -77,6 +79,7 @@
       pdfFail: "No se pudo generar el PDF.",
       signature: "\n\n— Generado con Ouviescrevi: https://ouviescrevi.pt/es/perguntas.html",
       empty: "Nada que exportar.",
+      viewGenerated: "Ver preguntas generadas",
     },
     fr: {
       eyebrow: "Révision · Quiz · Cours",
@@ -102,6 +105,7 @@
       pdfFail: "Impossible de générer le PDF.",
       signature: "\n\n— Généré avec Ouviescrevi: https://ouviescrevi.pt/fr/perguntas.html",
       empty: "Rien à exporter.",
+      viewGenerated: "Voir les questions générées",
     },
     de: {
       eyebrow: "Lernen · Tests · Unterricht",
@@ -127,6 +131,7 @@
       pdfFail: "PDF konnte nicht erstellt werden.",
       signature: "\n\n— Erstellt mit Ouviescrevi: https://ouviescrevi.pt/de/perguntas.html",
       empty: "Nichts zu exportieren.",
+      viewGenerated: "Generierte Fragen anzeigen",
     },
   };
 
@@ -301,7 +306,7 @@
 
     var builderHtml =
       global.PerguntasTemplates && global.PerguntasTemplates.builderHtml
-        ? global.PerguntasTemplates.builderHtml(config.lang)
+        ? global.PerguntasTemplates.builderHtml(config.lang, questions.length)
         : "";
 
     var cards = questions
@@ -366,9 +371,15 @@
       '<div class="oe-quiz">' +
       toolbar +
       builderHtml +
+      '<details class="oe-quiz-details">' +
+      '<summary class="oe-quiz-details__summary">📝 ' +
+      escapeHtml(t("viewGenerated")) +
+      " (" +
+      questions.length +
+      ")</summary>" +
       '<div class="oe-quiz-cards">' +
       cards +
-      "</div></div>";
+      "</div></details></div>";
     container.classList.remove("oe-result--error");
     container.hidden = false;
 

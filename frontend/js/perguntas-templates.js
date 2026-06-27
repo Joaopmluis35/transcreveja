@@ -51,6 +51,21 @@
       generatedBy: "Gerado com Ouviescrevi",
       needQuestions: "Gera perguntas primeiro para criar o teste.",
       testPdfFail: "Não foi possível gerar o PDF do teste.",
+      tabStyle: "Estilo",
+      tabFields: "Dados",
+      tabGrading: "Cotação",
+      btnPreview: "Pré-visualizar",
+      gradingTitle: "Sistema de notas",
+      gradingHint: "Define a cotação de cada pergunta. Aparece no teste impresso e no gabarito.",
+      gradingTotal: "Total do teste",
+      gradingMode: "Distribuição",
+      gradingEqual: "Dividir igualmente",
+      gradingCustom: "Definir por pergunta",
+      gradingBlank: "Linha em branco (aluno preenche)",
+      gradingShowTotal: "Mostrar total no cabeçalho",
+      gradingQuestion: "Pergunta",
+      totalLabel: "Total",
+      closePreview: "Fechar",
     },
     en: {
       classroomTitle: "Classroom test template",
@@ -86,6 +101,21 @@
       generatedBy: "Generated with Ouviescrevi",
       needQuestions: "Generate questions first to build the test.",
       testPdfFail: "Could not generate test PDF.",
+      tabStyle: "Style",
+      tabFields: "Fields",
+      tabGrading: "Grading",
+      btnPreview: "Preview",
+      gradingTitle: "Grading system",
+      gradingHint: "Set points per question. Shown on the printed test and answer key.",
+      gradingTotal: "Test total",
+      gradingMode: "Distribution",
+      gradingEqual: "Split equally",
+      gradingCustom: "Custom per question",
+      gradingBlank: "Blank line (student fills in)",
+      gradingShowTotal: "Show total in header",
+      gradingQuestion: "Question",
+      totalLabel: "Total",
+      closePreview: "Close",
     },
     es: {
       classroomTitle: "Plantilla para el aula",
@@ -121,6 +151,21 @@
       generatedBy: "Generado con Ouviescrevi",
       needQuestions: "Genera preguntas primero para crear el test.",
       testPdfFail: "No se pudo generar el PDF del test.",
+      tabStyle: "Estilo",
+      tabFields: "Datos",
+      tabGrading: "Puntuación",
+      btnPreview: "Vista previa",
+      gradingTitle: "Sistema de notas",
+      gradingHint: "Define la puntuación de cada pregunta. Aparece en el test impreso y en el gabarito.",
+      gradingTotal: "Total del test",
+      gradingMode: "Distribución",
+      gradingEqual: "Dividir igualmente",
+      gradingCustom: "Personalizar por pregunta",
+      gradingBlank: "Línea en blanco",
+      gradingShowTotal: "Mostrar total en la cabecera",
+      gradingQuestion: "Pregunta",
+      totalLabel: "Total",
+      closePreview: "Cerrar",
     },
     fr: {
       classroomTitle: "Modèle pour la classe",
@@ -156,6 +201,21 @@
       generatedBy: "Généré avec Ouviescrevi",
       needQuestions: "Générez d'abord des questions pour créer le test.",
       testPdfFail: "Impossible de générer le PDF du test.",
+      tabStyle: "Style",
+      tabFields: "Données",
+      tabGrading: "Barème",
+      btnPreview: "Aperçu",
+      gradingTitle: "Système de notation",
+      gradingHint: "Définissez les points par question. Affiché sur le test imprimé et le corrigé.",
+      gradingTotal: "Total du test",
+      gradingMode: "Répartition",
+      gradingEqual: "Répartir également",
+      gradingCustom: "Personnaliser par question",
+      gradingBlank: "Ligne vide",
+      gradingShowTotal: "Afficher le total en en-tête",
+      gradingQuestion: "Question",
+      totalLabel: "Total",
+      closePreview: "Fermer",
     },
     de: {
       classroomTitle: "Klassenzimmer-Vorlage",
@@ -191,6 +251,21 @@
       generatedBy: "Erstellt mit Ouviescrevi",
       needQuestions: "Erstelle zuerst Fragen für den Test.",
       testPdfFail: "Test-PDF konnte nicht erstellt werden.",
+      tabStyle: "Stil",
+      tabFields: "Daten",
+      tabGrading: "Bewertung",
+      btnPreview: "Vorschau",
+      gradingTitle: "Bewertungssystem",
+      gradingHint: "Punkte pro Frage festlegen. Erscheint auf dem Test und in der Lösung.",
+      gradingTotal: "Test-Gesamtpunktzahl",
+      gradingMode: "Verteilung",
+      gradingEqual: "Gleich aufteilen",
+      gradingCustom: "Pro Frage anpassen",
+      gradingBlank: "Leerzeile",
+      gradingShowTotal: "Gesamtpunktzahl in der Kopfzeile",
+      gradingQuestion: "Frage",
+      totalLabel: "Gesamt",
+      closePreview: "Schließen",
     },
   };
 
@@ -222,7 +297,7 @@
       .replace(/"/g, "&quot;");
   }
 
-  function readConfig(root, lang) {
+  function readConfig(root, lang, questionCount) {
     if (!root) return null;
     var style = (root.querySelector('input[name="testStyle"]:checked') || {}).value || "modern";
     var mode = (root.querySelector('input[name="testMode"]:checked') || {}).value || "student";
@@ -241,10 +316,79 @@
         fields[def.id] = v;
       }
     });
-    return { style: style, mode: mode, fields: fields, lang: lang };
+
+    var gradingMode = (root.querySelector('input[name="gradingMode"]:checked') || {}).value || "equal";
+    var totalEl = root.querySelector("#gradingTotal");
+    var totalPoints = totalEl ? parseFloat(String(totalEl.value).replace(",", ".")) : 20;
+    if (!totalPoints || totalPoints < 1) totalPoints = 20;
+    var showTotal = root.querySelector("#gradingShowTotal");
+    var perQuestion = [];
+    if (gradingMode === "custom") {
+      for (var i = 0; i < questionCount; i++) {
+        var inp = root.querySelector('#gradingQ_' + (i + 1));
+        var v = inp ? parseFloat(String(inp.value).replace(",", ".")) : 0;
+        perQuestion.push(v > 0 ? v : 1);
+      }
+    } else if (gradingMode === "equal") {
+      var each = Math.round((totalPoints / Math.max(questionCount, 1)) * 10) / 10;
+      for (var j = 0; j < questionCount; j++) perQuestion.push(each);
+    }
+
+    return {
+      style: style,
+      mode: mode,
+      fields: fields,
+      lang: lang,
+      grading: {
+        mode: gradingMode,
+        totalPoints: totalPoints,
+        showTotal: !showTotal || showTotal.checked,
+        perQuestion: perQuestion,
+      },
+    };
   }
 
-  function buildSheetHtml(questions, cfg, questionLabel, correctLabel, explanationLabel) {
+  function formatPoints(n, lang) {
+    if (n === null || n === undefined || isNaN(n)) return "";
+    var v = Number(n);
+    if (Math.abs(v - Math.round(v)) < 0.01) v = Math.round(v);
+    return String(v);
+  }
+
+  function pointsLine(cfg, qIndex) {
+    var g = cfg.grading || {};
+    var unit = tt("testPointsUnit", cfg.lang);
+    var label = tt("testPoints", cfg.lang);
+    if (g.mode === "blank") {
+      return label + ": ______ " + unit;
+    }
+    var pts = g.perQuestion && g.perQuestion[qIndex];
+    if (pts) return label + ": " + formatPoints(pts, cfg.lang) + " " + unit;
+    return label + ": ______ " + unit;
+  }
+
+  function gradingTotalDisplay(cfg) {
+    var g = cfg.grading || {};
+    if (!g.showTotal || g.mode === "blank") return "";
+    var total = g.totalPoints;
+    if (g.mode === "custom" && g.perQuestion && g.perQuestion.length) {
+      total = g.perQuestion.reduce(function (a, b) {
+        return a + b;
+      }, 0);
+      total = Math.round(total * 10) / 10;
+    }
+    return (
+      '<span class="oe-test-sheet__total"><strong>' +
+      esc(tt("totalLabel", cfg.lang)) +
+      ":</strong> " +
+      esc(formatPoints(total, cfg.lang)) +
+      " " +
+      esc(tt("testPointsUnit", cfg.lang)) +
+      "</span>"
+    );
+  }
+
+  function buildSheetHtml(questions, cfg, questionLabel) {
     var f = cfg.fields || {};
     var studentMode = cfg.mode !== "teacher";
     var style = cfg.style || "modern";
@@ -261,6 +405,8 @@
     if (f.teacher) meta.push('<span><strong>' + esc(tt("fieldTeacher", cfg.lang)) + ":</strong> " + esc(f.teacher) + "</span>");
     if (f.date) meta.push('<span><strong>' + esc(tt("fieldDate", cfg.lang)) + ":</strong> " + esc(formatDisplayDate(f.date, cfg.lang)) + "</span>");
     if (f.duration) meta.push('<span><strong>' + esc(tt("fieldDuration", cfg.lang)) + ":</strong> " + esc(f.duration) + "</span>");
+    var totalHtml = gradingTotalDisplay(cfg);
+    if (totalHtml) meta.push(totalHtml);
     html += meta.join("");
     html += "</div></header>";
 
@@ -289,8 +435,22 @@
     }
 
     html += '<ol class="oe-test-sheet__questions">';
-    questions.forEach(function (q) {
-      html += '<li class="oe-test-sheet__question"><p class="oe-test-sheet__qtext"><span class="oe-test-sheet__qnum">' + esc(q.number) + ".</span> " + esc(q.prompt) + "</p>";
+    questions.forEach(function (q, idx) {
+      var g = cfg.grading || {};
+      var ptsTag = "";
+      if (g.mode !== "blank" && g.perQuestion && g.perQuestion[idx]) {
+        ptsTag =
+          ' <span class="oe-test-sheet__qpts">(' +
+          esc(formatPoints(g.perQuestion[idx], cfg.lang) + " " + tt("testPointsUnit", cfg.lang)) +
+          ")</span>";
+      }
+      html +=
+        '<li class="oe-test-sheet__question"><p class="oe-test-sheet__qtext"><span class="oe-test-sheet__qnum">' +
+        esc(q.number) +
+        ".</span> " +
+        esc(q.prompt) +
+        ptsTag +
+        "</p>";
       if (q.options && q.options.length) {
         html += '<ul class="oe-test-sheet__options">';
         q.options.forEach(function (opt) {
@@ -298,15 +458,19 @@
         });
         html += "</ul>";
       }
-      html += '<p class="oe-test-sheet__points">' + esc(tt("testPoints", cfg.lang)) + ": ______ " + esc(tt("testPointsUnit", cfg.lang)) + "</p>";
+      if ((cfg.grading || {}).mode === "blank") {
+        html += '<p class="oe-test-sheet__points">' + esc(pointsLine(cfg, idx)) + "</p>";
+      }
       html += "</li>";
     });
     html += "</ol>";
 
     if (!studentMode) {
       html += '<section class="oe-test-sheet__key"><h3>' + esc(tt("answerKeyTitle", cfg.lang)) + "</h3><ul>";
-      questions.forEach(function (q) {
-        html += "<li><strong>" + esc(questionLabel) + " " + esc(q.number) + ":</strong> " + esc(q.answer || "—");
+      questions.forEach(function (q, idx) {
+        var pts = (cfg.grading || {}).perQuestion && (cfg.grading || {}).perQuestion[idx];
+        var ptsTxt = pts && (cfg.grading || {}).mode !== "blank" ? " [" + formatPoints(pts, cfg.lang) + " " + tt("testPointsUnit", cfg.lang) + "]" : "";
+        html += "<li><strong>" + esc(questionLabel) + " " + esc(q.number) + ":</strong> " + esc(q.answer || "—") + esc(ptsTxt);
         if (q.explanation) html += " — <em>" + esc(q.explanation) + "</em>";
         html += "</li>";
       });
@@ -318,7 +482,7 @@
     return html;
   }
 
-  function builderHtml(lang) {
+  function builderHtml(lang, questionCount) {
     var fieldsHtml = FIELD_DEFS.map(function (def) {
       var checked = def.defaultOn ? " checked" : "";
       var input = "";
@@ -352,12 +516,18 @@
 
     return (
       '<section class="oe-test-builder" id="oeTestBuilder">' +
-      '<div class="oe-test-builder__head">' +
-      "<h3>📋 " + esc(tt("classroomTitle", lang)) + "</h3>" +
-      "<p>" + esc(tt("classroomHint", lang)) + "</p>" +
+      '<button type="button" class="oe-test-builder__collapse" id="oeTestBuilderToggle" aria-expanded="true">' +
+      "<span>📋 " + esc(tt("classroomTitle", lang)) + "</span>" +
+      '<svg class="oe-test-builder__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>' +
+      "</button>" +
+      '<div class="oe-test-builder__body" id="oeTestBuilderBody">' +
+      "<p class=\"oe-test-builder__hint\">" + esc(tt("classroomHint", lang)) + "</p>" +
+      '<div class="oe-test-builder__tabs" role="tablist">' +
+      '<button type="button" class="oe-test-builder__tab is-active" data-test-tab="style" role="tab">' + esc(tt("tabStyle", lang)) + "</button>" +
+      '<button type="button" class="oe-test-builder__tab" data-test-tab="fields" role="tab">' + esc(tt("tabFields", lang)) + "</button>" +
+      '<button type="button" class="oe-test-builder__tab" data-test-tab="grading" role="tab">' + esc(tt("tabGrading", lang)) + "</button>" +
       "</div>" +
-      '<div class="oe-test-builder__grid">' +
-      '<div class="oe-test-builder__panel">' +
+      '<div class="oe-test-builder__panel-pane is-active" data-test-pane="style">' +
       "<h4>" + esc(tt("templateStyle", lang)) + "</h4>" +
       '<label class="oe-test-builder__radio"><input type="radio" name="testStyle" value="classic"> ' + esc(tt("styleClassic", lang)) + "</label>" +
       '<label class="oe-test-builder__radio"><input type="radio" name="testStyle" value="modern" checked> ' + esc(tt("styleModern", lang)) + "</label>" +
@@ -365,18 +535,28 @@
       "<h4>" + esc(tt("sheetMode", lang)) + "</h4>" +
       '<label class="oe-test-builder__radio"><input type="radio" name="testMode" value="student" checked> ' + esc(tt("modeStudent", lang)) + "</label>" +
       '<label class="oe-test-builder__radio"><input type="radio" name="testMode" value="teacher"> ' + esc(tt("modeTeacher", lang)) + "</label>" +
+      "</div>" +
+      '<div class="oe-test-builder__panel-pane" data-test-pane="fields" hidden>' +
+      '<div class="oe-test-builder__fields">' + fieldsHtml + "</div>" +
+      "</div>" +
+      '<div class="oe-test-builder__panel-pane" data-test-pane="grading" hidden>' +
+      "<h4>" + esc(tt("gradingTitle", lang)) + "</h4>" +
+      "<p class=\"oe-test-builder__subhint\">" + esc(tt("gradingHint", lang)) + "</p>" +
+      '<label class="oe-test-builder__inline"><span>' + esc(tt("gradingTotal", lang)) + '</span><input type="number" id="gradingTotal" min="1" step="0.5" value="20"></label>' +
+      "<h4>" + esc(tt("gradingMode", lang)) + "</h4>" +
+      '<label class="oe-test-builder__radio"><input type="radio" name="gradingMode" value="equal" checked> ' + esc(tt("gradingEqual", lang)) + "</label>" +
+      '<label class="oe-test-builder__radio"><input type="radio" name="gradingMode" value="custom"> ' + esc(tt("gradingCustom", lang)) + "</label>" +
+      '<label class="oe-test-builder__radio"><input type="radio" name="gradingMode" value="blank"> ' + esc(tt("gradingBlank", lang)) + "</label>" +
+      '<label class="oe-test-builder__check"><input type="checkbox" id="gradingShowTotal" checked> ' + esc(tt("gradingShowTotal", lang)) + "</label>" +
+      '<div id="oeGradingQuestions" class="oe-test-builder__grading-grid hidden"></div>' +
+      "</div>" +
       '<div class="oe-test-builder__actions">' +
+      '<button type="button" class="oe-quiz-btn" id="btnPreviewTest">👁️ ' + esc(tt("btnPreview", lang)) + "</button>" +
       '<button type="button" class="oe-quiz-btn oe-quiz-btn--primary" id="btnPrintTest">🖨️ ' + esc(tt("btnPrintTest", lang)) + "</button>" +
       '<button type="button" class="oe-quiz-btn" id="btnPdfTest">📄 ' + esc(tt("btnPdfTest", lang)) + "</button>" +
       "</div></div>" +
-      '<div class="oe-test-builder__panel">' +
-      "<h4>" + esc(tt("fieldsTitle", lang)) + "</h4>" +
-      '<div class="oe-test-builder__fields">' + fieldsHtml + "</div>" +
-      "</div></div>" +
-      '<div class="oe-test-builder__preview-wrap">' +
-      "<h4>" + esc(tt("previewTitle", lang)) + "</h4>" +
-      '<div class="oe-test-builder__preview" id="oeTestPreview"></div>' +
-      "</div></section>"
+      '<div id="oeTestPreview" hidden></div>' +
+      "</section>"
     );
   }
 
@@ -439,6 +619,25 @@
       if (f.className) meta.push(tt("fieldClass", cfg.lang) + ": " + f.className);
       if (f.date) meta.push(tt("fieldDate", cfg.lang) + ": " + formatDisplayDate(f.date, cfg.lang));
       if (meta.length) line(meta.join("  |  "), 10, false);
+      var g = cfg.grading || {};
+      if (g.showTotal && g.mode !== "blank") {
+        var totalPts = g.totalPoints;
+        if (g.mode === "custom" && g.perQuestion && g.perQuestion.length) {
+          totalPts = g.perQuestion.reduce(function (a, b) {
+            return a + b;
+          }, 0);
+          totalPts = Math.round(totalPts * 10) / 10;
+        }
+        line(
+          tt("totalLabel", cfg.lang) +
+            ": " +
+            formatPoints(totalPts, cfg.lang) +
+            " " +
+            tt("testPointsUnit", cfg.lang),
+          10,
+          false
+        );
+      }
       y += 3;
 
       if (f.studentName) line(tt("fieldStudentName", cfg.lang) + ": _______________________________", 10, false);
@@ -450,12 +649,23 @@
       }
       y += 4;
 
-      questions.forEach(function (q) {
-        line(q.number + ". " + q.prompt, 11, true);
+      questions.forEach(function (q, idx) {
+        var ptsSuffix = "";
+        if (g.mode !== "blank" && g.perQuestion && g.perQuestion[idx]) {
+          ptsSuffix =
+            " (" +
+            formatPoints(g.perQuestion[idx], cfg.lang) +
+            " " +
+            tt("testPointsUnit", cfg.lang) +
+            ")";
+        }
+        line(q.number + ". " + q.prompt + ptsSuffix, 11, true);
         q.options.forEach(function (o) {
           line("   " + o.letter + ") " + o.text, 10, false);
         });
-        line(tt("testPoints", cfg.lang) + ": ______", 9, false);
+        if (g.mode === "blank") {
+          line(tt("testPoints", cfg.lang) + ": ______ " + tt("testPointsUnit", cfg.lang), 9, false);
+        }
         y += 2;
       });
 
@@ -463,8 +673,17 @@
         doc.addPage();
         y = 16;
         line(tt("answerKeyTitle", cfg.lang), 13, true);
-        questions.forEach(function (q) {
-          line(questionLabel + " " + q.number + ": " + (q.answer || "—"), 10, false);
+        questions.forEach(function (q, idx) {
+          var ptsTxt = "";
+          if (g.mode !== "blank" && g.perQuestion && g.perQuestion[idx]) {
+            ptsTxt =
+              " [" +
+              formatPoints(g.perQuestion[idx], cfg.lang) +
+              " " +
+              tt("testPointsUnit", cfg.lang) +
+              "]";
+          }
+          line(questionLabel + " " + q.number + ": " + (q.answer || "—") + ptsTxt, 10, false);
         });
       }
 
@@ -476,7 +695,7 @@
 
   function printTest(questions, cfg, questionLabel) {
     var html = buildSheetHtml(questions, cfg, questionLabel, "", "");
-    var cssHref = "/css/perguntas.css?v=3";
+    var cssHref = "/css/perguntas.css?v=4";
     var w = global.open("", "_blank", "noopener");
     if (!w) return;
     w.document.write(
@@ -489,40 +708,160 @@
   }
 
   function mount(builderRoot, previewRoot, questions, lang, labels, toast) {
-    if (!builderRoot || !previewRoot || !questions.length) return;
+    if (!builderRoot || !questions.length) return;
+    var qCount = questions.length;
 
-    function refresh() {
-      var cfg = readConfig(builderRoot, lang);
-      previewRoot.innerHTML = buildSheetHtml(
-        questions,
-        cfg,
-        labels.question,
-        labels.correct,
-        labels.explanation
-      );
+    function getCfg() {
+      return readConfig(builderRoot, lang, qCount);
     }
 
-    builderRoot.querySelectorAll("input, textarea, select").forEach(function (el) {
-      el.addEventListener("change", refresh);
-      el.addEventListener("input", refresh);
+    function buildPreviewHtml() {
+      return buildSheetHtml(questions, getCfg(), labels.question);
+    }
+
+    var tabs = builderRoot.querySelectorAll("[data-test-tab]");
+    var panes = builderRoot.querySelectorAll("[data-test-pane]");
+    tabs.forEach(function (tab) {
+      tab.addEventListener("click", function () {
+        var id = tab.getAttribute("data-test-tab");
+        tabs.forEach(function (t) {
+          t.classList.toggle("is-active", t === tab);
+        });
+        panes.forEach(function (p) {
+          var match = p.getAttribute("data-test-pane") === id;
+          p.classList.toggle("is-active", match);
+          p.hidden = !match;
+        });
+      });
     });
+
+    var toggle = builderRoot.querySelector("#oeTestBuilderToggle");
+    var body = builderRoot.querySelector("#oeTestBuilderBody");
+    if (toggle && body) {
+      toggle.addEventListener("click", function () {
+        var open = toggle.getAttribute("aria-expanded") !== "true";
+        toggle.setAttribute("aria-expanded", open ? "true" : "false");
+        body.hidden = !open;
+        builderRoot.classList.toggle("is-collapsed", !open);
+      });
+    }
+
+    var gradingGrid = builderRoot.querySelector("#oeGradingQuestions");
+
+    function readGradingValues() {
+      var vals = [];
+      for (var i = 0; i < qCount; i++) {
+        var inp = builderRoot.querySelector("#gradingQ_" + (i + 1));
+        vals.push(inp ? inp.value : "");
+      }
+      return vals;
+    }
+
+    function populateGradingGrid() {
+      if (!gradingGrid) return;
+      var mode = (builderRoot.querySelector('input[name="gradingMode"]:checked') || {}).value || "equal";
+      if (mode !== "custom") {
+        gradingGrid.classList.add("hidden");
+        gradingGrid.innerHTML = "";
+        return;
+      }
+      gradingGrid.classList.remove("hidden");
+      var saved = readGradingValues();
+      var totalEl = builderRoot.querySelector("#gradingTotal");
+      var total = totalEl ? parseFloat(String(totalEl.value).replace(",", ".")) : 20;
+      if (!total || total < 1) total = 20;
+      var each = Math.round((total / qCount) * 10) / 10;
+      var html = "";
+      questions.forEach(function (q, i) {
+        var val = saved[i] !== "" ? saved[i] : each;
+        html +=
+          '<label class="oe-test-builder__grading-row"><span>' +
+          esc(tt("gradingQuestion", lang)) +
+          " " +
+          esc(q.number) +
+          '</span><input type="number" id="gradingQ_' +
+          (i + 1) +
+          '" min="0.5" step="0.5" value="' +
+          esc(val) +
+          '"></label>';
+      });
+      gradingGrid.innerHTML = html;
+    }
+
+    function onGradingChange() {
+      populateGradingGrid();
+    }
+
+    builderRoot.querySelectorAll('input[name="gradingMode"]').forEach(function (r) {
+      r.addEventListener("change", onGradingChange);
+    });
+    var totalInput = builderRoot.querySelector("#gradingTotal");
+    if (totalInput) {
+      totalInput.addEventListener("input", onGradingChange);
+    }
+
+    var modalEl = null;
+    var escHandler = null;
+
+    function closeModal() {
+      if (modalEl) {
+        modalEl.remove();
+        modalEl = null;
+      }
+      document.body.classList.remove("oe-test-modal-open");
+      if (escHandler) {
+        document.removeEventListener("keydown", escHandler);
+        escHandler = null;
+      }
+    }
+
+    function openPreview() {
+      closeModal();
+      modalEl = document.createElement("div");
+      modalEl.className = "oe-test-modal";
+      modalEl.innerHTML =
+        '<div class="oe-test-modal__backdrop"></div>' +
+        '<div class="oe-test-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="oeTestModalTitle">' +
+        '<div class="oe-test-modal__head">' +
+        '<h3 id="oeTestModalTitle">' +
+        esc(tt("previewTitle", lang)) +
+        "</h3>" +
+        '<button type="button" class="oe-test-modal__close" id="oeTestModalClose">× ' +
+        esc(tt("closePreview", lang)) +
+        "</button>" +
+        "</div>" +
+        '<div class="oe-test-modal__body">' +
+        buildPreviewHtml() +
+        "</div></div>";
+      document.body.appendChild(modalEl);
+      document.body.classList.add("oe-test-modal-open");
+      modalEl.querySelector(".oe-test-modal__backdrop").addEventListener("click", closeModal);
+      modalEl.querySelector("#oeTestModalClose").addEventListener("click", closeModal);
+      escHandler = function (e) {
+        if (e.key === "Escape") closeModal();
+      };
+      document.addEventListener("keydown", escHandler);
+    }
+
+    var btnPreview = builderRoot.querySelector("#btnPreviewTest");
+    if (btnPreview) btnPreview.addEventListener("click", openPreview);
+
+    if (previewRoot) previewRoot.hidden = true;
 
     var btnPrint = builderRoot.querySelector("#btnPrintTest");
     var btnPdf = builderRoot.querySelector("#btnPdfTest");
     if (btnPrint) {
       btnPrint.addEventListener("click", function () {
-        var cfg = readConfig(builderRoot, lang);
-        printTest(questions, cfg, labels.question);
+        printTest(questions, getCfg(), labels.question);
       });
     }
     if (btnPdf) {
       btnPdf.addEventListener("click", function () {
-        var cfg = readConfig(builderRoot, lang);
-        exportTestPdf(questions, cfg, labels.question, toast);
+        exportTestPdf(questions, getCfg(), labels.question, toast);
       });
     }
 
-    refresh();
+    populateGradingGrid();
   }
 
   global.PerguntasTemplates = {
