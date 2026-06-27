@@ -31,6 +31,7 @@
     return fallback || "Ocorreu um erro.";
   }
 
+  function roleLabel(role) {
     if (role === "admin") return "Admin";
     if (role === "editor") return "Editor";
     if (role === "viewer") return "Viewer";
@@ -1310,8 +1311,9 @@
   }
 
   async function addUser(e) {
-    e.preventDefault();
-    var form = e.target;
+    if (e && e.preventDefault) e.preventDefault();
+    var form = document.getElementById("userForm");
+    if (!form) return;
     var submitBtn = form.querySelector('button[type="submit"]');
     if (submitBtn && submitBtn.disabled) return;
     if (submitBtn) submitBtn.disabled = true;
@@ -1368,6 +1370,8 @@
     var bannerForm = document.getElementById("bannerForm");
     if (bannerForm) bannerForm.addEventListener("submit", saveBanner);
     var userForm = document.getElementById("userForm");
+    var btnAddUser = document.getElementById("btnAddUser");
+    if (btnAddUser) btnAddUser.addEventListener("click", addUser);
     if (userForm) userForm.addEventListener("submit", addUser);
     var sugUnread = document.getElementById("sugUnreadOnly");
     if (sugUnread) sugUnread.addEventListener("change", loadSugestoes);

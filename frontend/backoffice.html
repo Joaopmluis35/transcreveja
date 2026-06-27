@@ -579,13 +579,13 @@
           <div class="oe-admin-panel__head">Utilizadores</div>
           <div class="oe-admin-panel__body">
             <div id="usersList"></div>
-            <form id="userForm" class="oe-admin-form" style="margin-top:16px;border-top:1px solid var(--bo-border);padding-top:16px">
-              <div class="oe-admin-field"><label>Novo utilizador</label><input name="username" required placeholder="nome"></div>
-              <div class="oe-admin-field"><label>Password</label><input name="password" type="password" required></div>
+            <form id="userForm" class="oe-admin-form" style="margin-top:16px;border-top:1px solid var(--bo-border);padding-top:16px" onsubmit="return false;">
+              <div class="oe-admin-field"><label>Novo utilizador</label><input name="username" required placeholder="nome" autocomplete="off"></div>
+              <div class="oe-admin-field"><label>Password</label><input name="password" type="password" required autocomplete="new-password"></div>
               <div class="oe-admin-field"><label>Papel</label>
                 <select name="role"><option value="editor">Editor</option><option value="viewer">Viewer</option><option value="admin">Admin</option></select>
               </div>
-              <button type="submit" class="oe-admin-btn oe-admin-btn--secondary">Adicionar utilizador</button>
+              <button type="button" id="btnAddUser" class="oe-admin-btn oe-admin-btn--secondary">Adicionar utilizador</button>
             </form>
           </div>
         </div>
@@ -636,7 +636,7 @@
 <script src="js/ouviescrevi-api.js"></script>
 <script src="js/backoffice-cms-locales.js?v=5"></script>
 <script src="js/backoffice.js?v=16"></script>
-<script src="js/backoffice-admin.js?v=22"></script>
+<script src="js/backoffice-admin.js?v=23"></script>
 <script src="js/backoffice-billing.js?v=4"></script>
 </body>
 </html>
