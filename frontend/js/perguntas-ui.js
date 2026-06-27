@@ -16,6 +16,7 @@
       needText: "Introduz texto para gerar perguntas.",
       errorGenerate: "Erro ao gerar perguntas.",
       resultsReady: "%n perguntas geradas",
+      resultsReadyOne: "1 pergunta gerada",
       resultsLead: "Revê as perguntas abaixo e escolhe o que fazer a seguir",
       questionsTitle: "As tuas perguntas",
       questionsHint: "Cada pergunta inclui resposta correta e explicação",
@@ -51,6 +52,7 @@
       needText: "Paste some text first.",
       errorGenerate: "Error generating questions.",
       resultsReady: "%n questions generated",
+      resultsReadyOne: "1 question generated",
       resultsLead: "Review the questions below and choose your next step",
       questionsTitle: "Your questions",
       questionsHint: "Each question includes the correct answer and an explanation",
@@ -86,6 +88,7 @@
       needText: "Introduce texto primero.",
       errorGenerate: "Error al generar preguntas.",
       resultsReady: "%n preguntas generadas",
+      resultsReadyOne: "1 pregunta generada",
       resultsLead: "Revisa las preguntas abajo y elige el siguiente paso",
       questionsTitle: "Tus preguntas",
       questionsHint: "Cada pregunta incluye respuesta correcta y explicación",
@@ -121,6 +124,7 @@
       needText: "Collez du texte d'abord.",
       errorGenerate: "Erreur lors de la génération.",
       resultsReady: "%n questions générées",
+      resultsReadyOne: "1 question générée",
       resultsLead: "Relisez les questions ci-dessous et choisissez la suite",
       questionsTitle: "Vos questions",
       questionsHint: "Chaque question inclut la bonne réponse et une explication",
@@ -156,6 +160,7 @@
       needText: "Zuerst Text einfügen.",
       errorGenerate: "Fehler beim Erstellen der Fragen.",
       resultsReady: "%n Fragen erstellt",
+      resultsReadyOne: "1 Frage erstellt",
       resultsLead: "Sieh dir die Fragen unten an und wähle den nächsten Schritt",
       questionsTitle: "Deine Fragen",
       questionsHint: "Jede Frage enthält die richtige Antwort und eine Erklärung",
@@ -273,6 +278,12 @@
     var text = String(raw || "").replace(/\r\n/g, "\n").trim();
     if (!text) return [];
 
+    var firstQ = text.search(
+      /(?:#{1,3}\s*)?\*{0,2}(?:Pergunta|Question|Pregunta|Frage)\s+\d+/i
+    );
+    if (firstQ < 0) firstQ = text.search(/^\d+\.\s+\S/m);
+    if (firstQ > 0) text = text.slice(firstQ);
+
     var chunks = text.split(/\n-{3,}\s*\n/);
     if (chunks.length === 1) {
       chunks = text.split(/\n(?=(?:#{1,3}\s*)?\*{0,2}(?:Pergunta|Question|Pregunta|Frage)\s+\d+)/i);
@@ -364,6 +375,7 @@
   }
 
   function resultsReadyText(count) {
+    if (count === 1) return t("resultsReadyOne");
     return t("resultsReady").replace("%n", String(count));
   }
 

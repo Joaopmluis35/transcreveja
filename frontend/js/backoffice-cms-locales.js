@@ -307,9 +307,9 @@
       en_resumo_lead: "Paste your text or upload a PDF or Word file, then choose a summary style.",
       en_url_resumo_title: "🔗 Smart Summary from URL",
       en_url_resumo_lead: "Paste an article link to generate an automatic AI summary.",
-      en_perguntas_title: "📘 AI Study Questions",
+      en_perguntas_title: "📘 AI Question Generator",
       en_perguntas_lead:
-        "Turn any text into multiple-choice questions — with answer keys and explanations. Perfect for revision or classroom tests.",
+        "Paste your text here and generate multiple-choice questions with answers and explanations — ready to study or print for class.",
     };
     Object.keys(enDefaults).forEach(function (key) {
       if (!out[key]) out[key] = enDefaults[key];
