@@ -19,7 +19,8 @@
   var TEMPLATE_STRINGS = {
     pt: {
       classroomTitle: "Modelo para sala de aula",
-      classroomHint: "Escolhe o estilo, os dados do teste e imprime ou guarda em PDF para os alunos.",
+      classroomSubtitle: "Folha formatada para alunos — sem respostas",
+      classroomHint: "Configura estilo, dados e cotação. Depois imprime ou guarda em PDF.",
       templateStyle: "Estilo do teste",
       styleClassic: "Clássico",
       styleModern: "Moderno",
@@ -29,8 +30,8 @@
       modeTeacher: "Grelha do professor (com gabarito)",
       fieldsTitle: "Dados no cabeçalho",
       previewTitle: "Pré-visualização",
-      btnPrintTest: "Imprimir teste",
-      btnPdfTest: "PDF do teste",
+      btnPrintTest: "Imprimir folha",
+      btnPdfTest: "PDF da folha",
       fieldSchool: "Escola",
       fieldTestTitle: "Título do teste",
       fieldDiscipline: "Disciplina",
@@ -69,7 +70,8 @@
     },
     en: {
       classroomTitle: "Classroom test template",
-      classroomHint: "Pick a style, set test details, then print or save as PDF for your students.",
+      classroomSubtitle: "Formatted sheet for students — no answers",
+      classroomHint: "Set style, fields and grading, then print or save as PDF.",
       templateStyle: "Test style",
       styleClassic: "Classic",
       styleModern: "Modern",
@@ -79,8 +81,8 @@
       modeTeacher: "Teacher key (with answers)",
       fieldsTitle: "Header fields",
       previewTitle: "Preview",
-      btnPrintTest: "Print test",
-      btnPdfTest: "Test PDF",
+      btnPrintTest: "Print sheet",
+      btnPdfTest: "Sheet PDF",
       fieldSchool: "School",
       fieldTestTitle: "Test title",
       fieldDiscipline: "Subject",
@@ -119,7 +121,8 @@
     },
     es: {
       classroomTitle: "Plantilla para el aula",
-      classroomHint: "Elige el estilo, los datos del examen e imprime o guarda en PDF para tus alumnos.",
+      classroomSubtitle: "Hoja formateada para alumnos — sin respuestas",
+      classroomHint: "Configura estilo, datos y puntuación. Luego imprime o guarda en PDF.",
       templateStyle: "Estilo del test",
       styleClassic: "Clásico",
       styleModern: "Moderno",
@@ -129,8 +132,8 @@
       modeTeacher: "Gabarito del profesor",
       fieldsTitle: "Datos en la cabecera",
       previewTitle: "Vista previa",
-      btnPrintTest: "Imprimir test",
-      btnPdfTest: "PDF del test",
+      btnPrintTest: "Imprimir hoja",
+      btnPdfTest: "PDF de la hoja",
       fieldSchool: "Colegio",
       fieldTestTitle: "Título del test",
       fieldDiscipline: "Asignatura",
@@ -169,7 +172,8 @@
     },
     fr: {
       classroomTitle: "Modèle pour la classe",
-      classroomHint: "Choisissez le style, les informations du test, puis imprimez ou enregistrez en PDF.",
+      classroomSubtitle: "Feuille formatée pour les élèves — sans réponses",
+      classroomHint: "Configurez le style, les champs et le barème, puis imprimez ou enregistrez en PDF.",
       templateStyle: "Style du test",
       styleClassic: "Classique",
       styleModern: "Moderne",
@@ -179,8 +183,8 @@
       modeTeacher: "Corrigé professeur",
       fieldsTitle: "Champs d'en-tête",
       previewTitle: "Aperçu",
-      btnPrintTest: "Imprimer le test",
-      btnPdfTest: "PDF du test",
+      btnPrintTest: "Imprimer la feuille",
+      btnPdfTest: "PDF de la feuille",
       fieldSchool: "École",
       fieldTestTitle: "Titre du test",
       fieldDiscipline: "Matière",
@@ -219,7 +223,8 @@
     },
     de: {
       classroomTitle: "Klassenzimmer-Vorlage",
-      classroomHint: "Wähle Stil und Testdaten, dann drucken oder als PDF für die Klasse speichern.",
+      classroomSubtitle: "Formatiertes Blatt für Schüler — ohne Antworten",
+      classroomHint: "Stil, Felder und Bewertung einstellen, dann drucken oder als PDF speichern.",
       templateStyle: "Test-Stil",
       styleClassic: "Klassisch",
       styleModern: "Modern",
@@ -229,8 +234,8 @@
       modeTeacher: "Lehrerlösung (mit Antworten)",
       fieldsTitle: "Kopfzeilenfelder",
       previewTitle: "Vorschau",
-      btnPrintTest: "Test drucken",
-      btnPdfTest: "Test-PDF",
+      btnPrintTest: "Blatt drucken",
+      btnPdfTest: "Blatt-PDF",
       fieldSchool: "Schule",
       fieldTestTitle: "Testtitel",
       fieldDiscipline: "Fach",
@@ -482,6 +487,38 @@
     return html;
   }
 
+  function chipRadio(name, value, label, checked) {
+    return (
+      '<label class="oe-test-builder__chip">' +
+      '<input type="radio" name="' +
+      esc(name) +
+      '" value="' +
+      esc(value) +
+      '"' +
+      (checked ? " checked" : "") +
+      ">" +
+      "<span>" +
+      esc(label) +
+      "</span></label>"
+    );
+  }
+
+  function tabBtn(step, id, label, active) {
+    return (
+      '<button type="button" class="oe-test-builder__tab' +
+      (active ? " is-active" : "") +
+      '" data-test-tab="' +
+      esc(id) +
+      '" role="tab">' +
+      '<span class="oe-test-builder__tab-step">' +
+      esc(step) +
+      "</span>" +
+      '<span class="oe-test-builder__tab-label">' +
+      esc(label) +
+      "</span></button>"
+    );
+  }
+
   function builderHtml(lang, questionCount) {
     var fieldsHtml = FIELD_DEFS.map(function (def) {
       var checked = def.defaultOn ? " checked" : "";
@@ -515,48 +552,80 @@
     }).join("");
 
     return (
-      '<section class="oe-test-builder" id="oeTestBuilder">' +
-      '<button type="button" class="oe-test-builder__collapse" id="oeTestBuilderToggle" aria-expanded="true">' +
-      "<span>📋 " + esc(tt("classroomTitle", lang)) + "</span>" +
+      '<section class="oe-test-builder is-collapsed" id="oeTestBuilder">' +
+      '<button type="button" class="oe-test-builder__collapse" id="oeTestBuilderToggle" aria-expanded="false">' +
+      '<span class="oe-test-builder__collapse-text">' +
+      "<strong>📋 " +
+      esc(tt("classroomTitle", lang)) +
+      "</strong>" +
+      "<small>" +
+      esc(tt("classroomSubtitle", lang)) +
+      "</small></span>" +
       '<svg class="oe-test-builder__chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>' +
       "</button>" +
-      '<div class="oe-test-builder__body" id="oeTestBuilderBody">' +
-      "<p class=\"oe-test-builder__hint\">" + esc(tt("classroomHint", lang)) + "</p>" +
+      '<div class="oe-test-builder__body" id="oeTestBuilderBody" hidden>' +
+      "<p class=\"oe-test-builder__hint\">" +
+      esc(tt("classroomHint", lang)) +
+      "</p>" +
       '<div class="oe-test-builder__tabs" role="tablist">' +
-      '<button type="button" class="oe-test-builder__tab is-active" data-test-tab="style" role="tab">' + esc(tt("tabStyle", lang)) + "</button>" +
-      '<button type="button" class="oe-test-builder__tab" data-test-tab="fields" role="tab">' + esc(tt("tabFields", lang)) + "</button>" +
-      '<button type="button" class="oe-test-builder__tab" data-test-tab="grading" role="tab">' + esc(tt("tabGrading", lang)) + "</button>" +
+      tabBtn("1", "style", tt("tabStyle", lang), true) +
+      tabBtn("2", "fields", tt("tabFields", lang), false) +
+      tabBtn("3", "grading", tt("tabGrading", lang), false) +
       "</div>" +
       '<div class="oe-test-builder__panel-pane is-active" data-test-pane="style">' +
-      "<h4>" + esc(tt("templateStyle", lang)) + "</h4>" +
-      '<label class="oe-test-builder__radio"><input type="radio" name="testStyle" value="classic"> ' + esc(tt("styleClassic", lang)) + "</label>" +
-      '<label class="oe-test-builder__radio"><input type="radio" name="testStyle" value="modern" checked> ' + esc(tt("styleModern", lang)) + "</label>" +
-      '<label class="oe-test-builder__radio"><input type="radio" name="testStyle" value="minimal"> ' + esc(tt("styleMinimal", lang)) + "</label>" +
-      "<h4>" + esc(tt("sheetMode", lang)) + "</h4>" +
-      '<label class="oe-test-builder__radio"><input type="radio" name="testMode" value="student" checked> ' + esc(tt("modeStudent", lang)) + "</label>" +
-      '<label class="oe-test-builder__radio"><input type="radio" name="testMode" value="teacher"> ' + esc(tt("modeTeacher", lang)) + "</label>" +
+      "<h4>" +
+      esc(tt("templateStyle", lang)) +
+      "</h4>" +
+      '<div class="oe-test-builder__chips">' +
+      chipRadio("testStyle", "classic", tt("styleClassic", lang), false) +
+      chipRadio("testStyle", "modern", tt("styleModern", lang), true) +
+      chipRadio("testStyle", "minimal", tt("styleMinimal", lang), false) +
       "</div>" +
+      "<h4>" +
+      esc(tt("sheetMode", lang)) +
+      "</h4>" +
+      '<div class="oe-test-builder__chips oe-test-builder__chips--wide">' +
+      chipRadio("testMode", "student", tt("modeStudent", lang), true) +
+      chipRadio("testMode", "teacher", tt("modeTeacher", lang), false) +
+      "</div></div>" +
       '<div class="oe-test-builder__panel-pane" data-test-pane="fields" hidden>' +
-      '<div class="oe-test-builder__fields">' + fieldsHtml + "</div>" +
-      "</div>" +
+      '<div class="oe-test-builder__fields">' +
+      fieldsHtml +
+      "</div></div>" +
       '<div class="oe-test-builder__panel-pane" data-test-pane="grading" hidden>' +
-      "<h4>" + esc(tt("gradingTitle", lang)) + "</h4>" +
-      "<p class=\"oe-test-builder__subhint\">" + esc(tt("gradingHint", lang)) + "</p>" +
-      '<label class="oe-test-builder__inline"><span>' + esc(tt("gradingTotal", lang)) + '</span><input type="number" id="gradingTotal" min="1" step="0.5" value="20"></label>' +
-      "<h4>" + esc(tt("gradingMode", lang)) + "</h4>" +
-      '<label class="oe-test-builder__radio"><input type="radio" name="gradingMode" value="equal" checked> ' + esc(tt("gradingEqual", lang)) + "</label>" +
-      '<label class="oe-test-builder__radio"><input type="radio" name="gradingMode" value="custom"> ' + esc(tt("gradingCustom", lang)) + "</label>" +
-      '<label class="oe-test-builder__radio"><input type="radio" name="gradingMode" value="blank"> ' + esc(tt("gradingBlank", lang)) + "</label>" +
-      '<label class="oe-test-builder__check"><input type="checkbox" id="gradingShowTotal" checked> ' + esc(tt("gradingShowTotal", lang)) + "</label>" +
+      "<h4>" +
+      esc(tt("gradingTitle", lang)) +
+      "</h4>" +
+      "<p class=\"oe-test-builder__subhint\">" +
+      esc(tt("gradingHint", lang)) +
+      "</p>" +
+      '<label class="oe-test-builder__inline"><span>' +
+      esc(tt("gradingTotal", lang)) +
+      '</span><input type="number" id="gradingTotal" min="1" step="0.5" value="20"></label>' +
+      "<h4>" +
+      esc(tt("gradingMode", lang)) +
+      "</h4>" +
+      '<div class="oe-test-builder__chips oe-test-builder__chips--stack">' +
+      chipRadio("gradingMode", "equal", tt("gradingEqual", lang), true) +
+      chipRadio("gradingMode", "custom", tt("gradingCustom", lang), false) +
+      chipRadio("gradingMode", "blank", tt("gradingBlank", lang), false) +
+      "</div>" +
+      '<label class="oe-test-builder__check"><input type="checkbox" id="gradingShowTotal" checked> ' +
+      esc(tt("gradingShowTotal", lang)) +
+      "</label>" +
       '<div id="oeGradingQuestions" class="oe-test-builder__grading-grid hidden"></div>' +
       "</div>" +
       '<div class="oe-test-builder__actions">' +
-      '<button type="button" class="oe-quiz-btn" id="btnPreviewTest">👁️ ' + esc(tt("btnPreview", lang)) + "</button>" +
-      '<button type="button" class="oe-quiz-btn oe-quiz-btn--primary" id="btnPrintTest">🖨️ ' + esc(tt("btnPrintTest", lang)) + "</button>" +
-      '<button type="button" class="oe-quiz-btn" id="btnPdfTest">📄 ' + esc(tt("btnPdfTest", lang)) + "</button>" +
-      "</div></div>" +
-      '<div id="oeTestPreview" hidden></div>' +
-      "</section>"
+      '<button type="button" class="oe-quiz-btn" id="btnPreviewTest">👁️ ' +
+      esc(tt("btnPreview", lang)) +
+      "</button>" +
+      '<button type="button" class="oe-quiz-btn oe-quiz-btn--primary" id="btnPrintTest">🖨️ ' +
+      esc(tt("btnPrintTest", lang)) +
+      "</button>" +
+      '<button type="button" class="oe-quiz-btn" id="btnPdfTest">📄 ' +
+      esc(tt("btnPdfTest", lang)) +
+      "</button></div></div>" +
+      '<div id="oeTestPreview" hidden></div></section>'
     );
   }
 
@@ -695,7 +764,7 @@
 
   function printTest(questions, cfg, questionLabel) {
     var html = buildSheetHtml(questions, cfg, questionLabel, "", "");
-    var cssHref = "/css/perguntas.css?v=4";
+    var cssHref = "/css/perguntas.css?v=6";
     var w = global.open("", "_blank", "noopener");
     if (!w) return;
     w.document.write(

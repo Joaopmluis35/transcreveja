@@ -15,7 +15,11 @@
       loading: "A gerar perguntas...",
       needText: "Introduz texto para gerar perguntas.",
       errorGenerate: "Erro ao gerar perguntas.",
-      exportLabel: "Exportar",
+      resultsReady: "%n perguntas geradas",
+      resultsLead: "Escolhe como queres usar o resultado",
+      shareTitle: "Estudar e partilhar",
+      shareHint: "Com respostas e explicações — para rever ou enviar",
+      studyPdf: "PDF estudo",
       pdf: "PDF",
       whatsapp: "WhatsApp",
       copy: "Copiar tudo",
@@ -43,7 +47,11 @@
       loading: "Generating...",
       needText: "Paste some text first.",
       errorGenerate: "Error generating questions.",
-      exportLabel: "Export",
+      resultsReady: "%n questions generated",
+      resultsLead: "Choose how to use the result",
+      shareTitle: "Study and share",
+      shareHint: "With answers and explanations — to review or send",
+      studyPdf: "Study PDF",
       pdf: "PDF",
       whatsapp: "WhatsApp",
       copy: "Copy all",
@@ -71,7 +79,11 @@
       loading: "Generando...",
       needText: "Introduce texto primero.",
       errorGenerate: "Error al generar preguntas.",
-      exportLabel: "Exportar",
+      resultsReady: "%n preguntas generadas",
+      resultsLead: "Elige cómo usar el resultado",
+      shareTitle: "Estudiar y compartir",
+      shareHint: "Con respuestas y explicaciones — para repasar o enviar",
+      studyPdf: "PDF estudio",
       pdf: "PDF",
       whatsapp: "WhatsApp",
       copy: "Copiar todo",
@@ -99,7 +111,11 @@
       loading: "Génération...",
       needText: "Collez du texte d'abord.",
       errorGenerate: "Erreur lors de la génération.",
-      exportLabel: "Exporter",
+      resultsReady: "%n questions générées",
+      resultsLead: "Choisissez comment utiliser le résultat",
+      shareTitle: "Réviser et partager",
+      shareHint: "Avec réponses et explications — pour réviser ou envoyer",
+      studyPdf: "PDF révision",
       pdf: "PDF",
       whatsapp: "WhatsApp",
       copy: "Tout copier",
@@ -127,7 +143,11 @@
       loading: "Wird erstellt...",
       needText: "Zuerst Text einfügen.",
       errorGenerate: "Fehler beim Erstellen der Fragen.",
-      exportLabel: "Exportieren",
+      resultsReady: "%n Fragen erstellt",
+      resultsLead: "Wähle, wie du das Ergebnis nutzen möchtest",
+      shareTitle: "Lernen und teilen",
+      shareHint: "Mit Antworten und Erklärungen — zum Wiederholen oder Senden",
+      studyPdf: "Lern-PDF",
       pdf: "PDF",
       whatsapp: "WhatsApp",
       copy: "Alles kopieren",
@@ -328,6 +348,10 @@
       .replace(/"/g, "&quot;");
   }
 
+  function resultsReadyText(count) {
+    return t("resultsReady").replace("%n", String(count));
+  }
+
   function renderQuestions(container, raw) {
     var questions = parseQuestions(raw);
     lastQuestions = questions;
@@ -341,27 +365,31 @@
       return;
     }
 
-    var toolbar =
-      '<div class="oe-quiz-toolbar">' +
-      '<p class="oe-quiz-toolbar__label">' +
-      escapeHtml(t("exportLabel")) +
+    var shareSection =
+      '<div class="oe-quiz-panel__section">' +
+      '<h3 class="oe-quiz-panel__section-title">' +
+      escapeHtml(t("shareTitle")) +
+      "</h3>" +
+      '<p class="oe-quiz-panel__section-hint">' +
+      escapeHtml(t("shareHint")) +
       "</p>" +
-      '<button type="button" class="oe-quiz-btn oe-quiz-btn--primary" data-quiz-export="pdf">📄 ' +
-      escapeHtml(t("pdf")) +
-      "</button>" +
-      '<button type="button" class="oe-quiz-btn" data-quiz-export="whatsapp">💬 ' +
-      escapeHtml(t("whatsapp")) +
-      "</button>" +
-      '<button type="button" class="oe-quiz-btn" data-quiz-export="copy">📋 ' +
+      '<div class="oe-quiz-share__grid">' +
+      '<button type="button" class="oe-quiz-share-btn" data-quiz-export="copy">📋 ' +
       escapeHtml(t("copy")) +
       "</button>" +
-      '<button type="button" class="oe-quiz-btn" data-quiz-export="txt">📝 ' +
+      '<button type="button" class="oe-quiz-share-btn" data-quiz-export="whatsapp">💬 ' +
+      escapeHtml(t("whatsapp")) +
+      "</button>" +
+      '<button type="button" class="oe-quiz-share-btn" data-quiz-export="txt">📝 ' +
       escapeHtml(t("txt")) +
       "</button>" +
-      '<button type="button" class="oe-quiz-btn" data-quiz-export="print">🖨️ ' +
+      '<button type="button" class="oe-quiz-share-btn" data-quiz-export="pdf">📄 ' +
+      escapeHtml(t("studyPdf")) +
+      "</button>" +
+      '<button type="button" class="oe-quiz-share-btn" data-quiz-export="print">🖨️ ' +
       escapeHtml(t("print")) +
       "</button>" +
-      "</div>";
+      "</div></div>";
 
     var builderHtml =
       global.PerguntasTemplates && global.PerguntasTemplates.builderHtml
@@ -428,8 +456,21 @@
 
     container.innerHTML =
       '<div class="oe-quiz">' +
-      toolbar +
+      '<section class="oe-quiz-panel">' +
+      '<header class="oe-quiz-panel__head">' +
+      '<span class="oe-quiz-panel__badge" aria-hidden="true">✓</span>' +
+      "<div>" +
+      '<h2 class="oe-quiz-panel__title">' +
+      escapeHtml(resultsReadyText(questions.length)) +
+      "</h2>" +
+      '<p class="oe-quiz-panel__lead">' +
+      escapeHtml(t("resultsLead")) +
+      "</p></div></header>" +
+      shareSection +
+      '<div class="oe-quiz-panel__divider" role="separator"></div>' +
+      '<div class="oe-quiz-panel__section oe-quiz-panel__section--classroom">' +
       builderHtml +
+      "</div>" +
       '<details class="oe-quiz-details">' +
       '<summary class="oe-quiz-details__summary">📝 ' +
       escapeHtml(t("viewGenerated")) +
@@ -438,7 +479,7 @@
       ")</summary>" +
       '<div class="oe-quiz-cards">' +
       cards +
-      "</div></details></div>";
+      "</div></details></section></div>";
     container.classList.remove("oe-result--error");
     container.hidden = false;
 
