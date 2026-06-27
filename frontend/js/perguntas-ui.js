@@ -10,6 +10,8 @@
       placeholder: "Cola aqui o conteúdo a estudar — por exemplo uma aula, artigo ou capítulo...",
       btnGenerate: "🎓 Gerar Perguntas",
       countLabel: "N.º de perguntas",
+      countCustom: "Outro",
+      countCustomAria: "Número personalizado de perguntas",
       loading: "A gerar perguntas...",
       needText: "Introduz texto para gerar perguntas.",
       errorGenerate: "Erro ao gerar perguntas.",
@@ -36,6 +38,8 @@
       placeholder: "Paste the content to study here — e.g. a lesson, article or chapter...",
       btnGenerate: "🎓 Generate Questions",
       countLabel: "Number of questions",
+      countCustom: "Custom",
+      countCustomAria: "Custom number of questions",
       loading: "Generating...",
       needText: "Paste some text first.",
       errorGenerate: "Error generating questions.",
@@ -62,6 +66,8 @@
       placeholder: "Pega aquí el contenido a estudiar — por ejemplo una clase, artículo o capítulo...",
       btnGenerate: "🎓 Generar preguntas",
       countLabel: "N.º de preguntas",
+      countCustom: "Otro",
+      countCustomAria: "Número personalizado de preguntas",
       loading: "Generando...",
       needText: "Introduce texto primero.",
       errorGenerate: "Error al generar preguntas.",
@@ -88,6 +94,8 @@
       placeholder: "Collez ici le contenu à étudier — par ex. un cours, article ou chapitre...",
       btnGenerate: "🎓 Générer des questions",
       countLabel: "Nombre de questions",
+      countCustom: "Autre",
+      countCustomAria: "Nombre personnalisé de questions",
       loading: "Génération...",
       needText: "Collez du texte d'abord.",
       errorGenerate: "Erreur lors de la génération.",
@@ -114,6 +122,8 @@
       placeholder: "Füge hier den Lernstoff ein — z. B. eine Lektion, einen Artikel oder ein Kapitel...",
       btnGenerate: "🎓 Fragen generieren",
       countLabel: "Anzahl Fragen",
+      countCustom: "Andere",
+      countCustomAria: "Benutzerdefinierte Anzahl Fragen",
       loading: "Wird erstellt...",
       needText: "Zuerst Text einfügen.",
       errorGenerate: "Fehler beim Erstellen der Fragen.",
@@ -161,11 +171,60 @@
     if (btn) btn.textContent = t("btnGenerate");
   }
 
+  var COUNT_PRESETS = [3, 5, 10, 15, 20];
+  var COUNT_MAX = 30;
+
   function readNumQuestions() {
     var sel = document.getElementById("quizNumQuestions");
     if (!sel) return config.numQuestions;
+    if (sel.value === "custom") {
+      var inp = document.getElementById("quizNumQuestionsCustom");
+      var custom = inp ? parseInt(inp.value, 10) : 0;
+      if (custom > 0) return Math.min(COUNT_MAX, Math.max(1, custom));
+      return config.numQuestions;
+    }
     var n = parseInt(sel.value, 10);
     return n > 0 ? n : config.numQuestions;
+  }
+
+  function syncCustomCountVisibility() {
+    var sel = document.getElementById("quizNumQuestions");
+    var inp = document.getElementById("quizNumQuestionsCustom");
+    if (!sel || !inp) return;
+    var isCustom = sel.value === "custom";
+    inp.hidden = !isCustom;
+    inp.toggleAttribute("aria-hidden", !isCustom);
+    if (isCustom) inp.focus();
+  }
+
+  function setupCountSelector() {
+    var sel = document.getElementById("quizNumQuestions");
+    if (!sel) return;
+    var current = config.numQuestions || COUNT_PRESETS[0];
+    var isPreset = COUNT_PRESETS.indexOf(current) >= 0;
+
+    sel.innerHTML = "";
+    COUNT_PRESETS.forEach(function (n) {
+      var opt = document.createElement("option");
+      opt.value = String(n);
+      opt.textContent = String(n);
+      if (n === current) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    var customOpt = document.createElement("option");
+    customOpt.value = "custom";
+    customOpt.textContent = t("countCustom");
+    if (!isPreset) customOpt.selected = true;
+    sel.appendChild(customOpt);
+
+    var customInput = document.getElementById("quizNumQuestionsCustom");
+    if (customInput) {
+      customInput.value = String(isPreset ? 12 : current);
+      customInput.setAttribute("aria-label", t("countCustomAria"));
+      customInput.max = String(COUNT_MAX);
+    }
+
+    syncCustomCountVisibility();
   }
 
   function stripMd(text) {
@@ -534,11 +593,19 @@
   function init(opts) {
     config = Object.assign({}, config, opts || {});
     applyFormLabels();
+    setupCountSelector();
     var btn = document.getElementById("btnPerguntas");
     if (btn) btn.addEventListener("click", generateFromPage);
     var countSel = document.getElementById("quizNumQuestions");
     if (countSel) {
       countSel.addEventListener("change", function () {
+        syncCustomCountVisibility();
+        config.numQuestions = readNumQuestions();
+      });
+    }
+    var countCustom = document.getElementById("quizNumQuestionsCustom");
+    if (countCustom) {
+      countCustom.addEventListener("input", function () {
         config.numQuestions = readNumQuestions();
       });
     }

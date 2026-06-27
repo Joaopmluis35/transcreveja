@@ -8,7 +8,7 @@
   <title>📘 Générateur de questions IA</title>
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
   <link rel="stylesheet" href="../css/ouviescrevi.css">
-  <link rel="stylesheet" href="../css/perguntas.css?v=4">
+  <link rel="stylesheet" href="../css/perguntas.css?v=5">
   <script src="../js/theme-ui.js"></script>
   <script src="/js/ouviescrevi-seo.js" defer></script>
   <script src="../js/ouviescrevi-ui.js" defer></script>
@@ -31,14 +31,13 @@
     </div>
     <textarea id="texto" aria-labelledby="quizFormTitle"></textarea>
     <div class="oe-quiz-form__footer">
-      <label class="oe-quiz-form__count" for="quizNumQuestions">
+      <div class="oe-quiz-form__count">
         <span id="quizCountLabel">Nombre de questions</span>
-        <select id="quizNumQuestions">
-          <option value="3" selected>3</option>
-          <option value="5">5</option>
-          <option value="10">10</option>
-        </select>
-      </label>
+        <div class="oe-quiz-form__count-row">
+          <select id="quizNumQuestions" aria-labelledby="quizCountLabel"></select>
+          <input type="number" id="quizNumQuestionsCustom" class="oe-quiz-form__count-custom" hidden min="1" max="30" value="12">
+        </div>
+      </div>
       <button type="button" class="oe-quiz-form__submit" id="btnPerguntas">🎓 Générer des questions</button>
     </div>
   </section>
@@ -50,7 +49,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="../js/ouviescrevi-api.js"></script>
 <script src="../js/perguntas-templates.js?v=2"></script>
-<script src="../js/perguntas-ui.js?v=4"></script>
+<script src="../js/perguntas-ui.js?v=5"></script>
 <script>
   PerguntasUI.init({ lang: "fr", numQuestions: 3 });
   OuviescreviUI.loadHeader();

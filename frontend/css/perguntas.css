@@ -90,6 +90,13 @@ body.oe-page--perguntas .container.oe-quiz-page {
   color: var(--pro-text-secondary, #475569);
 }
 
+.oe-quiz-form__count-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .oe-quiz-form__count select {
   min-width: 88px;
   margin: 0;
@@ -100,6 +107,22 @@ body.oe-page--perguntas .container.oe-quiz-page {
   color: var(--pro-text, #0f172a);
   font-family: inherit;
   font-size: 0.9rem;
+}
+
+.oe-quiz-form__count-custom {
+  width: 76px;
+  margin: 0;
+  padding: 9px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--pro-border, #e2e8f0);
+  background: var(--pro-surface, #fff);
+  color: var(--pro-text, #0f172a);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.oe-quiz-form__count-custom[hidden] {
+  display: none;
 }
 
 .oe-quiz-form__submit {
@@ -365,7 +388,8 @@ html.oe-theme-dark .oe-quiz-form #texto {
   color: #e2e8f0;
 }
 
-html.oe-theme-dark .oe-quiz-form__count select {
+html.oe-theme-dark .oe-quiz-form__count select,
+html.oe-theme-dark .oe-quiz-form__count-custom {
   background: #0f172a;
   border-color: #334155;
   color: #e2e8f0;
