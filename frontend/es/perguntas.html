@@ -8,7 +8,7 @@
   <title>📘 Generador de preguntas con IA</title>
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
   <link rel="stylesheet" href="../css/ouviescrevi.css">
-  <link rel="stylesheet" href="../css/perguntas.css?v=7">
+  <link rel="stylesheet" href="../css/perguntas.css?v=8">
   <script src="../js/theme-ui.js"></script>
   <script src="/js/ouviescrevi-seo.js" defer></script>
   <script src="../js/ouviescrevi-ui.js" defer></script>
@@ -17,12 +17,13 @@
 <a class="oe-skip" href="#conteudo">Saltar al contenido</a>
 <div id="header"></div>
 
-<div class="oe-hero" id="conteudo">
-  <h1 data-cms-key="es_perguntas_title" data-cms-mode="text">📘 Generador de preguntas con IA</h1>
-  <p class="oe-lead" data-cms-key="es_perguntas_lead" data-cms-mode="text">Pega aquí tu texto y genera preguntas de opción múltiple con respuestas y explicaciones — listas para estudiar o imprimir en clase.</p>
-</div>
+<div class="oe-quiz-layout" id="conteudo">
+  <header class="oe-quiz-hero">
+    <h1 data-cms-key="es_perguntas_title" data-cms-mode="text">📘 Generador de preguntas con IA</h1>
+    <p class="oe-lead" data-cms-key="es_perguntas_lead" data-cms-mode="text">Pega aquí tu texto y genera preguntas de opción múltiple con respuestas y explicaciones — listas para estudiar o imprimir en clase.</p>
+  </header>
 
-<div class="container oe-quiz-page">
+  <div class="container oe-quiz-page">
   <section class="oe-quiz-form" aria-labelledby="quizFormTitle">
     <div class="oe-quiz-form__head">
       <p class="oe-quiz-form__eyebrow" id="quizFormEyebrow">Estudio · Exámenes · Clases</p>
@@ -42,6 +43,7 @@
     </div>
   </section>
   <div id="resultado" class="oe-quiz-output" hidden></div>
+  </div>
 </div>
 
 <div id="footer"></div>

@@ -8,7 +8,7 @@
   <title>📘 KI-Fragengenerator</title>
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
   <link rel="stylesheet" href="../css/ouviescrevi.css">
-  <link rel="stylesheet" href="../css/perguntas.css?v=7">
+  <link rel="stylesheet" href="../css/perguntas.css?v=8">
   <script src="../js/theme-ui.js"></script>
   <script src="/js/ouviescrevi-seo.js" defer></script>
   <script src="../js/ouviescrevi-ui.js" defer></script>
@@ -17,12 +17,13 @@
 <a class="oe-skip" href="#conteudo">Zum Inhalt springen</a>
 <div id="header"></div>
 
-<div class="oe-hero" id="conteudo">
-  <h1 data-cms-key="de_perguntas_title" data-cms-mode="text">📘 KI-Fragengenerator</h1>
-  <p class="oe-lead" data-cms-key="de_perguntas_lead" data-cms-mode="text">Füge deinen Text ein und erstelle Multiple-Choice-Fragen mit Antworten und Erklärungen — bereit zum Lernen oder Ausdrucken für den Unterricht.</p>
-</div>
+<div class="oe-quiz-layout" id="conteudo">
+  <header class="oe-quiz-hero">
+    <h1 data-cms-key="de_perguntas_title" data-cms-mode="text">📘 KI-Fragengenerator</h1>
+    <p class="oe-lead" data-cms-key="de_perguntas_lead" data-cms-mode="text">Füge deinen Text ein und erstelle Multiple-Choice-Fragen mit Antworten und Erklärungen — bereit zum Lernen oder Ausdrucken für den Unterricht.</p>
+  </header>
 
-<div class="container oe-quiz-page">
+  <div class="container oe-quiz-page">
   <section class="oe-quiz-form" aria-labelledby="quizFormTitle">
     <div class="oe-quiz-form__head">
       <p class="oe-quiz-form__eyebrow" id="quizFormEyebrow">Lernen · Tests · Unterricht</p>
@@ -42,6 +43,7 @@
     </div>
   </section>
   <div id="resultado" class="oe-quiz-output" hidden></div>
+  </div>
 </div>
 
 <div id="footer"></div>

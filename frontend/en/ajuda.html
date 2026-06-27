@@ -9,6 +9,7 @@
   <title>Help - Ouviescrevi</title>
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
   <link rel="stylesheet" href="../css/ouviescrevi.css">
+  <link rel="stylesheet" href="../css/ajuda.css?v=1">
   <script src="/js/ouviescrevi-seo.js" defer></script>
   <script src="../js/ouviescrevi-ui.js" defer></script>
 </head>
@@ -16,11 +17,14 @@
 <a class="oe-skip" href="#conteudo">Skip to content</a>
   <div id="header"></div>
 
-  <main class="oe-content" id="conteudo">
-  <h1 data-cms-key="en_ajuda_title" data-cms-mode="text">Help & Support</h1>
-  <p data-cms-key="en_ajuda_intro" data-cms-mode="html"><strong>Ouviescrevi</strong> turns audio, video and text into transcriptions and useful AI tools — right in your browser. Here are answers to the most common questions:</p>
+  <main class="oe-content oe-help" id="conteudo">
+  <header class="oe-help__hero">
+    <p class="oe-help__eyebrow">Help center</p>
+    <h1 data-cms-key="en_ajuda_title" data-cms-mode="text">Help & Support</h1>
+    <div class="oe-help__intro" data-cms-key="en_ajuda_intro" data-cms-mode="html"><strong>Ouviescrevi</strong> turns audio, video and text into transcriptions and useful AI tools — right in your browser. Here are answers to the most common questions:</div>
+  </header>
 
-  <div class="faq oe-faq" data-cms-key="en_ajuda_faq" data-cms-mode="html">
+  <div class="faq oe-faq oe-help__faq" data-cms-key="en_ajuda_faq" data-cms-mode="html">
     <h2>1. What is Ouviescrevi?</h2>
     <p>A platform built in Portugal that uses AI to transcribe files, generate summaries, translate, proofread, create study questions, subtitle videos and more. You can try it without an account; a free account gives you higher limits and saved history.</p>
 
@@ -56,12 +60,14 @@
     <p>Paste a lesson, article or chapter, choose how many questions you want, and the AI generates A–D options with answers and explanations. You can copy, export to PDF, share on WhatsApp or create a formatted <strong>classroom test sheet</strong> to print.</p>
   </div>
 
-  <div class="contact oe-contact" data-cms-key="en_ajuda_contact" data-cms-mode="html">
+  <aside class="contact oe-contact oe-help__contact" data-cms-key="en_ajuda_contact" data-cms-mode="html">
     <h2>📩 Support contact</h2>
     <p>Couldn't find what you need? Email <strong>ouviescrevi@gmail.com</strong> — we'll get back to you as soon as we can.</p>
-  </div>
+  </aside>
 
-  <button type="button" class="oe-btn" onclick="window.location.href='index.html'">← Back to home</button>
+  <div class="oe-help__footer">
+    <button type="button" class="oe-btn" onclick="window.location.href='index.html'">← Back to home</button>
+  </div>
 </main>
 
   <div id="footer"></div>

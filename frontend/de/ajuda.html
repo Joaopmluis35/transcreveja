@@ -8,6 +8,7 @@
   <title>Hilfe - Ouviescrevi</title>
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
   <link rel="stylesheet" href="../css/ouviescrevi.css">
+  <link rel="stylesheet" href="../css/ajuda.css?v=1">
   <script src="/js/ouviescrevi-seo.js" defer></script>
   <script src="../js/ouviescrevi-ui.js" defer></script>
 </head>
@@ -15,11 +16,14 @@
 <a class="oe-skip" href="#conteudo">Zum Inhalt springen</a>
   <div id="header"></div>
 
-  <main class="oe-content" id="conteudo">
-  <h1 data-cms-key="de_ajuda_title" data-cms-mode="text">Hilfe & Support</h1>
-  <p data-cms-key="de_ajuda_intro" data-cms-mode="html"><strong>Ouviescrevi</strong> verwandelt Audio, Video und Text in Transkriptionen und nützliche KI-Tools — direkt im Browser. Hier findest du Antworten auf die häufigsten Fragen:</p>
+  <main class="oe-content oe-help" id="conteudo">
+  <header class="oe-help__hero">
+    <p class="oe-help__eyebrow">Hilfe-Center</p>
+    <h1 data-cms-key="de_ajuda_title" data-cms-mode="text">Hilfe & Support</h1>
+    <div class="oe-help__intro" data-cms-key="de_ajuda_intro" data-cms-mode="html"><strong>Ouviescrevi</strong> verwandelt Audio, Video und Text in Transkriptionen und nützliche KI-Tools — direkt im Browser. Hier findest du Antworten auf die häufigsten Fragen:</div>
+  </header>
 
-  <div class="faq oe-faq" data-cms-key="de_ajuda_faq" data-cms-mode="html">
+  <div class="faq oe-faq oe-help__faq" data-cms-key="de_ajuda_faq" data-cms-mode="html">
     <h2>1. Was ist Ouviescrevi?</h2>
     <p>Eine Plattform, die KI nutzt, um Dateien zu transkribieren, Zusammenfassungen zu erstellen, zu übersetzen, Texte zu korrigieren, Lernfragen zu generieren, Videos zu untertiteln und mehr. Du kannst ohne Konto starten; mit einem kostenlosen Konto erhältst du höhere Limits und gespeicherten Verlauf.</p>
 
@@ -55,12 +59,14 @@
     <p>Füge eine Lektion, einen Artikel oder ein Kapitel ein, wähle die Anzahl der Fragen, und die KI erstellt A–D-Optionen mit Antworten und Erklärungen. Du kannst kopieren, als PDF exportieren, per WhatsApp teilen oder ein formatiertes <strong>Testblatt</strong> für den Unterricht erstellen.</p>
   </div>
 
-  <div class="contact oe-contact" data-cms-key="de_ajuda_contact" data-cms-mode="html">
+  <aside class="contact oe-contact oe-help__contact" data-cms-key="de_ajuda_contact" data-cms-mode="html">
     <h2>📩 Support-Kontakt</h2>
     <p>Nicht gefunden, was du suchst? Schreib an <strong>ouviescrevi@gmail.com</strong> — wir antworten so schnell wie möglich.</p>
-  </div>
+  </aside>
 
-  <button type="button" class="oe-btn" onclick="window.location.href='index.html'">← Zurück zur Startseite</button>
+  <div class="oe-help__footer">
+    <button type="button" class="oe-btn" onclick="window.location.href='index.html'">← Zurück zur Startseite</button>
+  </div>
 </main>
 
   <div id="footer"></div>

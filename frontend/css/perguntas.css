@@ -1,9 +1,47 @@
-/* Perguntas — formulário + resultado em cards */
+/* Perguntas — layout centrado + formulário + resultado */
+
+body.oe-page--perguntas {
+  background: var(--pro-bg, #f6f7fb);
+}
+
+.oe-quiz-layout {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 20px 48px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+body.oe-page--perguntas .oe-quiz-hero {
+  max-width: none;
+  margin: 0;
+  padding: 32px 0 20px;
+  text-align: center;
+}
+
+body.oe-page--perguntas .oe-quiz-hero h1 {
+  margin: 0 0 10px;
+  font-size: clamp(1.45rem, 4.5vw, 1.9rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  color: var(--pro-text, #0f172a);
+}
+
+body.oe-page--perguntas .oe-quiz-hero .oe-lead {
+  margin: 0 auto;
+  max-width: 36rem;
+  text-align: center;
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--pro-text-secondary, #475569);
+}
 
 body.oe-page--perguntas .container.oe-quiz-page {
-  max-width: 720px;
-  margin: 0 auto 48px;
-  padding: 0 20px 24px;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
   border: none;
   box-shadow: none;
   background: transparent;
@@ -518,7 +556,7 @@ body.oe-page--perguntas .container.oe-quiz-page {
 }
 
 @media print {
-  body.oe-page--perguntas .oe-hero,
+  body.oe-page--perguntas .oe-quiz-hero,
   body.oe-page--perguntas .oe-quiz-form,
   body.oe-page--perguntas #header,
   body.oe-page--perguntas #footer,
