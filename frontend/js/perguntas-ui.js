@@ -132,6 +132,7 @@
 
   var config = { lang: "pt", numQuestions: 3 };
   var lastPlainText = "";
+  var lastQuestions = [];
 
   function t(key) {
     var pack = STRINGS[config.lang] || STRINGS.pt;
@@ -265,6 +266,7 @@
 
   function renderQuestions(container, raw) {
     var questions = parseQuestions(raw);
+    lastQuestions = questions;
     lastPlainText = questions.length ? toPlainText(questions) : String(raw || "").trim();
 
     if (!questions.length) {
@@ -296,6 +298,11 @@
       escapeHtml(t("print")) +
       "</button>" +
       "</div>";
+
+    var builderHtml =
+      global.PerguntasTemplates && global.PerguntasTemplates.builderHtml
+        ? global.PerguntasTemplates.builderHtml(config.lang)
+        : "";
 
     var cards = questions
       .map(function (q) {
@@ -356,7 +363,12 @@
       .join("");
 
     container.innerHTML =
-      '<div class="oe-quiz">' + toolbar + '<div class="oe-quiz-cards">' + cards + "</div></div>";
+      '<div class="oe-quiz">' +
+      toolbar +
+      builderHtml +
+      '<div class="oe-quiz-cards">' +
+      cards +
+      "</div></div>";
     container.classList.remove("oe-result--error");
     container.hidden = false;
 
@@ -365,6 +377,17 @@
         exportQuiz(btn.getAttribute("data-quiz-export"), btn);
       });
     });
+
+    if (global.PerguntasTemplates && global.PerguntasTemplates.mount) {
+      global.PerguntasTemplates.mount(
+        container.querySelector("#oeTestBuilder"),
+        container.querySelector("#oeTestPreview"),
+        questions,
+        config.lang,
+        { question: t("question"), correct: t("correct"), explanation: t("explanation") },
+        global.OuviescreviUI ? global.OuviescreviUI.toast.bind(global.OuviescreviUI) : null
+      );
+    }
   }
 
   function showError(container, message) {
@@ -373,6 +396,7 @@
     container.classList.add("oe-result--error");
     container.hidden = false;
     lastPlainText = "";
+    lastQuestions = [];
   }
 
   function exportQuiz(kind, btn) {
@@ -516,5 +540,8 @@
     parse: parseQuestions,
     exportQuiz: exportQuiz,
     generate: generateFromPage,
+    getLastQuestions: function () {
+      return lastQuestions.slice();
+    },
   };
 })(window);
