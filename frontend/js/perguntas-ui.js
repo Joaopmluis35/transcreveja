@@ -1,0 +1,476 @@
+/**
+ * Perguntas — renderização em cards + exportação.
+ */
+(function (global) {
+  var STRINGS = {
+    pt: {
+      exportLabel: "Exportar",
+      pdf: "PDF",
+      whatsapp: "WhatsApp",
+      copy: "Copiar tudo",
+      txt: "TXT",
+      print: "Imprimir",
+      correct: "Resposta correta",
+      explanation: "Explicação",
+      question: "Pergunta",
+      copied: "Copiado!",
+      copyFail: "Não foi possível copiar.",
+      pdfFail: "Não foi possível gerar PDF.",
+      signature: "\n\n— Gerado com Ouviescrevi: https://ouviescrevi.pt/perguntas.html",
+      empty: "Sem perguntas para exportar.",
+    },
+    en: {
+      exportLabel: "Export",
+      pdf: "PDF",
+      whatsapp: "WhatsApp",
+      copy: "Copy all",
+      txt: "TXT",
+      print: "Print",
+      correct: "Correct answer",
+      explanation: "Explanation",
+      question: "Question",
+      copied: "Copied!",
+      copyFail: "Could not copy.",
+      pdfFail: "Could not generate PDF.",
+      signature: "\n\n— Generated with Ouviescrevi: https://ouviescrevi.pt/en/perguntas.html",
+      empty: "Nothing to export.",
+    },
+    es: {
+      exportLabel: "Exportar",
+      pdf: "PDF",
+      whatsapp: "WhatsApp",
+      copy: "Copiar todo",
+      txt: "TXT",
+      print: "Imprimir",
+      correct: "Respuesta correcta",
+      explanation: "Explicación",
+      question: "Pregunta",
+      copied: "¡Copiado!",
+      copyFail: "No se pudo copiar.",
+      pdfFail: "No se pudo generar el PDF.",
+      signature: "\n\n— Generado con Ouviescrevi: https://ouviescrevi.pt/es/perguntas.html",
+      empty: "Nada que exportar.",
+    },
+    fr: {
+      exportLabel: "Exporter",
+      pdf: "PDF",
+      whatsapp: "WhatsApp",
+      copy: "Tout copier",
+      txt: "TXT",
+      print: "Imprimer",
+      correct: "Bonne réponse",
+      explanation: "Explication",
+      question: "Question",
+      copied: "Copié !",
+      copyFail: "Impossible de copier.",
+      pdfFail: "Impossible de générer le PDF.",
+      signature: "\n\n— Généré avec Ouviescrevi: https://ouviescrevi.pt/fr/perguntas.html",
+      empty: "Rien à exporter.",
+    },
+    de: {
+      exportLabel: "Exportieren",
+      pdf: "PDF",
+      whatsapp: "WhatsApp",
+      copy: "Alles kopieren",
+      txt: "TXT",
+      print: "Drucken",
+      correct: "Richtige Antwort",
+      explanation: "Erklärung",
+      question: "Frage",
+      copied: "Kopiert!",
+      copyFail: "Kopieren fehlgeschlagen.",
+      pdfFail: "PDF konnte nicht erstellt werden.",
+      signature: "\n\n— Erstellt mit Ouviescrevi: https://ouviescrevi.pt/de/perguntas.html",
+      empty: "Nichts zu exportieren.",
+    },
+  };
+
+  var config = { lang: "pt", numQuestions: 3 };
+  var lastPlainText = "";
+
+  function t(key) {
+    var pack = STRINGS[config.lang] || STRINGS.pt;
+    return pack[key] || STRINGS.pt[key] || key;
+  }
+
+  function stripMd(text) {
+    return String(text || "")
+      .replace(/\*\*/g, "")
+      .replace(/^#{1,6}\s+/gm, "")
+      .trim();
+  }
+
+  function parseQuestions(raw) {
+    var text = String(raw || "").replace(/\r\n/g, "\n").trim();
+    if (!text) return [];
+
+    var chunks = text.split(/\n-{3,}\s*\n/);
+    if (chunks.length === 1) {
+      chunks = text.split(/\n(?=(?:#{1,3}\s*)?\*{0,2}(?:Pergunta|Question|Pregunta|Frage)\s+\d+)/i);
+    }
+    if (chunks.length === 1 && chunks[0] === text) {
+      chunks = [text];
+    }
+
+    var items = [];
+    chunks.forEach(function (block, idx) {
+      var clean = block.trim();
+      if (!clean) return;
+
+      var headerMatch = clean.match(
+        /^(?:#{1,3}\s*)?\*{0,2}(?:Pergunta|Question|Pregunta|Frage)\s*(\d+)\*{0,2}\s*:?\s*/i
+      );
+      var number = headerMatch ? headerMatch[1] : String(idx + 1);
+      var body = headerMatch ? clean.slice(headerMatch[0].length).trim() : clean;
+
+      var optionRe = /^([A-D])\)\s*(.+)$/gim;
+      var options = [];
+      var match;
+      var firstOptionIndex = -1;
+      while ((match = optionRe.exec(body)) !== null) {
+        if (firstOptionIndex < 0) firstOptionIndex = match.index;
+        options.push({ letter: match[1].toUpperCase(), text: stripMd(match[2]) });
+      }
+
+      var prompt = body;
+      var answer = "";
+      var explanation = "";
+
+      var answerMatch = body.match(
+        /(?:\*\*)?(?:Resposta correta|Correct answer|Respuesta correcta|Bonne réponse|Richtige Antwort)(?:\*\*)?\s*:?\s*([A-D])\)?/i
+      );
+      if (answerMatch) answer = answerMatch[1].toUpperCase();
+
+      var explMatch = body.match(
+        /(?:\*\*)?(?:Explicação|Explanation|Explicación|Erklärung)(?:\*\*)?\s*:?\s*([\s\S]+?)(?=\n\s*(?:\*\*)?(?:Resposta|Correct|Respuesta|Bonne|Richtige)|$)/i
+      );
+      if (explMatch) explanation = stripMd(explMatch[1]);
+
+      if (firstOptionIndex >= 0) {
+        prompt = stripMd(body.slice(0, firstOptionIndex));
+      } else {
+        prompt = stripMd(body.split(/\n(?:\*\*)?(?:Resposta|Correct|Respuesta|Bonne|Richtige)/i)[0]);
+      }
+
+      if (!prompt && options.length) {
+        prompt = t("question") + " " + number;
+      }
+
+      if (prompt || options.length) {
+        items.push({
+          number: number,
+          prompt: prompt,
+          options: options,
+          answer: answer,
+          explanation: explanation,
+        });
+      }
+    });
+
+    return items;
+  }
+
+  function toPlainText(questions) {
+    if (!questions.length) return lastPlainText || "";
+    return questions
+      .map(function (q) {
+        var lines = [t("question") + " " + q.number + ":", q.prompt, ""];
+        q.options.forEach(function (opt) {
+          lines.push(opt.letter + ") " + opt.text);
+        });
+        lines.push("");
+        if (q.answer) lines.push(t("correct") + ": " + q.answer + ")");
+        if (q.explanation) lines.push(t("explanation") + ": " + q.explanation);
+        return lines.join("\n");
+      })
+      .join("\n\n---\n\n");
+  }
+
+  function escapeHtml(text) {
+    return String(text)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function renderQuestions(container, raw) {
+    var questions = parseQuestions(raw);
+    lastPlainText = questions.length ? toPlainText(questions) : String(raw || "").trim();
+
+    if (!questions.length) {
+      container.innerHTML =
+        '<pre class="oe-quiz-plain">' + escapeHtml(lastPlainText) + "</pre>";
+      container.classList.remove("oe-result--error");
+      container.hidden = !lastPlainText;
+      return;
+    }
+
+    var toolbar =
+      '<div class="oe-quiz-toolbar">' +
+      '<p class="oe-quiz-toolbar__label">' +
+      escapeHtml(t("exportLabel")) +
+      "</p>" +
+      '<button type="button" class="oe-quiz-btn oe-quiz-btn--primary" data-quiz-export="pdf">📄 ' +
+      escapeHtml(t("pdf")) +
+      "</button>" +
+      '<button type="button" class="oe-quiz-btn" data-quiz-export="whatsapp">💬 ' +
+      escapeHtml(t("whatsapp")) +
+      "</button>" +
+      '<button type="button" class="oe-quiz-btn" data-quiz-export="copy">📋 ' +
+      escapeHtml(t("copy")) +
+      "</button>" +
+      '<button type="button" class="oe-quiz-btn" data-quiz-export="txt">📝 ' +
+      escapeHtml(t("txt")) +
+      "</button>" +
+      '<button type="button" class="oe-quiz-btn" data-quiz-export="print">🖨️ ' +
+      escapeHtml(t("print")) +
+      "</button>" +
+      "</div>";
+
+    var cards = questions
+      .map(function (q) {
+        var opts = q.options
+          .map(function (opt) {
+            var correct = q.answer && opt.letter === q.answer;
+            return (
+              '<li class="oe-quiz-option' +
+              (correct ? " oe-quiz-option--correct" : "") +
+              '">' +
+              '<span class="oe-quiz-option__letter">' +
+              escapeHtml(opt.letter) +
+              "</span>" +
+              "<span>" +
+              escapeHtml(opt.text) +
+              "</span></li>"
+            );
+          })
+          .join("");
+
+        var answerHtml = "";
+        if (q.answer || q.explanation) {
+          answerHtml =
+            '<div class="oe-quiz-answer">' +
+            (q.answer
+              ? '<p class="oe-quiz-answer__row"><span class="oe-quiz-answer__label">' +
+                escapeHtml(t("correct")) +
+                ":</span> " +
+                '<span class="oe-quiz-answer__value">' +
+                escapeHtml(q.answer) +
+                ")</span></p>"
+              : "") +
+            (q.explanation
+              ? '<p class="oe-quiz-answer__row"><span class="oe-quiz-answer__label">' +
+                escapeHtml(t("explanation")) +
+                ":</span> " +
+                escapeHtml(q.explanation) +
+                "</p>"
+              : "") +
+            "</div>";
+        }
+
+        return (
+          '<article class="oe-quiz-card">' +
+          '<header class="oe-quiz-card__head">' +
+          '<span class="oe-quiz-card__num">' +
+          escapeHtml(q.number) +
+          "</span>" +
+          "<h3 class=\"oe-quiz-card__title\">" +
+          escapeHtml(q.prompt) +
+          "</h3></header>" +
+          (opts ? '<ul class="oe-quiz-options">' + opts + "</ul>" : "") +
+          '<div class="oe-quiz-card__footer">' +
+          answerHtml +
+          "</div></article>"
+        );
+      })
+      .join("");
+
+    container.innerHTML =
+      '<div class="oe-quiz">' + toolbar + '<div class="oe-quiz-cards">' + cards + "</div></div>";
+    container.classList.remove("oe-result--error");
+    container.hidden = false;
+
+    container.querySelectorAll("[data-quiz-export]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        exportQuiz(btn.getAttribute("data-quiz-export"), btn);
+      });
+    });
+  }
+
+  function showError(container, message) {
+    container.innerHTML =
+      '<pre class="oe-quiz-plain">' + escapeHtml(message) + "</pre>";
+    container.classList.add("oe-result--error");
+    container.hidden = false;
+    lastPlainText = "";
+  }
+
+  function exportQuiz(kind, btn) {
+    var text = lastPlainText;
+    if (!text) {
+      if (global.OuviescreviUI) global.OuviescreviUI.toast(t("empty"), "error");
+      return;
+    }
+
+    if (kind === "pdf") {
+      if (!global.jspdf || !global.jspdf.jsPDF) {
+        if (global.OuviescreviUI) global.OuviescreviUI.toast(t("pdfFail"), "error");
+        return;
+      }
+      try {
+        var doc = new global.jspdf.jsPDF();
+        var lines = doc.splitTextToSize(text + t("signature"), 180);
+        var y = 18;
+        doc.setFontSize(11);
+        lines.forEach(function (line) {
+          if (y > 280) {
+            doc.addPage();
+            y = 18;
+          }
+          doc.text(line, 14, y);
+          y += 6;
+        });
+        doc.save("perguntas-ouviescrevi.pdf");
+      } catch (e) {
+        if (global.OuviescreviUI) global.OuviescreviUI.toast(t("pdfFail"), "error");
+      }
+      return;
+    }
+
+    if (kind === "whatsapp") {
+      var waUrl =
+        "https://api.whatsapp.com/send?text=" +
+        encodeURIComponent(text + t("signature"));
+      global.open(waUrl, "_blank", "noopener");
+      return;
+    }
+
+    if (kind === "copy") {
+      var done = function () {
+        if (!btn) return;
+        var prev = btn.textContent;
+        btn.textContent = "✅ " + t("copied");
+        setTimeout(function () {
+          btn.textContent = prev;
+        }, 2000);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text + t("signature")).then(done).catch(function () {
+          if (global.OuviescreviUI) global.OuviescreviUI.toast(t("copyFail"), "error");
+        });
+      } else if (global.OuviescreviUI) {
+        global.OuviescreviUI.toast(t("copyFail"), "error");
+      }
+      return;
+    }
+
+    if (kind === "txt") {
+      var blob = new Blob([text + t("signature")], {
+        type: "text/plain;charset=utf-8",
+      });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = "perguntas-ouviescrevi.txt";
+      a.click();
+      URL.revokeObjectURL(url);
+      return;
+    }
+
+    if (kind === "print") {
+      global.print();
+    }
+  }
+
+  async function generateFromPage() {
+    var textoEl = document.getElementById("texto");
+    var btn = document.getElementById("btnPerguntas");
+    var out = document.getElementById("resultado");
+    if (!textoEl || !btn || !out) return;
+
+    var texto = textoEl.value.trim();
+    if (!texto) {
+      if (global.OuviescreviUI) {
+        global.OuviescreviUI.toast(
+          config.lang === "en"
+            ? "Paste some text first."
+            : config.lang === "es"
+              ? "Introduce texto primero."
+              : config.lang === "fr"
+                ? "Collez du texte d'abord."
+                : config.lang === "de"
+                  ? "Zuerst Text einfügen."
+                  : "Introduz texto para gerar perguntas.",
+          "error"
+        );
+      }
+      return;
+    }
+
+    if (global.OuviescreviUI) {
+      global.OuviescreviUI.setButtonLoading(
+        btn,
+        true,
+        config.lang === "en"
+          ? "Generating..."
+          : config.lang === "es"
+            ? "Generando..."
+            : config.lang === "fr"
+              ? "Génération..."
+              : config.lang === "de"
+                ? "Wird erstellt..."
+                : "A gerar perguntas..."
+      );
+    }
+
+    try {
+      await global.OuviescreviAPI.init();
+      var apiLang = config.lang === "en" ? "en" : "pt";
+      var payload = {
+        text: texto,
+        lang: apiLang,
+        num_questions: config.numQuestions,
+      };
+      var res = await fetch(global.OuviescreviAPI.getBase() + "/generate-questions", {
+        method: "POST",
+        headers: global.OuviescreviAPI.authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify(global.OuviescreviAPI.authJson(payload)),
+      });
+      var data = await res.json();
+      if (data.questions) {
+        renderQuestions(out, data.questions);
+        out.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else {
+        showError(out, data.error || data.detail || "Erro inesperado.");
+      }
+    } catch (e) {
+      if (global.OuviescreviUI) {
+        global.OuviescreviUI.toast(
+          config.lang === "en" ? "Error generating questions." : "Erro ao gerar perguntas.",
+          "error"
+        );
+      }
+      console.error(e);
+    } finally {
+      if (global.OuviescreviUI) global.OuviescreviUI.setButtonLoading(btn, false);
+    }
+  }
+
+  function init(opts) {
+    config = Object.assign({}, config, opts || {});
+    var btn = document.getElementById("btnPerguntas");
+    if (btn) {
+      btn.addEventListener("click", generateFromPage);
+    }
+    global.gerarPerguntas = generateFromPage;
+  }
+
+  global.PerguntasUI = {
+    init: init,
+    render: renderQuestions,
+    parse: parseQuestions,
+    exportQuiz: exportQuiz,
+    generate: generateFromPage,
+  };
+})(window);

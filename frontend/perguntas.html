@@ -8,6 +8,7 @@
   <title>📘 Gerador de Perguntas com IA</title>
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
   <link rel="stylesheet" href="css/ouviescrevi.css?v=15">
+  <link rel="stylesheet" href="css/perguntas.css?v=1">
   <script src="js/theme-ui.js"></script>
   <script src="/js/ouviescrevi-seo.js" defer></script>
   <script src="js/ouviescrevi-ui.js" defer></script>
@@ -23,44 +24,15 @@
 
 <div class="container">
   <textarea id="texto" placeholder="Cola aqui o conteúdo a estudar..."></textarea>
-  <button type="button" class="oe-btn oe-btn--block" id="btnPerguntas" onclick="gerarPerguntas()">🎓 Gerar Perguntas</button>
-  <div id="resultado"></div>
+  <button type="button" class="oe-btn oe-btn--block" id="btnPerguntas">🎓 Gerar Perguntas</button>
+  <div id="resultado" class="oe-quiz-output" hidden></div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="js/ouviescrevi-api.js"></script>
+<script src="js/perguntas-ui.js?v=1"></script>
 <script>
-  async function gerarPerguntas() {
-    const texto = document.getElementById("texto").value.trim();
-    const btn = document.getElementById("btnPerguntas");
-    if (!texto) {
-      OuviescreviUI.toast("Introduz texto para gerar perguntas.", "error");
-      return;
-    }
-    OuviescreviUI.setButtonLoading(btn, true, "A gerar perguntas...");
-
-    try {
-      await OuviescreviAPI.init();
-      const res = await fetch(`${OuviescreviAPI.getBase()}/generate-questions`, {
-        method: "POST",
-        headers: OuviescreviAPI.authHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify(OuviescreviAPI.authJson({ text: texto }))
-      });
-      const data = await res.json();
-      const out = document.getElementById("resultado");
-      if (data.questions) {
-        out.textContent = data.questions;
-        out.classList.remove("oe-result--error");
-      } else {
-        out.textContent = data.error || data.detail || "Erro inesperado.";
-        out.classList.add("oe-result--error");
-      }
-    } catch (e) {
-      OuviescreviUI.toast("Erro ao gerar perguntas.", "error");
-      console.error(e);
-    } finally {
-      OuviescreviUI.setButtonLoading(btn, false);
-    }
-  }
+  PerguntasUI.init({ lang: "pt", numQuestions: 3 });
 </script>
 <script>
   fetch("header.html")
