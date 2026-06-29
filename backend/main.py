@@ -2376,14 +2376,25 @@ async def correct_text(req: Request):
     data = await req.json()
     text = data.get("text", "")
     token = data.get("token", "")
+    mode = data.get("mode", "normal")
     require_token(token)
     enforce_rate_limit(req, "ai", RATE_LIMIT_AI, RATE_LIMIT_AI_WINDOW)
+    if not text or not text.strip():
+        raise HTTPException(status_code=400, detail="Texto em falta.")
+    prompts = {
+        "normal": "Corrige ortografia e gramática em português europeu, mantendo o sentido e o tom. Devolve apenas o texto corrigido, sem explicações.",
+        "spelling": "Corrige apenas ortografia, acentuação e pontuação em português europeu. Não reformules frases nem alteres o estilo. Devolve apenas o texto corrigido.",
+        "formal": "Corrige o texto em português europeu e adapta-o a um tom mais formal e profissional, mantendo o sentido. Devolve apenas o texto corrigido.",
+        "simple": "Corrige o texto em português europeu e simplifica a linguagem para ser mais clara, mantendo o sentido. Devolve apenas o texto corrigido.",
+    }
+    system = prompts.get(mode, prompts["normal"])
     try:
         resp = client.chat.completions.create(
             model=COR_MODEL,
-            messages=[{"role": "system", "content": "Corrige ortografia e gramática mantendo o sentido e o tom."},
+            messages=[{"role": "system", "content": system},
                       {"role": "user", "content": text}],
             temperature=0.2,
+            max_tokens=min(4096, max(256, len(text) + 200)),
         )
         maybe_notify_activity(req, "Correção com IA feita", "Texto corrigido no Ouviescrevi")
         return {"corrected": resp.choices[0].message.content.strip()}
