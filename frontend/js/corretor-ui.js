@@ -702,21 +702,21 @@
       '<div class="oe-cor-output__body oe-cor-output__body--diff">' + diffHtml + "</div>" +
       "</div>" +
       '<footer class="oe-cor-output__toolbar">' +
-      '<div class="oe-cor-output__toolbar-row oe-cor-output__toolbar-row--primary">' +
+      '<div class="oe-cor-output__actions">' +
       '<button type="button" class="oe-cor-output__btn oe-cor-output__btn--cta" data-cor-apply>' + escapeHtml(t("apply")) + "</button>" +
       '<button type="button" class="oe-cor-output__btn" data-cor-copy>' + escapeHtml(t("copy")) + "</button>" +
       '<button type="button" class="oe-cor-output__btn oe-cor-output__btn--whatsapp" data-cor-whatsapp>' + escapeHtml(t("whatsapp")) + "</button>" +
       "</div>" +
-      '<div class="oe-cor-output__toolbar-row oe-cor-output__toolbar-row--secondary">' +
-      '<div class="oe-cor-output__group">' +
+      '<div class="oe-cor-output__extras">' +
+      '<div class="oe-cor-output__extras-block">' +
       '<span class="oe-cor-output__group-label">' + escapeHtml(t("actionsExport")) + "</span>" +
-      '<div class="oe-cor-output__group-btns">' +
-      '<button type="button" class="oe-cor-output__btn oe-cor-output__btn--compact" data-cor-pdf>' + escapeHtml(t("pdf")) + "</button>" +
-      '<button type="button" class="oe-cor-output__btn oe-cor-output__btn--compact" data-cor-download>' + escapeHtml(t("download")) + "</button>" +
+      '<div class="oe-cor-output__pill-group">' +
+      '<button type="button" class="oe-cor-output__btn oe-cor-output__btn--pill" data-cor-pdf>' + escapeHtml(t("pdf")) + "</button>" +
+      '<button type="button" class="oe-cor-output__btn oe-cor-output__btn--pill" data-cor-download>' + escapeHtml(t("download")) + "</button>" +
       "</div></div>" +
-      '<div class="oe-cor-output__group oe-cor-output__group--end">' +
-      '<button type="button" class="oe-cor-output__btn oe-cor-output__btn--compact" data-cor-compare>' + escapeHtml(t("hideCompare")) + "</button>" +
-      '<button type="button" class="oe-cor-output__btn oe-cor-output__btn--ghost" data-cor-recorrect>' + escapeHtml(t("recorrect")) + "</button>" +
+      '<div class="oe-cor-output__extras-block oe-cor-output__extras-block--end">' +
+      '<button type="button" class="oe-cor-output__btn oe-cor-output__btn--pill" data-cor-compare>' + escapeHtml(t("hideCompare")) + "</button>" +
+      '<button type="button" class="oe-cor-output__btn oe-cor-output__btn--link" data-cor-recorrect>' + escapeHtml(t("recorrect")) + "</button>" +
       "</div></div></footer>";
 
     bindOutputActions(out);
