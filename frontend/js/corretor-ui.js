@@ -704,20 +704,18 @@
       '<footer class="oe-cor-output__toolbar">' +
       '<div class="oe-cor-output__actions">' +
       '<button type="button" class="oe-cor-output__btn oe-cor-output__btn--cta" data-cor-apply>' + escapeHtml(t("apply")) + "</button>" +
+      '<div class="oe-cor-output__actions-row">' +
       '<button type="button" class="oe-cor-output__btn" data-cor-copy>' + escapeHtml(t("copy")) + "</button>" +
       '<button type="button" class="oe-cor-output__btn oe-cor-output__btn--whatsapp" data-cor-whatsapp>' + escapeHtml(t("whatsapp")) + "</button>" +
-      "</div>" +
+      "</div></div>" +
       '<div class="oe-cor-output__extras">' +
-      '<div class="oe-cor-output__extras-block">' +
       '<span class="oe-cor-output__group-label">' + escapeHtml(t("actionsExport")) + "</span>" +
-      '<div class="oe-cor-output__pill-group">' +
       '<button type="button" class="oe-cor-output__btn oe-cor-output__btn--pill" data-cor-pdf>' + escapeHtml(t("pdf")) + "</button>" +
       '<button type="button" class="oe-cor-output__btn oe-cor-output__btn--pill" data-cor-download>' + escapeHtml(t("download")) + "</button>" +
-      "</div></div>" +
-      '<div class="oe-cor-output__extras-block oe-cor-output__extras-block--end">' +
+      '<span class="oe-cor-output__extras-spacer" aria-hidden="true"></span>' +
       '<button type="button" class="oe-cor-output__btn oe-cor-output__btn--pill" data-cor-compare>' + escapeHtml(t("hideCompare")) + "</button>" +
       '<button type="button" class="oe-cor-output__btn oe-cor-output__btn--link" data-cor-recorrect>' + escapeHtml(t("recorrect")) + "</button>" +
-      "</div></div></footer>";
+      "</div></footer>";
 
     bindOutputActions(out);
     scrollToResultIfNeeded(out);
