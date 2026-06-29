@@ -690,7 +690,7 @@
           '<span class="oe-cor-history__preview">' + escapeHtml(preview || "—") + "</span>" +
           '<span class="oe-cor-history__meta">' + escapeHtml(formatDate(row.created_at)) + "</span>" +
           "</button>" +
-          '<button type="button" class="oe-cor-history__del" aria-label="Apagar">✕</button>";
+          '<button type="button" class="oe-cor-history__del" aria-label="Apagar">&times;</button>';
         li.querySelector(".oe-cor-history__open").addEventListener("click", function () {
           openHistoryItem(row.id);
         });
