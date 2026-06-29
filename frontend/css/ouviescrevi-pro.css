@@ -1220,9 +1220,11 @@ body.oe-pro.oe-page--home .oe-home-workspace__col--output .oe-legendar-error {
   border-radius: var(--pro-radius-lg);
   background: var(--pro-surface);
 }
-body.oe-pro.oe-page--home #output.oe-output {
-  padding: 24px;
-  max-width: min(960px, 100%);
+body.oe-pro.oe-page--home .oe-home-workspace__col--output #output.oe-output {
+  padding: 16px;
+}
+body.oe-pro.oe-page--home .oe-home-workspace__col--output #output .oe-output__sidebar {
+  border-top-color: var(--pro-border);
 }
 body.oe-pro.oe-page--home .oe-output__toolbar h3 {
   color: var(--pro-accent);

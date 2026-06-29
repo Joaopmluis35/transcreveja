@@ -28,7 +28,7 @@ body.oe-page--home .oe-home-trust {
 /* Workspace — upload | resultado lado a lado */
 body.oe-page--home .oe-home-workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   gap: 20px;
   width: 100%;
   margin-top: 16px;
@@ -111,6 +111,7 @@ body.oe-page--home .oe-home-workspace__col--output #output.oe-output {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  padding: 16px;
 }
 
 body.oe-page--home .oe-home-workspace__col--output #output.oe-output.hidden {
@@ -131,6 +132,9 @@ body.oe-page--home .oe-home-workspace__col--output .oe-legendar-error {
   body.oe-page--home .oe-home-workspace__col--output #output .oe-output__layout {
     flex: 1;
     min-height: 0;
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+    align-content: start;
   }
 
   body.oe-page--home .oe-home-workspace__col--output #output .oe-output__editor {
@@ -140,10 +144,42 @@ body.oe-page--home .oe-home-workspace__col--output .oe-legendar-error {
     flex-direction: column;
   }
 
+  body.oe-page--home .oe-home-workspace__col--output #output .oe-output__sidebar {
+    flex-shrink: 0;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 12px;
+    margin-top: 2px;
+  }
+
+  body.oe-page--home .oe-home-workspace__col--output #output .oe-output__meta {
+    white-space: normal;
+    text-align: right;
+    line-height: 1.35;
+  }
+
+  body.oe-page--home .oe-home-workspace__col--output #output .oe-output__actions.btn-group {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  body.oe-page--home .oe-home-workspace__col--output #output .oe-output__actions.btn-group button,
+  body.oe-page--home .oe-home-workspace__col--output #output .oe-output__actions .dropdown-export {
+    padding: 8px 10px;
+    font-size: 0.8rem;
+  }
+
+  body.oe-page--home .oe-home-workspace__col--output #output .oe-output__actions .dropdown-content {
+    min-width: 12rem;
+  }
+
   body.oe-page--home .oe-home-workspace__col--output #transcriptionText {
     flex: 1;
-    min-height: 180px;
+    min-height: 200px;
     max-height: none;
+    line-height: 1.7;
+    padding: 14px 16px;
+    font-size: 0.93rem;
   }
 }
 
@@ -674,7 +710,7 @@ body.oe-page--home #adminContent {
   flex-direction: column;
   align-items: stretch;
   width: 100%;
-  max-width: 1200px;
+  max-width: 1280px;
 }
 
 body.oe-page--home main {
