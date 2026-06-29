@@ -490,7 +490,10 @@
 
   function setPlaceholderVisible(visible) {
     var placeholder = document.getElementById("corPlaceholder");
-    if (placeholder) placeholder.hidden = !visible;
+    if (placeholder) {
+      placeholder.hidden = !visible;
+      placeholder.style.display = visible ? "" : "none";
+    }
   }
 
   function applyPlaceholderLabels() {
