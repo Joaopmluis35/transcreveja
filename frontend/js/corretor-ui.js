@@ -543,19 +543,41 @@
 
   function exportPdf() {
     if (!lastCorrected) return;
-    if (!global.jspdf || !global.jspdf.jsPDF) {
-      if (global.OuviescreviUI) global.OuviescreviUI.toast(t("pdfFail"), "error");
-      return;
+    loadJsPdf()
+      .then(function () {
+        if (!global.jspdf || !global.jspdf.jsPDF) throw new Error("jspdf missing");
+        var doc = new global.jspdf.jsPDF();
+        var lines = doc.splitTextToSize(lastCorrected + t("signature"), 180);
+        doc.setFontSize(11);
+        doc.text(lines, 14, 20);
+        doc.save("texto-corrigido-ouviescrevi.pdf");
+      })
+      .catch(function () {
+        if (global.OuviescreviUI) global.OuviescreviUI.toast(t("pdfFail"), "error");
+      });
+  }
+
+  var jspdfPromise = null;
+
+  function loadJsPdf() {
+    if (global.jspdf && global.jspdf.jsPDF) return Promise.resolve();
+    if (!jspdfPromise) {
+      jspdfPromise = new Promise(function (resolve, reject) {
+        var src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+        var existing = document.querySelector('script[src="' + src + '"]');
+        if (existing) {
+          existing.addEventListener("load", resolve, { once: true });
+          return;
+        }
+        var s = document.createElement("script");
+        s.src = src;
+        s.async = true;
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+      });
     }
-    try {
-      var doc = new global.jspdf.jsPDF();
-      var lines = doc.splitTextToSize(lastCorrected + t("signature"), 180);
-      doc.setFontSize(11);
-      doc.text(lines, 14, 20);
-      doc.save("texto-corrigido-ouviescrevi.pdf");
-    } catch (e) {
-      if (global.OuviescreviUI) global.OuviescreviUI.toast(t("pdfFail"), "error");
-    }
+    return jspdfPromise;
   }
 
   async function shareWhatsApp() {
@@ -801,6 +823,10 @@
     var input = document.getElementById("textoInput");
     if (input) {
       input.addEventListener("input", updateMeta);
+      input.addEventListener("paste", function () {
+        setTimeout(updateMeta, 0);
+      });
+      input.addEventListener("change", updateMeta);
       input.addEventListener("keydown", function (e) {
         if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
           e.preventDefault();
@@ -840,5 +866,29 @@
     global.corrigirTexto = correctFromPage;
   }
 
-  global.CorretorUI = { init: init, correct: correctFromPage, loadHistory: loadHistory };
+  var booted = false;
+
+  function bootPage() {
+    if (booted || !document.getElementById("btnCorrigir")) return;
+    booted = true;
+    var lang = (document.documentElement.lang || "pt").slice(0, 2);
+    var apiLang = document.body.getAttribute("data-cor-api-lang") || lang;
+    init({ lang: lang, apiLang: apiLang });
+    if (global.OuviescreviUI) {
+      var headerUrl = document.body.getAttribute("data-oe-header");
+      var footerUrl = document.body.getAttribute("data-oe-footer");
+      if (headerUrl) global.OuviescreviUI.loadHeader(headerUrl);
+      else global.OuviescreviUI.loadHeader();
+      if (footerUrl) global.OuviescreviUI.loadFooter(footerUrl);
+      else global.OuviescreviUI.loadFooter();
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", bootPage);
+  } else {
+    bootPage();
+  }
+
+  global.CorretorUI = { init: init, correct: correctFromPage, loadHistory: loadHistory, boot: bootPage };
 })(window);
