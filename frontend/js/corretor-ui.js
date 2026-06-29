@@ -744,7 +744,21 @@
     }
   }
 
+  function apiInitWithTimeout(ms) {
+    ms = ms || 15000;
+    if (!global.OuviescreviAPI || !global.OuviescreviAPI.init) {
+      return Promise.reject(new Error("api-missing"));
+    }
+    return Promise.race([
+      global.OuviescreviAPI.init(),
+      new Promise(function (_, reject) {
+        setTimeout(function () { reject(new Error("api-timeout")); }, ms);
+      }),
+    ]);
+  }
+
   async function correctFromPage() {
+    ensureBoot();
     var input = document.getElementById("textoInput");
     var btn = document.getElementById("btnCorrigir");
     var out = document.getElementById("resultado");
@@ -757,6 +771,7 @@
     var texto = input.value.trim();
     if (!texto) {
       if (global.OuviescreviUI) global.OuviescreviUI.toast(t("needText"), "error");
+      else alert(t("needText"));
       return;
     }
 
@@ -780,7 +795,7 @@
     }, 650);
 
     try {
-      await global.OuviescreviAPI.init();
+      await apiInitWithTimeout();
       var res = await fetch(global.OuviescreviAPI.getBase() + "/correct", {
         method: "POST",
         headers: global.OuviescreviAPI.authHeaders({ "Content-Type": "application/json" }),
@@ -816,6 +831,8 @@
   }
 
   function init(opts) {
+    if (init._done) return;
+    init._done = true;
     config = Object.assign({}, config, opts || {});
     applyFormLabels();
     updateMeta();
@@ -862,33 +879,54 @@
       });
     }
 
-    loadHistory();
-    global.corrigirTexto = correctFromPage;
+    setTimeout(function () { loadHistory(); }, 0);
   }
 
   var booted = false;
+  var bootAttempts = 0;
+  var MAX_BOOT_ATTEMPTS = 10;
 
-  function bootPage() {
-    if (booted || !document.getElementById("btnCorrigir")) return;
-    booted = true;
-    var lang = (document.documentElement.lang || "pt").slice(0, 2);
-    var apiLang = document.body.getAttribute("data-cor-api-lang") || lang;
-    init({ lang: lang, apiLang: apiLang });
-    if (global.OuviescreviUI) {
-      var headerUrl = document.body.getAttribute("data-oe-header");
-      var footerUrl = document.body.getAttribute("data-oe-footer");
-      if (headerUrl) global.OuviescreviUI.loadHeader(headerUrl);
-      else global.OuviescreviUI.loadHeader();
-      if (footerUrl) global.OuviescreviUI.loadFooter(footerUrl);
-      else global.OuviescreviUI.loadFooter();
+  function safeBoot() {
+    if (booted) return true;
+    if (!document.getElementById("btnCorrigir")) return false;
+    try {
+      var lang = (document.documentElement.lang || "pt").slice(0, 2);
+      var apiLang = document.body.getAttribute("data-cor-api-lang") || lang;
+      init({ lang: lang, apiLang: apiLang });
+      booted = true;
+      return true;
+    } catch (err) {
+      console.error("[CorretorUI] init failed", err);
+      return false;
     }
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", bootPage);
-  } else {
-    bootPage();
+  function ensureBoot() {
+    if (!booted) safeBoot();
+    return booted;
   }
 
-  global.CorretorUI = { init: init, correct: correctFromPage, loadHistory: loadHistory, boot: bootPage };
+  function scheduleBoot() {
+    if (booted) return;
+    bootAttempts += 1;
+    if (safeBoot()) return;
+    if (bootAttempts < MAX_BOOT_ATTEMPTS) {
+      setTimeout(scheduleBoot, 120 * bootAttempts);
+    }
+  }
+
+  global.corrigirTexto = function (ev) {
+    if (ev && ev.preventDefault) ev.preventDefault();
+    ensureBoot();
+    correctFromPage();
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", scheduleBoot);
+  } else {
+    scheduleBoot();
+  }
+  global.addEventListener("load", scheduleBoot);
+
+  global.CorretorUI = { init: init, correct: correctFromPage, loadHistory: loadHistory, boot: scheduleBoot };
 })(window);
