@@ -1527,6 +1527,36 @@ def user_history_delete(request: Request, item_id: int):
     return {"ok": True}
 
 
+@app.get("/api/auth/corrections")
+def user_corrections(request: Request, limit: int = 30, offset: int = 0):
+    actor = resolve_site_actor(request)
+    if actor["type"] != "user":
+        raise HTTPException(status_code=403, detail="Inicia sessão para ver o histórico.")
+    items = admin_store.list_user_corrections(actor["email"], limit=limit, offset=offset)
+    return {"items": items}
+
+
+@app.get("/api/auth/corrections/{item_id}")
+def user_correction_item(request: Request, item_id: int):
+    actor = resolve_site_actor(request)
+    if actor["type"] != "user":
+        raise HTTPException(status_code=403, detail="Inicia sessão para ver o histórico.")
+    row = admin_store.get_user_correction(actor["email"], item_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Correção não encontrada.")
+    return row
+
+
+@app.delete("/api/auth/corrections/{item_id}")
+def user_correction_delete(request: Request, item_id: int):
+    actor = resolve_site_actor(request)
+    if actor["type"] != "user":
+        raise HTTPException(status_code=403, detail="Inicia sessão para apagar do histórico.")
+    if not admin_store.delete_user_correction(actor["email"], item_id):
+        raise HTTPException(status_code=404, detail="Correção não encontrada.")
+    return {"ok": True}
+
+
 class AdminLoginRequest(BaseModel):
     password: str
     username: str | None = None
@@ -2377,16 +2407,44 @@ async def correct_text(req: Request):
     text = data.get("text", "")
     token = data.get("token", "")
     mode = data.get("mode", "normal")
+    lang = data.get("lang", "pt")
     require_token(token)
     enforce_rate_limit(req, "ai", RATE_LIMIT_AI, RATE_LIMIT_AI_WINDOW)
     if not text or not text.strip():
         raise HTTPException(status_code=400, detail="Texto em falta.")
-    prompts = {
-        "normal": "Corrige ortografia e gramática em português europeu, mantendo o sentido e o tom. Devolve apenas o texto corrigido, sem explicações.",
-        "spelling": "Corrige apenas ortografia, acentuação e pontuação em português europeu. Não reformules frases nem alteres o estilo. Devolve apenas o texto corrigido.",
-        "formal": "Corrige o texto em português europeu e adapta-o a um tom mais formal e profissional, mantendo o sentido. Devolve apenas o texto corrigido.",
-        "simple": "Corrige o texto em português europeu e simplifica a linguagem para ser mais clara, mantendo o sentido. Devolve apenas o texto corrigido.",
+    prompt_sets = {
+        "pt": {
+            "normal": "Corrige ortografia e gramática em português europeu, mantendo o sentido e o tom. Devolve apenas o texto corrigido, sem explicações.",
+            "spelling": "Corrige apenas ortografia, acentuação e pontuação em português europeu. Não reformules frases nem alteres o estilo. Devolve apenas o texto corrigido.",
+            "formal": "Corrige o texto em português europeu e adapta-o a um tom mais formal e profissional, mantendo o sentido. Devolve apenas o texto corrigido.",
+            "simple": "Corrige o texto em português europeu e simplifica a linguagem para ser mais clara, mantendo o sentido. Devolve apenas o texto corrigido.",
+        },
+        "en": {
+            "normal": "Correct spelling and grammar in English, keeping meaning and tone. Return only the corrected text, no explanations.",
+            "spelling": "Correct only spelling and punctuation in English. Do not rephrase or change style. Return only the corrected text.",
+            "formal": "Correct the English text and adapt it to a more formal professional tone, keeping the meaning. Return only the corrected text.",
+            "simple": "Correct the English text and simplify the language for clarity, keeping the meaning. Return only the corrected text.",
+        },
+        "es": {
+            "normal": "Corrige ortografía y gramática en español, manteniendo el sentido y el tono. Devuelve solo el texto corregido, sin explicaciones.",
+            "spelling": "Corrige solo ortografía y puntuación en español. No reformules frases. Devuelve solo el texto corregido.",
+            "formal": "Corrige el texto en español y adáptalo a un tono más formal, manteniendo el sentido. Devuelve solo el texto corregido.",
+            "simple": "Corrige el texto en español y simplifica el lenguaje, manteniendo el sentido. Devuelve solo el texto corregido.",
+        },
+        "fr": {
+            "normal": "Corrige l'orthographe et la grammaire en français, en gardant le sens et le ton. Renvoie uniquement le texte corrigé, sans explications.",
+            "spelling": "Corrige uniquement l'orthographe et la ponctuation en français. Ne reformule pas. Renvoie uniquement le texte corrigé.",
+            "formal": "Corrige le texte en français et adapte-le à un ton plus formel, en gardant le sens. Renvoie uniquement le texte corrigé.",
+            "simple": "Corrige le texte en français et simplifie le langage, en gardant le sens. Renvoie uniquement le texte corrigé.",
+        },
+        "de": {
+            "normal": "Korrigiere Rechtschreibung und Grammatik auf Deutsch, behalte Sinn und Ton bei. Gib nur den korrigierten Text zurück, ohne Erklärungen.",
+            "spelling": "Korrigiere nur Rechtschreibung und Zeichensetzung auf Deutsch. Formuliere nicht um. Gib nur den korrigierten Text zurück.",
+            "formal": "Korrigiere den deutschen Text und passe ihn an einen formelleren Ton an, behalte den Sinn bei. Gib nur den korrigierten Text zurück.",
+            "simple": "Korrigiere den deutschen Text und vereinfache die Sprache, behalte den Sinn bei. Gib nur den korrigierten Text zurück.",
+        },
     }
+    prompts = prompt_sets.get(lang, prompt_sets["pt"])
     system = prompts.get(mode, prompts["normal"])
     try:
         resp = client.chat.completions.create(
@@ -2396,8 +2454,18 @@ async def correct_text(req: Request):
             temperature=0.2,
             max_tokens=min(4096, max(256, len(text) + 200)),
         )
+        corrected = resp.choices[0].message.content.strip()
         maybe_notify_activity(req, "Correção com IA feita", "Texto corrigido no Ouviescrevi")
-        return {"corrected": resp.choices[0].message.content.strip()}
+        history_id = None
+        actor = resolve_site_actor(req)
+        if actor["type"] == "user":
+            history_id = admin_store.save_user_correction(
+                actor["email"],
+                original_text=text,
+                corrected_text=corrected,
+                mode=mode,
+            )
+        return {"corrected": corrected, "history_id": history_id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

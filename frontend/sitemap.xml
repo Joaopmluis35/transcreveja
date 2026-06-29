@@ -34,7 +34,13 @@
   <url><loc>https://www.ouviescrevi.pt/podcasts.html</loc><lastmod>2026-06-22</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://www.ouviescrevi.pt/reunioes.html</loc><lastmod>2026-06-22</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://www.ouviescrevi.pt/testemunhos.html</loc><lastmod>2026-06-22</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://www.ouviescrevi.pt/corretor.html</loc><lastmod>2026-06-22</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/corretor.html</loc><lastmod>2026-06-22</lastmod><changefreq>monthly</changefreq><priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/corretor.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/corretor.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/corretor.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/corretor.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/corretor.html"/>
+  </url>
   <url><loc>https://www.ouviescrevi.pt/perguntas.html</loc><lastmod>2026-06-22</lastmod><changefreq>monthly</changefreq><priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/perguntas.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/perguntas.html"/>

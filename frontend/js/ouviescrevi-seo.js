@@ -157,6 +157,26 @@
       description:
         "Corrige ortografia e gramática automaticamente com inteligência artificial. Grátis e no browser.",
     },
+    "/en/corretor.html": {
+      title: "AI Text Proofreader — Spelling and Grammar | Ouviescrevi",
+      description: "Fix spelling and grammar automatically with AI. Free in your browser.",
+      lang: "en",
+    },
+    "/es/corretor.html": {
+      title: "Corrector de texto con IA | Ouviescrevi",
+      description: "Corrige ortografía y gramática automáticamente con IA.",
+      lang: "es",
+    },
+    "/fr/corretor.html": {
+      title: "Correcteur de texte avec IA | Ouviescrevi",
+      description: "Corrigez orthographe et grammaire automatiquement avec l'IA.",
+      lang: "fr",
+    },
+    "/de/corretor.html": {
+      title: "KI-Textkorrektur | Ouviescrevi",
+      description: "Rechtschreibung und Grammatik automatisch mit KI korrigieren.",
+      lang: "de",
+    },
     "/perguntas.html": {
       title: "Gerador de Perguntas de Escolha Múltipla com IA | Ouviescrevi",
       description:

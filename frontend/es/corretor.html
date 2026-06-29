@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Corrige ortografía y gramática automáticamente con IA — gratis en el navegador." />
+  <meta name="robots" content="index, follow" />
+  <title>Corrector de texto con IA - Ouviescrevi</title>
+  <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
+  <link rel="stylesheet" href="../css/ouviescrevi.css?v=15" />
+  <link rel="stylesheet" href="../css/corretor.css?v=3" />
+  <script src="../js/theme-ui.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+  <script src="/js/ouviescrevi-seo.js" defer></script>
+  <script src="../js/ouviescrevi-ui.js" defer></script>
+</head>
+<body class="oe-page oe-pro oe-page--corretor">
+<a class="oe-skip" href="#conteudo">Saltar al contenido</a>
+<div id="header"></div>
+<div class="oe-cor-layout" id="conteudo">
+  <header class="oe-cor-hero">
+    <h1 data-cms-key="es_corretor_title" data-cms-mode="text">✍️ Corrector de texto con IA</h1>
+    <p class="oe-lead" data-cms-key="es_corretor_lead" data-cms-mode="text">Pega tu texto para corregir ortografía y gramática automáticamente.</p>
+  </header>
+  <div class="container oe-cor-page">
+    <section class="oe-cor-form" aria-labelledby="corFormTitle">
+      <div class="oe-cor-form__head">
+        <p class="oe-cor-form__eyebrow" id="corFormEyebrow">Ortografía · Gramática · Estilo</p>
+        <h2 class="oe-cor-form__title" id="corFormTitle">Tu texto</h2>
+        <p class="oe-cor-form__hint" id="corFormHint">Pega, escribe o sube un PDF/Word.</p>
+      </div>
+      <div class="oe-cor-drop" id="corDropZone" role="button" tabindex="0">
+        <span id="corDropLabel">Arrastra un PDF o Word (.docx) aquí</span>
+        <input type="file" id="corFileInput" accept=".pdf,.docx" hidden />
+      </div>
+      <textarea id="textoInput" aria-labelledby="corFormTitle"></textarea>
+      <p class="oe-cor-form__meta" id="corMeta">0 caracteres · 0 palabras</p>
+      <p class="oe-cor-form__shortcut" id="corShortcutHint">Atajo: Ctrl+Enter</p>
+      <div class="oe-cor-form__footer">
+        <div class="oe-cor-form__mode">
+          <label for="corModo" id="corModoLabel">Tipo de corrección</label>
+          <select id="corModo">
+            <option value="normal">Completa</option>
+            <option value="spelling">Solo ortografía</option>
+            <option value="formal">Tono formal</option>
+            <option value="simple">Lenguaje simple</option>
+          </select>
+        </div>
+        <button type="button" class="oe-cor-form__submit" id="btnCorrigir">Corregir texto</button>
+      </div>
+    </section>
+    <div class="oe-cor-progress" id="corProgress" hidden>
+      <div class="oe-cor-progress__track"><div class="oe-cor-progress__bar" id="progressBar"></div></div>
+      <p class="oe-cor-progress__phrase" id="loadingPhrase"></p>
+      <p class="oe-cor-progress__hint" id="corProgressHint"></p>
+    </div>
+    <div id="resultado" class="oe-cor-output" hidden></div>
+    <section class="oe-cor-history" id="corHistoryPanel" hidden>
+      <div id="corHistoryLogin">
+        <p class="oe-cor-history__login" id="corHistoryLoginText"></p>
+        <button type="button" class="oe-cor-history__login-btn" id="corHistoryLoginBtn"></button>
+      </div>
+      <div id="corHistoryLogged" hidden>
+        <div class="oe-cor-history__head">
+          <h2 class="oe-cor-history__title" id="corHistoryTitle"></h2>
+          <button type="button" class="oe-cor-history__refresh" id="corHistoryRefresh"></button>
+        </div>
+        <ul class="oe-cor-history__list" id="corHistoryList"></ul>
+        <p class="oe-cor-history__empty" id="corHistoryEmpty" hidden></p>
+      </div>
+    </section>
+  </div>
+</div>
+<div id="footer"></div>
+<script src="../js/ouviescrevi-api.js"></script>
+<script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="../js/corretor-files.js?v=1" defer></script>
+<script src="../js/corretor-ui.js?v=3" defer></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    CorretorUI.init({ lang: "es", apiLang: "es" });
+    OuviescreviUI.loadHeader("header.html");
+    OuviescreviUI.loadFooter("footer.html");
+  });
+</script>
+</body>
+</html>

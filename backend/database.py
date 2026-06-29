@@ -425,6 +425,21 @@ def criar_base() -> None:
         )
 
         cur.execute("""
+            CREATE TABLE IF NOT EXISTS user_corrections (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_email TEXT NOT NULL,
+                original_text TEXT,
+                corrected_text TEXT,
+                mode TEXT,
+                created_at TEXT NOT NULL
+            )
+        """)
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_user_corrections_email "
+            "ON user_corrections(user_email, created_at DESC)"
+        )
+
+        cur.execute("""
             CREATE TABLE IF NOT EXISTS daily_usage (
                 usage_key TEXT NOT NULL,
                 usage_day TEXT NOT NULL,

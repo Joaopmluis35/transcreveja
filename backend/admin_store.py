@@ -454,6 +454,98 @@ def delete_user_transcription(user_email: str, item_id: int) -> bool:
         conn.close()
 
 
+def save_user_correction(
+    user_email: str,
+    *,
+    original_text: str,
+    corrected_text: str,
+    mode: str | None = None,
+) -> int:
+    email = user_email.strip().lower()
+    now = _now()
+    orig = (original_text or "")[:100_000]
+    corr = (corrected_text or "")[:100_000]
+    conn = get_connection()
+    try:
+        cur = conn.execute(
+            """
+            INSERT INTO user_corrections (
+                user_email, original_text, corrected_text, mode, created_at
+            ) VALUES (?, ?, ?, ?, ?)
+            """,
+            (email, orig, corr, mode, now),
+        )
+        new_id = int(cur.lastrowid)
+        rows = conn.execute(
+            "SELECT id FROM user_corrections WHERE user_email = ? ORDER BY id DESC",
+            (email,),
+        ).fetchall()
+        if len(rows) > 50:
+            drop_ids = [int(r["id"]) for r in rows[50:]]
+            placeholders = ",".join("?" * len(drop_ids))
+            conn.execute(
+                f"DELETE FROM user_corrections WHERE id IN ({placeholders})",
+                drop_ids,
+            )
+        conn.commit()
+        return new_id
+    finally:
+        conn.close()
+
+
+def list_user_corrections(user_email: str, *, limit: int = 30, offset: int = 0) -> list[dict]:
+    limit = max(1, min(limit, 100))
+    offset = max(0, offset)
+    email = user_email.strip().lower()
+    conn = get_connection()
+    try:
+        rows = conn.execute(
+            """
+            SELECT id, mode, created_at,
+                   substr(COALESCE(corrected_text, ''), 1, 160) AS preview
+            FROM user_corrections
+            WHERE user_email = ?
+            ORDER BY id DESC
+            LIMIT ? OFFSET ?
+            """,
+            (email, limit, offset),
+        ).fetchall()
+        return [row_to_dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+def get_user_correction(user_email: str, item_id: int) -> dict | None:
+    email = user_email.strip().lower()
+    conn = get_connection()
+    try:
+        row = conn.execute(
+            """
+            SELECT id, original_text, corrected_text, mode, created_at
+            FROM user_corrections
+            WHERE user_email = ? AND id = ?
+            """,
+            (email, item_id),
+        ).fetchone()
+        return row_to_dict(row) if row else None
+    finally:
+        conn.close()
+
+
+def delete_user_correction(user_email: str, item_id: int) -> bool:
+    email = user_email.strip().lower()
+    conn = get_connection()
+    try:
+        cur = conn.execute(
+            "DELETE FROM user_corrections WHERE user_email = ? AND id = ?",
+            (email, item_id),
+        )
+        conn.commit()
+        return cur.rowcount > 0
+    finally:
+        conn.close()
+
+
 def list_users() -> list[dict]:
     conn = get_connection()
     try:
