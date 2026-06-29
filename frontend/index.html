@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="stylesheet" href="css/ouviescrevi.css?v=15">
-  <link rel="stylesheet" href="css/index-home.css?v=22">
+  <link rel="stylesheet" href="css/index-home.css?v=23">
   <link rel="stylesheet" href="css/pricing-visibility.css">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <title>Ouviescrevi — Transcrição de Áudio e Vídeo com IA Grátis</title>
@@ -30,6 +30,9 @@
       Transcrever 🎙️ · Traduzir 🌍 · Resumir 📌 · Converter ficheiros 📄 — grátis, em português.
     </p>
 
+    <div class="oe-home-workspace">
+      <div class="oe-home-workspace__col oe-home-workspace__col--input">
+
     <form id="uploadForm">
       <div id="dropZone" class="oe-drop-zone--empty">
         <p class="oe-drop-zone__lead">📁 <strong>Arrasta aqui o áudio ou vídeo</strong> ou clica para escolher</p>
@@ -52,32 +55,6 @@
       <button type="button" id="btnStartRec">🎤 Gravar Áudio</button>
       <button type="button" id="btnStopRecording" class="hidden">🛑 Parar Gravação</button>
       <button type="button" id="btnLimparTudo" onclick="limparTudo()">🧹 Limpar Tudo</button>
-      </div>
-
-      <div id="loading" class="oe-loading hidden" aria-live="polite" aria-busy="false">
-        <p class="oe-loading__eyebrow" id="loadingEyebrow">A processar</p>
-        <p class="status oe-loading__status" id="transcricaoStatus">🔄 A preparar...</p>
-        <p id="timerTranscricao" class="oe-loading__timer hidden">⏳ 00:00</p>
-        <p id="legendarEta" class="oe-loading__eta hidden" aria-live="polite"></p>
-        <div id="progressWrap">
-          <div id="progressBar"></div>
-        </div>
-        <p class="oe-loading__hint">Não feches esta página — o progresso aparece aqui mesmo.</p>
-      </div>
-
-      <div id="legendarDoneBanner" class="oe-legendar-done hidden" role="status" aria-live="polite">
-        <p class="oe-legendar-done__title" id="legendarDoneTitle">✅ Legendas prontas!</p>
-        <p class="oe-legendar-done__text" id="legendarDoneText">Os ficheiros estão prontos para descarregar.</p>
-        <div class="oe-legendar-done__actions">
-          <a id="legendarSrtBtn" class="oe-legendar-done__btn" href="#" download>⬇️ Descarregar SRT</a>
-          <a id="legendarMp4Btn" class="oe-legendar-done__btn oe-legendar-done__btn--primary hidden" href="#" download>⬇️ Descarregar vídeo MP4</a>
-        </div>
-        <p class="oe-legendar-done__warn hidden" id="legendarDoneWarn"></p>
-      </div>
-
-      <div id="legendarErrorBanner" class="oe-legendar-error hidden" role="alert">
-        <p class="oe-legendar-error__title">❌ Não foi possível legendar o vídeo</p>
-        <p class="oe-legendar-error__text" id="legendarErrorText"></p>
       </div>
 
       <p id="videoUploadHint" class="oe-video-hint hidden" role="status">
@@ -119,6 +96,131 @@
 
       <p id="recordingStatus"></p>
     </form>
+
+      </div>
+
+      <div class="oe-home-workspace__col oe-home-workspace__col--output" aria-live="polite">
+        <div id="homeOutputPlaceholder" class="oe-home-panel oe-home-panel--placeholder">
+          <h2 class="oe-home-panel__title">Transcrição</h2>
+          <p class="oe-home-panel__hint">O texto e as ações com IA aparecem aqui, ao lado do upload.</p>
+        </div>
+
+        <div id="loading" class="oe-loading hidden" aria-live="polite" aria-busy="false">
+          <p class="oe-loading__eyebrow" id="loadingEyebrow">A processar</p>
+          <p class="status oe-loading__status" id="transcricaoStatus">🔄 A preparar...</p>
+          <p id="timerTranscricao" class="oe-loading__timer hidden">⏳ 00:00</p>
+          <p id="legendarEta" class="oe-loading__eta hidden" aria-live="polite"></p>
+          <div id="progressWrap">
+            <div id="progressBar"></div>
+          </div>
+          <p class="oe-loading__hint">Não feches esta página — o progresso aparece aqui.</p>
+        </div>
+
+        <div id="legendarDoneBanner" class="oe-legendar-done hidden" role="status" aria-live="polite">
+          <p class="oe-legendar-done__title" id="legendarDoneTitle">✅ Legendas prontas!</p>
+          <p class="oe-legendar-done__text" id="legendarDoneText">Os ficheiros estão prontos para descarregar.</p>
+          <div class="oe-legendar-done__actions">
+            <a id="legendarSrtBtn" class="oe-legendar-done__btn" href="#" download>⬇️ Descarregar SRT</a>
+            <a id="legendarMp4Btn" class="oe-legendar-done__btn oe-legendar-done__btn--primary hidden" href="#" download>⬇️ Descarregar vídeo MP4</a>
+          </div>
+          <p class="oe-legendar-done__warn hidden" id="legendarDoneWarn"></p>
+        </div>
+
+        <div id="legendarErrorBanner" class="oe-legendar-error hidden" role="alert">
+          <p class="oe-legendar-error__title">❌ Não foi possível legendar o vídeo</p>
+          <p class="oe-legendar-error__text" id="legendarErrorText"></p>
+        </div>
+
+        <div id="output" class="oe-output hidden oe-home-output-slot">
+          <div class="oe-output__layout">
+            <section class="oe-output__editor" aria-labelledby="outputTitle">
+              <div class="oe-output__toolbar">
+                <h3 id="outputTitle">Transcrição</h3>
+                <div class="oe-output__toolbar-actions">
+                  <span id="transcriptionMeta" class="oe-output__meta" aria-live="polite"></span>
+                  <button type="button" class="oe-copy-btn oe-output__copy" onclick="copiarTranscricao()">📋 Copiar</button>
+                </div>
+              </div>
+              <textarea id="transcriptionText" readonly aria-labelledby="outputTitle" placeholder="O texto transcrito aparece aqui…"></textarea>
+            </section>
+        
+            <aside class="oe-output__sidebar" aria-label="Ações sobre a transcrição">
+              <p class="oe-output__sidebar-title">Ações com IA</p>
+              <div class="oe-output__actions btn-group">
+                <button id="btnGerarResumo" type="button"><span>🧠 Gerar Resumo</span></button>
+                <button type="button" onclick="corrigirTextoIA()"><span>📝 Corrigir Texto</span></button>
+                <button type="button" onclick="abrirModalTraducao()"><span>🌍 Traduzir</span></button>
+                <button type="button" onclick="classificarConteudo()"><span>📚 Classificar</span></button>
+                <button type="button" onclick="gerarMinuta()"><span>📩 Gerar Minuta</span></button>
+                <button type="button" onclick="gerarEmailIA()"><span>📧 Gerar Email</span></button>
+                <button type="button" onclick="partilharWhatsapp()"><span>📲 WhatsApp</span></button>
+                <div class="dropdown-export" id="exportDropdown">
+                  <button type="button" id="exportBtn" aria-haspopup="true" aria-expanded="false"><span>📁 Exportar ▼</span></button>
+                  <div class="dropdown-content" id="exportOptions">
+                    <button type="button" data-export="pdf"><span>📄 Exportar PDF</span></button>
+                    <button type="button" data-export="docx" id="exportDocxBtn" data-pricing-only><span>📝 Exportar DOCX <small class="oe-pro-tag">Pro</small></span></button>
+                    <button type="button" data-export="doc"><span>📝 Exportar DOC (simples)</span></button>
+                    <button type="button" data-export="txt"><span>📃 Exportar TXT</span></button>
+                    <button type="button" data-export="srt"><span>🎞️ Exportar SRT</span></button>
+                    <button type="button" data-export="json"><span>🔢 Exportar JSON</span></button>
+                  </div>
+                </div>
+              </div>
+              <button id="btnRetry" type="button" class="oe-output__retry hidden" onclick="tentarNovamente()"><span>🔁 Tentar novamente</span></button>
+            </aside>
+          </div>
+        
+          <p id="traducaoStatus" class="status hidden">🌍 A traduzir... por favor aguarde</p>
+          <div id="traducaoProgressWrapper" class="hidden">
+            <div id="traducaoProgressBar"></div>
+          </div>
+        
+          <div id="resumoBox" class="hidden">
+            <h3>📌 Resumo:</h3>
+            <div id="resumoTexto" class="oe-result-box"></div>
+            <div class="oe-copy-row">
+              <button type="button" class="oe-copy-btn" onclick="copiarTextoBox('resumoTexto', this)">📋 Copiar Tudo</button>
+            </div>
+          </div>
+        
+          <div id="minutaBox" class="hidden">
+            <h3>📩 Minuta da Reunião:</h3>
+            <div id="minutaTexto" class="oe-result-box"></div>
+            <div class="oe-copy-row">
+              <button type="button" class="oe-copy-btn" onclick="copiarTextoBox('minutaTexto', this)">📋 Copiar Tudo</button>
+            </div>
+          </div>
+        
+          <div id="traducaoBox" class="hidden">
+            <h3>🌍 Tradução:</h3>
+            <div id="traducaoTexto" class="oe-result-box"></div>
+            <div class="oe-copy-row">
+              <button type="button" class="oe-copy-btn" onclick="copiarTextoBox('traducaoTexto', this)">📋 Copiar Tudo</button>
+            </div>
+          </div>
+        
+          <div id="classificacaoBox" class="hidden">
+            <h3>📚 Tipo de Conteúdo:</h3>
+            <div id="classificacaoTexto" class="oe-result-box"></div>
+          </div>
+        
+          <!-- Resultados de legendas/vídeo legendado -->
+          <div id="legendasBox" class="hidden oe-output__extra">
+            <h3>🎞️ Legendas / Vídeo Legendado</h3>
+            <p class="oe-legendas-next" id="legendasNextStep">✅ Pronto! Descarrega os ficheiros abaixo.</p>
+            <div id="legendasInfo">
+              <p id="legendasMsg">Pronto! Os ficheiros estão prontos para descarregar:</p>
+              <div>
+                <a id="srtDownload" href="#" download>⬇️ Download SRT</a>
+                <a id="mp4Download" class="hidden" href="#" download>⬇️ Download Vídeo (MP4)</a>
+              </div>
+              <p id="legendasWarn" class="hidden"></p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
 
     <p class="oe-home-trust">🇵🇹 Feito em Portugal · sem registo obrigatório</p>
 
@@ -261,94 +363,6 @@
       <video id="hiddenVideo" class="hidden" crossorigin="anonymous" playsinline></video>
     </div>
 
-    <div id="output" class="oe-output hidden">
-      <div class="oe-output__layout">
-        <section class="oe-output__editor" aria-labelledby="outputTitle">
-          <div class="oe-output__toolbar">
-            <h3 id="outputTitle">Transcrição</h3>
-            <div class="oe-output__toolbar-actions">
-              <span id="transcriptionMeta" class="oe-output__meta" aria-live="polite"></span>
-              <button type="button" class="oe-copy-btn oe-output__copy" onclick="copiarTranscricao()">📋 Copiar</button>
-            </div>
-          </div>
-          <textarea id="transcriptionText" readonly aria-labelledby="outputTitle" placeholder="O texto transcrito aparece aqui…"></textarea>
-        </section>
-
-        <aside class="oe-output__sidebar" aria-label="Ações sobre a transcrição">
-          <p class="oe-output__sidebar-title">Ações com IA</p>
-          <div class="oe-output__actions btn-group">
-            <button id="btnGerarResumo" type="button"><span>🧠 Gerar Resumo</span></button>
-            <button type="button" onclick="corrigirTextoIA()"><span>📝 Corrigir Texto</span></button>
-            <button type="button" onclick="abrirModalTraducao()"><span>🌍 Traduzir</span></button>
-            <button type="button" onclick="classificarConteudo()"><span>📚 Classificar</span></button>
-            <button type="button" onclick="gerarMinuta()"><span>📩 Gerar Minuta</span></button>
-            <button type="button" onclick="gerarEmailIA()"><span>📧 Gerar Email</span></button>
-            <button type="button" onclick="partilharWhatsapp()"><span>📲 WhatsApp</span></button>
-            <div class="dropdown-export" id="exportDropdown">
-              <button type="button" id="exportBtn" aria-haspopup="true" aria-expanded="false"><span>📁 Exportar ▼</span></button>
-              <div class="dropdown-content" id="exportOptions">
-                <button type="button" data-export="pdf"><span>📄 Exportar PDF</span></button>
-                <button type="button" data-export="docx" id="exportDocxBtn" data-pricing-only><span>📝 Exportar DOCX <small class="oe-pro-tag">Pro</small></span></button>
-                <button type="button" data-export="doc"><span>📝 Exportar DOC (simples)</span></button>
-                <button type="button" data-export="txt"><span>📃 Exportar TXT</span></button>
-                <button type="button" data-export="srt"><span>🎞️ Exportar SRT</span></button>
-                <button type="button" data-export="json"><span>🔢 Exportar JSON</span></button>
-              </div>
-            </div>
-          </div>
-          <button id="btnRetry" type="button" class="oe-output__retry hidden" onclick="tentarNovamente()"><span>🔁 Tentar novamente</span></button>
-        </aside>
-      </div>
-
-      <p id="traducaoStatus" class="status hidden">🌍 A traduzir... por favor aguarde</p>
-      <div id="traducaoProgressWrapper" class="hidden">
-        <div id="traducaoProgressBar"></div>
-      </div>
-
-      <div id="resumoBox" class="hidden">
-        <h3>📌 Resumo:</h3>
-        <div id="resumoTexto" class="oe-result-box"></div>
-        <div class="oe-copy-row">
-          <button type="button" class="oe-copy-btn" onclick="copiarTextoBox('resumoTexto', this)">📋 Copiar Tudo</button>
-        </div>
-      </div>
-
-      <div id="minutaBox" class="hidden">
-        <h3>📩 Minuta da Reunião:</h3>
-        <div id="minutaTexto" class="oe-result-box"></div>
-        <div class="oe-copy-row">
-          <button type="button" class="oe-copy-btn" onclick="copiarTextoBox('minutaTexto', this)">📋 Copiar Tudo</button>
-        </div>
-      </div>
-
-      <div id="traducaoBox" class="hidden">
-        <h3>🌍 Tradução:</h3>
-        <div id="traducaoTexto" class="oe-result-box"></div>
-        <div class="oe-copy-row">
-          <button type="button" class="oe-copy-btn" onclick="copiarTextoBox('traducaoTexto', this)">📋 Copiar Tudo</button>
-        </div>
-      </div>
-
-      <div id="classificacaoBox" class="hidden">
-        <h3>📚 Tipo de Conteúdo:</h3>
-        <div id="classificacaoTexto" class="oe-result-box"></div>
-      </div>
-
-      <!-- Resultados de legendas/vídeo legendado -->
-      <div id="legendasBox" class="hidden oe-output__extra">
-        <h3>🎞️ Legendas / Vídeo Legendado</h3>
-        <p class="oe-legendas-next" id="legendasNextStep">✅ Pronto! Descarrega os ficheiros abaixo.</p>
-        <div id="legendasInfo">
-          <p id="legendasMsg">Pronto! Os ficheiros estão prontos para descarregar:</p>
-          <div>
-            <a id="srtDownload" href="#" download>⬇️ Download SRT</a>
-            <a id="mp4Download" class="hidden" href="#" download>⬇️ Download Vídeo (MP4)</a>
-          </div>
-          <p id="legendasWarn" class="hidden"></p>
-        </div>
-      </div>
-    </div>
-
   </div>
 
   <!-- Modal de tradução -->
@@ -448,6 +462,7 @@
   document.addEventListener("DOMContentLoaded", function () {
     loadSiteContent();
     if (window.OuviescreviHistory) window.OuviescreviHistory.init();
+    syncHomePlaceholder();
   });
 
   let mediaRecorder;
@@ -624,8 +639,33 @@
   const loading = document.getElementById("loading");
   const progressBar = document.getElementById("progressBar");
   const output = document.getElementById("output");
+  const homeOutputPlaceholder = document.getElementById("homeOutputPlaceholder");
   const transcriptionText = document.getElementById("transcriptionText");
   const transcriptionMeta = document.getElementById("transcriptionMeta");
+
+  function isHomeWideLayout() {
+    return window.matchMedia && window.matchMedia("(min-width: 901px)").matches;
+  }
+
+  function syncHomePlaceholder() {
+    if (!homeOutputPlaceholder) return;
+    var loadingVisible = loading && !loading.classList.contains("hidden");
+    var outputVisible = output && !output.classList.contains("hidden");
+    var legendarDone = document.getElementById("legendarDoneBanner");
+    var legendarErr = document.getElementById("legendarErrorBanner");
+    var legendarVisible =
+      (legendarDone && !legendarDone.classList.contains("hidden")) ||
+      (legendarErr && !legendarErr.classList.contains("hidden"));
+    var show = !loadingVisible && !outputVisible && !legendarVisible;
+    homeOutputPlaceholder.hidden = !show;
+    homeOutputPlaceholder.style.display = show ? "" : "none";
+  }
+
+  function setOutputPanelVisible(visible) {
+    if (!output) return;
+    output.classList.toggle("hidden", !visible);
+    syncHomePlaceholder();
+  }
 
   function atualizarMetaTranscricao() {
     if (!transcriptionMeta || !transcriptionText) return;
@@ -647,7 +687,10 @@
   function focusTranscriptionResult() {
     if (!output) return;
     output.classList.add("oe-output--fresh");
-    output.scrollIntoView({ behavior: "smooth", block: "start" });
+    syncHomePlaceholder();
+    if (!isHomeWideLayout()) {
+      output.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
     var sidebar = output.querySelector(".oe-output__sidebar");
     if (sidebar) {
       sidebar.classList.add("oe-output__sidebar--highlight");
@@ -683,6 +726,7 @@
       var el = document.getElementById(id);
       if (el) el.classList.add("hidden");
     });
+    syncHomePlaceholder();
   }
 
   function showLegendarSuccess(srtUrl, mp4Url, warning, options) {
@@ -727,6 +771,7 @@
     if (banner) {
       banner.classList.remove("hidden");
     }
+    syncHomePlaceholder();
     if (window.OuviescreviUI && window.OuviescreviUI.toast) {
       window.OuviescreviUI.toast(
         options.mp4Pending ? "Legendas SRT prontas — o MP4 continua a processar." : "Legendas prontas — descarrega os ficheiros abaixo.",
@@ -764,6 +809,7 @@
     var text = document.getElementById("legendarErrorText");
     if (text) text.textContent = message || "Erro inesperado. Tenta novamente.";
     if (banner) banner.classList.remove("hidden");
+    syncHomePlaceholder();
     mostrarAlertaUpload(message || "Não foi possível gerar as legendas.");
     if (window.OuviescreviUI && window.OuviescreviUI.toast) {
       window.OuviescreviUI.toast("Erro ao legendar o vídeo.", "error");
@@ -792,15 +838,19 @@
             : "A transcrever o ficheiro";
     }
     progressBar.style.width = "0%";
-    requestAnimationFrame(function () {
-      loading.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    });
+    syncHomePlaceholder();
+    if (!isHomeWideLayout()) {
+      requestAnimationFrame(function () {
+        loading.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      });
+    }
   }
 
   function endJobLoading() {
     loading.classList.add("hidden");
     loading.classList.remove("oe-loading--active");
     loading.setAttribute("aria-busy", "false");
+    syncHomePlaceholder();
     if (!legendarReady) {
       if (typeof syncSubtitleChrome === "function") syncSubtitleChrome();
     }
@@ -846,7 +896,7 @@
     limparAlertaUpload();
 
     // reset UI
-    output.classList.add("hidden");
+    setOutputPanelVisible(false);
     definirTranscricao("");
     document.getElementById("legendasBox").classList.add("hidden");
     document.getElementById("legendasWarn").classList.add("hidden");
@@ -1012,7 +1062,7 @@
       let textoFinal = textoRecebido;
       if (identificar) textoFinal = aplicarLocutores(textoFinal);
       definirTranscricao(textoFinal);
-      output.classList.remove("hidden");
+      setOutputPanelVisible(true);
       focusTranscriptionResult();
       statusEl.textContent = "✅ Transcrição concluída com sucesso!";
       if (data.warning) statusEl.textContent = "⚠️ " + data.warning;
@@ -1036,11 +1086,11 @@
       }
       if (erroDeTamanho(msg)) {
         mostrarAlertaUpload(msg);
-        output.classList.add("hidden");
+        setOutputPanelVisible(false);
       } else {
         limparAlertaUpload();
         definirTranscricao(msg);
-        output.classList.remove("hidden");
+        setOutputPanelVisible(true);
       }
       statusEl.textContent = "⚠️ Não conseguimos transcrever desta vez.";
       document.getElementById("btnRetry").classList.remove("hidden");
@@ -1484,7 +1534,7 @@
 
   function applySrtReadyUi(st) {
     definirTranscricao(st.formatted || st.transcription || "");
-    output.classList.remove("hidden");
+    setOutputPanelVisible(true);
     atualizarMetaTranscricao();
     var srtUrl = toAbsUrl(st.srt_url);
     document.getElementById("srtDownload").href = srtUrl;
@@ -1571,7 +1621,7 @@
     const videoDur = estimateTranscribeDurationSec();
 
     // reset UI
-    output.classList.add("hidden");
+    setOutputPanelVisible(false);
     document.getElementById("legendasBox").classList.add("hidden");
     document.getElementById("legendasWarn").classList.add("hidden");
     var etaEl = document.getElementById("legendarEta");
@@ -1705,7 +1755,7 @@
       }
       if (!srtPhaseDone) {
         definirTranscricao(result.formatted || result.transcription || "");
-        output.classList.remove("hidden");
+        setOutputPanelVisible(true);
         atualizarMetaTranscricao();
       }
     } catch(err){
@@ -1721,7 +1771,7 @@
           : (err.message || "Erro inesperado ao comunicar com a API."));
       showLegendarError(errMsg);
       document.getElementById("legendasBox").classList.remove("hidden");
-      output.classList.remove("hidden");
+      setOutputPanelVisible(true);
       statusEl.textContent = "❌ Não foi possível gerar as legendas.";
       const warn = document.getElementById("legendasWarn");
       warn.textContent = "❌ " + errMsg;
@@ -1964,7 +2014,7 @@
         try{ data = JSON.parse(txt); } catch{ data = { error: `Resposta inválida (${res.status})` }; }
 
         definirTranscricao(data.formatted || data.transcription || "⚠️ Erro ao transcrever.");
-        output.classList.remove("hidden");
+        setOutputPanelVisible(true);
         status.textContent = "✅ Transcrição concluída!";
       }catch(err){
         status.textContent = err.name === "AbortError" ? "⏰ Tempo limite atingido. Tenta novamente." : "❌ Erro ao processar áudio.";
@@ -2314,7 +2364,7 @@
     limparAlertaUpload();
     hideLegendarBanners();
     definirTranscricao("");
-    output.classList.add("hidden");
+    setOutputPanelVisible(false);
 
     document.getElementById("resumoTexto").textContent = "";
     document.getElementById("traducaoTexto").textContent = "";

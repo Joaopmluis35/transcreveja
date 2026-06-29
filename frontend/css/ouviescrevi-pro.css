@@ -1180,7 +1180,8 @@ body.oe-pro.oe-page--home .oe-home-intro {
   color: var(--pro-text-secondary);
   font-size: 1.05rem;
   line-height: 1.55;
-  max-width: 32rem;
+  max-width: none;
+  width: 100%;
   text-align: center;
   margin: 0 auto 4px;
 }
@@ -1189,15 +1190,31 @@ body.oe-pro.oe-page--home .oe-home-intro strong {
   color: var(--pro-text);
 }
 body.oe-pro.oe-page--home .oe-home-trust {
-  max-width: 640px;
+  max-width: none;
+  width: 100%;
   margin: 12px auto 4px;
   text-align: center;
   font-size: 0.88rem;
   color: var(--pro-text-muted);
 }
+body.oe-pro.oe-page--home .oe-home-workspace {
+  width: 100%;
+}
+body.oe-pro.oe-page--home .oe-home-workspace__col--input #uploadForm {
+  max-width: none;
+  margin-top: 0;
+}
+body.oe-pro.oe-page--home .oe-home-panel--placeholder {
+  border: 1px solid var(--pro-border);
+  box-shadow: var(--pro-shadow-sm);
+  border-radius: var(--pro-radius-lg);
+  background: var(--pro-surface);
+}
 body.oe-pro.oe-page--home main form,
 body.oe-pro.oe-page--home #loading,
-body.oe-pro.oe-page--home #output {
+body.oe-pro.oe-page--home #output,
+body.oe-pro.oe-page--home .oe-home-workspace__col--output .oe-legendar-done,
+body.oe-pro.oe-page--home .oe-home-workspace__col--output .oe-legendar-error {
   border: 1px solid var(--pro-border);
   box-shadow: var(--pro-shadow-sm);
   border-radius: var(--pro-radius-lg);
@@ -1332,6 +1349,7 @@ body.oe-pro.oe-page--home #uploadForm #btnStopRecording:hover:not(:disabled) {
 }
 body.oe-pro.oe-page--home #uploadForm #btnLimparTudo,
 body.oe-pro.oe-page--home #uploadForm #btnClear {
+  grid-column: 1 / -1;
   background: transparent !important;
   border-color: var(--pro-border) !important;
   color: var(--pro-text-secondary) !important;
