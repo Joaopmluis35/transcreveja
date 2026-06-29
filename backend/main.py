@@ -2446,13 +2446,17 @@ async def correct_text(req: Request):
     }
     prompts = prompt_sets.get(lang, prompt_sets["pt"])
     system = prompts.get(mode, prompts["normal"])
+    text_len = len(text)
+    max_out = min(4096, max(96, int(text_len * 1.15) + 32))
+    if mode == "spelling":
+        max_out = min(max_out, max(96, int(text_len * 1.08) + 24))
     try:
         resp = client.chat.completions.create(
             model=COR_MODEL,
             messages=[{"role": "system", "content": system},
                       {"role": "user", "content": text}],
             temperature=0.2,
-            max_tokens=min(4096, max(256, len(text) + 200)),
+            max_tokens=max_out,
         )
         corrected = resp.choices[0].message.content.strip()
         maybe_notify_activity(req, "Correção com IA feita", "Texto corrigido no Ouviescrevi")

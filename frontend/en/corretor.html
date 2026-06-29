@@ -8,7 +8,7 @@
   <title>AI Proofreader - Ouviescrevi</title>
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <link rel="stylesheet" href="../css/ouviescrevi.css?v=15" />
-  <link rel="stylesheet" href="../css/corretor.css?v=5" />
+  <link rel="stylesheet" href="../css/corretor.css?v=6" />
   <script src="../js/theme-ui.js"></script>
   <script src="/js/ouviescrevi-seo.js" defer></script>
   <script src="../js/ouviescrevi-ui.js" defer></script>
@@ -22,6 +22,8 @@
     <p class="oe-lead" data-cms-key="en_corretor_lead" data-cms-mode="text">Paste your text to fix spelling and grammar automatically.</p>
   </header>
   <div class="container oe-cor-page">
+    <div class="oe-cor-workspace">
+      <div class="oe-cor-workspace__col oe-cor-workspace__col--input">
     <section class="oe-cor-form" aria-labelledby="corFormTitle">
       <div class="oe-cor-form__head">
         <p class="oe-cor-form__eyebrow" id="corFormEyebrow">Spelling · Grammar · Style</p>
@@ -48,12 +50,15 @@
         <button type="button" class="oe-cor-form__submit" id="btnCorrigir" onclick="window.corrigirTexto&amp;&amp;window.corrigirTexto(event)">Correct text</button>
       </div>
     </section>
-    <div class="oe-cor-progress" id="corProgress" hidden>
-      <div class="oe-cor-progress__track"><div class="oe-cor-progress__bar" id="progressBar"></div></div>
-      <p class="oe-cor-progress__phrase" id="loadingPhrase"></p>
-      <p class="oe-cor-progress__hint" id="corProgressHint"></p>
+      </div>
+      <div class="oe-cor-workspace__col oe-cor-workspace__col--output" aria-live="polite">
+        <div class="oe-cor-panel oe-cor-panel--placeholder" id="corPlaceholder">
+          <h2 class="oe-cor-panel__title" id="corPlaceholderTitle">Result</h2>
+          <p class="oe-cor-panel__hint" id="corPlaceholderHint">The corrected text appears here, side by side with the original.</p>
+        </div>
+        <div id="resultado" class="oe-cor-output" hidden></div>
+      </div>
     </div>
-    <div id="resultado" class="oe-cor-output" hidden></div>
     <section class="oe-cor-history" id="corHistoryPanel" hidden>
       <div id="corHistoryLogin">
         <p class="oe-cor-history__login" id="corHistoryLoginText"></p>
@@ -73,6 +78,6 @@
 <div id="footer"></div>
 <script src="../js/ouviescrevi-api.js"></script>
 <script src="../js/corretor-files.js?v=2"></script>
-<script src="../js/corretor-ui.js?v=7"></script>
+<script src="../js/corretor-ui.js?v=8"></script>
 </body>
 </html>

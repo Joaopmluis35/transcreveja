@@ -25,6 +25,9 @@
       needText: "Introduz texto para corrigir.",
       chars: "%n caracteres",
       words: "%n palavras",
+      placeholderTitle: "Resultado",
+      placeholderHint: "O texto corrigido aparece aqui, lado a lado com o original.",
+      loadingTitle: "A corrigir…",
       resultTitle: "Texto corrigido",
       resultSubtitle: "Palavras alteradas estão sublinhadas. Revê o resultado e escolhe uma ação.",
       actionsExport: "Exportar",
@@ -32,7 +35,7 @@
       copy: "Copiar",
       apply: "Aplicar ao texto",
       compare: "Comparar",
-      hideCompare: "Ocultar comparação",
+      hideCompare: "Só resultado",
       download: "TXT",
       pdf: "PDF",
       whatsapp: "WhatsApp",
@@ -85,6 +88,9 @@
       needText: "Enter some text to correct.",
       chars: "%n characters",
       words: "%n words",
+      placeholderTitle: "Result",
+      placeholderHint: "The corrected text appears here, side by side with the original.",
+      loadingTitle: "Correcting…",
       resultTitle: "Corrected text",
       resultSubtitle: "Changed words are highlighted. Review the result and choose an action.",
       actionsExport: "Export",
@@ -92,7 +98,7 @@
       copy: "Copy",
       apply: "Apply to text",
       compare: "Compare",
-      hideCompare: "Hide comparison",
+      hideCompare: "Result only",
       download: "TXT",
       pdf: "PDF",
       whatsapp: "WhatsApp",
@@ -145,6 +151,9 @@
       needText: "Introduce texto para corregir.",
       chars: "%n caracteres",
       words: "%n palabras",
+      placeholderTitle: "Resultado",
+      placeholderHint: "El texto corregido aparece aquí, junto al original.",
+      loadingTitle: "Corrigiendo…",
       resultTitle: "Texto corregido",
       resultSubtitle: "Las palabras cambiadas están resaltadas. Revisa el resultado y elige una acción.",
       actionsExport: "Exportar",
@@ -152,7 +161,7 @@
       copy: "Copiar",
       apply: "Aplicar al texto",
       compare: "Comparar",
-      hideCompare: "Ocultar comparación",
+      hideCompare: "Solo resultado",
       download: "TXT",
       pdf: "PDF",
       whatsapp: "WhatsApp",
@@ -205,6 +214,9 @@
       needText: "Entrez du texte à corriger.",
       chars: "%n caractères",
       words: "%n mots",
+      placeholderTitle: "Résultat",
+      placeholderHint: "Le texte corrigé s'affiche ici, côte à côte avec l'original.",
+      loadingTitle: "Correction…",
       resultTitle: "Texte corrigé",
       resultSubtitle: "Les mots modifiés sont surlignés. Relisez le résultat et choisissez une action.",
       actionsExport: "Exporter",
@@ -212,7 +224,7 @@
       copy: "Copier",
       apply: "Appliquer au texte",
       compare: "Comparer",
-      hideCompare: "Masquer la comparaison",
+      hideCompare: "Résultat seul",
       download: "TXT",
       pdf: "PDF",
       whatsapp: "WhatsApp",
@@ -265,6 +277,9 @@
       needText: "Bitte Text eingeben.",
       chars: "%n Zeichen",
       words: "%n Wörter",
+      placeholderTitle: "Ergebnis",
+      placeholderHint: "Der korrigierte Text erscheint hier neben dem Original.",
+      loadingTitle: "Wird korrigiert…",
       resultTitle: "Korrigierter Text",
       resultSubtitle: "Geänderte Wörter sind hervorgehoben. Prüfe das Ergebnis und wähle eine Aktion.",
       actionsExport: "Exportieren",
@@ -272,7 +287,7 @@
       copy: "Kopieren",
       apply: "In Text übernehmen",
       compare: "Vergleichen",
-      hideCompare: "Vergleich ausblenden",
+      hideCompare: "Nur Ergebnis",
       download: "TXT",
       pdf: "PDF",
       whatsapp: "WhatsApp",
@@ -469,12 +484,59 @@
     meta.textContent = fmt("chars", input.value.length) + " · " + fmt("words", countWords(input.value));
   }
 
+  function isWideLayout() {
+    return global.matchMedia && global.matchMedia("(min-width: 901px)").matches;
+  }
+
+  function setPlaceholderVisible(visible) {
+    var placeholder = document.getElementById("corPlaceholder");
+    if (placeholder) placeholder.hidden = !visible;
+  }
+
+  function applyPlaceholderLabels() {
+    var title = document.getElementById("corPlaceholderTitle");
+    var hint = document.getElementById("corPlaceholderHint");
+    if (title) title.textContent = t("placeholderTitle");
+    if (hint) hint.textContent = t("placeholderHint");
+  }
+
+  function scrollToResultIfNeeded(out) {
+    if (!isWideLayout() && out) {
+      out.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
+  function ensureApiReady() {
+    if (!global.OuviescreviAPI || !global.OuviescreviAPI.init) {
+      return Promise.reject(new Error("api-missing"));
+    }
+    if (global.OuviescreviAPI.getToken()) {
+      return Promise.resolve();
+    }
+    return apiInitWithTimeout();
+  }
+
   function hideOutput(out) {
     if (!out) return;
     out.hidden = true;
     out.innerHTML = "";
-    out.classList.remove("oe-cor-output--error");
+    out.classList.remove("oe-cor-output--error", "oe-cor-output--comparing", "oe-cor-output--split", "oe-cor-output--loading");
     compareVisible = false;
+    setPlaceholderVisible(true);
+  }
+
+  function showOutputLoading(out) {
+    if (!out) return;
+    setPlaceholderVisible(false);
+    out.hidden = false;
+    out.classList.remove("oe-cor-output--error");
+    out.classList.add("oe-cor-output--loading");
+    out.innerHTML =
+      '<div class="oe-cor-output__loading">' +
+      '<div class="oe-cor-output__loading-spinner" aria-hidden="true"></div>' +
+      '<p class="oe-cor-output__loading-title">' + escapeHtml(t("loadingTitle")) + "</p>" +
+      '<p class="oe-cor-output__loading-phrase" id="loadingPhrase"></p>' +
+      "</div>";
   }
 
   function bindOutputActions(out) {
@@ -510,16 +572,14 @@
 
   function toggleCompare(out, btn) {
     var panel = out.querySelector("[data-cor-compare-panel]");
-    var mainView = out.querySelector("[data-cor-main-view]");
+    var singleView = out.querySelector("[data-cor-single-view]");
     if (!panel) return;
     compareVisible = !compareVisible;
     panel.hidden = !compareVisible;
-    if (mainView) mainView.hidden = compareVisible;
+    if (singleView) singleView.hidden = compareVisible;
+    out.classList.toggle("oe-cor-output--split", compareVisible);
     out.classList.toggle("oe-cor-output--comparing", compareVisible);
     btn.textContent = compareVisible ? t("hideCompare") : t("compare");
-    if (compareVisible) {
-      panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    }
   }
 
   function copyText(text, btn) {
@@ -614,11 +674,13 @@
   function showSuccess(out, original, corrected) {
     lastOriginal = original;
     lastCorrected = corrected;
-    compareVisible = false;
+    compareVisible = true;
     var diffHtml = renderCorrectedDiffHtml(original, corrected);
     var origDiffHtml = renderOriginalDiffHtml(original, corrected);
+    setPlaceholderVisible(false);
     out.hidden = false;
-    out.classList.remove("oe-cor-output--error");
+    out.classList.remove("oe-cor-output--error", "oe-cor-output--loading");
+    out.classList.add("oe-cor-output--split");
     out.innerHTML =
       '<header class="oe-cor-output__head">' +
       '<div class="oe-cor-output__status" aria-hidden="true">✓</div>' +
@@ -626,16 +688,16 @@
       '<h2 class="oe-cor-output__title">' + escapeHtml(t("resultTitle")) + "</h2>" +
       '<p class="oe-cor-output__subtitle">' + escapeHtml(t("resultSubtitle")) + "</p>" +
       "</div></header>" +
-      '<div class="oe-cor-output__view" data-cor-main-view>' +
-      '<div class="oe-cor-output__body oe-cor-output__body--diff">' + diffHtml + "</div>" +
-      "</div>" +
-      '<div class="oe-cor-compare" data-cor-compare-panel hidden>' +
+      '<div class="oe-cor-compare oe-cor-compare--live" data-cor-compare-panel>' +
       '<div class="oe-cor-compare__col oe-cor-compare__col--original">' +
       '<p class="oe-cor-compare__label">' + escapeHtml(t("compareOriginal")) + "</p>" +
       '<div class="oe-cor-compare__text oe-cor-compare__text--diff">' + origDiffHtml + "</div></div>" +
       '<div class="oe-cor-compare__col oe-cor-compare__col--fixed">' +
       '<p class="oe-cor-compare__label">' + escapeHtml(t("compareFixed")) + "</p>" +
       '<div class="oe-cor-compare__text oe-cor-compare__text--diff">' + diffHtml + "</div></div></div>" +
+      '<div class="oe-cor-output__view" data-cor-single-view hidden>' +
+      '<div class="oe-cor-output__body oe-cor-output__body--diff">' + diffHtml + "</div>" +
+      "</div>" +
       '<footer class="oe-cor-output__toolbar">' +
       '<div class="oe-cor-output__toolbar-row oe-cor-output__toolbar-row--primary">' +
       '<button type="button" class="oe-cor-output__btn oe-cor-output__btn--cta" data-cor-apply>' + escapeHtml(t("apply")) + "</button>" +
@@ -650,24 +712,26 @@
       '<button type="button" class="oe-cor-output__btn oe-cor-output__btn--compact" data-cor-download>' + escapeHtml(t("download")) + "</button>" +
       "</div></div>" +
       '<div class="oe-cor-output__group oe-cor-output__group--end">' +
-      '<button type="button" class="oe-cor-output__btn oe-cor-output__btn--compact" data-cor-compare>' + escapeHtml(t("compare")) + "</button>" +
+      '<button type="button" class="oe-cor-output__btn oe-cor-output__btn--compact" data-cor-compare>' + escapeHtml(t("hideCompare")) + "</button>" +
       '<button type="button" class="oe-cor-output__btn oe-cor-output__btn--ghost" data-cor-recorrect>' + escapeHtml(t("recorrect")) + "</button>" +
       "</div></div></footer>";
 
     bindOutputActions(out);
-    out.scrollIntoView({ behavior: "smooth", block: "start" });
-    loadHistory();
+    scrollToResultIfNeeded(out);
+    setTimeout(function () { loadHistory(); }, 500);
   }
 
   function showError(out, message) {
     lastOriginal = "";
     lastCorrected = "";
+    setPlaceholderVisible(false);
     out.hidden = false;
+    out.classList.remove("oe-cor-output--loading");
     out.classList.add("oe-cor-output--error");
     out.innerHTML =
       '<div class="oe-cor-output__head"><h2 class="oe-cor-output__title">' + escapeHtml(t("errorTitle")) + "</h2></div>" +
       '<pre class="oe-cor-output__body">' + escapeHtml(message) + "</pre>";
-    out.scrollIntoView({ behavior: "smooth", block: "start" });
+    scrollToResultIfNeeded(out);
   }
 
   async function loadHistory() {
@@ -785,8 +849,6 @@
     var btn = document.getElementById("btnCorrigir");
     var out = document.getElementById("resultado");
     var progress = document.getElementById("corProgress");
-    var progressBar = document.getElementById("progressBar");
-    var loadingPhrase = document.getElementById("loadingPhrase");
     var modo = document.getElementById("corModo");
     if (!input || !btn || !out) return;
 
@@ -797,27 +859,22 @@
       return;
     }
 
-    hideOutput(out);
+    showOutputLoading(out);
     if (global.OuviescreviUI) global.OuviescreviUI.setButtonLoading(btn, true, t("loading"));
-    if (progress) progress.hidden = false;
-    if (progressBar) progressBar.style.width = "0%";
-    if (loadingPhrase) loadingPhrase.textContent = "";
+    if (progress) progress.hidden = true;
 
     var phrases = t("phrases");
-    var percent = 0;
     var fraseIndex = 0;
     var interval = setInterval(function () {
-      if (percent >= 92) return;
-      percent += Math.floor(Math.random() * 4) + 1;
-      if (progressBar) progressBar.style.width = percent + "%";
-      if (loadingPhrase && phrases.length) {
-        loadingPhrase.textContent = phrases[fraseIndex];
+      var phraseEl = document.getElementById("loadingPhrase");
+      if (phraseEl && phrases.length) {
+        phraseEl.textContent = phrases[fraseIndex];
         fraseIndex = (fraseIndex + 1) % phrases.length;
       }
-    }, 650);
+    }, 500);
 
     try {
-      await apiInitWithTimeout();
+      await ensureApiReady();
       var res = await fetch(global.OuviescreviAPI.getBase() + "/correct", {
         method: "POST",
         headers: global.OuviescreviAPI.authHeaders({ "Content-Type": "application/json" }),
@@ -831,8 +888,6 @@
       });
       var data = await res.json().catch(function () { return {}; });
       clearInterval(interval);
-      if (progressBar) progressBar.style.width = "100%";
-      if (loadingPhrase) loadingPhrase.textContent = "";
 
       if (res.ok && data.corrected) {
         showSuccess(out, texto, data.corrected);
@@ -843,12 +898,10 @@
       }
     } catch (err) {
       clearInterval(interval);
-      if (progressBar) progressBar.style.width = "100%";
       console.error(err);
       showError(out, t("serverError"));
     } finally {
       if (global.OuviescreviUI) global.OuviescreviUI.setButtonLoading(btn, false);
-      setTimeout(function () { if (progress) progress.hidden = true; }, 600);
     }
   }
 
@@ -857,6 +910,7 @@
     init._done = true;
     config = Object.assign({}, config, opts || {});
     applyFormLabels();
+    applyPlaceholderLabels();
     updateMeta();
 
     var input = document.getElementById("textoInput");
@@ -902,6 +956,10 @@
     }
 
     setTimeout(function () { loadHistory(); }, 0);
+
+    if (global.OuviescreviAPI && global.OuviescreviAPI.init) {
+      global.OuviescreviAPI.init().catch(function () {});
+    }
   }
 
   var booted = false;
