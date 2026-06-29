@@ -26,7 +26,8 @@
       chars: "%n caracteres",
       words: "%n palavras",
       resultTitle: "Texto corrigido",
-      resultSubtitle: "Palavras alteradas estão sublinhadas",
+      resultSubtitle: "Palavras alteradas estão sublinhadas. Revê o resultado e escolhe uma ação.",
+      actionsExport: "Exportar",
       errorTitle: "Não foi possível corrigir",
       copy: "Copiar",
       apply: "Aplicar ao texto",
@@ -85,7 +86,8 @@
       chars: "%n characters",
       words: "%n words",
       resultTitle: "Corrected text",
-      resultSubtitle: "Changed words are highlighted",
+      resultSubtitle: "Changed words are highlighted. Review the result and choose an action.",
+      actionsExport: "Export",
       errorTitle: "Could not correct",
       copy: "Copy",
       apply: "Apply to text",
@@ -144,7 +146,8 @@
       chars: "%n caracteres",
       words: "%n palabras",
       resultTitle: "Texto corregido",
-      resultSubtitle: "Las palabras cambiadas están resaltadas",
+      resultSubtitle: "Las palabras cambiadas están resaltadas. Revisa el resultado y elige una acción.",
+      actionsExport: "Exportar",
       errorTitle: "No se pudo corregir",
       copy: "Copiar",
       apply: "Aplicar al texto",
@@ -203,7 +206,8 @@
       chars: "%n caractères",
       words: "%n mots",
       resultTitle: "Texte corrigé",
-      resultSubtitle: "Les mots modifiés sont surlignés",
+      resultSubtitle: "Les mots modifiés sont surlignés. Relisez le résultat et choisissez une action.",
+      actionsExport: "Exporter",
       errorTitle: "Impossible de corriger",
       copy: "Copier",
       apply: "Appliquer au texte",
@@ -262,7 +266,8 @@
       chars: "%n Zeichen",
       words: "%n Wörter",
       resultTitle: "Korrigierter Text",
-      resultSubtitle: "Geänderte Wörter sind hervorgehoben",
+      resultSubtitle: "Geänderte Wörter sind hervorgehoben. Prüfe das Ergebnis und wähle eine Aktion.",
+      actionsExport: "Exportieren",
       errorTitle: "Korrektur fehlgeschlagen",
       copy: "Kopieren",
       apply: "In Text übernehmen",
@@ -505,10 +510,16 @@
 
   function toggleCompare(out, btn) {
     var panel = out.querySelector("[data-cor-compare-panel]");
+    var mainView = out.querySelector("[data-cor-main-view]");
     if (!panel) return;
     compareVisible = !compareVisible;
     panel.hidden = !compareVisible;
+    if (mainView) mainView.hidden = compareVisible;
+    out.classList.toggle("oe-cor-output--comparing", compareVisible);
     btn.textContent = compareVisible ? t("hideCompare") : t("compare");
+    if (compareVisible) {
+      panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
   }
 
   function copyText(text, btn) {
@@ -609,28 +620,39 @@
     out.hidden = false;
     out.classList.remove("oe-cor-output--error");
     out.innerHTML =
-      '<div class="oe-cor-output__head">' +
+      '<header class="oe-cor-output__head">' +
+      '<div class="oe-cor-output__status" aria-hidden="true">✓</div>' +
       '<div class="oe-cor-output__title-wrap">' +
       '<h2 class="oe-cor-output__title">' + escapeHtml(t("resultTitle")) + "</h2>" +
       '<p class="oe-cor-output__subtitle">' + escapeHtml(t("resultSubtitle")) + "</p>" +
-      "</div>" +
-      '<div class="oe-cor-output__actions">' +
-      '<button type="button" class="oe-cor-output__btn oe-cor-output__btn--primary" data-cor-apply>' + escapeHtml(t("apply")) + "</button>" +
-      '<button type="button" class="oe-cor-output__btn" data-cor-copy>' + escapeHtml(t("copy")) + "</button>" +
-      '<button type="button" class="oe-cor-output__btn oe-cor-output__btn--whatsapp" data-cor-whatsapp>💬 ' + escapeHtml(t("whatsapp")) + "</button>" +
-      '<button type="button" class="oe-cor-output__btn" data-cor-pdf>📄 ' + escapeHtml(t("pdf")) + "</button>" +
-      '<button type="button" class="oe-cor-output__btn" data-cor-compare>' + escapeHtml(t("compare")) + "</button>" +
-      '<button type="button" class="oe-cor-output__btn" data-cor-download>' + escapeHtml(t("download")) + "</button>" +
-      '<button type="button" class="oe-cor-output__btn" data-cor-recorrect>' + escapeHtml(t("recorrect")) + "</button>" +
-      "</div></div>" +
+      "</div></header>" +
+      '<div class="oe-cor-output__view" data-cor-main-view>' +
       '<div class="oe-cor-output__body oe-cor-output__body--diff">' + diffHtml + "</div>" +
+      "</div>" +
       '<div class="oe-cor-compare" data-cor-compare-panel hidden>' +
       '<div class="oe-cor-compare__col oe-cor-compare__col--original">' +
       '<p class="oe-cor-compare__label">' + escapeHtml(t("compareOriginal")) + "</p>" +
       '<div class="oe-cor-compare__text oe-cor-compare__text--diff">' + origDiffHtml + "</div></div>" +
       '<div class="oe-cor-compare__col oe-cor-compare__col--fixed">' +
       '<p class="oe-cor-compare__label">' + escapeHtml(t("compareFixed")) + "</p>" +
-      '<div class="oe-cor-compare__text oe-cor-compare__text--diff">' + diffHtml + "</div></div></div>";
+      '<div class="oe-cor-compare__text oe-cor-compare__text--diff">' + diffHtml + "</div></div></div>" +
+      '<footer class="oe-cor-output__toolbar">' +
+      '<div class="oe-cor-output__toolbar-row oe-cor-output__toolbar-row--primary">' +
+      '<button type="button" class="oe-cor-output__btn oe-cor-output__btn--cta" data-cor-apply>' + escapeHtml(t("apply")) + "</button>" +
+      '<button type="button" class="oe-cor-output__btn" data-cor-copy>' + escapeHtml(t("copy")) + "</button>" +
+      '<button type="button" class="oe-cor-output__btn oe-cor-output__btn--whatsapp" data-cor-whatsapp>' + escapeHtml(t("whatsapp")) + "</button>" +
+      "</div>" +
+      '<div class="oe-cor-output__toolbar-row oe-cor-output__toolbar-row--secondary">' +
+      '<div class="oe-cor-output__group">' +
+      '<span class="oe-cor-output__group-label">' + escapeHtml(t("actionsExport")) + "</span>" +
+      '<div class="oe-cor-output__group-btns">' +
+      '<button type="button" class="oe-cor-output__btn oe-cor-output__btn--compact" data-cor-pdf>' + escapeHtml(t("pdf")) + "</button>" +
+      '<button type="button" class="oe-cor-output__btn oe-cor-output__btn--compact" data-cor-download>' + escapeHtml(t("download")) + "</button>" +
+      "</div></div>" +
+      '<div class="oe-cor-output__group oe-cor-output__group--end">' +
+      '<button type="button" class="oe-cor-output__btn oe-cor-output__btn--compact" data-cor-compare>' + escapeHtml(t("compare")) + "</button>" +
+      '<button type="button" class="oe-cor-output__btn oe-cor-output__btn--ghost" data-cor-recorrect>' + escapeHtml(t("recorrect")) + "</button>" +
+      "</div></div></footer>";
 
     bindOutputActions(out);
     out.scrollIntoView({ behavior: "smooth", block: "start" });
