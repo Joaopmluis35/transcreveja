@@ -149,6 +149,7 @@
               <div class="oe-output__actions btn-group">
                 <button id="btnGerarResumo" type="button"><span>🧠 Gerar Resumo</span></button>
                 <button type="button" onclick="abrirAulaPronta()"><span>📦 Aula Pronta</span></button>
+                <button type="button" onclick="abrirCapitulos()"><span>⏱️ Capítulos</span></button>
                 <button type="button" onclick="corrigirTextoIA()"><span>📝 Corrigir Texto</span></button>
                 <button type="button" onclick="abrirModalTraducao()"><span>🌍 Traduzir</span></button>
                 <button type="button" onclick="classificarConteudo()"><span>📚 Classificar</span></button>
@@ -2205,6 +2206,15 @@
       sessionStorage.setItem("oe_aula_pronta_text", text);
     } catch (e) {}
     window.location.href = "aula-pronta.html";
+  }
+
+  function abrirCapitulos() {
+    const text = transcriptionText.value.trim();
+    if (!text) return alert("⚠️ Transcrição vazia.");
+    try {
+      sessionStorage.setItem("oe_capitulos_text", text);
+    } catch (e) {}
+    window.location.href = "capitulos.html";
   }
 
   async function gerarMinuta(){

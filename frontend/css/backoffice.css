@@ -1286,3 +1286,51 @@ body.oe-admin.oe-admin--dark .oe-admin-jobs-box__title,
 body.oe-admin.oe-admin--dark .oe-admin-jobs-box__item {
   color: #e0e7ff;
 }
+
+.oe-admin-nav-section {
+  margin: 20px 0 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.oe-admin-nav-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.oe-admin-nav-row {
+  display: grid;
+  grid-template-columns: 1.2fr 1.2fr 0.8fr auto auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.oe-admin-nav-check {
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.oe-admin-nav-col {
+  margin: 16px 0;
+  padding: 12px;
+  border: 1px solid var(--bo-border, #e2e8f0);
+  border-radius: 8px;
+}
+
+.oe-admin-field-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.oe-admin-field-row .oe-admin-field {
+  flex: 1 1 200px;
+}
+
+@media (max-width: 720px) {
+  .oe-admin-nav-row {
+    grid-template-columns: 1fr;
+  }
+}

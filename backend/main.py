@@ -2688,6 +2688,188 @@ Texto:
         logger.exception("Erro em /generate-aula-pronta")
         raise HTTPException(status_code=500, detail=str(e)) from e
 
+_CHAPTERS_MAX_CHARS = 16_000
+_TS_BLOCK_RE = re.compile(r"^\[(\d{2}):(\d{2})\]\s*(.*)$", re.DOTALL)
+
+class ChaptersRequest(BaseModel):
+    text: str
+    token: str = ""
+    lang: str = "pt"
+    max_chapters: int = 12
+
+def _parse_timestamped_blocks(text: str) -> tuple[list[dict], bool]:
+    blocks: list[dict] = []
+    has_ts = False
+    for chunk in re.split(r"\n\s*\n", (text or "").strip()):
+        chunk = chunk.strip()
+        if not chunk:
+            continue
+        lines = chunk.split("\n")
+        first = lines[0].strip()
+        m = _TS_BLOCK_RE.match(first)
+        if m:
+            has_ts = True
+            mins, secs = int(m.group(1)), int(m.group(2))
+            body = m.group(3).strip()
+            if len(lines) > 1:
+                body = (body + "\n" + "\n".join(lines[1:])).strip()
+            blocks.append({
+                "start_sec": mins * 60 + secs,
+                "start": f"{mins:02d}:{secs:02d}",
+                "text": body,
+            })
+        else:
+            blocks.append({"start_sec": None, "start": None, "text": chunk})
+    return blocks, has_ts
+
+def _build_chapter_timeline(blocks: list[dict], limit: int = 90) -> str:
+    if not blocks:
+        return ""
+    if len(blocks) <= limit:
+        sampled = blocks
+    else:
+        step = len(blocks) / limit
+        sampled = [blocks[int(i * step)] for i in range(limit)]
+    lines = []
+    for b in sampled:
+        label = b.get("start") or "—"
+        snippet = re.sub(r"\s+", " ", (b.get("text") or ""))[:220]
+        lines.append(f"{label} | {snippet}")
+    return "\n".join(lines)
+
+def _youtube_timestamp(mm_ss: str) -> str:
+    if not mm_ss or ":" not in mm_ss:
+        return "0:00"
+    parts = mm_ss.strip().split(":")
+    if len(parts) != 2:
+        return mm_ss
+    try:
+        m, s = int(parts[0]), int(parts[1])
+    except ValueError:
+        return mm_ss
+    if m >= 60:
+        h, rem = divmod(m, 60)
+        return f"{h}:{rem:02d}:{s:02d}"
+    return f"{m}:{s:02d}"
+
+@app.post("/generate-chapters")
+async def generate_chapters(req: ChaptersRequest, request: Request):
+    """Capítulos com timestamps a partir de transcrição formatada ou texto longo."""
+    require_token(req.token)
+    enforce_rate_limit(request, "ai", RATE_LIMIT_AI, RATE_LIMIT_AI_WINDOW)
+
+    source = (req.text or "").strip()
+    if len(source) < 120:
+        raise HTTPException(status_code=400, detail="Texto demasiado curto (mín. ~120 caracteres).")
+
+    lang = (req.lang or "pt").lower()
+    if lang not in ("pt", "en", "es", "fr", "de"):
+        lang = "pt"
+    max_ch = max(4, min(20, int(req.max_chapters or 12)))
+
+    truncated = False
+    if len(source) > _CHAPTERS_MAX_CHARS:
+        source = source[:_CHAPTERS_MAX_CHARS]
+        truncated = True
+
+    blocks, has_ts = _parse_timestamped_blocks(source)
+    timeline = _build_chapter_timeline(blocks)
+
+    lang_names = {
+        "pt": "português de Portugal",
+        "en": "English",
+        "es": "español",
+        "fr": "français",
+        "de": "Deutsch",
+    }
+    lang_label = lang_names[lang]
+
+    if has_ts:
+        ts_rule = (
+            "O texto inclui timestamps no formato [MM:SS]. Para cada capítulo, usa o campo "
+            '"start" com o timestamp EXATO de um dos blocos (formato MM:SS, sem colchetes). '
+            "Os capítulos devem seguir a ordem cronológica."
+        )
+    else:
+        ts_rule = (
+            'Não há timestamps no texto. Usa "start": null em todos os capítulos e ordena por relevância lógica.'
+        )
+
+    sys = (
+        "És um editor de podcasts e vídeos educativos. Respondes APENAS com JSON válido, sem markdown."
+    )
+    prompt = f"""Analisa a transcrição/aula abaixo e divide em {max_ch} capítulos claros em {lang_label}.
+
+Devolve um objeto JSON:
+- "title": título geral sugerido (string)
+- "has_timestamps": {str(has_ts).lower()}
+- "chapters": lista de capítulos, cada um com:
+    "title" (string curta),
+    "start" (string MM:SS ou null),
+    "summary" (1-2 frases)
+
+{ts_rule}
+- Títulos informativos (não genéricos como "Parte 1").
+- Cobre todo o conteúdo sem grandes lacunas.
+
+Linha do tempo (amostra):
+{timeline or source[:4000]}
+
+Texto completo:
+{source}"""
+
+    try:
+        resp = client.chat.completions.create(
+            model=SUM_MODEL,
+            messages=[{"role": "system", "content": sys}, {"role": "user", "content": prompt}],
+            temperature=0.45,
+            max_tokens=2200,
+            response_format={"type": "json_object"},
+        )
+        raw = resp.choices[0].message.content.strip()
+        data = _parse_llm_json(raw)
+        chapters = data.get("chapters") or []
+        if not isinstance(chapters, list) or not chapters:
+            raise ValueError("Sem capítulos")
+
+        normalized = []
+        for i, ch in enumerate(chapters):
+            if not isinstance(ch, dict):
+                continue
+            start = ch.get("start")
+            if start is not None and start != "":
+                start = str(start).strip().lstrip("[").rstrip("]")
+            else:
+                start = None
+            normalized.append({
+                "index": i + 1,
+                "title": str(ch.get("title") or f"Capítulo {i + 1}").strip(),
+                "start": start,
+                "youtube_start": _youtube_timestamp(start) if start else None,
+                "summary": str(ch.get("summary") or "").strip(),
+            })
+
+        if not normalized:
+            raise ValueError("Capítulos vazios")
+
+        maybe_notify_activity(
+            request,
+            "Capítulos gerados",
+            "Capítulos com timestamps criados no Ouviescrevi",
+        )
+        return {
+            "title": data.get("title") or "",
+            "chapters": normalized,
+            "has_timestamps": has_ts,
+            "truncated": truncated,
+        }
+    except json.JSONDecodeError as e:
+        logger.exception("Capítulos JSON inválido")
+        raise HTTPException(status_code=500, detail="Resposta inválida do modelo. Tenta novamente.") from e
+    except Exception as e:
+        logger.exception("Erro em /generate-chapters")
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
 def extract_url_article_text(html_bytes: bytes) -> str:
     soup = BeautifulSoup(html_bytes, "html.parser")
     for tag in soup(["script", "style", "nav", "footer", "noscript", "iframe", "svg", "form"]):

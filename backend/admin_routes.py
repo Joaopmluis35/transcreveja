@@ -410,8 +410,12 @@ def admin_put_site_content(request: Request, body: dict):
 def admin_reset_site_content(request: Request, body: dict | None = None):
     store.require_role(getattr(request.state, "admin_session", None), "editor")
     page = (body or {}).get("page")
-    keys = keys_for_page(page) if page else None
-    if page and not keys:
+    keys = (body or {}).get("keys")
+    if not keys and page:
+        keys = keys_for_page(page)
+    if not keys:
+        raise HTTPException(status_code=400, detail="Nada a repor (indica página ou chaves).")
+    if page and not keys_for_page(page) and not (body or {}).get("keys"):
         raise HTTPException(status_code=400, detail="Página desconhecida.")
     content = reset_content(keys)
     store.log_audit(_actor(request), "cms_reset", page or "all")

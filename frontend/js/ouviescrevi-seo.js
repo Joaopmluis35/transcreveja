@@ -16,6 +16,7 @@
     "url-resumo": { pt: "url-resumo.html", en: "url-resumo.html", es: "url-resumo.html", fr: "url-resumo.html", de: "url-resumo.html" },
     perguntas: { pt: "perguntas.html", en: "perguntas.html", es: "perguntas.html", fr: "perguntas.html", de: "perguntas.html" },
     "aula-pronta": { pt: "aula-pronta.html", en: "aula-pronta.html", es: "aula-pronta.html", fr: "aula-pronta.html", de: "aula-pronta.html" },
+    capitulos: { pt: "capitulos.html", en: "capitulos.html", es: "capitulos.html", fr: "capitulos.html", de: "capitulos.html" },
     cookies: { pt: "cookies.html", en: "cookies.html", es: "cookies.html", fr: "cookies.html", de: "cookies.html" },
     privacy: { pt: "privacidade.html", en: "privacy.html", es: "privacy.html", fr: "privacy.html", de: "privacy.html" },
     terms: { pt: "termos.html", en: "terms.html", es: "terms.html", fr: "terms.html", de: "terms.html" },
@@ -198,6 +199,17 @@
       title: "Lesson Ready — AI Study Pack | Ouviescrevi",
       description:
         "Turn a lesson transcript into a study pack: summary, glossary, key points and quiz questions with answer key.",
+      lang: "en",
+    },
+    "/capitulos.html": {
+      title: "Capítulos & timestamps | Ouviescrevi",
+      description:
+        "Divide transcrições longas em capítulos com horários — ideal para podcasts, aulas gravadas e YouTube.",
+    },
+    "/en/capitulos.html": {
+      title: "Chapters & timestamps | Ouviescrevi",
+      description:
+        "Split long transcripts into chapters with timestamps — great for podcasts, lessons and YouTube.",
       lang: "en",
     },
     "/url-resumo.html": {

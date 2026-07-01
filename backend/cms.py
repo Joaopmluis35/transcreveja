@@ -1,6 +1,7 @@
 """Conteúdo editável do site (CMS multi-página)."""
 from __future__ import annotations
 
+import json
 import re
 import sqlite3
 from datetime import datetime
@@ -205,6 +206,16 @@ PAGE_SCHEMA: list[dict[str, Any]] = [
         ],
     },
     {
+        "id": "capitulos_en",
+        "label": "Chapters (EN)",
+        "lang": "en",
+        "path": "/en/capitulos.html",
+        "fields": [
+            {"key": "en_capitulos_title", "label": "Title", "type": "text"},
+            {"key": "en_capitulos_lead", "label": "Subtitle", "type": "text"},
+        ],
+    },
+    {
         "id": "aulas",
         "label": "Landing — Aulas",
         "lang": "pt",
@@ -292,6 +303,16 @@ PAGE_SCHEMA: list[dict[str, Any]] = [
         "fields": [
             {"key": "perguntas_title", "label": "Título", "type": "text"},
             {"key": "perguntas_lead", "label": "Subtítulo", "type": "text"},
+        ],
+    },
+    {
+        "id": "capitulos",
+        "label": "Ferramenta — Capítulos",
+        "lang": "pt",
+        "path": "/capitulos.html",
+        "fields": [
+            {"key": "capitulos_title", "label": "Título", "type": "text"},
+            {"key": "capitulos_lead", "label": "Subtítulo", "type": "text"},
         ],
     },
     {
@@ -594,6 +615,164 @@ for _lc_lang, _lc_label in LOCALE_CMS_LANGS:
 PAGE_SCHEMA.extend(_locale_seo_pages("en", "EN"))
 
 # Reordenar: PT → EN → ES → FR → DE (facilita backoffice e API)
+
+def _nav_link(label: str, href: str, page: str = "", pricing_only: bool = False) -> dict:
+    item: dict[str, Any] = {"label": label, "href": href}
+    if page:
+        item["page"] = page
+    if pricing_only:
+        item["pricingOnly"] = True
+    return item
+
+
+def default_nav_config(lang: str) -> dict[str, Any]:
+    if lang == "en":
+        return {
+            "menuToolsLabel": "Tools",
+            "menuAudienceLabel": "For",
+            "tools": [
+                _nav_link("Summarize PDF / Word", "resumo.html", "resumo"),
+                _nav_link("URL Summary", "url-resumo.html", "url-resumo"),
+                _nav_link("AI Questions", "perguntas.html", "perguntas"),
+                _nav_link("Lesson Ready", "aula-pronta.html", "aula-pronta"),
+                _nav_link("Chapters & timestamps", "capitulos.html", "capitulos"),
+                _nav_link("File Converter", "conversor.html", "conversor"),
+                _nav_link("Text proofreader", "corretor.html", "corretor"),
+            ],
+            "audience": [
+                _nav_link("Classes", "aulas.html", "aulas"),
+                _nav_link("Teachers", "professores.html", "professores"),
+                _nav_link("Journalists", "jornalistas.html", "jornalistas"),
+                _nav_link("Podcasts", "podcasts.html", "podcasts"),
+                _nav_link("Meetings", "reunioes.html", "reunioes"),
+                _nav_link("Testimonials", "testemunhos.html", "testemunhos"),
+            ],
+            "topLinks": [
+                _nav_link("Help", "ajuda.html", "ajuda"),
+                _nav_link("Pricing", "precos.html", "precos", pricing_only=True),
+                _nav_link("Suggestions", "sugestoes.html", "sugestoes"),
+            ],
+            "ctaLabel": "Transcribe free",
+            "ctaHref": "index.html",
+            "footerTagline": "Transcribe, summarize and translate with AI — free and made in Portugal.",
+            "footerEmail": "ouviescrevi@gmail.com",
+            "footerCopyright": "© 2026 Ouviescrevi · Made in Portugal",
+            "footerColumns": [
+                {
+                    "title": "Tools",
+                    "links": [
+                        _nav_link("Summary", "resumo.html"),
+                        _nav_link("URL Summary", "url-resumo.html"),
+                        _nav_link("Questions", "perguntas.html"),
+                        _nav_link("Lesson Ready", "aula-pronta.html"),
+                        _nav_link("Chapters", "capitulos.html"),
+                        _nav_link("Converter", "conversor.html"),
+                        _nav_link("Proofreader", "corretor.html"),
+                    ],
+                },
+                {
+                    "title": "For",
+                    "links": [
+                        _nav_link("Teachers", "professores.html"),
+                        _nav_link("Journalists", "jornalistas.html"),
+                        _nav_link("Podcasts", "podcasts.html"),
+                        _nav_link("Classes", "aulas.html"),
+                    ],
+                },
+                {
+                    "title": "Legal",
+                    "links": [
+                        _nav_link("Privacy", "privacy.html"),
+                        _nav_link("Terms", "terms.html"),
+                        _nav_link("Cookies", "cookies.html"),
+                        _nav_link("Help", "ajuda.html"),
+                        _nav_link("Suggestions", "sugestoes.html"),
+                    ],
+                },
+            ],
+        }
+    return {
+        "menuToolsLabel": "Ferramentas",
+        "menuAudienceLabel": "Para quem",
+        "tools": [
+            _nav_link("Resumo PDF / Word", "resumo.html", "resumo"),
+            _nav_link("Resumo por URL", "url-resumo.html", "url-resumo"),
+            _nav_link("Perguntas com IA", "perguntas.html", "perguntas"),
+            _nav_link("Aula Pronta", "aula-pronta.html", "aula-pronta"),
+            _nav_link("Capítulos & timestamps", "capitulos.html", "capitulos"),
+            _nav_link("Conversor de ficheiros", "conversor.html", "conversor"),
+            _nav_link("Corretor de texto", "corretor.html", "corretor"),
+        ],
+        "audience": [
+            _nav_link("Aulas", "aulas.html", "aulas"),
+            _nav_link("Professores", "professores.html", "professores"),
+            _nav_link("Jornalistas", "jornalistas.html", "jornalistas"),
+            _nav_link("Podcasts", "podcasts.html", "podcasts"),
+            _nav_link("Reuniões", "reunioes.html", "reunioes"),
+            _nav_link("Testemunhos", "testemunhos.html", "testemunhos"),
+        ],
+        "topLinks": [
+            _nav_link("Ajuda", "ajuda.html", "ajuda"),
+            _nav_link("Preços", "precos.html", "precos", pricing_only=True),
+            _nav_link("Sugestões", "sugestoes.html", "sugestoes"),
+        ],
+        "ctaLabel": "Transcrever grátis",
+        "ctaHref": "index.html",
+        "footerTagline": "Transcreve, resume e traduz com IA — grátis e feito em Portugal.",
+        "footerEmail": "ouviescrevi@gmail.com",
+        "footerCopyright": "© 2026 Ouviescrevi · Feito em Portugal",
+        "footerColumns": [
+            {
+                "title": "Ferramentas",
+                "links": [
+                    _nav_link("Resumo", "resumo.html"),
+                    _nav_link("Resumo URL", "url-resumo.html"),
+                    _nav_link("Perguntas", "perguntas.html"),
+                    _nav_link("Aula Pronta", "aula-pronta.html"),
+                    _nav_link("Capítulos", "capitulos.html"),
+                    _nav_link("Conversor", "conversor.html"),
+                    _nav_link("Corretor", "corretor.html"),
+                ],
+            },
+            {
+                "title": "Para quem",
+                "links": [
+                    _nav_link("Professores", "professores.html"),
+                    _nav_link("Jornalistas", "jornalistas.html"),
+                    _nav_link("Podcasts", "podcasts.html"),
+                    _nav_link("Aulas", "aulas.html"),
+                ],
+            },
+            {
+                "title": "Legal",
+                "links": [
+                    _nav_link("Privacidade", "privacidade.html"),
+                    _nav_link("Termos", "termos.html"),
+                    _nav_link("Cookies", "cookies.html"),
+                    _nav_link("Ajuda", "ajuda.html"),
+                    _nav_link("Sugestões", "sugestoes.html"),
+                ],
+            },
+        ],
+    }
+
+
+def nav_config_key(lang: str) -> str:
+    return f"nav_config_{lang}" if lang != "pt" else "nav_config_pt"
+
+
+def parse_nav_config(raw: str | None, lang: str = "pt") -> dict[str, Any]:
+    if not raw:
+        return default_nav_config(lang)
+    try:
+        data = json.loads(raw)
+        if isinstance(data, dict):
+            return data
+    except (json.JSONDecodeError, TypeError):
+        pass
+    return default_nav_config(lang)
+
+
 _LANG_ORDER = {"pt": 0, "en": 1, "es": 2, "fr": 3, "de": 4}
 PAGE_SCHEMA.sort(
     key=lambda p: (
@@ -692,6 +871,8 @@ DEFAULT_SITE_CONTENT: dict[str, str] = {
     "en_perguntas_lead": (
         "Paste your text here to generate multiple-choice questions with answers and explanations."
     ),
+    "en_capitulos_title": "⏱️ Chapters & timestamps",
+    "en_capitulos_lead": "Paste a timestamped transcript and get organized chapters — ready for YouTube or podcasts.",
     "aulas_title": "🎥 Aulas",
     "aulas_body": (
         "<p>Transforma vídeos de aulas em texto claro, bem formatado e pronto a partilhar. "
@@ -730,6 +911,8 @@ DEFAULT_SITE_CONTENT: dict[str, str] = {
     "corretor_lead": "Cola o teu texto para corrigir erros ortográficos e gramaticais automaticamente.",
     "perguntas_title": "📘 Gerador de Perguntas com IA",
     "perguntas_lead": "Cola aqui o teu texto e gera perguntas de escolha múltipla com respostas e explicações.",
+    "capitulos_title": "⏱️ Capítulos & timestamps",
+    "capitulos_lead": "Cola uma transcrição com timestamps e obtém capítulos organizados — prontos para YouTube ou podcasts.",
     "url_resumo_title": "🔗 Resumo Inteligente por URL",
     "url_resumo_lead": "Insere o link de um artigo ou página online para gerar um resumo automático com IA.",
     "privacidade_meta": "Última atualização: 22 de junho de 2026",
@@ -889,11 +1072,20 @@ for _lc_lang in ("es", "fr", "de"):
         "url_resumo_lead",
         "perguntas_title",
         "perguntas_lead",
+        "capitulos_title",
+        "capitulos_lead",
     ):
         DEFAULT_SITE_CONTENT.setdefault(
             f"{_lc_lang}_{_suffix}",
             DEFAULT_SITE_CONTENT.get(f"en_{_suffix}", ""),
         )
+
+for _nav_lang in ("pt", "en", "es", "fr", "de"):
+    _nav_base = "pt" if _nav_lang == "pt" else "en"
+    DEFAULT_SITE_CONTENT.setdefault(
+        nav_config_key(_nav_lang),
+        json.dumps(default_nav_config(_nav_base), ensure_ascii=False),
+    )
 
 CONTENT_KEYS = frozenset(DEFAULT_SITE_CONTENT.keys())
 _PAGE_KEYS: dict[str, list[str]] = {
@@ -959,6 +1151,11 @@ def _normalize_value(key: str, value: str) -> str:
                 break
     if field_type == "rich":
         return _sanitize_html(text)
+    if field_type == "json" or key.startswith("nav_config_"):
+        parsed = json.loads(text)
+        if not isinstance(parsed, dict):
+            raise ValueError(f"Valor inválido para {key}")
+        return json.dumps(parsed, ensure_ascii=False)
     return text
 
 

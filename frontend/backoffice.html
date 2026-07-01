@@ -41,6 +41,9 @@
       <button type="button" data-tab="conteudo" data-min-role="editor" aria-selected="false">
         <span class="oe-admin-nav-icon">✏️</span> Conteúdo
       </button>
+      <button type="button" data-tab="nav" data-min-role="editor" aria-selected="false">
+        <span class="oe-admin-nav-icon">🧭</span> Menu & Rodapé
+      </button>
       <button type="button" data-tab="seo" data-min-role="editor" aria-selected="false">
         <span class="oe-admin-nav-icon">🔍</span> SEO
       </button>
@@ -271,6 +274,28 @@
                 <button type="button" id="btnReporConteudo" class="oe-admin-btn oe-admin-btn--secondary">↩️ Repor esta página</button>
               </div>
             </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Menu & Rodapé -->
+      <div data-panel="nav" class="hidden">
+        <div class="oe-admin-panel">
+          <div class="oe-admin-panel__head">Menu principal e rodapé</div>
+          <div class="oe-admin-panel__body">
+            <p class="oe-admin-cms-hint">Edita os links do menu <strong>Ferramentas</strong>, <strong>Para quem</strong>, links do topo e colunas do rodapé. As alterações aparecem no site em segundos (por idioma).</p>
+            <div class="oe-admin-cms-toolbar">
+              <div class="oe-admin-field" style="margin:0;min-width:160px">
+                <label for="navLangSelect">Idioma</label>
+                <select id="navLangSelect"></select>
+              </div>
+              <a class="oe-admin-btn oe-admin-btn--secondary" href="index.html" target="_blank" rel="noopener">↗ Ver site</a>
+            </div>
+            <div id="navEditorRoot" style="margin-top:16px"></div>
+            <div class="oe-admin-form-actions" style="margin-top:20px">
+              <button type="button" id="navSaveBtn" class="oe-admin-btn oe-admin-btn--primary">💾 Guardar menu</button>
+              <button type="button" id="navResetBtn" class="oe-admin-btn oe-admin-btn--secondary">↩️ Repor idioma</button>
+            </div>
           </div>
         </div>
       </div>
@@ -637,6 +662,7 @@
 <script src="js/backoffice-cms-locales.js?v=5"></script>
 <script src="js/backoffice.js?v=16"></script>
 <script src="js/backoffice-admin.js?v=23"></script>
+<script src="js/backoffice-nav.js?v=1"></script>
 <script src="js/backoffice-billing.js?v=4"></script>
 </body>
 </html>

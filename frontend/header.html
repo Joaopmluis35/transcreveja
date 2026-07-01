@@ -18,11 +18,12 @@
             Ferramentas
             <svg class="oe-pro-nav__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
           </button>
-          <div class="oe-pro-nav__menu" role="menu">
+          <div class="oe-pro-nav__menu" data-nav-slot="tools" role="menu">
             <a href="resumo.html" data-nav-page="resumo" role="menuitem">Resumo PDF / Word</a>
             <a href="url-resumo.html" data-nav-page="url-resumo" role="menuitem">Resumo por URL</a>
             <a href="perguntas.html" data-nav-page="perguntas" role="menuitem">Perguntas com IA</a>
             <a href="aula-pronta.html" data-nav-page="aula-pronta" role="menuitem">Aula Pronta</a>
+            <a href="capitulos.html" data-nav-page="capitulos" role="menuitem">Capítulos & timestamps</a>
             <a href="conversor.html" data-nav-page="conversor" role="menuitem">Conversor de ficheiros</a>
             <a href="corretor.html" data-nav-page="corretor" role="menuitem">Corretor de texto</a>
           </div>
@@ -33,7 +34,7 @@
             Para quem
             <svg class="oe-pro-nav__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
           </button>
-          <div class="oe-pro-nav__menu" role="menu">
+          <div class="oe-pro-nav__menu" data-nav-slot="audience" role="menu">
             <a href="aulas.html" data-nav-page="aulas" role="menuitem">Aulas</a>
             <a href="professores.html" data-nav-page="professores" role="menuitem">Professores</a>
             <a href="jornalistas.html" data-nav-page="jornalistas" role="menuitem">Jornalistas</a>
@@ -43,9 +44,11 @@
           </div>
         </div>
 
+        <div class="oe-pro-nav__toplinks" data-nav-slot="top-links">
         <a class="oe-pro-nav__link" href="ajuda.html" data-nav-page="ajuda">Ajuda</a>
         <a class="oe-pro-nav__link" href="precos.html" data-nav-page="precos" data-pricing-only>Preços</a>
         <a class="oe-pro-nav__link" href="sugestoes.html" data-nav-page="sugestoes">Sugestões</a>
+        </div>
       </nav>
 
       <div class="oe-pro-header__actions">

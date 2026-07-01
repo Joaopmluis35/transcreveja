@@ -240,7 +240,8 @@
     });
   }
 
-  var LAYOUT_V = "4";
+  var LAYOUT_V = "5";
+  var siteContentCache = null;
 
   function withLayoutVersion(url) {
     if (!url) return url;
@@ -291,6 +292,7 @@
         }
         if (global.OuviescreviTheme) global.OuviescreviTheme.init();
         markCurrentNav();
+        maybeApplyNavFromCache();
         return ensureAuthScript();
       })
       .then(function () {
@@ -326,6 +328,7 @@
         const temp = document.createElement("div");
         temp.innerHTML = html;
         injectScriptsFromHtml(html, temp);
+        maybeApplyNavFromCache();
       })
       .catch(function (err) {
         console.error("OuviescreviUI: falha ao carregar", url, err);
@@ -475,6 +478,120 @@
     return "https://api.ouviescrevi.pt";
   }
 
+  function detectSiteLocale() {
+    if (global.OuviescreviI18n && global.OuviescreviI18n.getLocale) {
+      return global.OuviescreviI18n.getLocale();
+    }
+    var p = (global.location.pathname || "");
+    var m = p.match(/^\/(en|es|fr|de)(?:\/|$)/);
+    return m ? m[1] : "pt";
+  }
+
+  function navConfigKeyForLocale(locale) {
+    return locale === "pt" ? "nav_config_pt" : "nav_config_" + locale;
+  }
+
+  function renderNavLinkList(container, links, role) {
+    if (!container) return;
+    container.innerHTML = "";
+    (links || []).forEach(function (item) {
+      if (!item || !item.label) return;
+      var a = document.createElement("a");
+      a.href = item.href || "#";
+      a.textContent = item.label;
+      if (item.page) a.setAttribute("data-nav-page", item.page);
+      if (item.pricingOnly) a.setAttribute("data-pricing-only", "");
+      if (role) a.setAttribute("role", role);
+      container.appendChild(a);
+    });
+  }
+
+  function applyNavConfig(content) {
+    if (!content) return;
+    var locale = detectSiteLocale();
+    var raw = content[navConfigKeyForLocale(locale)] || content.nav_config_pt;
+    if (!raw) return;
+    var cfg;
+    try {
+      cfg = typeof raw === "string" ? JSON.parse(raw) : raw;
+    } catch (e) {
+      return;
+    }
+    if (!cfg || typeof cfg !== "object") return;
+
+    var toolsMenu = document.querySelector('[data-nav-slot="tools"]');
+    var audienceMenu = document.querySelector('[data-nav-slot="audience"]');
+    var topLinks = document.querySelector('[data-nav-slot="top-links"]');
+    renderNavLinkList(toolsMenu, cfg.tools, "menuitem");
+    renderNavLinkList(audienceMenu, cfg.audience, "menuitem");
+    renderNavLinkList(topLinks, cfg.topLinks);
+
+    var dropdowns = document.querySelectorAll(".oe-pro-nav__dropdown");
+    if (dropdowns[0] && cfg.menuToolsLabel) {
+      var toolsBtn = dropdowns[0].querySelector(".oe-pro-nav__trigger");
+      if (toolsBtn) {
+        toolsBtn.childNodes[0].textContent = cfg.menuToolsLabel + " ";
+      }
+    }
+    if (dropdowns[1] && cfg.menuAudienceLabel) {
+      var audBtn = dropdowns[1].querySelector(".oe-pro-nav__trigger");
+      if (audBtn) {
+        audBtn.childNodes[0].textContent = cfg.menuAudienceLabel + " ";
+      }
+    }
+
+    var cta = document.querySelector(".oe-pro-nav__cta");
+    if (cta) {
+      if (cfg.ctaHref) cta.href = cfg.ctaHref;
+      if (cfg.ctaLabel) cta.textContent = cfg.ctaLabel;
+    }
+
+    var tagline = document.querySelector('[data-nav-slot="footer-tagline"]');
+    if (tagline && cfg.footerTagline) tagline.textContent = cfg.footerTagline;
+    var email = document.querySelector('[data-nav-slot="footer-email"]');
+    if (email && cfg.footerEmail) {
+      email.href = "mailto:" + cfg.footerEmail;
+      email.textContent = cfg.footerEmail;
+    }
+    var copyright = document.querySelector('[data-nav-slot="footer-copyright"]');
+    if (copyright && cfg.footerCopyright) copyright.textContent = cfg.footerCopyright;
+
+    var cols = document.querySelector('[data-nav-slot="footer-cols"]');
+    if (cols && cfg.footerColumns && cfg.footerColumns.length) {
+      cols.innerHTML = "";
+      cfg.footerColumns.forEach(function (col) {
+        var nav = document.createElement("nav");
+        nav.className = "oe-pro-footer__col";
+        nav.setAttribute("aria-label", col.title || "");
+        var h3 = document.createElement("h3");
+        h3.textContent = col.title || "";
+        nav.appendChild(h3);
+        (col.links || []).forEach(function (link) {
+          if (!link || !link.label) return;
+          var a = document.createElement("a");
+          a.href = link.href || "#";
+          a.textContent = link.label;
+          nav.appendChild(a);
+        });
+        cols.appendChild(nav);
+      });
+    }
+
+    markCurrentNav();
+    if (global.OuviescreviNav && global.OuviescreviNav.init) {
+      global.OuviescreviNav.init();
+    }
+    if (global.OuviescreviPricing && global.OuviescreviPricing.apply) {
+      global.OuviescreviPricing.apply();
+    }
+  }
+
+  function maybeApplyNavFromCache() {
+    if (siteContentCache && siteContentCache.content) {
+      applyNavConfig(siteContentCache.content);
+    }
+  }
+
   function applyCmsContent(content) {
     if (!content) return;
     document.querySelectorAll("[data-cms-key]").forEach(function (el) {
@@ -498,11 +615,8 @@
     });
   }
 
-  function loadCms(onLoaded) {
+  function loadSiteConfig(onLoaded) {
     if ((global.location.pathname || "").indexOf("backoffice") !== -1) {
-      return Promise.resolve(null);
-    }
-    if (!document.querySelector("[data-cms-key]")) {
       return Promise.resolve(null);
     }
     var base = cmsApiBase();
@@ -514,16 +628,24 @@
       })
       .then(function (data) {
         if (!data) return null;
-        applyCmsContent(data.content || {});
+        siteContentCache = data;
+        applyNavConfig(data.content || {});
+        if (document.querySelector("[data-cms-key]")) {
+          applyCmsContent(data.content || {});
+        }
         if (data.banner && data.banner.texto) showSiteBanner(data.banner);
         if (global.OuviescreviSEO && data.seo) global.OuviescreviSEO.applyOverrides(data.seo);
         if (typeof onLoaded === "function") onLoaded(data);
         return data;
       })
       .catch(function (err) {
-        console.warn("OuviescreviUI: CMS indisponível", err);
+        console.warn("OuviescreviUI: site config indisponível", err);
         return null;
       });
+  }
+
+  function loadCms(onLoaded) {
+    return loadSiteConfig(onLoaded);
   }
 
   function showSiteBanner(banner) {
@@ -552,7 +674,7 @@
     });
     trackPageView();
     if (document.body && document.body.dataset.cmsAuto !== "false") {
-      loadCms();
+      loadSiteConfig();
     }
   }
 
@@ -569,6 +691,8 @@
     loadHeader: loadHeader,
     loadFooter: loadFooter,
     applyCmsContent: applyCmsContent,
+    applyNavConfig: applyNavConfig,
     loadCms: loadCms,
+    loadSiteConfig: loadSiteConfig,
   };
 })(window);

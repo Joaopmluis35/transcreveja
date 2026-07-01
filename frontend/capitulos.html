@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Divide transcrições longas em capítulos com timestamps — ideal para podcasts, aulas gravadas e vídeos. Exporta para YouTube.">
+  <meta name="robots" content="index, follow">
+  <title>⏱️ Capítulos & timestamps</title>
+  <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
+  <link rel="stylesheet" href="css/ouviescrevi.css?v=15">
+  <link rel="stylesheet" href="css/capitulos.css?v=1">
+  <script src="js/theme-ui.js"></script>
+  <script src="/js/ouviescrevi-seo.js" defer></script>
+  <script src="js/ouviescrevi-ui.js" defer></script>
+</head>
+<body class="oe-page oe-pro oe-page--capitulos">
+<a class="oe-skip" href="#conteudo">Saltar para o conteúdo</a>
+<div id="header"></div>
+
+<div class="oe-cap-layout" id="conteudo">
+  <header class="oe-cap-hero">
+    <h1 data-cms-key="capitulos_title" data-cms-mode="text">⏱️ Capítulos & timestamps</h1>
+    <p class="oe-lead" data-cms-key="capitulos_lead" data-cms-mode="text">Cola uma transcrição com timestamps (do Ouviescrevi) e obtém capítulos organizados — prontos para YouTube, podcasts ou apontamentos.</p>
+  </header>
+
+  <section class="oe-cap-form" aria-labelledby="capFormTitle">
+    <h2 class="oe-visually-hidden" id="capFormTitle">Gerar capítulos</h2>
+    <p class="oe-ap-form__hint" id="capFormHint">Funciona melhor com texto no formato <code>[MM:SS]</code> por bloco — como a transcrição formatada do Ouviescrevi.</p>
+    <textarea id="texto" aria-labelledby="capFormTitle" placeholder="Cola aqui a transcrição com timestamps…"></textarea>
+    <div class="oe-cap-form__footer">
+      <div class="oe-cap-form__field">
+        <label for="capLang">Idioma dos títulos</label>
+        <select id="capLang">
+          <option value="pt">Português</option>
+          <option value="en">English</option>
+          <option value="es">Español</option>
+          <option value="fr">Français</option>
+          <option value="de">Deutsch</option>
+        </select>
+      </div>
+      <div class="oe-cap-form__field">
+        <label for="capMax">Máx. capítulos</label>
+        <select id="capMax">
+          <option value="8">8</option>
+          <option value="10">10</option>
+          <option value="12" selected>12</option>
+          <option value="15">15</option>
+        </select>
+      </div>
+      <button type="button" class="oe-cap-form__submit" id="btnCapitulos">⏱️ Gerar capítulos</button>
+    </div>
+  </section>
+
+  <div id="resultado" hidden></div>
+</div>
+
+<div id="footer"></div>
+
+<script src="js/ouviescrevi-api.js"></script>
+<script src="js/capitulos-ui.js?v=1"></script>
+<script>
+  CapitulosUI.init({ lang: "pt" });
+  OuviescreviUI.loadHeader();
+  OuviescreviUI.loadFooter();
+</script>
+</body>
+</html>
