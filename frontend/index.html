@@ -1989,14 +1989,24 @@
 
       const formData = new FormData();
       formData.append("file", blob, `gravacao.${ext}`);
+      const lang = document.getElementById("transcribeLanguage").value;
+      if (lang && lang !== "auto") formData.append("language", lang);
 
       status.textContent = "🕐 A processar o áudio...";
+      setOutputPanelVisible(false);
+      definirTranscricao("");
       startJobLoading("gravacao");
       iniciarFrasesAnimadas(statusEl);
       iniciarTimerTranscricao();
+      updateTranscribeEta(null, null);
 
       let p = 0;
       const anim = setInterval(() => { if (p < 90) { p += Math.random() * 5; progressBar.style.width = `${p.toFixed(1)}%`; } }, 200);
+
+      let sucesso = false;
+      let data = {};
+      let lastHttpStatus = 0;
+      const fileMeta = { name: `gravacao.${ext}`, size: blob.size };
 
       try{
         const controller = new AbortController();
@@ -2009,15 +2019,58 @@
         });
         clearTimeout(to);
 
-        let data = {};
+        lastHttpStatus = res.status;
         let txt = await res.text();
         try{ data = JSON.parse(txt); } catch{ data = { error: `Resposta inválida (${res.status})` }; }
 
-        definirTranscricao(data.formatted || data.transcription || "⚠️ Erro ao transcrever.");
-        setOutputPanelVisible(true);
-        status.textContent = "✅ Transcrição concluída!";
+        if (!res.ok) {
+          throw new Error(data.error || data.detail || `Erro ${res.status}`);
+        }
+
+        if (data.job_id) {
+          clearInterval(anim);
+          pararFrasesAnimadas(statusEl);
+          updateTranscribeEta(data.duration_sec, data);
+          statusEl.textContent = "✅ Áudio enviado — a transcrever no servidor…";
+          progressBar.style.width = "45%";
+          data = await pollTranscribeJob(data.job_id);
+          sucesso = transcricaoRecebidaComSucesso(data);
+        } else {
+          sucesso = transcricaoRecebidaComSucesso(data);
+        }
+
+        const textoRecebido = data.formatted || data.transcription || data.text || "";
+        if (sucesso && textoRecebido.trim()) {
+          const identificar = document.getElementById("identificarLocutores").checked;
+          let textoFinal = textoRecebido;
+          if (identificar) textoFinal = aplicarLocutores(textoFinal);
+          definirTranscricao(textoFinal);
+          setOutputPanelVisible(true);
+          focusTranscriptionResult();
+          status.textContent = "✅ Transcrição concluída!";
+          statusEl.textContent = "✅ Transcrição concluída com sucesso!";
+          if (window.OuviescreviHistory) {
+            window.OuviescreviHistory.refreshQuota().then(function (q) {
+              if (window.OuviescreviUpsell) OuviescreviUpsell.afterTranscriptionSuccess(q);
+            });
+          } else if (window.OuviescreviUpsell) {
+            OuviescreviUpsell.afterTranscriptionSuccess();
+          }
+        } else {
+          const msg = mensagemErroTranscricao(data, fileMeta, lastHttpStatus);
+          definirTranscricao(msg);
+          setOutputPanelVisible(true);
+          status.textContent = "⚠️ Não foi possível transcrever a gravação.";
+          statusEl.textContent = "⚠️ Não foi possível transcrever.";
+        }
       }catch(err){
-        status.textContent = err.name === "AbortError" ? "⏰ Tempo limite atingido. Tenta novamente." : "❌ Erro ao processar áudio.";
+        const errMsg = err.name === "AbortError"
+          ? "⏰ Tempo limite atingido. Tenta novamente."
+          : (err.message || "❌ Erro ao processar áudio.");
+        status.textContent = errMsg;
+        statusEl.textContent = errMsg;
+        definirTranscricao(errMsg);
+        setOutputPanelVisible(true);
       }finally{
         clearInterval(anim);
         progressBar.style.width = "100%";
