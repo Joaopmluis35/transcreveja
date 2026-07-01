@@ -15,6 +15,7 @@
     resumo: { pt: "resumo.html", en: "resumo.html", es: "resumo.html", fr: "resumo.html", de: "resumo.html" },
     "url-resumo": { pt: "url-resumo.html", en: "url-resumo.html", es: "url-resumo.html", fr: "url-resumo.html", de: "url-resumo.html" },
     perguntas: { pt: "perguntas.html", en: "perguntas.html", es: "perguntas.html", fr: "perguntas.html", de: "perguntas.html" },
+    "aula-pronta": { pt: "aula-pronta.html", en: "aula-pronta.html", es: "aula-pronta.html", fr: "aula-pronta.html", de: "aula-pronta.html" },
     cookies: { pt: "cookies.html", en: "cookies.html", es: "cookies.html", fr: "cookies.html", de: "cookies.html" },
     privacy: { pt: "privacidade.html", en: "privacy.html", es: "privacy.html", fr: "privacy.html", de: "privacy.html" },
     terms: { pt: "termos.html", en: "terms.html", es: "terms.html", fr: "terms.html", de: "terms.html" },
@@ -186,6 +187,17 @@
       title: "AI Multiple-Choice Question Generator | Ouviescrevi",
       description:
         "Generate study questions and quizzes from any text with AI. Perfect for teachers and students.",
+      lang: "en",
+    },
+    "/aula-pronta.html": {
+      title: "Aula Pronta — Pacote de estudo com IA | Ouviescrevi",
+      description:
+        "Transforma uma transcrição de aula em pacote de estudo: resumo, glossário, ideias-chave e perguntas com gabarito.",
+    },
+    "/en/aula-pronta.html": {
+      title: "Lesson Ready — AI Study Pack | Ouviescrevi",
+      description:
+        "Turn a lesson transcript into a study pack: summary, glossary, key points and quiz questions with answer key.",
       lang: "en",
     },
     "/url-resumo.html": {

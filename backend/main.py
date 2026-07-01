@@ -2592,6 +2592,102 @@ async def generate_questions(req: QuestionRequest, request: Request):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+_AULA_PRONTA_MAX_CHARS = 14_000
+
+class AulaProntaRequest(BaseModel):
+    text: str
+    token: str = ""
+    lang: str = "pt"
+    num_questions: int = 10
+
+def _parse_llm_json(raw: str) -> dict:
+    text = (raw or "").strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```(?:json)?\s*", "", text, flags=re.IGNORECASE)
+        text = re.sub(r"\s*```$", "", text)
+    return json.loads(text)
+
+@app.post("/generate-aula-pronta")
+async def generate_aula_pronta(req: AulaProntaRequest, request: Request):
+    """Pacote de estudo: resumos, glossário, pontos-chave e perguntas."""
+    require_token(req.token)
+    enforce_rate_limit(request, "ai", RATE_LIMIT_AI, RATE_LIMIT_AI_WINDOW)
+
+    source = (req.text or "").strip()
+    if len(source) < 80:
+        raise HTTPException(status_code=400, detail="Texto demasiado curto para gerar o pacote (mín. ~80 caracteres).")
+
+    lang = (req.lang or "pt").lower()
+    if lang not in ("pt", "en", "es", "fr", "de"):
+        lang = "pt"
+    n_q = max(5, min(15, int(req.num_questions or 10)))
+
+    truncated = False
+    if len(source) > _AULA_PRONTA_MAX_CHARS:
+        source = source[:_AULA_PRONTA_MAX_CHARS]
+        truncated = True
+
+    lang_names = {
+        "pt": "português de Portugal",
+        "en": "English",
+        "es": "español",
+        "fr": "français",
+        "de": "Deutsch",
+    }
+    lang_label = lang_names[lang]
+
+    sys = (
+        "És um assistente pedagógico. Respondes APENAS com JSON válido, sem markdown, "
+        "seguindo exatamente o esquema pedido."
+    )
+    prompt = f"""Com base no texto de uma aula/transcrição abaixo, cria um pacote de estudo completo em {lang_label}.
+
+Devolve um único objeto JSON com estas chaves:
+- "title": título curto da aula (string)
+- "short_summary": resumo em 3–5 frases (string)
+- "study_summary": resumo para estudar, em parágrafos ou tópicos com \\n (string)
+- "key_points": lista de 5–8 ideias-chave (array de strings)
+- "glossary": lista de 5–12 termos importantes, cada um com "term" e "definition" (array de objetos)
+- "questions": exatamente {n_q} perguntas de escolha múltipla; cada uma com:
+    "prompt" (string), "options" (objeto com chaves A,B,C,D), "answer" (letra A-D), "explanation" (string breve)
+
+Regras:
+- Tudo no idioma pedido ({lang_label}), mesmo que o texto fonte seja outro idioma.
+- Perguntas adequadas a revisão escolar; opções plausíveis.
+- Sem texto fora do JSON.
+
+Texto:
+{source}"""
+
+    try:
+        resp = client.chat.completions.create(
+            model=SUM_MODEL,
+            messages=[{"role": "system", "content": sys}, {"role": "user", "content": prompt}],
+            temperature=0.55,
+            max_tokens=3200,
+            response_format={"type": "json_object"},
+        )
+        raw = resp.choices[0].message.content.strip()
+        pack = _parse_llm_json(raw)
+        if not isinstance(pack.get("questions"), list) or not pack.get("short_summary"):
+            raise ValueError("Resposta incompleta do modelo")
+        maybe_notify_activity(
+            request,
+            "Pacote Aula Pronta gerado",
+            "Material de estudo criado no Ouviescrevi",
+        )
+        return {
+            "pack": pack,
+            "num_questions": len(pack.get("questions") or []),
+            "truncated": truncated,
+        }
+    except json.JSONDecodeError as e:
+        logger.exception("Aula pronta JSON inválido")
+        raise HTTPException(status_code=500, detail="Resposta inválida do modelo. Tenta novamente.") from e
+    except Exception as e:
+        logger.exception("Erro em /generate-aula-pronta")
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
 def extract_url_article_text(html_bytes: bytes) -> str:
     soup = BeautifulSoup(html_bytes, "html.parser")
     for tag in soup(["script", "style", "nav", "footer", "noscript", "iframe", "svg", "form"]):
