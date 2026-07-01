@@ -15,6 +15,7 @@
   var navLang = "pt";
   var navDraft = null;
   var navLoaded = false;
+  var navDefaultsByLang = {};
 
   function apiBase() {
     return global.OuviescreviAPI.getBase();
@@ -24,32 +25,36 @@
     return lang === "pt" ? "nav_config_pt" : "nav_config_" + lang;
   }
 
-  function defaultNav(lang) {
-    var isEn = lang !== "pt";
-    return {
-      menuToolsLabel: isEn ? "Tools" : "Ferramentas",
-      menuAudienceLabel: isEn ? "For" : "Para quem",
-      tools: [],
-      audience: [],
-      topLinks: [],
-      ctaLabel: isEn ? "Transcribe free" : "Transcrever grátis",
-      ctaHref: "index.html",
-      footerTagline: isEn
-        ? "Transcribe, summarize and translate with AI — free and made in Portugal."
-        : "Transcreve, resume e traduz com IA — grátis e feito em Portugal.",
-      footerEmail: "ouviescrevi@gmail.com",
-      footerCopyright: isEn ? "© 2026 Ouviescrevi · Made in Portugal" : "© 2026 Ouviescrevi · Feito em Portugal",
-      footerColumns: [],
-    };
+  function defaultsForLang(lang) {
+    var base = lang === "pt" ? "pt" : "en";
+    if (navDefaultsByLang[lang]) return navDefaultsByLang[lang];
+    if (navDefaultsByLang[base]) return navDefaultsByLang[base];
+    return navDefaultsByLang.pt || null;
+  }
+
+  function mergeNav(stored, lang) {
+    var defaults = defaultsForLang(lang);
+    if (!defaults) return stored || {};
+    var out = JSON.parse(JSON.stringify(defaults));
+    if (!stored || typeof stored !== "object") return out;
+    Object.keys(stored).forEach(function (k) {
+      if (stored[k] != null && stored[k] !== "") out[k] = stored[k];
+    });
+    ["tools", "audience", "topLinks", "footerColumns"].forEach(function (key) {
+      if (!out[key] || !out[key].length) {
+        out[key] = JSON.parse(JSON.stringify(defaults[key] || []));
+      }
+    });
+    return out;
   }
 
   function parseNav(raw, lang) {
-    if (!raw) return defaultNav(lang);
+    if (!raw) return mergeNav(null, lang);
     try {
       var data = typeof raw === "string" ? JSON.parse(raw) : raw;
-      if (data && typeof data === "object") return data;
+      if (data && typeof data === "object") return mergeNav(data, lang);
     } catch (e) {}
-    return defaultNav(lang);
+    return mergeNav(null, lang);
   }
 
   function esc(s) {
@@ -61,8 +66,11 @@
 
   function linkRowHtml(link, prefix) {
     link = link || {};
+    var hiddenCls = link.hidden ? " oe-admin-nav-row--hidden" : "";
     return (
-      '<div class="oe-admin-nav-row" data-nav-prefix="' +
+      '<div class="oe-admin-nav-row' +
+      hiddenCls +
+      '" data-nav-prefix="' +
       prefix +
       '">' +
       '<input type="text" class="oe-admin-nav-label" placeholder="Texto" value="' +
@@ -74,10 +82,13 @@
       '<input type="text" class="oe-admin-nav-page" placeholder="slug (opcional)" value="' +
       esc(link.page || "") +
       '">' +
+      '<label class="oe-admin-nav-check" title="Ocultar no site sem apagar"><input type="checkbox" class="oe-admin-nav-hidden"' +
+      (link.hidden ? " checked" : "") +
+      "> Ocultar</label>" +
       '<label class="oe-admin-nav-check"><input type="checkbox" class="oe-admin-nav-pricing"' +
       (link.pricingOnly ? " checked" : "") +
       "> Pro</label>" +
-      '<button type="button" class="oe-admin-btn oe-admin-btn--secondary oe-admin-nav-rm" title="Remover">✕</button>' +
+      '<button type="button" class="oe-admin-btn oe-admin-btn--secondary oe-admin-nav-rm" title="Remover do menu">✕</button>' +
       "</div>"
     );
   }
@@ -111,6 +122,7 @@
     var d = navDraft;
     root.innerHTML =
       '<div class="oe-admin-form oe-admin-nav-form">' +
+      '<p class="oe-admin-cms-hint">Cada linha é uma entrada do menu. <strong>Ocultar</strong> tira do site mas mantém aqui para reativar. <strong>✕</strong> remove da lista (guarda para aplicar).</p>' +
       '<div class="oe-admin-field-row">' +
       '<div class="oe-admin-field"><label>Menu — Ferramentas (rótulo)</label>' +
       '<input type="text" id="navMenuToolsLabel" value="' +
@@ -120,12 +132,16 @@
       '<input type="text" id="navMenuAudienceLabel" value="' +
       esc(d.menuAudienceLabel) +
       '"></div></div>' +
-      "<h3 class=\"oe-admin-nav-section\">Links — Ferramentas</h3>" +
+      "<h3 class=\"oe-admin-nav-section\">Links — Ferramentas <small>(" +
+      (d.tools || []).length +
+      ")</small></h3>" +
       '<div id="navToolsLinks" class="oe-admin-nav-links">' +
       (d.tools || []).map(function (l) { return linkRowHtml(l, "tools"); }).join("") +
       "</div>" +
       '<button type="button" class="oe-admin-btn oe-admin-btn--secondary" id="navAddTool">+ Ferramenta</button>' +
-      "<h3 class=\"oe-admin-nav-section\">Links — Para quem</h3>" +
+      "<h3 class=\"oe-admin-nav-section\">Links — Para quem <small>(" +
+      (d.audience || []).length +
+      ")</small></h3>" +
       '<div id="navAudienceLinks" class="oe-admin-nav-links">' +
       (d.audience || []).map(function (l) { return linkRowHtml(l, "audience"); }).join("") +
       "</div>" +
@@ -171,6 +187,12 @@
         if (row) row.remove();
       });
     });
+    root.querySelectorAll(".oe-admin-nav-hidden").forEach(function (cb) {
+      cb.addEventListener("change", function () {
+        var row = cb.closest(".oe-admin-nav-row");
+        if (row) row.classList.toggle("oe-admin-nav-row--hidden", cb.checked);
+      });
+    });
     var addTool = document.getElementById("navAddTool");
     if (addTool) {
       addTool.addEventListener("click", function () {
@@ -212,31 +234,33 @@
     }
   }
 
+  function readLinkRow(row) {
+    var item = {
+      label: (row.querySelector(".oe-admin-nav-label") || {}).value || "",
+      href: (row.querySelector(".oe-admin-nav-href") || {}).value || "",
+    };
+    var page = (row.querySelector(".oe-admin-nav-page") || {}).value || "";
+    if (page) item.page = page;
+    if ((row.querySelector(".oe-admin-nav-pricing") || {}).checked) item.pricingOnly = true;
+    if ((row.querySelector(".oe-admin-nav-hidden") || {}).checked) item.hidden = true;
+    return item;
+  }
+
   function collectLinks(containerId) {
     var box = document.getElementById(containerId);
     if (!box) return [];
-    return Array.prototype.map.call(box.querySelectorAll(".oe-admin-nav-row"), function (row) {
-      var item = {
-        label: (row.querySelector(".oe-admin-nav-label") || {}).value || "",
-        href: (row.querySelector(".oe-admin-nav-href") || {}).value || "",
-      };
-      var page = (row.querySelector(".oe-admin-nav-page") || {}).value || "";
-      if (page) item.page = page;
-      if ((row.querySelector(".oe-admin-nav-pricing") || {}).checked) item.pricingOnly = true;
-      return item;
-    }).filter(function (l) { return l.label && l.href; });
+    return Array.prototype.map
+      .call(box.querySelectorAll(".oe-admin-nav-row"), readLinkRow)
+      .filter(function (l) { return l.label && l.href; });
   }
 
   function collectDraft() {
     var cols = [];
     document.querySelectorAll("#navFooterCols .oe-admin-nav-col").forEach(function (col) {
       var title = (col.querySelector(".oe-admin-nav-col-title") || {}).value || "";
-      var links = Array.prototype.map.call(col.querySelectorAll(".oe-admin-nav-row"), function (row) {
-        return {
-          label: (row.querySelector(".oe-admin-nav-label") || {}).value || "",
-          href: (row.querySelector(".oe-admin-nav-href") || {}).value || "",
-        };
-      }).filter(function (l) { return l.label && l.href; });
+      var links = Array.prototype.map
+        .call(col.querySelectorAll(".oe-admin-nav-row"), readLinkRow)
+        .filter(function (l) { return l.label && l.href; });
       if (title || links.length) cols.push({ title: title, links: links });
     });
     return {
@@ -263,6 +287,7 @@
         headers: global.OuviescreviAPI.adminAuthHeaders(),
       });
       var data = await res.json();
+      if (data.nav_defaults) navDefaultsByLang = data.nav_defaults;
       var content = data.content || {};
       navDraft = parseNav(content[navKey(navLang)], navLang);
       renderEditor();
@@ -299,6 +324,7 @@
         body: JSON.stringify({ keys: [navKey(navLang)] }),
       });
       if (!res.ok) throw new Error("HTTP " + res.status);
+      navLoaded = false;
       await loadNavEditor();
       global.OuviescreviUI.toast("Menu reposto.", "success");
     } catch (e) {
@@ -317,6 +343,7 @@
       });
       langSel.addEventListener("change", function () {
         navLang = langSel.value || "pt";
+        navLoaded = false;
         loadNavEditor();
       });
     }

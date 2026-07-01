@@ -493,9 +493,12 @@
 
   function renderNavLinkList(container, links, role) {
     if (!container) return;
+    var visible = (links || []).filter(function (item) {
+      return item && item.label && !item.hidden;
+    });
+    if (!visible.length) return;
     container.innerHTML = "";
-    (links || []).forEach(function (item) {
-      if (!item || !item.label) return;
+    visible.forEach(function (item) {
       var a = document.createElement("a");
       a.href = item.href || "#";
       a.textContent = item.label;
@@ -504,6 +507,25 @@
       if (role) a.setAttribute("role", role);
       container.appendChild(a);
     });
+  }
+
+  function parseNavConfigClient(raw, defaults) {
+    var cfg = defaults ? Object.assign({}, defaults) : {};
+    if (!raw) return cfg;
+    try {
+      var data = typeof raw === "string" ? JSON.parse(raw) : raw;
+      if (data && typeof data === "object") {
+        Object.keys(data).forEach(function (k) {
+          if (data[k] != null && data[k] !== "") cfg[k] = data[k];
+        });
+      }
+    } catch (e) {}
+    ["tools", "audience", "topLinks", "footerColumns"].forEach(function (key) {
+      if (!cfg[key] || !cfg[key].length) {
+        cfg[key] = (defaults && defaults[key]) ? defaults[key].slice() : [];
+      }
+    });
+    return cfg;
   }
 
   function applyNavConfig(content) {
@@ -518,6 +540,15 @@
       return;
     }
     if (!cfg || typeof cfg !== "object") return;
+    var fallbackLang = locale === "pt" ? "pt" : "en";
+    var fallbackRaw = content[navConfigKeyForLocale(fallbackLang)] || content.nav_config_pt;
+    var fallbackDefaults;
+    try {
+      fallbackDefaults = fallbackRaw ? (typeof fallbackRaw === "string" ? JSON.parse(fallbackRaw) : fallbackRaw) : null;
+    } catch (e2) {
+      fallbackDefaults = null;
+    }
+    cfg = parseNavConfigClient(cfg, fallbackDefaults);
 
     var toolsMenu = document.querySelector('[data-nav-slot="tools"]');
     var audienceMenu = document.querySelector('[data-nav-slot="audience"]');
@@ -567,7 +598,7 @@
         h3.textContent = col.title || "";
         nav.appendChild(h3);
         (col.links || []).forEach(function (link) {
-          if (!link || !link.label) return;
+          if (!link || !link.label || link.hidden) return;
           var a = document.createElement("a");
           a.href = link.href || "#";
           a.textContent = link.label;

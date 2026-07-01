@@ -1302,9 +1302,17 @@ body.oe-admin.oe-admin--dark .oe-admin-jobs-box__item {
 
 .oe-admin-nav-row {
   display: grid;
-  grid-template-columns: 1.2fr 1.2fr 0.8fr auto auto;
+  grid-template-columns: 1.2fr 1.2fr 0.7fr auto auto auto;
   gap: 8px;
   align-items: center;
+}
+
+.oe-admin-nav-row--hidden {
+  opacity: 0.45;
+}
+
+.oe-admin-nav-row--hidden .oe-admin-nav-label {
+  text-decoration: line-through;
 }
 
 .oe-admin-nav-check {

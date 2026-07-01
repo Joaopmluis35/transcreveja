@@ -19,7 +19,7 @@ from analytics import (
     get_top_pages,
     get_visit_stats,
 )
-from cms import get_all_content, get_page_schema, get_seo_overrides, keys_for_page, reset_content, update_content
+from cms import get_all_content, get_page_schema, get_seo_overrides, keys_for_page, nav_defaults_for_admin, parse_nav_config, reset_content, update_content
 from database import database_backend, use_turso
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -392,6 +392,7 @@ def admin_get_site_content(request: Request):
         "keys": sorted(get_all_content().keys()),
         "pages": get_page_schema(),
         "seo": get_seo_overrides(),
+        "nav_defaults": nav_defaults_for_admin(),
     }
 
 

@@ -761,16 +761,38 @@ def nav_config_key(lang: str) -> str:
     return f"nav_config_{lang}" if lang != "pt" else "nav_config_pt"
 
 
+def _nav_base_lang(lang: str) -> str:
+    return "pt" if lang == "pt" else "en"
+
+
+def merge_nav_config(data: dict[str, Any], lang: str) -> dict[str, Any]:
+    """Preenche secções vazias com os defaults (evita menu em branco)."""
+    base = default_nav_config(_nav_base_lang(lang))
+    out = dict(base)
+    for key, val in data.items():
+        if val is not None and val != "":
+            out[key] = val
+    for key in ("tools", "audience", "topLinks", "footerColumns"):
+        if not out.get(key):
+            out[key] = list(base.get(key) or [])
+    return out
+
+
 def parse_nav_config(raw: str | None, lang: str = "pt") -> dict[str, Any]:
+    base_lang = _nav_base_lang(lang)
     if not raw:
-        return default_nav_config(lang)
+        return default_nav_config(base_lang)
     try:
-        data = json.loads(raw)
+        data = json.loads(raw) if isinstance(raw, str) else raw
         if isinstance(data, dict):
-            return data
+            return merge_nav_config(data, lang)
     except (json.JSONDecodeError, TypeError):
         pass
-    return default_nav_config(lang)
+    return default_nav_config(base_lang)
+
+
+def nav_defaults_for_admin() -> dict[str, dict[str, Any]]:
+    return {lang: default_nav_config(_nav_base_lang(lang)) for lang in ("pt", "en", "es", "fr", "de")}
 
 
 _LANG_ORDER = {"pt": 0, "en": 1, "es": 2, "fr": 3, "de": 4}
