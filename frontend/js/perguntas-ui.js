@@ -38,6 +38,8 @@
       signature: "\n\n— Gerado com Ouviescrevi: https://ouviescrevi.pt/perguntas.html",
       empty: "Sem perguntas para exportar.",
       viewGenerated: "Ver perguntas geradas",
+      outputLangLabel: "Idioma das perguntas",
+      outputLangHint: "O texto de origem pode estar noutro idioma.",
     },
     en: {
       eyebrow: "Study · Quizzes · Classes",
@@ -74,6 +76,8 @@
       signature: "\n\n— Generated with Ouviescrevi: https://ouviescrevi.pt/en/perguntas.html",
       empty: "Nothing to export.",
       viewGenerated: "View generated questions",
+      outputLangLabel: "Question language",
+      outputLangHint: "Source text can be in another language.",
     },
     es: {
       eyebrow: "Estudio · Exámenes · Clases",
@@ -110,6 +114,8 @@
       signature: "\n\n— Generado con Ouviescrevi: https://ouviescrevi.pt/es/perguntas.html",
       empty: "Nada que exportar.",
       viewGenerated: "Ver preguntas generadas",
+      outputLangLabel: "Idioma de las preguntas",
+      outputLangHint: "El texto de origen puede estar en otro idioma.",
     },
     fr: {
       eyebrow: "Révision · Quiz · Cours",
@@ -146,6 +152,8 @@
       signature: "\n\n— Généré avec Ouviescrevi: https://ouviescrevi.pt/fr/perguntas.html",
       empty: "Rien à exporter.",
       viewGenerated: "Voir les questions générées",
+      outputLangLabel: "Langue des questions",
+      outputLangHint: "Le texte source peut être dans une autre langue.",
     },
     de: {
       eyebrow: "Lernen · Tests · Unterricht",
@@ -182,16 +190,101 @@
       signature: "\n\n— Erstellt mit Ouviescrevi: https://ouviescrevi.pt/de/perguntas.html",
       empty: "Nichts zu exportieren.",
       viewGenerated: "Generierte Fragen anzeigen",
+      outputLangLabel: "Sprache der Fragen",
+      outputLangHint: "Der Quelltext kann in einer anderen Sprache sein.",
     },
   };
 
-  var config = { lang: "pt", numQuestions: 3 };
+  var OUTPUT_LANGS = [
+    { id: "pt", label: "Português" },
+    { id: "en", label: "English" },
+    { id: "es", label: "Español" },
+    { id: "fr", label: "Français" },
+    { id: "de", label: "Deutsch" },
+  ];
+
+  var config = { lang: "pt", testLang: "pt", numQuestions: 3 };
   var lastPlainText = "";
   var lastQuestions = [];
 
   function t(key) {
     var pack = STRINGS[config.lang] || STRINGS.pt;
     return pack[key] || STRINGS.pt[key] || key;
+  }
+
+  function tTest(key) {
+    var pack = STRINGS[readOutputLang()] || STRINGS.pt;
+    return pack[key] || STRINGS.pt[key] || key;
+  }
+
+  function readOutputLang() {
+    var el =
+      document.getElementById("quizOutputLang") ||
+      document.getElementById("testSheetLang");
+    var v = el ? el.value : config.testLang || config.lang;
+    var ok = OUTPUT_LANGS.some(function (l) {
+      return l.id === v;
+    });
+    return ok ? v : "pt";
+  }
+
+  function syncOutputLangSelects(value) {
+    if (!OUTPUT_LANGS.some(function (l) {
+      return l.id === value;
+    })) {
+      value = "pt";
+    }
+    config.testLang = value;
+    ["quizOutputLang", "testSheetLang"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el && el.value !== value) el.value = value;
+    });
+  }
+
+  function fillLangSelect(sel, selected) {
+    if (!sel) return;
+    sel.innerHTML = "";
+    OUTPUT_LANGS.forEach(function (lang) {
+      var opt = document.createElement("option");
+      opt.value = lang.id;
+      opt.textContent = lang.label;
+      if (lang.id === selected) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
+
+  function setupOutputLangSelector() {
+    var footer = document.querySelector(".oe-quiz-form__footer");
+    if (!footer || document.getElementById("quizOutputLang")) return;
+
+    var wrap = document.createElement("div");
+    wrap.className = "oe-quiz-form__lang";
+    wrap.innerHTML =
+      '<span id="quizOutputLangLabel"></span>' +
+      '<select id="quizOutputLang" aria-labelledby="quizOutputLangLabel"></select>' +
+      '<span class="oe-quiz-form__lang-hint" id="quizOutputLangHint"></span>';
+
+    var label = wrap.querySelector("#quizOutputLangLabel");
+    var hint = wrap.querySelector("#quizOutputLangHint");
+    if (label) label.textContent = t("outputLangLabel");
+    if (hint) hint.textContent = t("outputLangHint");
+
+    var sel = wrap.querySelector("#quizOutputLang");
+    var initial = config.testLang || config.lang || "pt";
+    fillLangSelect(sel, initial);
+    syncOutputLangSelects(initial);
+    if (sel) {
+      sel.addEventListener("change", function () {
+        syncOutputLangSelects(sel.value);
+      });
+    }
+
+    var count = footer.querySelector(".oe-quiz-form__count");
+    if (count && count.nextSibling) {
+      footer.insertBefore(wrap, count.nextSibling);
+    } else {
+      footer.insertBefore(wrap, footer.querySelector(".oe-quiz-form__submit"));
+    }
   }
 
   function applyFormLabels() {
@@ -209,6 +302,7 @@
     if (textarea) textarea.placeholder = t("placeholder");
     var btn = document.getElementById("btnPerguntas");
     if (btn) btn.textContent = t("btnGenerate");
+    setupOutputLangSelector();
   }
 
   var COUNT_PRESETS = [3, 5, 10, 15, 20];
@@ -418,9 +512,12 @@
       "</button>" +
       "</div></div>";
 
+    var testLang = readOutputLang();
+    config.testLang = testLang;
+
     var builderHtml =
       global.PerguntasTemplates && global.PerguntasTemplates.builderHtml
-        ? global.PerguntasTemplates.builderHtml(config.lang, questions.length)
+        ? global.PerguntasTemplates.builderHtml(testLang, questions.length)
         : "";
 
     var cards = questions
@@ -448,7 +545,7 @@
             '<div class="oe-quiz-answer">' +
             (q.answer
               ? '<p class="oe-quiz-answer__row"><span class="oe-quiz-answer__label">' +
-                escapeHtml(t("correct")) +
+                escapeHtml(tTest("correct")) +
                 ":</span> " +
                 '<span class="oe-quiz-answer__value">' +
                 escapeHtml(q.answer) +
@@ -456,7 +553,7 @@
               : "") +
             (q.explanation
               ? '<p class="oe-quiz-answer__row"><span class="oe-quiz-answer__label">' +
-                escapeHtml(t("explanation")) +
+                escapeHtml(tTest("explanation")) +
                 ":</span> " +
                 escapeHtml(q.explanation) +
                 "</p>"
@@ -534,8 +631,8 @@
         container.querySelector("#oeTestBuilder"),
         container.querySelector("#oeTestPreview"),
         questions,
-        config.lang,
-        { question: t("question"), correct: t("correct"), explanation: t("explanation") },
+        testLang,
+        { question: tTest("question"), correct: tTest("correct"), explanation: tTest("explanation") },
         global.OuviescreviUI ? global.OuviescreviUI.toast.bind(global.OuviescreviUI) : null
       );
     }
@@ -645,10 +742,11 @@
 
     try {
       await global.OuviescreviAPI.init();
-      var apiLang = config.lang === "en" ? "en" : "pt";
+      var outputLang = readOutputLang();
+      config.testLang = outputLang;
       var payload = {
         text: texto,
-        lang: apiLang,
+        lang: outputLang,
         num_questions: readNumQuestions(),
       };
       var res = await fetch(global.OuviescreviAPI.getBase() + "/generate-questions", {
@@ -678,6 +776,7 @@
 
   function init(opts) {
     config = Object.assign({}, config, opts || {});
+    if (!config.testLang) config.testLang = config.lang || "pt";
     applyFormLabels();
     setupCountSelector();
     var btn = document.getElementById("btnPerguntas");
@@ -703,6 +802,8 @@
     render: renderQuestions,
     parse: parseQuestions,
     exportQuiz: exportQuiz,
+    readOutputLang: readOutputLang,
+    syncOutputLangSelects: syncOutputLangSelects,
     generate: generateFromPage,
     getLastQuestions: function () {
       return lastQuestions.slice();

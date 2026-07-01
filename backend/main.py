@@ -2538,20 +2538,48 @@ class QuestionRequest(BaseModel):
     lang: str = "pt"
     num_questions: int = 3
 
+_QUESTION_LANG_SPECS: dict[str, tuple[str, str]] = {
+    "pt": (
+        "Crias perguntas de estudo em português.",
+        "Gera {n} perguntas de escolha múltipla com base no texto. "
+        "Para cada pergunta: enunciado, quatro opções (A–D), resposta correta e breve explicação. "
+        "Escreve tudo em português, mesmo que o texto de origem esteja noutro idioma.\n\nTexto:\n{text}",
+    ),
+    "en": (
+        "You create study questions in English.",
+        "Generate {n} multiple-choice questions based on the text. "
+        "For each: question, four options (A–D), correct answer, short explanation. "
+        "Write everything in English, even if the source text is in another language.\n\nText:\n{text}",
+    ),
+    "es": (
+        "Creas preguntas de estudio en español.",
+        "Genera {n} preguntas de opción múltiple basadas en el texto. "
+        "Para cada una: enunciado, cuatro opciones (A–D), respuesta correcta y breve explicación. "
+        "Escribe todo en español, aunque el texto de origen esté en otro idioma.\n\nTexto:\n{text}",
+    ),
+    "fr": (
+        "Tu crées des questions d'étude en français.",
+        "Génère {n} questions à choix multiples à partir du texte. "
+        "Pour chacune : énoncé, quatre options (A–D), bonne réponse et brève explication. "
+        "Écris tout en français, même si le texte source est dans une autre langue.\n\nTexte :\n{text}",
+    ),
+    "de": (
+        "Du erstellst Lernfragen auf Deutsch.",
+        "Erstelle {n} Multiple-Choice-Fragen basierend auf dem Text. "
+        "Für jede: Frage, vier Optionen (A–D), richtige Antwort und kurze Erklärung. "
+        "Schreibe alles auf Deutsch, auch wenn der Quelltext in einer anderen Sprache ist.\n\nText:\n{text}",
+    ),
+}
+
 @app.post("/generate-questions")
 async def generate_questions(req: QuestionRequest, request: Request):
     require_token(req.token)
     enforce_rate_limit(request, "ai", RATE_LIMIT_AI, RATE_LIMIT_AI_WINDOW)
-    if req.lang == "en":
-        prompt = (f"Generate {req.num_questions} multiple-choice questions based on the text. "
-                  "For each: question, four options (A–D), correct answer, short explanation.\n\n"
-                  f"Text:\n{req.text}")
-        sys = "You create study questions."
-    else:
-        prompt = (f"Gera {req.num_questions} perguntas de escolha múltipla com base no texto. "
-                  "Para cada pergunta: enunciado, quatro opções (A–D), resposta correta e breve explicação.\n\n"
-                  f"Texto:\n{req.text}")
-        sys = "Cria perguntas de estudo."
+    lang = (req.lang or "pt").lower()
+    if lang not in _QUESTION_LANG_SPECS:
+        lang = "pt"
+    sys, prompt_tpl = _QUESTION_LANG_SPECS[lang]
+    prompt = prompt_tpl.format(n=req.num_questions, text=req.text)
     try:
         resp = client.chat.completions.create(
             model=SUM_MODEL,

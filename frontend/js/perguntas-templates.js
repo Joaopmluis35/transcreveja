@@ -67,6 +67,8 @@
       gradingQuestion: "Pergunta",
       totalLabel: "Total",
       closePreview: "Fechar",
+      testLanguage: "Idioma do teste",
+      testLanguageHint: "Aplica-se às perguntas (ao gerar) e à folha impressa/PDF.",
     },
     en: {
       classroomTitle: "Classroom test template",
@@ -118,6 +120,8 @@
       gradingQuestion: "Question",
       totalLabel: "Total",
       closePreview: "Close",
+      testLanguage: "Test language",
+      testLanguageHint: "Applies to questions (when generating) and the printed/PDF sheet.",
     },
     es: {
       classroomTitle: "Plantilla para el aula",
@@ -169,6 +173,8 @@
       gradingQuestion: "Pregunta",
       totalLabel: "Total",
       closePreview: "Cerrar",
+      testLanguage: "Idioma del test",
+      testLanguageHint: "Afecta a las preguntas (al generar) y a la hoja impresa/PDF.",
     },
     fr: {
       classroomTitle: "Modèle pour la classe",
@@ -220,6 +226,8 @@
       gradingQuestion: "Question",
       totalLabel: "Total",
       closePreview: "Fermer",
+      testLanguage: "Langue du test",
+      testLanguageHint: "S'applique aux questions (à la génération) et à la feuille imprimée/PDF.",
     },
     de: {
       classroomTitle: "Klassenzimmer-Vorlage",
@@ -271,6 +279,8 @@
       gradingQuestion: "Frage",
       totalLabel: "Gesamt",
       closePreview: "Schließen",
+      testLanguage: "Testsprache",
+      testLanguageHint: "Gilt für Fragen (beim Erstellen) und das Druck-/PDF-Blatt.",
     },
   };
 
@@ -519,6 +529,29 @@
     );
   }
 
+  function langOptionsHtml(selected) {
+    var langs = [
+      { id: "pt", label: "Português" },
+      { id: "en", label: "English" },
+      { id: "es", label: "Español" },
+      { id: "fr", label: "Français" },
+      { id: "de", label: "Deutsch" },
+    ];
+    return langs
+      .map(function (l) {
+        return (
+          '<option value="' +
+          l.id +
+          '"' +
+          (l.id === selected ? " selected" : "") +
+          ">" +
+          esc(l.label) +
+          "</option>"
+        );
+      })
+      .join("");
+  }
+
   function builderHtml(lang, questionCount) {
     var fieldsHtml = FIELD_DEFS.map(function (def) {
       var checked = def.defaultOn ? " checked" : "";
@@ -587,7 +620,18 @@
       '<div class="oe-test-builder__chips oe-test-builder__chips--wide">' +
       chipRadio("testMode", "student", tt("modeStudent", lang), true) +
       chipRadio("testMode", "teacher", tt("modeTeacher", lang), false) +
-      "</div></div>" +
+      "</div>" +
+      "<h4>" +
+      esc(tt("testLanguage", lang)) +
+      "</h4>" +
+      '<select id="testSheetLang" class="oe-test-builder__lang-select" aria-label="' +
+      esc(tt("testLanguage", lang)) +
+      '">' +
+      langOptionsHtml(lang) +
+      "</select>" +
+      "<p class=\"oe-test-builder__subhint\">" +
+      esc(tt("testLanguageHint", lang)) +
+      "</p></div>" +
       '<div class="oe-test-builder__panel-pane" data-test-pane="fields" hidden>' +
       '<div class="oe-test-builder__fields">' +
       fieldsHtml +
@@ -780,12 +824,28 @@
     if (!builderRoot || !questions.length) return;
     var qCount = questions.length;
 
+    function currentSheetLang() {
+      var sheetLangSel = builderRoot.querySelector("#testSheetLang");
+      if (sheetLangSel) return sheetLangSel.value;
+      return lang;
+    }
+
     function getCfg() {
-      return readConfig(builderRoot, lang, qCount);
+      return readConfig(builderRoot, currentSheetLang(), qCount);
     }
 
     function buildPreviewHtml() {
       return buildSheetHtml(questions, getCfg(), labels.question);
+    }
+
+    var sheetLangSel = builderRoot.querySelector("#testSheetLang");
+    if (sheetLangSel) {
+      sheetLangSel.value = lang;
+      sheetLangSel.addEventListener("change", function () {
+        if (global.PerguntasUI && global.PerguntasUI.syncOutputLangSelects) {
+          global.PerguntasUI.syncOutputLangSelects(sheetLangSel.value);
+        }
+      });
     }
 
     var tabs = builderRoot.querySelectorAll("[data-test-tab]");
