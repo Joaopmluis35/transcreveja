@@ -4,50 +4,56 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Gera resumos inteligentes com IA a partir de transcrições de áudio, vídeo ou texto. Ideal para estudo e trabalho.">
-<meta name="keywords" content="gerar resumo automático, resumo com IA, resumir ficheiros, Ouviescrevi resumo">
-<meta name="robots" content="index, follow">
+  <meta name="keywords" content="gerar resumo automático, resumo com IA, resumir ficheiros, Ouviescrevi resumo">
+  <meta name="robots" content="index, follow">
   <title>📌 Resumo Inteligente</title>
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
   <link rel="stylesheet" href="css/ouviescrevi.css?v=15">
+  <link rel="stylesheet" href="css/resumo.css?v=1">
   <script src="js/theme-ui.js"></script>
   <script src="/js/ouviescrevi-seo.js" defer></script>
   <script src="js/ouviescrevi-ui.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
 </head>
-<body class="oe-page oe-pro">
+<body class="oe-page oe-pro oe-page--resumo">
 <a class="oe-skip" href="#conteudo">Saltar para o conteúdo</a>
 
- <div id="header"></div>
+<div id="header"></div>
 
-<div class="oe-hero" id="conteudo">
-<h1 data-cms-key="resumo_title" data-cms-mode="text">📌 Resumo Inteligente</h1>
-<p class="oe-lead" data-cms-key="resumo_lead" data-cms-mode="text">Cola o teu texto, ou carrega um ficheiro PDF ou Word (.docx), e escolhe o estilo de resumo</p>
-</div>
+<div class="oe-resumo-layout" id="conteudo">
+  <header class="oe-resumo-hero">
+    <h1 data-cms-key="resumo_title" data-cms-mode="text">📌 Resumo Inteligente</h1>
+    <p class="oe-lead" data-cms-key="resumo_lead" data-cms-mode="text">Cola o teu texto, ou carrega um ficheiro PDF ou Word (.docx), e escolhe o estilo de resumo</p>
+  </header>
 
+  <div class="container oe-resumo-page">
+    <section class="oe-resumo-form" aria-labelledby="resumoFormTitle">
+      <h2 class="oe-visually-hidden" id="resumoFormTitle">Gerar resumo</h2>
+      <div id="dropZone" class="oe-resumo-drop" role="button" tabindex="0" aria-label="Carregar PDF ou Word">
+        📂 Arrasta um PDF ou Word (.docx) aqui ou clica para escolher
+        <input type="file" id="pdfInput" accept=".pdf,.docx" hidden>
+      </div>
 
-<div class="container">
-  <div id="dropZone" onclick="document.getElementById('pdfInput').click()">
-   📂 Arrasta um PDF ou Word (.docx) aqui ou clica para escolher
+      <textarea id="texto" class="oe-resumo-text" placeholder="Ou cola aqui o texto a resumir — transcrição, artigo, apontamentos de aula…" aria-labelledby="resumoFormTitle"></textarea>
 
-    <input type="file" id="pdfInput" accept=".pdf,.docx" style="display: none">
+      <div class="oe-resumo-form__footer">
+        <div class="oe-resumo-form__mode">
+          <label for="modo">Estilo de resumo</label>
+          <select id="modo">
+            <option value="normal">Clássico e direto</option>
+            <option value="minuta">Minuta de reunião (em tópicos)</option>
+            <option value="informal">Resumo simples / informal</option>
+            <option value="email">Formato email</option>
+          </select>
+        </div>
+        <button type="button" class="oe-resumo-form__submit" id="btnResumo">🔍 Gerar Resumo</button>
+      </div>
+    </section>
 
+    <div id="resultado" class="oe-resumo-output" hidden></div>
   </div>
-
-  <textarea id="texto"></textarea>
-
-  <p>Escolhe o estilo de resumo:</p>
-  <select id="modo">
-    <option value="normal">Clássico e direto</option>
-    <option value="minuta">Minuta de reunião (em tópicos)</option>
-    <option value="informal">Resumo simples / informal</option>
-    <option value="email">Formato email</option>
-  </select>
-
-  <br>
-  <button type="button" class="oe-btn oe-btn--block" id="btnResumo" onclick="gerarResumo()">🔍 Gerar Resumo</button>
-
-  <div id="resultado"></div>
 </div>
+
 <section id="apresentacaoResumoSEO" class="oe-seo-block">
   <h2>📌 Gerador de Resumos Inteligentes</h2>
   <p>
@@ -77,48 +83,56 @@
   </p>
 </section>
 
-
-
 <script src="js/ouviescrevi-api.js"></script>
+<script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
 <script>
-  function irParaNicho(pagina) {
-    window.location.href = pagina + ".html";
-  }
-
   const dropZone = document.getElementById("dropZone");
   const pdfInput = document.getElementById("pdfInput");
   const textarea = document.getElementById("texto");
 
-  dropZone.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    dropZone.style.background = "#eee";
+  dropZone.addEventListener("click", function (e) {
+    if (e.target === pdfInput) return;
+    pdfInput.click();
   });
-
-  dropZone.addEventListener("dragleave", () => {
-    dropZone.style.background = "#f9f9f9";
-  });
-
-  dropZone.addEventListener("drop", (e) => {
-    e.preventDefault();
-    dropZone.style.background = "#f9f9f9";
-    if (e.dataTransfer.files.length > 0) {
-      pdfInput.files = e.dataTransfer.files;
-      extrairTextoPDF(e.dataTransfer.files[0]);
+  dropZone.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      pdfInput.click();
     }
   });
 
-  pdfInput.addEventListener("change", () => {
-  const file = pdfInput.files[0];
-  if (file) {
+  dropZone.addEventListener("dragover", function (e) {
+    e.preventDefault();
+    dropZone.classList.add("oe-resumo-drop--dragover");
+  });
+
+  dropZone.addEventListener("dragleave", function () {
+    dropZone.classList.remove("oe-resumo-drop--dragover");
+  });
+
+  dropZone.addEventListener("drop", function (e) {
+    e.preventDefault();
+    dropZone.classList.remove("oe-resumo-drop--dragover");
+    if (e.dataTransfer.files.length > 0) {
+      pdfInput.files = e.dataTransfer.files;
+      handleFile(e.dataTransfer.files[0]);
+    }
+  });
+
+  pdfInput.addEventListener("change", function () {
+    const file = pdfInput.files[0];
+    if (file) handleFile(file);
+  });
+
+  function handleFile(file) {
     if (file.name.endsWith(".pdf")) {
       extrairTextoPDF(file);
     } else if (file.name.endsWith(".docx")) {
       extrairTextoDOCX(file);
     } else {
-      alert("Formato não suportado. Usa PDF ou DOCX.");
+      OuviescreviUI.toast("Formato não suportado. Usa PDF ou DOCX.", "error");
     }
   }
-});
 
   function extrairTextoPDF(file) {
     const reader = new FileReader();
@@ -132,11 +146,12 @@
         for (let i = 1; i <= total; i++) {
           pdf.getPage(i).then(function (page) {
             page.getTextContent().then(function (content) {
-              const strings = content.items.map(item => item.str).join(" ");
+              const strings = content.items.map(function (item) { return item.str; }).join(" ");
               textoFinal += strings + "\n\n";
               processadas++;
               if (processadas === total) {
                 textarea.value = textoFinal.trim();
+                OuviescreviUI.toast("Texto extraído do PDF.", "success");
               }
             });
           });
@@ -145,21 +160,45 @@
     };
     reader.readAsArrayBuffer(file);
   }
-function extrairTextoDOCX(file) {
-  const reader = new FileReader();
-  reader.onload = function(event) {
-    const arrayBuffer = reader.result;
-    mammoth.extractRawText({ arrayBuffer: arrayBuffer })
-      .then(function(result) {
-        document.getElementById("texto").value = result.value.trim();
-      })
-      .catch(function(err) {
-        alert("Erro ao ler o ficheiro Word");
-        console.error(err);
+
+  function extrairTextoDOCX(file) {
+    const reader = new FileReader();
+    reader.onload = function () {
+      mammoth.extractRawText({ arrayBuffer: reader.result })
+        .then(function (result) {
+          textarea.value = result.value.trim();
+          OuviescreviUI.toast("Texto extraído do Word.", "success");
+        })
+        .catch(function (err) {
+          OuviescreviUI.toast("Erro ao ler o ficheiro Word.", "error");
+          console.error(err);
+        });
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  function renderResumo(text, isError) {
+    const out = document.getElementById("resultado");
+    if (!out) return;
+    out.classList.toggle("oe-result--error", !!isError);
+    out.innerHTML =
+      '<div class="oe-resumo-output__head">' +
+      '<h3 class="oe-resumo-output__title">' + (isError ? "Não foi possível gerar" : "O teu resumo") + "</h3>" +
+      (isError ? "" : '<button type="button" class="oe-resumo-output__btn" id="btnCopiarResumo">📋 Copiar</button>') +
+      "</div>" +
+      '<pre class="oe-resumo-output__body"></pre>';
+    out.querySelector(".oe-resumo-output__body").textContent = text;
+    out.hidden = false;
+    const copyBtn = document.getElementById("btnCopiarResumo");
+    if (copyBtn) {
+      copyBtn.addEventListener("click", function () {
+        navigator.clipboard.writeText(text).then(function () {
+          OuviescreviUI.toast("Resumo copiado.", "success");
+        });
       });
-  };
-  reader.readAsArrayBuffer(file);
-}
+    }
+    out.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
 
   async function gerarResumo() {
     const text = textarea.value.trim();
@@ -174,7 +213,7 @@ function extrairTextoDOCX(file) {
 
     try {
       await OuviescreviAPI.init();
-      const res = await fetch(`${OuviescreviAPI.getBase()}/summarize`, {
+      const res = await fetch(OuviescreviAPI.getBase() + "/summarize", {
         method: "POST",
         headers: OuviescreviAPI.authHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify(OuviescreviAPI.authJson({
@@ -183,13 +222,10 @@ function extrairTextoDOCX(file) {
         }))
       });
       const data = await res.json();
-      const out = document.getElementById("resultado");
       if (data.summary) {
-        out.textContent = data.summary;
-        out.classList.remove("oe-result--error");
+        renderResumo(data.summary, false);
       } else {
-        out.textContent = data.error || data.detail || "Erro inesperado";
-        out.classList.add("oe-result--error");
+        renderResumo(data.error || data.detail || "Erro inesperado", true);
       }
     } catch (err) {
       OuviescreviUI.toast("Erro ao gerar resumo.", "error");
@@ -198,13 +234,15 @@ function extrairTextoDOCX(file) {
       OuviescreviUI.setButtonLoading(btn, false);
     }
   }
+
+  document.getElementById("btnResumo").addEventListener("click", gerarResumo);
 </script>
+
 <div id="footer"></div>
 <script>
   OuviescreviUI.loadHeader();
   OuviescreviUI.loadFooter();
 </script>
-<script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
 
 </body>
 </html>
