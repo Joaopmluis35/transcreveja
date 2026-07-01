@@ -1,0 +1,149 @@
+/* Conversor de Ficheiros — layout centrado */
+
+body.oe-page--conversor {
+  background: var(--pro-bg, #f6f7fb);
+}
+
+.oe-conversor-layout {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 20px 32px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+body.oe-page--conversor .oe-conversor-hero {
+  max-width: none;
+  margin: 0;
+  padding: 32px 0 20px;
+  text-align: center;
+}
+
+body.oe-page--conversor .oe-conversor-hero h1 {
+  margin: 0 0 10px;
+  font-size: clamp(1.45rem, 4.5vw, 1.9rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  color: var(--pro-text, #0f172a);
+}
+
+body.oe-page--conversor .oe-conversor-hero .oe-lead {
+  margin: 0 auto;
+  max-width: 36rem;
+  text-align: center;
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--pro-text-secondary, #475569);
+}
+
+body.oe-page--conversor .converter.oe-conversor-card {
+  max-width: none;
+  width: 100%;
+  margin: 0 0 24px;
+  padding: 22px 22px 20px;
+  border-radius: 16px;
+  border: 1px solid var(--pro-border, #e2e8f0);
+  background: var(--pro-surface, #fff);
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
+  text-align: left;
+}
+
+body.oe-page--conversor .converter .oe-notice {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #a7f3d0;
+  border-left: 4px solid #10b981;
+  background: #ecfdf5;
+  color: #065f46;
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+body.oe-page--conversor .converter label.oe-conversor-field {
+  display: block;
+  margin: 0 0 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--pro-text-secondary, #475569);
+}
+
+body.oe-page--conversor .converter #conversionType {
+  display: block;
+  width: 100%;
+  margin: 6px 0 0;
+  padding: 11px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--pro-border, #e2e8f0);
+  font-size: 0.92rem;
+  background: #fff;
+  color: var(--pro-text, #0f172a);
+}
+
+body.oe-page--conversor .converter #uploadArea {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+body.oe-page--conversor .converter input[type="file"] {
+  width: 100%;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px dashed #c4b5fd;
+  background: var(--pro-bg, #f8fafc);
+  font-size: 0.88rem;
+  color: var(--pro-text-secondary, #475569);
+  box-sizing: border-box;
+}
+
+body.oe-page--conversor .converter .oe-conversor-form__submit,
+body.oe-page--conversor .converter .btn-main {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  color: #fff;
+  background: linear-gradient(135deg, #7c3aed, #6366f1);
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+
+body.oe-page--conversor .converter .oe-conversor-form__submit:hover:not(:disabled),
+body.oe-page--conversor .converter .btn-main:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(99, 102, 241, 0.4);
+  color: #fff;
+  border-color: transparent;
+  background: linear-gradient(135deg, #6d28d9, #4f46e5);
+}
+
+body.oe-page--conversor .converter #wordStatus {
+  margin: 0;
+  min-height: 1.25em;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--pro-text-secondary, #64748b);
+}
+
+body.oe-page--conversor .converter #wordStatus.oe-conversor-status--ok {
+  color: #047857;
+}
+
+body.oe-page--conversor .converter #wordStatus.oe-conversor-status--err {
+  color: #b91c1c;
+}
+
+body.oe-page--conversor #apresentacaoConversorSEO {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 20px 48px;
+}

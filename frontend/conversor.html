@@ -9,6 +9,7 @@
   <title>Conversor de Ficheiros | Ouviescrevi</title>
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
   <link rel="stylesheet" href="css/ouviescrevi.css?v=15">
+  <link rel="stylesheet" href="css/conversor.css?v=1">
   <script src="js/theme-ui.js"></script>
   <script src="/js/ouviescrevi-seo.js" defer></script>
   <script src="js/ouviescrevi-ui.js" defer></script>
@@ -16,21 +17,24 @@
   <script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
-<body class="oe-page oe-pro">
+<body class="oe-page oe-pro oe-page--conversor">
 <a class="oe-skip" href="#conteudo">Saltar para o conteúdo</a>
-  <div id="header"></div>
+<div id="header"></div>
 
-  <div class="oe-hero" id="conteudo">
+<div class="oe-conversor-layout" id="conteudo">
+  <header class="oe-conversor-hero">
     <h1 data-cms-key="conversor_title" data-cms-mode="text">📁 Conversor de Ficheiros</h1>
     <p class="oe-lead" data-cms-key="conversor_lead" data-cms-mode="text">Converte Word, PDF e imagens — gratuito e no browser.</p>
-  </div>
+  </header>
 
-  <section class="converter">
+  <section class="converter oe-conversor-card" aria-labelledby="conversorFormTitle">
+    <h2 class="oe-visually-hidden" id="conversorFormTitle">Converter ficheiro</h2>
     <p class="oe-notice" data-cms-key="conversor_notice" data-cms-mode="html">
       💡 Aproveita esta funcionalidade gratuita enquanto a versão com IA evolui.
     </p>
 
-    <select id="conversionType" onchange="updateInput()">
+    <label class="oe-conversor-field" for="conversionType">Tipo de conversão</label>
+    <select id="conversionType" onchange="updateInput()" aria-labelledby="conversorFormTitle">
       <option value="word2pdf">Word (.docx) → PDF</option>
       <option value="pdf2text">PDF → Texto (.txt)</option>
       <option value="img2pdf">Imagem (.jpg/.png) → PDF</option>
@@ -38,13 +42,10 @@
       <option value="img2text" disabled>Imagem → Texto (em breve)</option>
     </select>
 
-    <div id="uploadArea">
-      <input type="file" id="wordInput" accept=".doc,.docx">
-      <br>
-      <button onclick="convertWord()" class="btn-main">Converter e Descarregar</button>
-      <p id="wordStatus"></p>
-    </div>
+    <div id="uploadArea"></div>
   </section>
+</div>
+
 <section id="apresentacaoConversorSEO" class="oe-seo-block" data-cms-key="conversor_seo" data-cms-mode="html">
   <h2>🔄 Conversor Inteligente de Ficheiros</h2>
   <p>
@@ -73,180 +74,180 @@
   </p>
 </section>
 
+<script>
+  function setStatus(msg, kind) {
+    const status = document.getElementById("wordStatus");
+    if (!status) return;
+    status.textContent = msg;
+    status.classList.remove("oe-conversor-status--ok", "oe-conversor-status--err");
+    if (kind === "ok") status.classList.add("oe-conversor-status--ok");
+    if (kind === "err") status.classList.add("oe-conversor-status--err");
+  }
 
+  function uploadBlock(inputId, accept, buttonLabel, onclickFn) {
+    return (
+      '<input type="file" id="' + inputId + '" accept="' + accept + '">' +
+      '<button type="button" onclick="' + onclickFn + '()" class="oe-conversor-form__submit">' + buttonLabel + "</button>" +
+      '<p id="wordStatus" class="oe-conversor-status" role="status" aria-live="polite"></p>'
+    );
+  }
 
-  <script>
-    function updateInput() {
-      const type = document.getElementById("conversionType").value;
-      const area = document.getElementById("uploadArea");
+  function updateInput() {
+    const type = document.getElementById("conversionType").value;
+    const area = document.getElementById("uploadArea");
 
-      if (type === "word2pdf") {
-        area.innerHTML = `
-          <input type="file" id="wordInput" accept=".doc,.docx">
-          <br>
-          <button onclick="convertWord()" class="btn-main">Converter e Descarregar</button>
-          <p id="wordStatus"></p>`;
-      } else if (type === "pdf2text") {
-        area.innerHTML = `
-          <input type="file" id="pdfInput" accept=".pdf">
-          <br>
-          <button onclick="convertPDFtoText()" class="btn-main">Extrair Texto</button>
-          <p id="wordStatus"></p>`;
-      } else if (type === "img2pdf") {
-        area.innerHTML = `
-          <input type="file" id="imgInput" accept="image/png, image/jpeg">
-          <br>
-          <button onclick="convertImageToPDF()" class="btn-main">Converter Imagem</button>
-          <p id="wordStatus"></p>`;
-      } else if (type === "pdf2word") {
-        area.innerHTML = `
-          <input type="file" id="pdf2wordInput" accept=".pdf">
-          <br>
-          <button onclick="convertPDFtoWord()" class="btn-main">Converter para Word</button>
-          <p id="wordStatus"></p>`;
-      }
+    if (type === "word2pdf") {
+      area.innerHTML = uploadBlock("wordInput", ".doc,.docx", "Converter e Descarregar", "convertWord");
+    } else if (type === "pdf2text") {
+      area.innerHTML = uploadBlock("pdfInput", ".pdf", "Extrair texto", "convertPDFtoText");
+    } else if (type === "img2pdf") {
+      area.innerHTML = uploadBlock("imgInput", "image/png, image/jpeg", "Converter imagem", "convertImageToPDF");
+    } else if (type === "pdf2word") {
+      area.innerHTML = uploadBlock("pdf2wordInput", ".pdf", "Converter para Word", "convertPDFtoWord");
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    updateInput();
+  });
+
+  async function convertWord() {
+    const input = document.getElementById("wordInput");
+    if (!input || !input.files.length) {
+      setStatus("Por favor, seleciona um ficheiro .docx.", "err");
+      return;
     }
 
-    async function convertWord() {
-      const input = document.getElementById("wordInput");
-      const status = document.getElementById("wordStatus");
-      if (!input.files.length) {
-        status.textContent = "Por favor, seleciona um ficheiro .docx.";
-        return;
-      }
+    setStatus("📥 A processar ficheiro...");
+    const reader = new FileReader();
+    reader.onload = async function (event) {
+      try {
+        const result = await mammoth.convertToHtml({ arrayBuffer: event.target.result });
+        const html = result.value;
+        const doc = new jspdf.jsPDF();
+        const text = html.replace(/<[^>]+>/g, "");
+        const lines = doc.splitTextToSize(text, 180);
+        let y = 20;
 
-      status.textContent = "📥 A processar ficheiro...";
-      const reader = new FileReader();
-      reader.onload = async function (event) {
-        try {
-          const result = await mammoth.convertToHtml({ arrayBuffer: event.target.result });
-          const html = result.value;
-          const doc = new jspdf.jsPDF();
-          const text = html.replace(/<[^>]+>/g, "");
-          const lines = doc.splitTextToSize(text, 180);
-          let y = 20;
-
-          for (let line of lines) {
-            if (y > 270) {
-              doc.addPage();
-              y = 20;
-            }
-            doc.text(line, 15, y);
-            y += 8;
+        for (let line of lines) {
+          if (y > 270) {
+            doc.addPage();
+            y = 20;
           }
-
-          doc.save("ficheiro_convertido.pdf");
-          status.textContent = "✅ Conversão concluída!";
-        } catch (e) {
-          console.error(e);
-          status.textContent = "⚠️ Erro ao converter o ficheiro.";
+          doc.text(line, 15, y);
+          y += 8;
         }
-      };
-      reader.readAsArrayBuffer(input.files[0]);
+
+        doc.save("ficheiro_convertido.pdf");
+        setStatus("✅ Conversão concluída!", "ok");
+      } catch (e) {
+        console.error(e);
+        setStatus("⚠️ Erro ao converter o ficheiro.", "err");
+      }
+    };
+    reader.readAsArrayBuffer(input.files[0]);
+  }
+
+  async function convertPDFtoText() {
+    const input = document.getElementById("pdfInput");
+    if (!input || !input.files.length) {
+      setStatus("Por favor, seleciona um ficheiro .pdf.", "err");
+      return;
     }
 
-    async function convertPDFtoText() {
-      const input = document.getElementById("pdfInput");
-      const status = document.getElementById("wordStatus");
-      if (!input.files.length) {
-        status.textContent = "Por favor, seleciona um ficheiro .pdf.";
-        return;
-      }
+    setStatus("📥 A processar ficheiro...");
+    const reader = new FileReader();
+    reader.onload = function () {
+      const typedarray = new Uint8Array(reader.result);
+      pdfjsLib.getDocument({ data: typedarray }).promise.then(function (pdf) {
+        let textContent = "";
+        let totalPages = pdf.numPages;
+        let processed = 0;
 
-      status.textContent = "📥 A processar ficheiro...";
-      const reader = new FileReader();
-      reader.onload = function () {
-        const typedarray = new Uint8Array(reader.result);
-        pdfjsLib.getDocument({ data: typedarray }).promise.then(function (pdf) {
-          let textContent = "";
-          let totalPages = pdf.numPages;
-          let processed = 0;
-
-          for (let i = 1; i <= totalPages; i++) {
-            pdf.getPage(i).then(page => {
-              page.getTextContent().then(content => {
-                const strings = content.items.map(item => item.str).join(" ");
-                textContent += strings + "\n\n";
-                processed++;
-                if (processed === totalPages) {
-                  const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = "ficheiro_extraido.txt";
-                  a.click();
-                  URL.revokeObjectURL(url);
-                  status.textContent = "✅ Texto extraído!";
-                }
-              });
+        for (let i = 1; i <= totalPages; i++) {
+          pdf.getPage(i).then(function (page) {
+            page.getTextContent().then(function (content) {
+              const strings = content.items.map(function (item) { return item.str; }).join(" ");
+              textContent += strings + "\n\n";
+              processed++;
+              if (processed === totalPages) {
+                const blob = new Blob([textContent], { type: "text/plain;charset=utf-8" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "ficheiro_extraido.txt";
+                a.click();
+                URL.revokeObjectURL(url);
+                setStatus("✅ Texto extraído!", "ok");
+              }
             });
-          }
-        });
-      };
-      reader.readAsArrayBuffer(input.files[0]);
-    }
-
-    async function convertImageToPDF() {
-      const input = document.getElementById("imgInput");
-      const status = document.getElementById("wordStatus");
-      if (!input.files.length) {
-        status.textContent = "Por favor, seleciona uma imagem.";
-        return;
-      }
-
-      status.textContent = "📷 A gerar PDF...";
-      const reader = new FileReader();
-      reader.onload = function () {
-        const img = new Image();
-        img.src = reader.result;
-        img.onload = function () {
-          const doc = new jspdf.jsPDF({
-            orientation: img.width > img.height ? 'l' : 'p',
-            unit: 'px',
-            format: [img.width, img.height]
           });
-          doc.addImage(img, 'JPEG', 0, 0, img.width, img.height);
-          doc.save("imagem_convertida.pdf");
-          status.textContent = "✅ PDF criado!";
-        };
-      };
-      reader.readAsDataURL(input.files[0]);
+        }
+      });
+    };
+    reader.readAsArrayBuffer(input.files[0]);
+  }
+
+  async function convertImageToPDF() {
+    const input = document.getElementById("imgInput");
+    if (!input || !input.files.length) {
+      setStatus("Por favor, seleciona uma imagem.", "err");
+      return;
     }
 
-    async function convertPDFtoWord() {
-      const input = document.getElementById("pdf2wordInput");
-      const status = document.getElementById("wordStatus");
-      if (!input.files.length) {
-        status.textContent = "Por favor, seleciona um ficheiro .pdf.";
-        return;
-      }
-
-      status.textContent = "📥 A processar ficheiro...";
-      const reader = new FileReader();
-      reader.onload = function () {
-        const typedarray = new Uint8Array(reader.result);
-        pdfjsLib.getDocument({ data: typedarray }).promise.then(async function (pdf) {
-          let textContent = "";
-          for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const content = await page.getTextContent();
-            const strings = content.items.map(item => item.str).join(" ");
-            textContent += strings + "\n\n";
-          }
-
-          const blob = new Blob([textContent], { type: 'application/msword;charset=utf-8' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = "ficheiro_convertido.doc";
-          a.click();
-          URL.revokeObjectURL(url);
-          status.textContent = "✅ Conversão concluída!";
+    setStatus("📷 A gerar PDF...");
+    const reader = new FileReader();
+    reader.onload = function () {
+      const img = new Image();
+      img.src = reader.result;
+      img.onload = function () {
+        const doc = new jspdf.jsPDF({
+          orientation: img.width > img.height ? "l" : "p",
+          unit: "px",
+          format: [img.width, img.height],
         });
+        doc.addImage(img, "JPEG", 0, 0, img.width, img.height);
+        doc.save("imagem_convertida.pdf");
+        setStatus("✅ PDF criado!", "ok");
       };
-      reader.readAsArrayBuffer(input.files[0]);
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+
+  async function convertPDFtoWord() {
+    const input = document.getElementById("pdf2wordInput");
+    if (!input || !input.files.length) {
+      setStatus("Por favor, seleciona um ficheiro .pdf.", "err");
+      return;
     }
-  </script>
+
+    setStatus("📥 A processar ficheiro...");
+    const reader = new FileReader();
+    reader.onload = function () {
+      const typedarray = new Uint8Array(reader.result);
+      pdfjsLib.getDocument({ data: typedarray }).promise.then(async function (pdf) {
+        let textContent = "";
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          const strings = content.items.map(function (item) { return item.str; }).join(" ");
+          textContent += strings + "\n\n";
+        }
+
+        const blob = new Blob([textContent], { type: "application/msword;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "ficheiro_convertido.doc";
+        a.click();
+        URL.revokeObjectURL(url);
+        setStatus("✅ Conversão concluída!", "ok");
+      });
+    };
+    reader.readAsArrayBuffer(input.files[0]);
+  }
+</script>
+
 <div id="footer"></div>
 <script>
   OuviescreviUI.loadHeader();
