@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Corrige textos automaticamente com inteligência artificial — ortografia, gramática e estilo." />
+  <meta name="description" content="Corrige ortografia, gramÃ¡tica e estilo automaticamente com inteligÃªncia artificial. GrÃ¡tis e direto no browser.">
   <meta name="keywords" content="corretor, texto, IA, gramatical, ortografia, Ouviescrevi" />
   <meta name="robots" content="index, follow" />
-  <title>Corretor de Texto - Ouviescrevi</title>
+  <title>Corretor de Texto com IA â€” Ortografia e GramÃ¡tica | Ouviescrevi</title>
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <link rel="stylesheet" href="css/ouviescrevi.css?v=15" />
   <link rel="stylesheet" href="css/corretor.css?v=9" />
@@ -15,14 +15,14 @@
   <script src="js/ouviescrevi-ui.js" defer></script>
 </head>
 <body class="oe-page oe-pro oe-page--corretor">
-<a class="oe-skip" href="#conteudo">Saltar para o conteúdo</a>
+<a class="oe-skip" href="#conteudo">Saltar para o conte?do</a>
 
   <div id="header"></div>
 
   <div class="oe-cor-layout" id="conteudo">
     <header class="oe-cor-hero">
       <h1 data-cms-key="corretor_title" data-cms-mode="text">?? Corretor de Texto com IA</h1>
-      <p class="oe-lead" data-cms-key="corretor_lead" data-cms-mode="text">Cola o teu texto para corrigir erros ortográficos e gramaticais automaticamente.</p>
+      <p class="oe-lead" data-cms-key="corretor_lead" data-cms-mode="text">Cola o teu texto para corrigir erros ortogr?ficos e gramaticais automaticamente.</p>
     </header>
 
     <div class="container oe-cor-page">
@@ -30,7 +30,7 @@
         <div class="oe-cor-workspace__col oe-cor-workspace__col--input">
       <section class="oe-cor-form" aria-labelledby="corFormTitle">
         <div class="oe-cor-form__head">
-          <p class="oe-cor-form__eyebrow" id="corFormEyebrow">Ortografia · Gramática · Estilo</p>
+          <p class="oe-cor-form__eyebrow" id="corFormEyebrow">Ortografia ? Gram?tica ? Estilo</p>
           <h2 class="oe-cor-form__title" id="corFormTitle">O teu texto</h2>
           <p class="oe-cor-form__hint" id="corFormHint">Cola, escreve ou carrega um PDF/Word. A IA corrige erros e melhora a clareza.</p>
         </div>
@@ -39,14 +39,14 @@
           <input type="file" id="corFileInput" accept=".pdf,.docx" hidden />
         </div>
         <textarea id="textoInput" aria-labelledby="corFormTitle" placeholder="Escreve ou cola aqui o teu texto..."></textarea>
-        <p class="oe-cor-form__meta" id="corMeta" aria-live="polite">0 caracteres · 0 palavras</p>
+        <p class="oe-cor-form__meta" id="corMeta" aria-live="polite">0 caracteres ? 0 palavras</p>
         <p class="oe-cor-form__shortcut" id="corShortcutHint">Atalho: Ctrl+Enter para corrigir</p>
         <div class="oe-cor-form__footer">
           <div class="oe-cor-form__mode">
-            <label for="corModo" id="corModoLabel">Tipo de correção</label>
+            <label for="corModo" id="corModoLabel">Tipo de corre??o</label>
             <select id="corModo">
-              <option value="normal">Completa (ortografia + gramática)</option>
-              <option value="spelling">Só ortografia e pontuação</option>
+              <option value="normal">Completa (ortografia + gram?tica)</option>
+              <option value="spelling">S? ortografia e pontua??o</option>
               <option value="formal">Tom mais formal</option>
               <option value="simple">Linguagem mais simples</option>
             </select>
@@ -67,16 +67,16 @@
 
       <section class="oe-cor-history" id="corHistoryPanel" hidden>
         <div id="corHistoryLogin">
-          <p class="oe-cor-history__login" id="corHistoryLoginText">Inicia sessão para guardar e rever correções anteriores.</p>
+          <p class="oe-cor-history__login" id="corHistoryLoginText">Inicia sess?o para guardar e rever corre??es anteriores.</p>
           <button type="button" class="oe-cor-history__login-btn" id="corHistoryLoginBtn">Entrar ou registar</button>
         </div>
         <div id="corHistoryLogged" hidden>
           <div class="oe-cor-history__head">
-            <h2 class="oe-cor-history__title" id="corHistoryTitle">Correções recentes</h2>
+            <h2 class="oe-cor-history__title" id="corHistoryTitle">Corre??es recentes</h2>
             <button type="button" class="oe-cor-history__refresh" id="corHistoryRefresh">Atualizar</button>
           </div>
           <ul class="oe-cor-history__list" id="corHistoryList"></ul>
-          <p class="oe-cor-history__empty" id="corHistoryEmpty" hidden>Ainda não tens correções guardadas.</p>
+          <p class="oe-cor-history__empty" id="corHistoryEmpty" hidden>Ainda n?o tens corre??es guardadas.</p>
         </div>
       </section>
     </div>

@@ -6,18 +6,18 @@
   var OG_IMAGE = SITE + "/logos/ouviescrevi-logo-pro.png";
   var ORG_ID = SITE + "/#organization";
 
-  var HREFLANG_LOCALES = ["pt", "en", "es", "fr", "de"];
   var HREFLANG_SLUGS = {
     index: { pt: "index.html", en: "index.html", es: "index.html", fr: "index.html", de: "index.html" },
     ajuda: { pt: "ajuda.html", en: "ajuda.html", es: "ajuda.html", fr: "ajuda.html", de: "ajuda.html" },
     conversor: { pt: "conversor.html", en: "conversor.html", es: "conversor.html", fr: "conversor.html", de: "conversor.html" },
-    "conversor-imagens": { pt: "conversor-imagens.html", en: "conversor-imagens.html", es: "conversor-imagens.html", fr: "conversor-imagens.html", de: "conversor-imagens.html" },
+    "conversor-imagens": { pt: "conversor-imagens.html", en: "conversor-imagens.html" },
     sugestoes: { pt: "sugestoes.html", en: "sugestoes.html", es: "sugestoes.html", fr: "sugestoes.html", de: "sugestoes.html" },
     resumo: { pt: "resumo.html", en: "resumo.html", es: "resumo.html", fr: "resumo.html", de: "resumo.html" },
     "url-resumo": { pt: "url-resumo.html", en: "url-resumo.html", es: "url-resumo.html", fr: "url-resumo.html", de: "url-resumo.html" },
     perguntas: { pt: "perguntas.html", en: "perguntas.html", es: "perguntas.html", fr: "perguntas.html", de: "perguntas.html" },
-    "aula-pronta": { pt: "aula-pronta.html", en: "aula-pronta.html", es: "aula-pronta.html", fr: "aula-pronta.html", de: "aula-pronta.html" },
-    capitulos: { pt: "capitulos.html", en: "capitulos.html", es: "capitulos.html", fr: "capitulos.html", de: "capitulos.html" },
+    corretor: { pt: "corretor.html", en: "corretor.html", es: "corretor.html", fr: "corretor.html", de: "corretor.html" },
+    "aula-pronta": { pt: "aula-pronta.html", en: "aula-pronta.html" },
+    capitulos: { pt: "capitulos.html", en: "capitulos.html" },
     cookies: { pt: "cookies.html", en: "cookies.html", es: "cookies.html", fr: "cookies.html", de: "cookies.html" },
     privacy: { pt: "privacidade.html", en: "privacy.html", es: "privacy.html", fr: "privacy.html", de: "privacy.html" },
     terms: { pt: "termos.html", en: "terms.html", es: "terms.html", fr: "terms.html", de: "terms.html" },
@@ -25,6 +25,7 @@
 
   function hrefPath(locale, slug) {
     var file = HREFLANG_SLUGS[slug][locale];
+    if (!file) return null;
     return (locale === "pt" ? "" : "/" + locale) + "/" + file;
   }
 
@@ -43,10 +44,10 @@
     var map = {};
     Object.keys(HREFLANG_SLUGS).forEach(function (slug) {
       var group = {};
-      HREFLANG_LOCALES.forEach(function (loc) {
+      Object.keys(HREFLANG_SLUGS[slug]).forEach(function (loc) {
         group[loc] = hrefPath(loc, slug);
       });
-      HREFLANG_LOCALES.forEach(function (loc) {
+      Object.keys(group).forEach(function (loc) {
         map[group[loc]] = group;
       });
     });
@@ -59,41 +60,42 @@
     "/index.html": {
       title: "Ouviescrevi — Transcrição de Áudio e Vídeo com IA Grátis",
       description:
-        "Transcreve áudio e vídeo online com inteligência artificial, grátis e sem registo. Resumos, tradução, legendas SRT e conversão de ficheiros. Feito em Portugal.",
+        "Transcreve áudio e vídeo online com IA, grátis e sem registo. Resumos, tradução, legendas SRT, perguntas de estudo e conversão de ficheiros. Feito em Portugal.",
       type: "home",
     },
     "/en/index.html": {
       title: "Ouviescrevi — Free AI Audio & Video Transcription",
       description:
-        "Transcribe audio and video online with AI for free. Summaries, translation, SRT subtitles and file conversion. No sign-up required.",
+        "Transcribe audio and video online with AI for free. Summaries, translation, SRT subtitles, study questions and file conversion. No sign-up required.",
       type: "home",
       lang: "en",
     },
     "/es/index.html": {
       title: "Ouviescrevi — Transcripción de audio y vídeo con IA gratis",
       description:
-        "Transcribe audio y vídeo online con inteligencia artificial, gratis y sin registro. Resúmenes, traducción, subtítulos SRT y conversión de archivos.",
+        "Transcribe audio y vídeo online con IA, gratis y sin registro. Resúmenes, traducción, subtítulos SRT, preguntas de estudio y conversión de archivos.",
       type: "home",
       lang: "es",
     },
     "/fr/index.html": {
       title: "Ouviescrevi — Transcription audio et vidéo IA gratuite",
       description:
-        "Transcrivez audio et vidéo en ligne avec l'IA, gratuitement et sans inscription. Résumés, traduction, sous-titres SRT et conversion de fichiers.",
+        "Transcrivez audio et vidéo en ligne avec l'IA, gratuitement et sans inscription. Résumés, traduction, sous-titres SRT, questions d'étude et conversion de fichiers.",
       type: "home",
       lang: "fr",
     },
     "/de/index.html": {
       title: "Ouviescrevi — Kostenlose KI-Audio- und Video-Transkription",
       description:
-        "Transkribiere Audio und Video online mit KI, kostenlos und ohne Anmeldung. Zusammenfassungen, Übersetzung, SRT-Untertitel und Dateikonvertierung.",
+        "Transkribiere Audio und Video online mit KI, kostenlos und ohne Anmeldung. Zusammenfassungen, Übersetzung, SRT-Untertitel, Lernfragen und Dateikonvertierung.",
       type: "home",
       lang: "de",
     },
+
     "/conversor.html": {
       title: "Conversor de Ficheiros Online Grátis — Word, PDF, Imagem | Ouviescrevi",
       description:
-        "Converte Word para PDF, PDF para texto e imagens para PDF no browser. Conversor gratuito, rápido e sem instalação.",
+        "Converte Word para PDF, PDF para texto e imagens para PDF no browser. Rápido, gratuito e sem instalação.",
     },
     "/en/conversor.html": {
       title: "Free Online File Converter — Word, PDF, Image | Ouviescrevi",
@@ -101,6 +103,37 @@
         "Convert Word to PDF, PDF to text and images to PDF in your browser. Free, fast and no installation.",
       lang: "en",
     },
+    "/es/conversor.html": {
+      title: "Conversor de archivos online gratis — Word, PDF e imagen | Ouviescrevi",
+      description:
+        "Convierte Word a PDF, PDF a texto e imágenes a PDF en el navegador. Rápido, gratis y sin instalación.",
+      lang: "es",
+    },
+    "/fr/conversor.html": {
+      title: "Convertisseur de fichiers en ligne gratuit — Word, PDF, Image | Ouviescrevi",
+      description:
+        "Convertissez Word en PDF, PDF en texte et images en PDF dans le navigateur. Rapide, gratuit et sans installation.",
+      lang: "fr",
+    },
+    "/de/conversor.html": {
+      title: "Kostenloser Online-Dateikonverter — Word, PDF, Bild | Ouviescrevi",
+      description:
+        "Word in PDF, PDF in Text und Bilder in PDF im Browser konvertieren. Schnell, kostenlos und ohne Installation.",
+      lang: "de",
+    },
+
+    "/conversor-imagens.html": {
+      title: "Conversor de Imagens — PNG, JPEG, WebP, AVIF, BMP, GIF | Ouviescrevi",
+      description:
+        "Converte imagens entre PNG, JPEG, WebP, AVIF, BMP e GIF no browser. Grátis, privado — os ficheiros nunca saem do teu dispositivo.",
+    },
+    "/en/conversor-imagens.html": {
+      title: "Image Converter — PNG, JPEG, WebP, AVIF, BMP, GIF | Ouviescrevi",
+      description:
+        "Convert images between PNG, JPEG, WebP, AVIF, BMP and GIF in your browser. Free and private — files never leave your device.",
+      lang: "en",
+    },
+
     "/resumo.html": {
       title: "Resumo Automático com IA — PDF, Word e Texto | Ouviescrevi",
       description:
@@ -112,19 +145,174 @@
         "Generate smart AI summaries from PDF, Word or plain text. Formal, simple, bullet points or meeting minutes.",
       lang: "en",
     },
+    "/es/resumo.html": {
+      title: "Generador de resúmenes con IA — PDF, Word y texto | Ouviescrevi",
+      description:
+        "Genera resúmenes inteligentes con IA a partir de PDF, Word o texto. Estilos formal, simple, puntos clave o acta de reunión.",
+      lang: "es",
+    },
+    "/fr/resumo.html": {
+      title: "Résumé automatique par IA — PDF, Word et texte | Ouviescrevi",
+      description:
+        "Générez des résumés intelligents par IA à partir de PDF, Word ou texte. Styles formel, simple, points clés ou compte-rendu.",
+      lang: "fr",
+    },
+    "/de/resumo.html": {
+      title: "KI-Zusammenfassung — PDF, Word und Text | Ouviescrevi",
+      description:
+        "Erstelle intelligente KI-Zusammenfassungen aus PDF, Word oder Text. Formell, einfach, Stichpunkte oder Sitzungsprotokoll.",
+      lang: "de",
+    },
+
     "/ajuda.html": {
       title: "Ajuda e FAQ — Como Usar o Ouviescrevi",
       description:
-        "Respostas às perguntas frequentes sobre transcrição com IA, formatos suportados, privacidade e funcionalidades do Ouviescrevi.",
+        "Respostas às perguntas frequentes sobre transcrição com IA, formatos suportados, privacidade, limites gratuitos e ferramentas do Ouviescrevi.",
       faq: true,
     },
     "/en/ajuda.html": {
       title: "Help & FAQ — How to Use Ouviescrevi",
       description:
-        "Frequently asked questions about AI transcription, supported formats, privacy and Ouviescrevi features.",
+        "Frequently asked questions about AI transcription, supported formats, privacy, free limits and Ouviescrevi features.",
       lang: "en",
       faq: true,
     },
+    "/es/ajuda.html": {
+      title: "Ayuda y FAQ — Cómo usar Ouviescrevi",
+      description:
+        "Preguntas frecuentes sobre transcripción con IA, formatos compatibles, privacidad, límites gratuitos y herramientas de Ouviescrevi.",
+      lang: "es",
+      faq: true,
+    },
+    "/fr/ajuda.html": {
+      title: "Aide et FAQ — Comment utiliser Ouviescrevi",
+      description:
+        "Questions fréquentes sur la transcription IA, formats pris en charge, confidentialité, limites gratuites et outils Ouviescrevi.",
+      lang: "fr",
+      faq: true,
+    },
+    "/de/ajuda.html": {
+      title: "Hilfe und FAQ — So nutzt du Ouviescrevi",
+      description:
+        "Häufige Fragen zu KI-Transkription, unterstützten Formaten, Datenschutz, kostenlosen Limits und Ouviescrevi-Funktionen.",
+      lang: "de",
+      faq: true,
+    },
+
+    "/corretor.html": {
+      title: "Corretor de Texto com IA — Ortografia e Gramática | Ouviescrevi",
+      description:
+        "Corrige ortografia, gramática e estilo automaticamente com inteligência artificial. Grátis e direto no browser.",
+    },
+    "/en/corretor.html": {
+      title: "AI Text Proofreader — Spelling and Grammar | Ouviescrevi",
+      description:
+        "Fix spelling, grammar and style automatically with AI. Free proofreading tool in your browser.",
+      lang: "en",
+    },
+    "/es/corretor.html": {
+      title: "Corrector de texto con IA — Ortografía y gramática | Ouviescrevi",
+      description:
+        "Corrige ortografía, gramática y estilo automáticamente con IA. Herramienta gratuita en el navegador.",
+      lang: "es",
+    },
+    "/fr/corretor.html": {
+      title: "Correcteur de texte IA — Orthographe et grammaire | Ouviescrevi",
+      description:
+        "Corrigez orthographe, grammaire et style automatiquement avec l'IA. Outil gratuit dans le navigateur.",
+      lang: "fr",
+    },
+    "/de/corretor.html": {
+      title: "KI-Textkorrektur — Rechtschreibung und Grammatik | Ouviescrevi",
+      description:
+        "Rechtschreibung, Grammatik und Stil automatisch mit KI korrigieren. Kostenloses Tool im Browser.",
+      lang: "de",
+    },
+
+    "/perguntas.html": {
+      title: "Gerador de Perguntas de Escolha Múltipla com IA | Ouviescrevi",
+      description:
+        "Cria perguntas de estudo e testes a partir de qualquer texto com IA. Gabarito e explicações incluídos — ideal para professores e alunos.",
+    },
+    "/en/perguntas.html": {
+      title: "AI Multiple-Choice Question Generator | Ouviescrevi",
+      description:
+        "Generate study questions and quizzes from any text with AI. Answer keys and explanations included — for teachers and students.",
+      lang: "en",
+    },
+    "/es/perguntas.html": {
+      title: "Generador de preguntas de opción múltiple con IA | Ouviescrevi",
+      description:
+        "Crea preguntas de estudio y exámenes a partir de cualquier texto con IA. Incluye respuestas y explicaciones.",
+      lang: "es",
+    },
+    "/fr/perguntas.html": {
+      title: "Générateur de questions à choix multiples IA | Ouviescrevi",
+      description:
+        "Créez des questions d'étude et de test à partir de n'importe quel texte avec l'IA. Corrigé et explications inclus.",
+      lang: "fr",
+    },
+    "/de/perguntas.html": {
+      title: "KI-Fragengenerator — Multiple-Choice | Ouviescrevi",
+      description:
+        "Erstelle Lern- und Testfragen aus beliebigem Text mit KI. Mit Lösungen und Erklärungen — für Lehrkräfte und Schüler.",
+      lang: "de",
+    },
+
+    "/aula-pronta.html": {
+      title: "Aula Pronta — Pacote de Estudo com IA | Ouviescrevi",
+      description:
+        "Transforma uma transcrição de aula em pacote completo: resumo, glossário, pontos-chave e perguntas com gabarito.",
+    },
+    "/en/aula-pronta.html": {
+      title: "Lesson Ready — AI Study Pack | Ouviescrevi",
+      description:
+        "Turn a lesson transcript into a complete study pack: summary, glossary, key points and quiz questions with answer key.",
+      lang: "en",
+    },
+
+    "/capitulos.html": {
+      title: "Capítulos e Timestamps — Podcasts e YouTube | Ouviescrevi",
+      description:
+        "Divide transcrições longas em capítulos com horários. Ideal para podcasts, aulas gravadas e vídeos — exporta para YouTube.",
+    },
+    "/en/capitulos.html": {
+      title: "Chapters & Timestamps — Podcasts & YouTube | Ouviescrevi",
+      description:
+        "Split long transcripts into chapters with timestamps. Great for podcasts, lessons and videos — export for YouTube.",
+      lang: "en",
+    },
+
+    "/url-resumo.html": {
+      title: "Resumo de Artigo por URL com IA | Ouviescrevi",
+      description:
+        "Cola o link de um artigo online e obtém um resumo automático com inteligência artificial em segundos.",
+    },
+    "/en/url-resumo.html": {
+      title: "AI Article Summary from URL | Ouviescrevi",
+      description:
+        "Paste an article link and get an automatic AI-generated summary in seconds. No copy-paste needed.",
+      lang: "en",
+    },
+    "/es/url-resumo.html": {
+      title: "Resumen de artículo por URL con IA | Ouviescrevi",
+      description:
+        "Pega el enlace de un artículo online y obtén un resumen automático con inteligencia artificial en segundos.",
+      lang: "es",
+    },
+    "/fr/url-resumo.html": {
+      title: "Résumé d'article par URL avec IA | Ouviescrevi",
+      description:
+        "Collez le lien d'un article en ligne et obtenez un résumé automatique par intelligence artificielle en quelques secondes.",
+      lang: "fr",
+    },
+    "/de/url-resumo.html": {
+      title: "KI-Artikelzusammenfassung per URL | Ouviescrevi",
+      description:
+        "Füge einen Artikellink ein und erhalte in Sekunden eine automatische KI-Zusammenfassung — ohne Copy-Paste.",
+      lang: "de",
+    },
+
     "/aulas.html": {
       title: "Transcrição de Aulas com IA — Estudantes e Professores | Ouviescrevi",
       description:
@@ -133,7 +321,7 @@
     "/professores.html": {
       title: "IA para Professores — Transcrever e Resumir Aulas | Ouviescrevi",
       description:
-        "Ferramentas de IA para educadores: transcrição de aulas, resumos automáticos e preparação de materiais didáticos.",
+        "Ferramentas de IA para educadores: transcrição de aulas, resumos automáticos, perguntas de estudo e exportação DOCX.",
     },
     "/jornalistas.html": {
       title: "Transcrição de Entrevistas para Jornalistas | Ouviescrevi",
@@ -155,127 +343,122 @@
       description:
         "Transcreve testemunhos, declarações e gravações com precisão. Útil em contextos jurídicos e administrativos.",
     },
-    "/corretor.html": {
-      title: "Corretor de Texto com IA — Ortografia e Gramática | Ouviescrevi",
-      description:
-        "Corrige ortografia e gramática automaticamente com inteligência artificial. Grátis e no browser.",
-    },
-    "/en/corretor.html": {
-      title: "AI Text Proofreader — Spelling and Grammar | Ouviescrevi",
-      description: "Fix spelling and grammar automatically with AI. Free in your browser.",
-      lang: "en",
-    },
-    "/es/corretor.html": {
-      title: "Corrector de texto con IA | Ouviescrevi",
-      description: "Corrige ortografía y gramática automáticamente con IA.",
-      lang: "es",
-    },
-    "/fr/corretor.html": {
-      title: "Correcteur de texte avec IA | Ouviescrevi",
-      description: "Corrigez orthographe et grammaire automatiquement avec l'IA.",
-      lang: "fr",
-    },
-    "/de/corretor.html": {
-      title: "KI-Textkorrektur | Ouviescrevi",
-      description: "Rechtschreibung und Grammatik automatisch mit KI korrigieren.",
-      lang: "de",
-    },
-    "/perguntas.html": {
-      title: "Gerador de Perguntas de Escolha Múltipla com IA | Ouviescrevi",
-      description:
-        "Cria perguntas de estudo e testes a partir de qualquer texto com IA. Ideal para professores e alunos.",
-    },
-    "/en/perguntas.html": {
-      title: "AI Multiple-Choice Question Generator | Ouviescrevi",
-      description:
-        "Generate study questions and quizzes from any text with AI. Perfect for teachers and students.",
-      lang: "en",
-    },
-    "/aula-pronta.html": {
-      title: "Aula Pronta — Pacote de estudo com IA | Ouviescrevi",
-      description:
-        "Transforma uma transcrição de aula em pacote de estudo: resumo, glossário, ideias-chave e perguntas com gabarito.",
-    },
-    "/en/aula-pronta.html": {
-      title: "Lesson Ready — AI Study Pack | Ouviescrevi",
-      description:
-        "Turn a lesson transcript into a study pack: summary, glossary, key points and quiz questions with answer key.",
-      lang: "en",
-    },
-    "/capitulos.html": {
-      title: "Capítulos & timestamps | Ouviescrevi",
-      description:
-        "Divide transcrições longas em capítulos com horários — ideal para podcasts, aulas gravadas e YouTube.",
-    },
-    "/en/capitulos.html": {
-      title: "Chapters & timestamps | Ouviescrevi",
-      description:
-        "Split long transcripts into chapters with timestamps — great for podcasts, lessons and YouTube.",
-      lang: "en",
-    },
-    "/conversor-imagens.html": {
-      title: "Conversor de Imagens — PNG, JPEG, WebP | Ouviescrevi",
-      description:
-        "Converte imagens entre PNG, JPEG e WebP no browser. Grátis, privado e sem upload para o servidor.",
-    },
-    "/en/conversor-imagens.html": {
-      title: "Image Converter — PNG, JPEG, WebP | Ouviescrevi",
-      description:
-        "Convert images between PNG, JPEG and WebP in your browser. Free, private, no server upload.",
-      lang: "en",
-    },
-    "/url-resumo.html": {
-      title: "Resumo de Artigo por URL com IA | Ouviescrevi",
-      description:
-        "Cola o link de um artigo online e obtém um resumo automático com inteligência artificial.",
-    },
-    "/en/url-resumo.html": {
-      title: "AI Article Summary from URL | Ouviescrevi",
-      description:
-        "Paste an article link and get an automatic AI-generated summary in seconds.",
-      lang: "en",
-    },
     "/gerar-video.html": {
-      title: "Gerar Vídeo com Voz e Legendas — Ouviescrevi",
+      title: "Gerar Vídeo com Voz e Legendas — IA | Ouviescrevi",
       description:
         "Cria vídeos com narração automática e legendas a partir de texto com inteligência artificial.",
     },
+    "/precos.html": {
+      title: "Preços e Planos — Transcrição com IA | Ouviescrevi",
+      description:
+        "Planos Ouviescrevi para transcrição com IA, legendas SRT e exportação. Opções gratuitas e premium para criadores e educadores.",
+    },
+
     "/sugestoes.html": {
       title: "Enviar Sugestões — Ouviescrevi",
-      description: "Partilha ideias para melhorar o Ouviescrevi. O teu feedback ajuda-nos a evoluir.",
+      description: "Partilha ideias para melhorar o Ouviescrevi. O teu feedback ajuda-nos a evoluir a plataforma.",
     },
     "/en/sugestoes.html": {
       title: "Send Suggestions — Ouviescrevi",
-      description: "Share ideas to improve Ouviescrevi. Your feedback helps us grow.",
+      description: "Share ideas to improve Ouviescrevi. Your feedback helps us build better AI tools.",
       lang: "en",
     },
+    "/es/sugestoes.html": {
+      title: "Enviar sugerencias — Ouviescrevi",
+      description: "Comparte ideas para mejorar Ouviescrevi. Tu opinión nos ayuda a crear mejores herramientas de IA.",
+      lang: "es",
+    },
+    "/fr/sugestoes.html": {
+      title: "Envoyer des suggestions — Ouviescrevi",
+      description: "Partagez vos idées pour améliorer Ouviescrevi. Vos retours nous aident à créer de meilleurs outils IA.",
+      lang: "fr",
+    },
+    "/de/sugestoes.html": {
+      title: "Vorschläge senden — Ouviescrevi",
+      description: "Teile Ideen zur Verbesserung von Ouviescrevi. Dein Feedback hilft uns, bessere KI-Tools zu entwickeln.",
+      lang: "de",
+    },
+
     "/privacidade.html": {
       title: "Política de Privacidade — Ouviescrevi (RGPD)",
       description:
         "Como o Ouviescrevi trata dados pessoais em conformidade com o RGPD. Ficheiros, cookies e os teus direitos.",
-    },
-    "/termos.html": {
-      title: "Termos de Utilização — Ouviescrevi",
-      description: "Condições de uso do serviço de transcrição e ferramentas de IA do Ouviescrevi.",
-    },
-    "/cookies.html": {
-      title: "Política de Cookies — Ouviescrevi",
-      description: "Informação sobre cookies e armazenamento local utilizados no website Ouviescrevi.",
     },
     "/en/privacy.html": {
       title: "Privacy Policy — Ouviescrevi (GDPR)",
       description: "How Ouviescrevi processes personal data under GDPR. Files, cookies and your rights.",
       lang: "en",
     },
+    "/es/privacy.html": {
+      title: "Política de privacidad — Ouviescrevi (RGPD)",
+      description: "Cómo Ouviescrevi trata los datos personales conforme al RGPD. Archivos, cookies y tus derechos.",
+      lang: "es",
+    },
+    "/fr/privacy.html": {
+      title: "Politique de confidentialité — Ouviescrevi (RGPD)",
+      description: "Comment Ouviescrevi traite les données personnelles conformément au RGPD. Fichiers, cookies et vos droits.",
+      lang: "fr",
+    },
+    "/de/privacy.html": {
+      title: "Datenschutzerklärung — Ouviescrevi (DSGVO)",
+      description: "Wie Ouviescrevi personenbezogene Daten gemäß DSGVO verarbeitet. Dateien, Cookies und deine Rechte.",
+      lang: "de",
+    },
+
+    "/termos.html": {
+      title: "Termos de Utilização — Ouviescrevi",
+      description: "Condições de uso do serviço de transcrição, resumos e ferramentas de IA do Ouviescrevi.",
+    },
     "/en/terms.html": {
       title: "Terms of Use — Ouviescrevi",
-      description: "Terms and conditions for using Ouviescrevi AI transcription and tools.",
+      description: "Terms and conditions for using Ouviescrevi AI transcription, summaries and tools.",
       lang: "en",
+    },
+    "/es/terms.html": {
+      title: "Términos de uso — Ouviescrevi",
+      description: "Condiciones de uso del servicio de transcripción, resúmenes y herramientas de IA de Ouviescrevi.",
+      lang: "es",
+    },
+    "/fr/terms.html": {
+      title: "Conditions d'utilisation — Ouviescrevi",
+      description: "Conditions d'utilisation du service de transcription, résumés et outils IA d'Ouviescrevi.",
+      lang: "fr",
+    },
+    "/de/terms.html": {
+      title: "Nutzungsbedingungen — Ouviescrevi",
+      description: "Nutzungsbedingungen für Ouviescrevi KI-Transkription, Zusammenfassungen und Tools.",
+      lang: "de",
+    },
+
+    "/cookies.html": {
+      title: "Política de Cookies — Ouviescrevi",
+      description: "Informação sobre cookies e armazenamento local utilizados no website Ouviescrevi.",
     },
     "/en/cookies.html": {
       title: "Cookie Policy — Ouviescrevi",
       description: "Information about cookies and local storage used on the Ouviescrevi website.",
       lang: "en",
+    },
+    "/es/cookies.html": {
+      title: "Política de cookies — Ouviescrevi",
+      description: "Información sobre cookies y almacenamiento local utilizados en el sitio web Ouviescrevi.",
+      lang: "es",
+    },
+    "/fr/cookies.html": {
+      title: "Politique de cookies — Ouviescrevi",
+      description: "Informations sur les cookies et le stockage local utilisés sur le site Ouviescrevi.",
+      lang: "fr",
+    },
+    "/de/cookies.html": {
+      title: "Cookie-Richtlinie — Ouviescrevi",
+      description: "Informationen zu Cookies und lokalem Speicher auf der Ouviescrevi-Website.",
+      lang: "de",
+    },
+
+    "/404.html": {
+      title: "Página não encontrada — Ouviescrevi",
+      description: "A página que procuras não existe ou foi movida. Volta ao início do Ouviescrevi.",
+      noindex: true,
     },
   };
 
@@ -294,6 +477,32 @@
     { q: "Is the transcription 100% accurate?", a: "Accuracy depends on audio quality. We use OpenAI's Whisper model for high-quality results." },
     { q: "Are my files stored?", a: "Files are deleted after processing. Only file name and timestamp are stored for statistics." },
   ];
+
+  var FAQ_ES = [
+    { q: "¿Qué es Ouviescrevi?", a: "Es una herramienta automática que convierte archivos de audio, vídeo o texto en transcripciones, resúmenes, traducciones y más, usando inteligencia artificial." },
+    { q: "¿Qué formatos de archivo se admiten?", a: "Admitimos .mp3, .mp4, .wav, .m4a, .mov y otros formatos habituales." },
+    { q: "¿Es necesario crear una cuenta?", a: "No. Ouviescrevi es gratuito y no requiere registro." },
+    { q: "¿La transcripción es 100% precisa?", a: "La precisión depende de la calidad del audio. Usamos el modelo Whisper de OpenAI para alta calidad." },
+    { q: "¿Se guardan mis archivos?", a: "Los archivos se eliminan tras el procesamiento. Solo registramos el nombre y la fecha para estadísticas." },
+  ];
+
+  var FAQ_FR = [
+    { q: "Qu'est-ce qu'Ouviescrevi ?", a: "Un outil automatique qui convertit des fichiers audio, vidéo ou texte en transcriptions, résumés, traductions et plus encore grâce à l'IA." },
+    { q: "Quels formats de fichiers sont pris en charge ?", a: "Nous prenons en charge .mp3, .mp4, .wav, .m4a, .mov et d'autres formats courants." },
+    { q: "Faut-il créer un compte ?", a: "Non. Ouviescrevi est gratuit et ne nécessite aucune inscription." },
+    { q: "La transcription est-elle 100 % précise ?", a: "La précision dépend de la qualité audio. Nous utilisons le modèle Whisper d'OpenAI pour une haute qualité." },
+    { q: "Mes fichiers sont-ils conservés ?", a: "Les fichiers sont supprimés après traitement. Seuls le nom et la date sont enregistrés pour les statistiques." },
+  ];
+
+  var FAQ_DE = [
+    { q: "Was ist Ouviescrevi?", a: "Ein automatisches Tool, das Audio-, Video- oder Textdateien mit KI in Transkripte, Zusammenfassungen, Übersetzungen und mehr umwandelt." },
+    { q: "Welche Dateiformate werden unterstützt?", a: "Wir unterstützen .mp3, .mp4, .wav, .m4a, .mov und andere gängige Formate." },
+    { q: "Muss ich ein Konto erstellen?", a: "Nein. Ouviescrevi ist kostenlos und erfordert keine Registrierung." },
+    { q: "Ist die Transkription 100 % genau?", a: "Die Genauigkeit hängt von der Audioqualität ab. Wir nutzen OpenAIs Whisper-Modell für hohe Qualität." },
+    { q: "Werden meine Dateien gespeichert?", a: "Dateien werden nach der Verarbeitung gelöscht. Nur Dateiname und Zeitstempel werden für Statistiken gespeichert." },
+  ];
+
+  var FAQ_BY_LANG = { pt: FAQ_PT, en: FAQ_EN, es: FAQ_ES, fr: FAQ_FR, de: FAQ_DE };
 
   function pagePath() {
     var p = (global.location.pathname || "/").replace(/\/$/, "");
@@ -373,7 +582,7 @@
 
     document.title = title;
     upsertMeta("name", "description", desc);
-    upsertMeta("name", "robots", "index, follow");
+    upsertMeta("name", "robots", cfg.noindex ? "noindex, follow" : "index, follow");
     upsertMeta("name", "author", "Ouviescrevi");
     upsertLink("canonical", canonical);
 
@@ -392,10 +601,12 @@
 
     var alternates = HREFLANG[path];
     if (alternates) {
-      HREFLANG_LOCALES.forEach(function (loc) {
+      Object.keys(alternates).forEach(function (loc) {
         upsertLink("alternate", SITE + alternates[loc], { hreflang: loc });
       });
-      upsertLink("alternate", SITE + alternates.pt, { hreflang: "x-default" });
+      if (alternates.pt) {
+        upsertLink("alternate", SITE + alternates.pt, { hreflang: "x-default" });
+      }
     }
 
     injectJsonLd(breadcrumb(path, title));
@@ -443,7 +654,7 @@
     }
 
     if (cfg.faq) {
-      var faqItems = lang === "en" ? FAQ_EN : FAQ_PT;
+      var faqItems = FAQ_BY_LANG[lang] || FAQ_PT;
       injectJsonLd({
         "@context": "https://schema.org",
         "@type": "FAQPage",
@@ -469,5 +680,5 @@
     if (o.description) upsertMeta("property", "og:description", o.description);
   }
 
-  global.OuviescreviSEO = { apply: apply, pagePath: pagePath, applyOverrides: applyOverrides };
+  global.OuviescreviSEO = { apply: apply, pagePath: pagePath, applyOverrides: applyOverrides, PAGES: PAGES };
 })(window);
