@@ -123,6 +123,16 @@ PAGE_SCHEMA: list[dict[str, Any]] = [
         ],
     },
     {
+        "id": "conversor_imagens",
+        "label": "Conversor imagens",
+        "lang": "pt",
+        "path": "/conversor-imagens.html",
+        "fields": [
+            {"key": "conversor_imagens_title", "label": "Título", "type": "text"},
+            {"key": "conversor_imagens_lead", "label": "Subtítulo", "type": "text"},
+        ],
+    },
+    {
         "id": "sugestoes",
         "label": "Sugestões",
         "lang": "pt",
@@ -154,6 +164,16 @@ PAGE_SCHEMA: list[dict[str, Any]] = [
             {"key": "en_conversor_lead", "label": "Subtitle", "type": "text"},
             {"key": "en_conversor_notice", "label": "Notice", "type": "rich"},
             {"key": "en_conversor_seo", "label": "SEO text (footer)", "type": "rich"},
+        ],
+    },
+    {
+        "id": "conversor_imagens_en",
+        "label": "Image converter (EN)",
+        "lang": "en",
+        "path": "/en/conversor-imagens.html",
+        "fields": [
+            {"key": "en_conversor_imagens_title", "label": "Title", "type": "text"},
+            {"key": "en_conversor_imagens_lead", "label": "Subtitle", "type": "text"},
         ],
     },
     {
@@ -637,6 +657,7 @@ def default_nav_config(lang: str) -> dict[str, Any]:
                 _nav_link("Lesson Ready", "aula-pronta.html", "aula-pronta"),
                 _nav_link("Chapters & timestamps", "capitulos.html", "capitulos"),
                 _nav_link("File Converter", "conversor.html", "conversor"),
+                _nav_link("Image Converter", "conversor-imagens.html", "conversor-imagens"),
                 _nav_link("Text proofreader", "corretor.html", "corretor"),
             ],
             "audience": [
@@ -667,6 +688,7 @@ def default_nav_config(lang: str) -> dict[str, Any]:
                         _nav_link("Lesson Ready", "aula-pronta.html"),
                         _nav_link("Chapters", "capitulos.html"),
                         _nav_link("Converter", "conversor.html"),
+                        _nav_link("Images", "conversor-imagens.html"),
                         _nav_link("Proofreader", "corretor.html"),
                     ],
                 },
@@ -701,6 +723,7 @@ def default_nav_config(lang: str) -> dict[str, Any]:
             _nav_link("Aula Pronta", "aula-pronta.html", "aula-pronta"),
             _nav_link("Capítulos & timestamps", "capitulos.html", "capitulos"),
             _nav_link("Conversor de ficheiros", "conversor.html", "conversor"),
+            _nav_link("Conversor de imagens", "conversor-imagens.html", "conversor-imagens"),
             _nav_link("Corretor de texto", "corretor.html", "corretor"),
         ],
         "audience": [
@@ -731,6 +754,7 @@ def default_nav_config(lang: str) -> dict[str, Any]:
                     _nav_link("Aula Pronta", "aula-pronta.html"),
                     _nav_link("Capítulos", "capitulos.html"),
                     _nav_link("Conversor", "conversor.html"),
+                    _nav_link("Imagens", "conversor-imagens.html"),
                     _nav_link("Corretor", "corretor.html"),
                 ],
             },
@@ -844,6 +868,8 @@ DEFAULT_SITE_CONTENT: dict[str, str] = {
     ),
     "conversor_title": "📁 Conversor de Ficheiros",
     "conversor_lead": "Converte Word, PDF e imagens — gratuito e no browser.",
+    "conversor_imagens_title": "🖼️ Conversor de Imagens",
+    "conversor_imagens_lead": "Converte JPG, PNG, WebP, GIF e outros formatos — tudo no teu browser, privado e grátis.",
     "conversor_notice": "<p>💡 Aproveita esta funcionalidade gratuita enquanto a versão com IA evolui.</p>",
     "conversor_seo": _CONVERSOR_SEO_PT,
     "sugestoes_title": "💡 Sugestões",
@@ -861,6 +887,8 @@ DEFAULT_SITE_CONTENT: dict[str, str] = {
     ),
     "en_conversor_title": "📁 File Converter",
     "en_conversor_lead": "Convert Word, PDF and images — free in your browser.",
+    "en_conversor_imagens_title": "🖼️ Image Converter",
+    "en_conversor_imagens_lead": "Convert JPG, PNG, WebP, GIF and more — entirely in your browser, private and free.",
     "en_conversor_notice": "<p>💡 Use this free tool while our AI-based version evolves.</p>",
     "en_conversor_seo": _CONVERSOR_SEO_EN,
     "en_sugestoes_title": "💡 Suggestions",
@@ -1096,6 +1124,8 @@ for _lc_lang in ("es", "fr", "de"):
         "perguntas_lead",
         "capitulos_title",
         "capitulos_lead",
+        "conversor_imagens_title",
+        "conversor_imagens_lead",
     ):
         DEFAULT_SITE_CONTENT.setdefault(
             f"{_lc_lang}_{_suffix}",

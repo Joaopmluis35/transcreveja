@@ -11,6 +11,7 @@
     index: { pt: "index.html", en: "index.html", es: "index.html", fr: "index.html", de: "index.html" },
     ajuda: { pt: "ajuda.html", en: "ajuda.html", es: "ajuda.html", fr: "ajuda.html", de: "ajuda.html" },
     conversor: { pt: "conversor.html", en: "conversor.html", es: "conversor.html", fr: "conversor.html", de: "conversor.html" },
+    "conversor-imagens": { pt: "conversor-imagens.html", en: "conversor-imagens.html", es: "conversor-imagens.html", fr: "conversor-imagens.html", de: "conversor-imagens.html" },
     sugestoes: { pt: "sugestoes.html", en: "sugestoes.html", es: "sugestoes.html", fr: "sugestoes.html", de: "sugestoes.html" },
     resumo: { pt: "resumo.html", en: "resumo.html", es: "resumo.html", fr: "resumo.html", de: "resumo.html" },
     "url-resumo": { pt: "url-resumo.html", en: "url-resumo.html", es: "url-resumo.html", fr: "url-resumo.html", de: "url-resumo.html" },
@@ -210,6 +211,17 @@
       title: "Chapters & timestamps | Ouviescrevi",
       description:
         "Split long transcripts into chapters with timestamps — great for podcasts, lessons and YouTube.",
+      lang: "en",
+    },
+    "/conversor-imagens.html": {
+      title: "Conversor de Imagens — PNG, JPEG, WebP | Ouviescrevi",
+      description:
+        "Converte imagens entre PNG, JPEG e WebP no browser. Grátis, privado e sem upload para o servidor.",
+    },
+    "/en/conversor-imagens.html": {
+      title: "Image Converter — PNG, JPEG, WebP | Ouviescrevi",
+      description:
+        "Convert images between PNG, JPEG and WebP in your browser. Free, private, no server upload.",
       lang: "en",
     },
     "/url-resumo.html": {
