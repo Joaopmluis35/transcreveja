@@ -32,6 +32,21 @@
     return navDefaultsByLang.pt || null;
   }
 
+  function enrichToolsFromDefaults(tools, defaults) {
+    var map = {};
+    (defaults || []).forEach(function (d) {
+      if (d && d.category) {
+        if (d.page) map[d.page] = d.category;
+        if (d.href) map[d.href] = d.category;
+      }
+    });
+    return (tools || []).map(function (item) {
+      if (!item || item.category) return item;
+      var cat = map[item.page] || map[item.href];
+      return cat ? Object.assign({}, item, { category: cat }) : item;
+    });
+  }
+
   function mergeNav(stored, lang) {
     var defaults = defaultsForLang(lang);
     if (!defaults) return stored || {};
@@ -45,6 +60,9 @@
         out[key] = JSON.parse(JSON.stringify(defaults[key] || []));
       }
     });
+    if (out.tools && out.tools.length) {
+      out.tools = enrichToolsFromDefaults(out.tools, defaults.tools);
+    }
     return out;
   }
 
@@ -64,11 +82,18 @@
       .replace(/</g, "&lt;");
   }
 
-  function linkRowHtml(link, prefix) {
+  function linkRowHtml(link, prefix, showCategory) {
     link = link || {};
     var hiddenCls = link.hidden ? " oe-admin-nav-row--hidden" : "";
+    var toolsCls = showCategory ? " oe-admin-nav-row--tools" : "";
+    var categoryField = showCategory
+      ? '<input type="text" class="oe-admin-nav-category" placeholder="Categoria" value="' +
+        esc(link.category || "") +
+        '">'
+      : "";
     return (
       '<div class="oe-admin-nav-row' +
+      toolsCls +
       hiddenCls +
       '" data-nav-prefix="' +
       prefix +
@@ -76,6 +101,7 @@
       '<input type="text" class="oe-admin-nav-label" placeholder="Texto" value="' +
       esc(link.label) +
       '">' +
+      categoryField +
       '<input type="text" class="oe-admin-nav-href" placeholder="href (ex. resumo.html)" value="' +
       esc(link.href) +
       '">' +
@@ -122,7 +148,7 @@
     var d = navDraft;
     root.innerHTML =
       '<div class="oe-admin-form oe-admin-nav-form">' +
-      '<p class="oe-admin-cms-hint">Cada linha é uma entrada do menu. <strong>Ocultar</strong> tira do site mas mantém aqui para reativar. <strong>✕</strong> remove da lista (guarda para aplicar).</p>' +
+      '<p class="oe-admin-cms-hint">Cada linha é uma entrada do menu. Em <strong>Ferramentas</strong>, usa <strong>Categoria</strong> para agrupar no submenu (ex. «Resumir e analisar»). <strong>Ocultar</strong> tira do site mas mantém aqui para reativar.</p>' +
       '<div class="oe-admin-field-row">' +
       '<div class="oe-admin-field"><label>Menu — Ferramentas (rótulo)</label>' +
       '<input type="text" id="navMenuToolsLabel" value="' +
@@ -136,7 +162,7 @@
       (d.tools || []).length +
       ")</small></h3>" +
       '<div id="navToolsLinks" class="oe-admin-nav-links">' +
-      (d.tools || []).map(function (l) { return linkRowHtml(l, "tools"); }).join("") +
+      (d.tools || []).map(function (l) { return linkRowHtml(l, "tools", true); }).join("") +
       "</div>" +
       '<button type="button" class="oe-admin-btn oe-admin-btn--secondary" id="navAddTool">+ Ferramenta</button>' +
       "<h3 class=\"oe-admin-nav-section\">Links — Para quem <small>(" +
@@ -196,7 +222,7 @@
     var addTool = document.getElementById("navAddTool");
     if (addTool) {
       addTool.addEventListener("click", function () {
-        document.getElementById("navToolsLinks").insertAdjacentHTML("beforeend", linkRowHtml({}, "tools"));
+        document.getElementById("navToolsLinks").insertAdjacentHTML("beforeend", linkRowHtml({}, "tools", true));
         bindEditorEvents();
       });
     }
@@ -241,6 +267,8 @@
     };
     var page = (row.querySelector(".oe-admin-nav-page") || {}).value || "";
     if (page) item.page = page;
+    var category = (row.querySelector(".oe-admin-nav-category") || {}).value || "";
+    if (category) item.category = category;
     if ((row.querySelector(".oe-admin-nav-pricing") || {}).checked) item.pricingOnly = true;
     if ((row.querySelector(".oe-admin-nav-hidden") || {}).checked) item.hidden = true;
     return item;

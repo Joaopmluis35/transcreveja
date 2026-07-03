@@ -67,6 +67,10 @@ html.oe-theme-dark .oe-pro-lang__menu button:hover {
   background: var(--pro-accent-muted);
 }
 
+html.oe-theme-dark .oe-pro-nav__group-label {
+  color: #94a3b8;
+}
+
 html.oe-theme-dark .oe-pro-btn--ghost {
   color: var(--pro-text);
   border-color: var(--pro-border);

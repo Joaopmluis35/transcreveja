@@ -1307,6 +1307,10 @@ body.oe-admin.oe-admin--dark .oe-admin-jobs-box__item {
   align-items: center;
 }
 
+.oe-admin-nav-row--tools {
+  grid-template-columns: 1.1fr 1fr 1.1fr 0.65fr auto auto auto;
+}
+
 .oe-admin-nav-row--hidden {
   opacity: 0.45;
 }

@@ -355,6 +355,53 @@ body.oe-pro {
   background: var(--pro-accent-soft);
 }
 
+.oe-pro-nav__menu--grouped {
+  min-width: 268px;
+  padding: 8px;
+}
+.oe-pro-nav__group-label {
+  padding: 8px 12px 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--pro-text-muted, #94a3b8);
+  user-select: none;
+}
+.oe-pro-nav__group-label:first-child {
+  padding-top: 4px;
+}
+.oe-pro-nav__group-label:not(:first-child) {
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid var(--pro-border);
+}
+.oe-pro-nav__group-sep {
+  height: 1px;
+  margin: 4px 8px;
+  background: var(--pro-border);
+}
+.oe-pro-nav__group a {
+  padding-left: 14px;
+}
+@media (max-width: 899px) {
+  .oe-pro-nav__menu--grouped {
+    min-width: 0;
+    padding: 4px 0 8px;
+  }
+  .oe-pro-nav__group-label {
+    padding: 10px 14px 4px 22px;
+    font-size: 0.65rem;
+    border-left: 2px solid var(--pro-border);
+    margin: 0 8px;
+  }
+  .oe-pro-nav__group-label:not(:first-child) {
+    margin-top: 8px;
+    border-top: none;
+    padding-top: 12px;
+  }
+}
+
 .oe-pro-nav__backdrop {
   display: none;
   position: fixed;

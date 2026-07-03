@@ -240,7 +240,7 @@
     });
   }
 
-  var LAYOUT_V = "5";
+  var LAYOUT_V = "6";
   var siteContentCache = null;
 
   function withLayoutVersion(url) {
@@ -491,6 +491,31 @@
     return locale === "pt" ? "nav_config_pt" : "nav_config_" + locale;
   }
 
+  function createNavLink(item, role) {
+    var a = document.createElement("a");
+    a.href = item.href || "#";
+    a.textContent = item.label;
+    if (item.page) a.setAttribute("data-nav-page", item.page);
+    if (item.pricingOnly) a.setAttribute("data-pricing-only", "");
+    if (role) a.setAttribute("role", role);
+    return a;
+  }
+
+  function enrichToolsWithCategories(tools, defaults) {
+    var defaultMap = {};
+    (defaults || []).forEach(function (d) {
+      if (d && d.category) {
+        if (d.page) defaultMap[d.page] = d.category;
+        if (d.href) defaultMap[d.href] = d.category;
+      }
+    });
+    return (tools || []).map(function (item) {
+      if (!item || item.category) return item;
+      var cat = defaultMap[item.page] || defaultMap[item.href];
+      return cat ? Object.assign({}, item, { category: cat }) : item;
+    });
+  }
+
   function renderNavLinkList(container, links, role) {
     if (!container) return;
     var visible = (links || []).filter(function (item) {
@@ -498,14 +523,58 @@
     });
     if (!visible.length) return;
     container.innerHTML = "";
+    container.classList.remove("oe-pro-nav__menu--grouped");
     visible.forEach(function (item) {
-      var a = document.createElement("a");
-      a.href = item.href || "#";
-      a.textContent = item.label;
-      if (item.page) a.setAttribute("data-nav-page", item.page);
-      if (item.pricingOnly) a.setAttribute("data-pricing-only", "");
-      if (role) a.setAttribute("role", role);
-      container.appendChild(a);
+      container.appendChild(createNavLink(item, role));
+    });
+  }
+
+  function renderNavToolMenu(container, links, role) {
+    if (!container) return;
+    var visible = (links || []).filter(function (item) {
+      return item && item.label && !item.hidden;
+    });
+    if (!visible.length) return;
+
+    var hasCategories = visible.some(function (item) { return item.category; });
+    if (!hasCategories) {
+      renderNavLinkList(container, visible, role);
+      return;
+    }
+
+    container.innerHTML = "";
+    container.classList.add("oe-pro-nav__menu--grouped");
+
+    var groups = [];
+    var groupMap = {};
+    visible.forEach(function (item) {
+      var cat = item.category || "";
+      if (!groupMap[cat]) {
+        groupMap[cat] = { label: cat, items: [] };
+        groups.push(groupMap[cat]);
+      }
+      groupMap[cat].items.push(item);
+    });
+
+    groups.forEach(function (group, idx) {
+      if (group.label) {
+        var label = document.createElement("div");
+        label.className = "oe-pro-nav__group-label";
+        label.setAttribute("role", "presentation");
+        label.textContent = group.label;
+        container.appendChild(label);
+      } else if (idx > 0) {
+        var sep = document.createElement("div");
+        sep.className = "oe-pro-nav__group-sep";
+        sep.setAttribute("role", "separator");
+        container.appendChild(sep);
+      }
+      var wrap = document.createElement("div");
+      wrap.className = "oe-pro-nav__group";
+      group.items.forEach(function (item) {
+        wrap.appendChild(createNavLink(item, role));
+      });
+      container.appendChild(wrap);
     });
   }
 
@@ -553,7 +622,7 @@
     var toolsMenu = document.querySelector('[data-nav-slot="tools"]');
     var audienceMenu = document.querySelector('[data-nav-slot="audience"]');
     var topLinks = document.querySelector('[data-nav-slot="top-links"]');
-    renderNavLinkList(toolsMenu, cfg.tools, "menuitem");
+    renderNavToolMenu(toolsMenu, enrichToolsWithCategories(cfg.tools, fallbackDefaults && fallbackDefaults.tools), "menuitem");
     renderNavLinkList(audienceMenu, cfg.audience, "menuitem");
     renderNavLinkList(topLinks, cfg.topLinks);
 
