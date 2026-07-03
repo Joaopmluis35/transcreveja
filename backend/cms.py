@@ -797,6 +797,40 @@ def _nav_base_lang(lang: str) -> str:
     return "pt" if lang == "pt" else "en"
 
 
+def _enrich_tools(tools: list[dict[str, Any]], base_tools: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Garante categorias e ferramentas novas mesmo com nav_config antigo no CMS."""
+    stored_by_page: dict[str, dict[str, Any]] = {}
+    for item in tools or []:
+        page = item.get("page")
+        if page:
+            stored_by_page[str(page)] = item
+    merged: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for base in base_tools or []:
+        page = base.get("page")
+        stored = stored_by_page.get(str(page)) if page else None
+        if stored and stored.get("hidden"):
+            continue
+        if stored:
+            item = dict(base)
+            item.update({k: v for k, v in stored.items() if v is not None and v != ""})
+            if not item.get("category"):
+                item["category"] = base.get("category", "")
+            merged.append(item)
+        else:
+            merged.append(dict(base))
+        if page:
+            seen.add(str(page))
+    for item in tools or []:
+        if not item or not item.get("label") or item.get("hidden"):
+            continue
+        page = item.get("page")
+        if page and str(page) in seen:
+            continue
+        merged.append(dict(item))
+    return merged
+
+
 def merge_nav_config(data: dict[str, Any], lang: str) -> dict[str, Any]:
     """Preenche secções vazias com os defaults (evita menu em branco)."""
     base = default_nav_config(_nav_base_lang(lang))
@@ -807,6 +841,8 @@ def merge_nav_config(data: dict[str, Any], lang: str) -> dict[str, Any]:
     for key in ("tools", "audience", "topLinks", "footerColumns"):
         if not out.get(key):
             out[key] = list(base.get(key) or [])
+    if out.get("tools"):
+        out["tools"] = _enrich_tools(out.get("tools") or [], base.get("tools") or [])
     return out
 
 

@@ -240,7 +240,7 @@
     });
   }
 
-  var LAYOUT_V = "6";
+  var LAYOUT_V = "7";
   var siteContentCache = null;
 
   function withLayoutVersion(url) {
@@ -501,6 +501,65 @@
     return a;
   }
 
+  function builtinToolsForLocale(locale) {
+    if (locale === "en") {
+      return [
+        { label: "Summarize PDF / Word", href: "resumo.html", page: "resumo", category: "Summarize & analyze" },
+        { label: "URL Summary", href: "url-resumo.html", page: "url-resumo", category: "Summarize & analyze" },
+        { label: "Chapters & timestamps", href: "capitulos.html", page: "capitulos", category: "Summarize & analyze" },
+        { label: "AI Questions", href: "perguntas.html", page: "perguntas", category: "Study & teaching" },
+        { label: "Lesson Ready", href: "aula-pronta.html", page: "aula-pronta", category: "Study & teaching" },
+        { label: "File Converter", href: "conversor.html", page: "conversor", category: "Convert & edit" },
+        { label: "Image Converter", href: "conversor-imagens.html", page: "conversor-imagens", category: "Convert & edit" },
+        { label: "Text proofreader", href: "corretor.html", page: "corretor", category: "Convert & edit" },
+      ];
+    }
+    return [
+      { label: "Resumo PDF / Word", href: "resumo.html", page: "resumo", category: "Resumir e analisar" },
+      { label: "Resumo por URL", href: "url-resumo.html", page: "url-resumo", category: "Resumir e analisar" },
+      { label: "Capítulos & timestamps", href: "capitulos.html", page: "capitulos", category: "Resumir e analisar" },
+      { label: "Perguntas com IA", href: "perguntas.html", page: "perguntas", category: "Estudo e ensino" },
+      { label: "Aula Pronta", href: "aula-pronta.html", page: "aula-pronta", category: "Estudo e ensino" },
+      { label: "Conversor de ficheiros", href: "conversor.html", page: "conversor", category: "Converter e corrigir" },
+      { label: "Conversor de imagens", href: "conversor-imagens.html", page: "conversor-imagens", category: "Converter e corrigir" },
+      { label: "Corretor de texto", href: "corretor.html", page: "corretor", category: "Converter e corrigir" },
+    ];
+  }
+
+  function mergeToolsConfig(stored, locale) {
+    var builtin = builtinToolsForLocale(locale === "pt" ? "pt" : "en");
+    var storedMap = {};
+    (stored || []).forEach(function (item) {
+      if (item && item.page) storedMap[item.page] = item;
+    });
+    var result = [];
+    var seen = {};
+    builtin.forEach(function (base) {
+      var custom = storedMap[base.page];
+      if (custom && custom.hidden) return;
+      if (custom) {
+        result.push(
+          Object.assign({}, base, custom, {
+            category: custom.category || base.category,
+          })
+        );
+      } else {
+        result.push(Object.assign({}, base));
+      }
+      if (base.page) seen[base.page] = true;
+    });
+    (stored || []).forEach(function (item) {
+      if (!item || !item.label || item.hidden) return;
+      if (item.page && seen[item.page]) return;
+      result.push(
+        Object.assign({}, item, {
+          category: item.category || "",
+        })
+      );
+    });
+    return result;
+  }
+
   function enrichToolsWithCategories(tools, defaults) {
     var defaultMap = {};
     (defaults || []).forEach(function (d) {
@@ -516,7 +575,7 @@
     });
   }
 
-  function renderNavLinkList(container, links, role) {
+  function renderNavLinkList(container, links, role, linkClass) {
     if (!container) return;
     var visible = (links || []).filter(function (item) {
       return item && item.label && !item.hidden;
@@ -525,7 +584,9 @@
     container.innerHTML = "";
     container.classList.remove("oe-pro-nav__menu--grouped");
     visible.forEach(function (item) {
-      container.appendChild(createNavLink(item, role));
+      var a = createNavLink(item, role);
+      if (linkClass) a.className = linkClass;
+      container.appendChild(a);
     });
   }
 
@@ -622,9 +683,14 @@
     var toolsMenu = document.querySelector('[data-nav-slot="tools"]');
     var audienceMenu = document.querySelector('[data-nav-slot="audience"]');
     var topLinks = document.querySelector('[data-nav-slot="top-links"]');
-    renderNavToolMenu(toolsMenu, enrichToolsWithCategories(cfg.tools, fallbackDefaults && fallbackDefaults.tools), "menuitem");
+    var toolsLocale = locale === "pt" ? "pt" : "en";
+    var mergedTools = mergeToolsConfig(
+      enrichToolsWithCategories(cfg.tools, fallbackDefaults && fallbackDefaults.tools),
+      toolsLocale
+    );
+    renderNavToolMenu(toolsMenu, mergedTools, "menuitem");
     renderNavLinkList(audienceMenu, cfg.audience, "menuitem");
-    renderNavLinkList(topLinks, cfg.topLinks);
+    renderNavLinkList(topLinks, cfg.topLinks, null, "oe-pro-nav__link");
 
     var dropdowns = document.querySelectorAll(".oe-pro-nav__dropdown");
     if (dropdowns[0] && cfg.menuToolsLabel) {
