@@ -1,18 +1,29 @@
 /**
- * Conversor de imagens — PNG, JPEG, WebP no browser.
+ * Conversor de imagens — múltiplos formatos no browser.
  */
 (function (global) {
   "use strict";
 
   var config = { lang: "pt" };
   var files = [];
+  var avifSupported = null;
+  var gifencPromise = null;
+
+  var OUTPUT_FORMATS = [
+    { id: "image/png", ext: "png", labelKey: "fmtPng", quality: false },
+    { id: "image/jpeg", ext: "jpg", labelKey: "fmtJpeg", quality: true, fillWhite: true },
+    { id: "image/webp", ext: "webp", labelKey: "fmtWebp", quality: true },
+    { id: "image/avif", ext: "avif", labelKey: "fmtAvif", quality: true, requiresAvif: true },
+    { id: "image/bmp", ext: "bmp", labelKey: "fmtBmp", quality: false, encoder: "bmp" },
+    { id: "image/gif", ext: "gif", labelKey: "fmtGif", quality: false, encoder: "gif" },
+  ];
 
   var STRINGS = {
     pt: {
       dropTitle: "Arrasta imagens aqui",
-      dropHint: "ou clica para escolher — JPG, PNG, WebP, GIF, BMP, SVG",
+      dropHint: "ou clica para escolher — JPG, PNG, WebP, GIF, BMP, SVG…",
       formatLabel: "Converter para",
-      qualityLabel: "Qualidade (JPEG / WebP)",
+      qualityLabel: "Qualidade (JPEG / WebP / AVIF)",
       btnConvert: "🖼️ Converter e descarregar",
       btnClear: "Limpar",
       needFile: "Escolhe pelo menos uma imagem.",
@@ -24,15 +35,18 @@
       preview: "Pré-visualização",
       selected: "Selecionado:",
       batch: "Ficheiros na fila:",
-      png: "PNG (.png)",
-      jpeg: "JPEG (.jpg)",
-      webp: "WebP (.webp)",
+      fmtPng: "PNG (.png)",
+      fmtJpeg: "JPEG (.jpg)",
+      fmtWebp: "WebP (.webp)",
+      fmtAvif: "AVIF (.avif)",
+      fmtBmp: "BMP (.bmp)",
+      fmtGif: "GIF (.gif)",
     },
     en: {
       dropTitle: "Drop images here",
-      dropHint: "or click to browse — JPG, PNG, WebP, GIF, BMP, SVG",
+      dropHint: "or click to browse — JPG, PNG, WebP, GIF, BMP, SVG…",
       formatLabel: "Convert to",
-      qualityLabel: "Quality (JPEG / WebP)",
+      qualityLabel: "Quality (JPEG / WebP / AVIF)",
       btnConvert: "🖼️ Convert and download",
       btnClear: "Clear",
       needFile: "Choose at least one image.",
@@ -44,9 +58,12 @@
       preview: "Preview",
       selected: "Selected:",
       batch: "Queued files:",
-      png: "PNG (.png)",
-      jpeg: "JPEG (.jpg)",
-      webp: "WebP (.webp)",
+      fmtPng: "PNG (.png)",
+      fmtJpeg: "JPEG (.jpg)",
+      fmtWebp: "WebP (.webp)",
+      fmtAvif: "AVIF (.avif)",
+      fmtBmp: "BMP (.bmp)",
+      fmtGif: "GIF (.gif)",
     },
   };
 
@@ -55,10 +72,54 @@
     return loc[key] || STRINGS.pt[key] || key;
   }
 
-  function extForFormat(fmt) {
-    if (fmt === "image/jpeg") return "jpg";
-    if (fmt === "image/webp") return "webp";
-    return "png";
+  function getFormatById(id) {
+    for (var i = 0; i < OUTPUT_FORMATS.length; i++) {
+      if (OUTPUT_FORMATS[i].id === id) return OUTPUT_FORMATS[i];
+    }
+    return OUTPUT_FORMATS[0];
+  }
+
+  function probeAvif() {
+    if (avifSupported !== null) return Promise.resolve(avifSupported);
+    return new Promise(function (resolve) {
+      if (!global.document || !document.createElement("canvas").toBlob) {
+        avifSupported = false;
+        resolve(false);
+        return;
+      }
+      var canvas = document.createElement("canvas");
+      canvas.width = canvas.height = 1;
+      canvas.toBlob(function (blob) {
+        avifSupported = !!blob;
+        resolve(avifSupported);
+      }, "image/avif", 0.5);
+    });
+  }
+
+  function populateFormatSelect() {
+    var sel = document.getElementById("cimgFormat");
+    if (!sel) return;
+    var current = sel.value;
+    sel.innerHTML = "";
+    OUTPUT_FORMATS.forEach(function (fmt) {
+      if (fmt.requiresAvif && avifSupported === false) return;
+      var opt = document.createElement("option");
+      opt.value = fmt.id;
+      opt.textContent = t(fmt.labelKey);
+      sel.appendChild(opt);
+    });
+    if (current && sel.querySelector('option[value="' + current + '"]')) {
+      sel.value = current;
+    }
+    updateQualityVisibility();
+  }
+
+  function updateQualityVisibility() {
+    var sel = document.getElementById("cimgFormat");
+    var row = document.getElementById("cimgQualityRow");
+    if (!sel || !row) return;
+    var fmt = getFormatById(sel.value);
+    row.hidden = !fmt.quality;
   }
 
   function setStatus(msg, kind) {
@@ -149,6 +210,19 @@
     });
   }
 
+  function drawToCanvas(img, fillWhite) {
+    var canvas = document.createElement("canvas");
+    canvas.width = img.naturalWidth || img.width;
+    canvas.height = img.naturalHeight || img.height;
+    var ctx = canvas.getContext("2d");
+    if (fillWhite) {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    ctx.drawImage(img, 0, 0);
+    return canvas;
+  }
+
   function canvasToBlob(canvas, mime, quality) {
     return new Promise(function (resolve, reject) {
       if (!canvas.toBlob) {
@@ -166,6 +240,64 @@
     });
   }
 
+  function encodeBmp(canvas) {
+    var w = canvas.width;
+    var h = canvas.height;
+    var data = canvas.getContext("2d").getImageData(0, 0, w, h).data;
+    var rowSize = Math.ceil((w * 3) / 4) * 4;
+    var pixelBytes = rowSize * h;
+    var buf = new ArrayBuffer(54 + pixelBytes);
+    var view = new DataView(buf);
+    view.setUint8(0, 0x42);
+    view.setUint8(1, 0x4d);
+    view.setUint32(2, 54 + pixelBytes, true);
+    view.setUint32(6, 0, true);
+    view.setUint32(10, 54, true);
+    view.setUint32(14, 40, true);
+    view.setInt32(18, w, true);
+    view.setInt32(22, -h, true);
+    view.setUint16(26, 1, true);
+    view.setUint16(28, 24, true);
+    view.setUint32(30, 0, true);
+    view.setUint32(34, pixelBytes, true);
+    var offset = 54;
+    for (var y = 0; y < h; y++) {
+      for (var x = 0; x < w; x++) {
+        var i = (y * w + x) * 4;
+        view.setUint8(offset++, data[i + 2]);
+        view.setUint8(offset++, data[i + 1]);
+        view.setUint8(offset++, data[i]);
+      }
+      var pad = rowSize - w * 3;
+      for (var p = 0; p < pad; p++) view.setUint8(offset++, 0);
+    }
+    return new Blob([buf], { type: "image/bmp" });
+  }
+
+  function loadGifenc() {
+    if (!gifencPromise) {
+      gifencPromise = import("https://cdn.jsdelivr.net/npm/gifenc@1.0.3/+esm");
+    }
+    return gifencPromise;
+  }
+
+  async function encodeGif(canvas) {
+    var mod = await loadGifenc();
+    var GIFEncoder = mod.GIFEncoder;
+    var quantize = mod.quantize;
+    var applyPalette = mod.applyPalette;
+    var ctx = canvas.getContext("2d");
+    var w = canvas.width;
+    var h = canvas.height;
+    var imageData = ctx.getImageData(0, 0, w, h);
+    var palette = quantize(imageData.data, 256);
+    var index = applyPalette(imageData.data, palette);
+    var gif = GIFEncoder();
+    gif.writeFrame(index, w, h, { palette: palette, delay: 0 });
+    gif.finish();
+    return new Blob([gif.bytes()], { type: "image/gif" });
+  }
+
   function downloadBlob(blob, filename) {
     var url = URL.createObjectURL(blob);
     var a = document.createElement("a");
@@ -177,24 +309,25 @@
     }, 500);
   }
 
-  function outputName(originalName, mime) {
+  function outputName(originalName, ext) {
     var base = (originalName || "imagem").replace(/\.[^.]+$/, "");
-    return base + "-ouviescrevi." + extForFormat(mime);
+    return base + "-ouviescrevi." + ext;
   }
 
-  async function convertOne(file, mime, quality) {
+  async function convertOne(file, fmt, quality) {
     var img = await loadImageFromFile(file);
-    var canvas = document.createElement("canvas");
-    canvas.width = img.naturalWidth || img.width;
-    canvas.height = img.naturalHeight || img.height;
-    var ctx = canvas.getContext("2d");
-    if (mime === "image/jpeg") {
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    var canvas = drawToCanvas(img, !!fmt.fillWhite);
+    var blob;
+
+    if (fmt.encoder === "bmp") {
+      blob = encodeBmp(canvas);
+    } else if (fmt.encoder === "gif") {
+      blob = await encodeGif(canvas);
+    } else {
+      blob = await canvasToBlob(canvas, fmt.id, quality);
     }
-    ctx.drawImage(img, 0, 0);
-    var blob = await canvasToBlob(canvas, mime, quality);
-    downloadBlob(blob, outputName(file.name, mime));
+
+    downloadBlob(blob, outputName(file.name, fmt.ext));
   }
 
   async function convertAll() {
@@ -202,7 +335,8 @@
       setStatus(t("needFile"), "err");
       return;
     }
-    var fmt = (document.getElementById("cimgFormat") || {}).value || "image/png";
+    var fmtId = (document.getElementById("cimgFormat") || {}).value || "image/png";
+    var fmt = getFormatById(fmtId);
     var q = parseInt((document.getElementById("cimgQuality") || {}).value, 10) || 90;
     var quality = Math.max(0.1, Math.min(1, q / 100));
     var btn = document.getElementById("btnCimgConvert");
@@ -253,6 +387,12 @@
     zone.addEventListener("click", function () {
       input.click();
     });
+    zone.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        input.click();
+      }
+    });
     zone.addEventListener("dragover", function (e) {
       e.preventDefault();
       zone.classList.add("is-dragover");
@@ -282,12 +422,7 @@
       var el = document.getElementById(id);
       if (el) el.textContent = t(map[id]);
     });
-    var fmt = document.getElementById("cimgFormat");
-    if (fmt) {
-      fmt.options[0].textContent = t("png");
-      fmt.options[1].textContent = t("jpeg");
-      fmt.options[2].textContent = t("webp");
-    }
+    populateFormatSelect();
     var btn = document.getElementById("btnCimgConvert");
     if (btn) btn.textContent = t("btnConvert");
     var clr = document.getElementById("btnCimgClear");
@@ -296,8 +431,13 @@
 
   function init(opts) {
     config = Object.assign({}, config, opts || {});
-    applyStrings();
     bindDropZone();
+
+    var fmtSel = document.getElementById("cimgFormat");
+    if (fmtSel) {
+      fmtSel.addEventListener("change", updateQualityVisibility);
+    }
+
     var btn = document.getElementById("btnCimgConvert");
     if (btn) {
       btn.disabled = true;
@@ -313,6 +453,10 @@
         out.textContent = q.value;
       });
     }
+
+    probeAvif().then(function () {
+      applyStrings();
+    });
   }
 
   global.ConversorImagensUI = { init: init };

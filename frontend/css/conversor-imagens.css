@@ -107,6 +107,12 @@ body.oe-page--conversor-imagens .oe-cimg-hero .oe-lead {
   background: #fff;
 }
 
+.oe-cimg-format-hint {
+  margin: 6px 0 0;
+  font-size: 0.78rem;
+  color: var(--pro-text-secondary, #94a3b8);
+}
+
 .oe-cimg-quality {
   display: flex;
   align-items: center;
