@@ -109,6 +109,18 @@ body.oe-page--flashcards .oe-fc-hero .oe-lead {
   margin-bottom: 8px;
 }
 
+.oe-fc-result__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.oe-fc-result__btn--secondary {
+  background: #fff;
+  color: #6d28d9;
+  border-color: #c4b5fd;
+}
+
 .oe-fc-result__title {
   margin: 0;
   font-size: 1.2rem;

@@ -33,6 +33,8 @@
       copySummary: "Copiar resumo",
       copyQuestions: "Copiar perguntas",
       copyAllCards: "Copiar cartões",
+      exportAnki: "Exportar Anki",
+      exportedAnki: "Ficheiro Anki descarregado!",
       copied: "Copiado!",
       copyFail: "Não foi possível copiar.",
       flipHint: "Clica no cartão para ver a resposta",
@@ -66,6 +68,8 @@
       copySummary: "Copy summary",
       copyQuestions: "Copy questions",
       copyAllCards: "Copy cards",
+      exportAnki: "Export Anki",
+      exportedAnki: "Anki file downloaded!",
       copied: "Copied!",
       copyFail: "Could not copy.",
       flipHint: "Click a card to reveal the answer",
@@ -99,6 +103,8 @@
       copySummary: "Copiar resumen",
       copyQuestions: "Copiar preguntas",
       copyAllCards: "Copiar tarjetas",
+      exportAnki: "Exportar Anki",
+      exportedAnki: "¡Archivo Anki descargado!",
       copied: "¡Copiado!",
       copyFail: "No se pudo copiar.",
       flipHint: "Haz clic para ver la respuesta",
@@ -132,6 +138,8 @@
       copySummary: "Copier le résumé",
       copyQuestions: "Copier les questions",
       copyAllCards: "Copier les cartes",
+      exportAnki: "Exporter Anki",
+      exportedAnki: "Fichier Anki téléchargé !",
       copied: "Copié !",
       copyFail: "Impossible de copier.",
       flipHint: "Cliquez pour voir la réponse",
@@ -165,6 +173,8 @@
       copySummary: "Zusammenfassung kopieren",
       copyQuestions: "Fragen kopieren",
       copyAllCards: "Karten kopieren",
+      exportAnki: "Anki exportieren",
+      exportedAnki: "Anki-Datei heruntergeladen!",
       copied: "Kopiert!",
       copyFail: "Kopieren fehlgeschlagen.",
       flipHint: "Karte anklicken für die Antwort",
@@ -230,6 +240,39 @@
     return el ? el.value : config.lang;
   }
 
+  function cardsToAnki(data) {
+    var lines = ["#separator:tab", "#html:true", "#columns:Front\tBack"];
+    (data.cards || []).forEach(function (c) {
+      var front = String(c.front || "")
+        .replace(/\t/g, " ")
+        .replace(/\r?\n/g, "<br>");
+      var back = String(c.back || "")
+        .replace(/\t/g, " ")
+        .replace(/\r?\n/g, "<br>");
+      lines.push(front + "\t" + back);
+    });
+    return lines.join("\n");
+  }
+
+  function downloadAnki(data) {
+    if (!data || !data.cards || !data.cards.length) return;
+    var base = (data.title || "flashcards-ouviescrevi")
+      .replace(/[^\w\s-áàâãéêíóôõúçÁÀÂÃÉÊÍÓÔÕÚÇ]/g, "")
+      .trim()
+      .replace(/\s+/g, "-")
+      .toLowerCase();
+    var blob = new Blob([cardsToAnki(data)], { type: "text/plain;charset=utf-8" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = (base || "flashcards-ouviescrevi") + ".txt";
+    a.click();
+    setTimeout(function () {
+      URL.revokeObjectURL(url);
+    }, 500);
+    if (global.OuviescreviUI) global.OuviescreviUI.toast(t("exportedAnki"), "success");
+  }
+
   function renderFlashcards(container, data) {
     var cards = (data.cards || [])
       .map(function (c) {
@@ -260,6 +303,9 @@
       "</h2>" +
       '<button type="button" class="oe-fc-result__btn" id="btnAcCopyCards">' +
       escapeHtml(t("copyAllCards")) +
+      "</button>" +
+      '<button type="button" class="oe-fc-result__btn oe-fc-result__btn--secondary" id="btnAcAnki">' +
+      escapeHtml(t("exportAnki")) +
       "</button></header>" +
       '<p class="oe-fc-hint">' +
       escapeHtml(t("flipHint")) +
@@ -279,6 +325,10 @@
     var copyBtn = document.getElementById("btnAcCopyCards");
     if (copyBtn) copyBtn.addEventListener("click", function () {
       copyText(cardsToPlain(data));
+    });
+    var ankiBtn = document.getElementById("btnAcAnki");
+    if (ankiBtn) ankiBtn.addEventListener("click", function () {
+      downloadAnki(data);
     });
     var restart = document.getElementById("btnAcRestart");
     if (restart) {

@@ -44,6 +44,169 @@
     return null;
   }
 
+  var TOOL_SCHEMA_SLUGS = {
+    flashcards: "EducationalApplication",
+    "aula-completa": "EducationalApplication",
+    "aula-pronta": "EducationalApplication",
+    perguntas: "EducationalApplication",
+    capitulos: "MultimediaApplication",
+    "podcast-youtube": "MultimediaApplication",
+    "descricao-youtube": "MultimediaApplication",
+    resumo: "BusinessApplication",
+    "conversor-imagens": "UtilitiesApplication",
+  };
+
+  var TOOL_HOWTO = {
+    flashcards: {
+      pt: [
+        { name: "Colar texto", text: "Cola a transcrição da aula ou apontamentos na caixa de texto." },
+        { name: "Escolher idioma", text: "Seleciona o idioma dos cartões e o número desejado." },
+        { name: "Gerar e rever", text: "Clica em Gerar flashcards e estuda clicando em cada cartão para ver a resposta." },
+      ],
+      en: [
+        { name: "Paste text", text: "Paste your lesson transcript or notes into the text box." },
+        { name: "Choose options", text: "Select card language and how many cards you want." },
+        { name: "Generate and review", text: "Click Generate flashcards and flip each card to study." },
+      ],
+    },
+    "aula-completa": {
+      pt: [
+        { name: "Colar transcrição", text: "Cola o texto da aula no primeiro passo do assistente." },
+        { name: "Gerar resumo", text: "A IA cria um resumo claro do conteúdo." },
+        { name: "Perguntas e flashcards", text: "No passo seguinte gera perguntas de revisão e cartões de estudo." },
+      ],
+      en: [
+        { name: "Paste transcript", text: "Paste lesson text in step one of the assistant." },
+        { name: "Generate summary", text: "AI creates a clear summary of the content." },
+        { name: "Questions and flashcards", text: "Continue to revision questions and study flashcards." },
+      ],
+    },
+    "podcast-youtube": {
+      pt: [
+        { name: "Colar transcrição", text: "Cola a transcrição com timestamps [MM:SS] do episódio." },
+        { name: "Gerar capítulos", text: "A IA divide o conteúdo em capítulos com horários." },
+        { name: "Descrição YouTube", text: "Obtém título, descrição e tags prontos para colar no YouTube." },
+      ],
+      en: [
+        { name: "Paste transcript", text: "Paste timestamped [MM:SS] episode transcript." },
+        { name: "Generate chapters", text: "AI splits content into chapters with timestamps." },
+        { name: "YouTube description", text: "Get title, description and tags ready for YouTube." },
+      ],
+    },
+    "descricao-youtube": {
+      pt: [
+        { name: "Colar conteúdo", text: "Cola transcrição ou resumo do vídeo." },
+        { name: "Capítulos opcionais", text: "Adiciona capítulos gerados na ferramenta Capítulos, se tiveres." },
+        { name: "Copiar resultado", text: "Copia título, descrição e tags para o YouTube." },
+      ],
+      en: [
+        { name: "Paste content", text: "Paste video transcript or summary." },
+        { name: "Optional chapters", text: "Add chapters from the Chapters tool if you have them." },
+        { name: "Copy output", text: "Copy title, description and tags to YouTube." },
+      ],
+    },
+    capitulos: {
+      pt: [
+        { name: "Colar transcrição", text: "Cola texto com timestamps do Ouviescrevi." },
+        { name: "Definir idioma", text: "Escolhe idioma dos títulos e número máximo de capítulos." },
+        { name: "Exportar", text: "Copia a lista formatada para a descrição do YouTube." },
+      ],
+      en: [
+        { name: "Paste transcript", text: "Paste timestamped text from Ouviescrevi." },
+        { name: "Set options", text: "Choose chapter language and maximum count." },
+        { name: "Export", text: "Copy formatted list for YouTube description." },
+      ],
+    },
+    perguntas: {
+      pt: [
+        { name: "Colar texto", text: "Cola apontamentos ou transcrição da aula." },
+        { name: "Configurar", text: "Escolhe idioma e número de perguntas." },
+        { name: "Estudar", text: "Responde às perguntas de escolha múltipla com explicações." },
+      ],
+      en: [
+        { name: "Paste text", text: "Paste lesson notes or transcript." },
+        { name: "Configure", text: "Choose language and number of questions." },
+        { name: "Study", text: "Answer multiple-choice questions with explanations." },
+      ],
+    },
+    "aula-pronta": {
+      pt: [
+        { name: "Colar texto", text: "Cola transcrição ou apontamentos da aula." },
+        { name: "Gerar pacote", text: "A IA cria resumo, glossário, ideias-chave e perguntas." },
+        { name: "Exportar PDF", text: "Descarrega PDF de estudo ou teste para os alunos." },
+      ],
+      en: [
+        { name: "Paste text", text: "Paste lesson transcript or notes." },
+        { name: "Generate pack", text: "AI creates summary, glossary, key points and questions." },
+        { name: "Export PDF", text: "Download study or test PDF for students." },
+      ],
+    },
+    resumo: {
+      pt: [
+        { name: "Introduzir texto", text: "Cola texto ou carrega PDF/Word." },
+        { name: "Escolher estilo", text: "Seleciona tipo de resumo desejado." },
+        { name: "Copiar resumo", text: "Usa o resumo gerado na aula ou partilha com alunos." },
+      ],
+      en: [
+        { name: "Add text", text: "Paste text or upload PDF/Word." },
+        { name: "Choose style", text: "Select the summary style you need." },
+        { name: "Copy summary", text: "Use the generated summary in class or share it." },
+      ],
+    },
+    "conversor-imagens": {
+      pt: [
+        { name: "Carregar imagens", text: "Arrasta ou escolhe uma ou mais imagens." },
+        { name: "Escolher modo", text: "Converter, comprimir, redimensionar ou unir em PDF." },
+        { name: "Descarregar", text: "O processamento é feito no browser — privado e grátis." },
+      ],
+      en: [
+        { name: "Upload images", text: "Drag and drop or select one or more images." },
+        { name: "Choose mode", text: "Convert, compress, resize or merge to PDF." },
+        { name: "Download", text: "Processing runs in your browser — private and free." },
+      ],
+    },
+  };
+
+  function howToStepsFor(slug, lang) {
+    var tool = TOOL_HOWTO[slug];
+    if (!tool) return null;
+    return tool[lang] || tool.en || tool.pt;
+  }
+
+  function injectToolSchema(slug, title, desc, canonical, lang) {
+    if (!TOOL_SCHEMA_SLUGS[slug]) return;
+    var steps = howToStepsFor(slug, lang);
+    injectJsonLd({
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      name: title,
+      description: desc,
+      url: canonical,
+      applicationCategory: TOOL_SCHEMA_SLUGS[slug],
+      operatingSystem: "Web",
+      browserRequirements: "Requires JavaScript",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
+      provider: { "@id": ORG_ID },
+    });
+    if (steps && steps.length) {
+      injectJsonLd({
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        name: title,
+        description: desc,
+        inLanguage: lang,
+        step: steps.map(function (s, i) {
+          return {
+            "@type": "HowToStep",
+            position: i + 1,
+            name: s.name,
+            text: s.text,
+          };
+        }),
+      });
+    }
+  }
+
   function buildHreflangMap() {
     var map = {};
     Object.keys(HREFLANG_SLUGS).forEach(function (slug) {
@@ -760,6 +923,9 @@
       inLanguage: IN_LANG[lang] || "pt-PT",
       isPartOf: { "@id": SITE + "/#website" },
     });
+
+    var pageSlug = slugFromPath(path);
+    if (pageSlug) injectToolSchema(pageSlug, title, desc, canonical, lang);
 
     if (cfg.type === "home") {
       injectJsonLd({

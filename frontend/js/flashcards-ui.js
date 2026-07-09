@@ -15,6 +15,8 @@
       error: "Erro ao gerar flashcards.",
       truncated: "O texto foi truncado — os cartões baseiam-se no início do conteúdo.",
       copyAll: "Copiar tudo",
+      exportAnki: "Exportar Anki",
+      exportedAnki: "Ficheiro Anki descarregado!",
       copied: "Copiado!",
       copyFail: "Não foi possível copiar.",
       flipHint: "Clica no cartão para ver a resposta",
@@ -30,6 +32,8 @@
       error: "Error generating flashcards.",
       truncated: "Text was truncated — cards are based on the beginning.",
       copyAll: "Copy all",
+      exportAnki: "Export Anki",
+      exportedAnki: "Anki file downloaded!",
       copied: "Copied!",
       copyFail: "Could not copy.",
       flipHint: "Click a card to reveal the answer",
@@ -45,6 +49,8 @@
       error: "Error al generar flashcards.",
       truncated: "El texto fue truncado — las tarjetas se basan en el inicio.",
       copyAll: "Copiar todo",
+      exportAnki: "Exportar Anki",
+      exportedAnki: "¡Archivo Anki descargado!",
       copied: "¡Copiado!",
       copyFail: "No se pudo copiar.",
       flipHint: "Haz clic en la tarjeta para ver la respuesta",
@@ -60,6 +66,8 @@
       error: "Erreur lors de la génération.",
       truncated: "Texte tronqué — les cartes sont basées sur le début.",
       copyAll: "Tout copier",
+      exportAnki: "Exporter Anki",
+      exportedAnki: "Fichier Anki téléchargé !",
       copied: "Copié !",
       copyFail: "Impossible de copier.",
       flipHint: "Cliquez sur une carte pour voir la réponse",
@@ -75,6 +83,8 @@
       error: "Fehler beim Generieren.",
       truncated: "Text gekürzt — Karten basieren auf dem Anfang.",
       copyAll: "Alles kopieren",
+      exportAnki: "Anki exportieren",
+      exportedAnki: "Anki-Datei heruntergeladen!",
       copied: "Kopiert!",
       copyFail: "Kopieren fehlgeschlagen.",
       flipHint: "Karte anklicken, um die Antwort zu sehen",
@@ -105,6 +115,43 @@
       lines.push("");
     });
     return lines.join("\n").trim();
+  }
+
+  function cardsToAnki(data) {
+    var lines = ["#separator:tab", "#html:true", "#columns:Front\tBack"];
+    (data.cards || []).forEach(function (c) {
+      var front = String(c.front || "")
+        .replace(/\t/g, " ")
+        .replace(/\r?\n/g, "<br>");
+      var back = String(c.back || "")
+        .replace(/\t/g, " ")
+        .replace(/\r?\n/g, "<br>");
+      lines.push(front + "\t" + back);
+    });
+    return lines.join("\n");
+  }
+
+  function downloadTextFile(content, filename) {
+    var blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    setTimeout(function () {
+      URL.revokeObjectURL(url);
+    }, 500);
+  }
+
+  function exportAnki(data) {
+    if (!data || !data.cards || !data.cards.length) return;
+    var base = (data.title || "flashcards-ouviescrevi")
+      .replace(/[^\w\s-áàâãéêíóôõúçÁÀÂÃÉÊÍÓÔÕÚÇ]/g, "")
+      .trim()
+      .replace(/\s+/g, "-")
+      .toLowerCase();
+    downloadTextFile(cardsToAnki(data), (base || "flashcards-ouviescrevi") + ".txt");
+    if (global.OuviescreviUI) global.OuviescreviUI.toast(t("exportedAnki"), "success");
   }
 
   function copyText(text) {
@@ -156,9 +203,13 @@
       '<h2 class="oe-fc-result__title">' +
       escapeHtml(data.title || t("card")) +
       "</h2>" +
+      '<div class="oe-fc-result__actions">' +
       '<button type="button" class="oe-fc-result__btn" id="btnFcCopy">' +
       escapeHtml(t("copyAll")) +
-      "</button></header>" +
+      "</button>" +
+      '<button type="button" class="oe-fc-result__btn oe-fc-result__btn--secondary" id="btnFcAnki">' +
+      escapeHtml(t("exportAnki")) +
+      "</button></div></header>" +
       '<p class="oe-fc-hint">' +
       escapeHtml(t("flipHint")) +
       "</p>" +
@@ -176,6 +227,12 @@
     if (copyBtn) {
       copyBtn.addEventListener("click", function () {
         if (lastData) copyText(cardsToPlain(lastData));
+      });
+    }
+    var ankiBtn = document.getElementById("btnFcAnki");
+    if (ankiBtn) {
+      ankiBtn.addEventListener("click", function () {
+        if (lastData) exportAnki(lastData);
       });
     }
     container.scrollIntoView({ behavior: "smooth", block: "start" });
