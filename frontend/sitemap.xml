@@ -76,6 +76,67 @@
   <url><loc>https://www.ouviescrevi.pt/en/sugestoes.html</loc><lastmod>2026-06-22</lastmod><changefreq>yearly</changefreq><priority>0.4</priority></url>
   <url><loc>https://www.ouviescrevi.pt/en/privacy.html</loc><lastmod>2026-06-22</lastmod><changefreq>yearly</changefreq><priority>0.3</priority></url>
   <url><loc>https://www.ouviescrevi.pt/en/terms.html</loc><lastmod>2026-06-22</lastmod><changefreq>yearly</changefreq><priority>0.3</priority></url>
-  <url><loc>https://www.ouviescrevi.pt/en/cookies.html</loc><lastmod>2026-06-22</lastmod><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/en/cookies.html</loc><lastmod>2026-07-09</lastmod><changefreq>yearly</changefreq><priority>0.3</priority></url>
+
+  <url><loc>https://www.ouviescrevi.pt/flashcards.html</loc><lastmod>2026-07-09</lastmod><changefreq>monthly</changefreq><priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/flashcards.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/flashcards.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/flashcards.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/flashcards.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/flashcards.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/descricao-youtube.html</loc><lastmod>2026-07-09</lastmod><changefreq>monthly</changefreq><priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/descricao-youtube.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/descricao-youtube.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/descricao-youtube.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/descricao-youtube.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/descricao-youtube.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/podcast-youtube.html</loc><lastmod>2026-07-09</lastmod><changefreq>monthly</changefreq><priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/podcast-youtube.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/podcast-youtube.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/podcast-youtube.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/podcast-youtube.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/podcast-youtube.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/aula-completa.html</loc><lastmod>2026-07-09</lastmod><changefreq>monthly</changefreq><priority>0.85</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/aula-completa.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/aula-completa.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/aula-completa.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/aula-completa.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/aula-completa.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/capitulos.html</loc><lastmod>2026-07-09</lastmod><changefreq>monthly</changefreq><priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/capitulos.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/capitulos.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/capitulos.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/capitulos.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/capitulos.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/conversor-imagens.html</loc><lastmod>2026-07-09</lastmod><changefreq>monthly</changefreq><priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/conversor-imagens.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/conversor-imagens.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/en/flashcards.html</loc><lastmod>2026-07-09</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/en/descricao-youtube.html</loc><lastmod>2026-07-09</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/en/podcast-youtube.html</loc><lastmod>2026-07-09</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/en/aula-completa.html</loc><lastmod>2026-07-09</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/en/capitulos.html</loc><lastmod>2026-07-09</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/en/conversor-imagens.html</loc><lastmod>2026-07-09</lastmod><changefreq>monthly</changefreq><priority>0.75</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/es/flashcards.html</loc><lastmod>2026-07-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/es/descricao-youtube.html</loc><lastmod>2026-07-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/es/podcast-youtube.html</loc><lastmod>2026-07-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/es/aula-completa.html</loc><lastmod>2026-07-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/es/capitulos.html</loc><lastmod>2026-07-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/fr/flashcards.html</loc><lastmod>2026-07-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/fr/descricao-youtube.html</loc><lastmod>2026-07-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/fr/podcast-youtube.html</loc><lastmod>2026-07-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/fr/aula-completa.html</loc><lastmod>2026-07-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/fr/capitulos.html</loc><lastmod>2026-07-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/de/flashcards.html</loc><lastmod>2026-07-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/de/descricao-youtube.html</loc><lastmod>2026-07-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/de/podcast-youtube.html</loc><lastmod>2026-07-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/de/aula-completa.html</loc><lastmod>2026-07-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/de/capitulos.html</loc><lastmod>2026-07-09</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
 
 </urlset>

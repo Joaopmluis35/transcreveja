@@ -240,7 +240,7 @@
     });
   }
 
-  var LAYOUT_V = "10";
+  var LAYOUT_V = "11";
   var siteContentCache = null;
 
   function withLayoutVersion(url) {
@@ -518,6 +518,7 @@
         { label: "YouTube Description", href: "descricao-youtube.html", page: "descricao-youtube", category: "Summarize & analyze" },
         { label: "AI Questions", href: "perguntas.html", page: "perguntas", category: "Study & teaching" },
         { label: "Lesson Ready", href: "aula-pronta.html", page: "aula-pronta", category: "Study & teaching" },
+        { label: "Full lesson", href: "aula-completa.html", page: "aula-completa", category: "Study & teaching" },
         { label: "Flashcards", href: "flashcards.html", page: "flashcards", category: "Study & teaching" },
         { label: "File Converter", href: "conversor.html", page: "conversor", category: "Convert & edit" },
         { label: "Image Converter", href: "conversor-imagens.html", page: "conversor-imagens", category: "Convert & edit" },
@@ -529,8 +530,10 @@
         { label: "Resumen PDF / Word", href: "resumo.html", page: "resumo", category: "Resumir y analizar" },
         { label: "Resumen por URL", href: "url-resumo.html", page: "url-resumo", category: "Resumir y analizar" },
         { label: "Podcast y YouTube", href: "podcast-youtube.html", page: "podcast-youtube", category: "Resumir y analizar" },
+        { label: "Capítulos", href: "capitulos.html", page: "capitulos", category: "Resumir y analizar" },
         { label: "Descripción YouTube", href: "descricao-youtube.html", page: "descricao-youtube", category: "Resumir y analizar" },
         { label: "Preguntas con IA", href: "perguntas.html", page: "perguntas", category: "Estudio y enseñanza" },
+        { label: "Clase completa", href: "aula-completa.html", page: "aula-completa", category: "Estudio y enseñanza" },
         { label: "Flashcards", href: "flashcards.html", page: "flashcards", category: "Estudio y enseñanza" },
         { label: "Conversor de archivos", href: "conversor.html", page: "conversor", category: "Convertir y corregir" },
         { label: "Corrector de texto", href: "corretor.html", page: "corretor", category: "Convertir y corregir" },
@@ -541,8 +544,10 @@
         { label: "Résumé PDF / Word", href: "resumo.html", page: "resumo", category: "Résumer et analyser" },
         { label: "Résumé par URL", href: "url-resumo.html", page: "url-resumo", category: "Résumer et analyser" },
         { label: "Podcast & YouTube", href: "podcast-youtube.html", page: "podcast-youtube", category: "Résumer et analyser" },
+        { label: "Chapitres", href: "capitulos.html", page: "capitulos", category: "Résumer et analyser" },
         { label: "Description YouTube", href: "descricao-youtube.html", page: "descricao-youtube", category: "Résumer et analyser" },
         { label: "Questions IA", href: "perguntas.html", page: "perguntas", category: "Étude et enseignement" },
+        { label: "Cours complet", href: "aula-completa.html", page: "aula-completa", category: "Étude et enseignement" },
         { label: "Flashcards", href: "flashcards.html", page: "flashcards", category: "Étude et enseignement" },
         { label: "Convertisseur de fichiers", href: "conversor.html", page: "conversor", category: "Convertir et corriger" },
         { label: "Correcteur de texte", href: "corretor.html", page: "corretor", category: "Convertir et corriger" },
@@ -553,8 +558,10 @@
         { label: "PDF-/Word-Zusammenfassung", href: "resumo.html", page: "resumo", category: "Zusammenfassen & analysieren" },
         { label: "URL-Zusammenfassung", href: "url-resumo.html", page: "url-resumo", category: "Zusammenfassen & analysieren" },
         { label: "Podcast & YouTube", href: "podcast-youtube.html", page: "podcast-youtube", category: "Zusammenfassen & analysieren" },
+        { label: "Kapitel", href: "capitulos.html", page: "capitulos", category: "Zusammenfassen & analysieren" },
         { label: "YouTube-Beschreibung", href: "descricao-youtube.html", page: "descricao-youtube", category: "Zusammenfassen & analysieren" },
         { label: "KI-Fragen", href: "perguntas.html", page: "perguntas", category: "Lernen & Unterricht" },
+        { label: "Vollständige Lektion", href: "aula-completa.html", page: "aula-completa", category: "Lernen & Unterricht" },
         { label: "Karteikarten", href: "flashcards.html", page: "flashcards", category: "Lernen & Unterricht" },
         { label: "Dateikonverter", href: "conversor.html", page: "conversor", category: "Konvertieren & korrigieren" },
         { label: "Textkorrektur", href: "corretor.html", page: "corretor", category: "Konvertieren & korrigieren" },
@@ -568,6 +575,7 @@
       { label: "Descrição YouTube", href: "descricao-youtube.html", page: "descricao-youtube", category: "Resumir e analisar" },
       { label: "Perguntas com IA", href: "perguntas.html", page: "perguntas", category: "Estudo e ensino" },
       { label: "Aula Pronta", href: "aula-pronta.html", page: "aula-pronta", category: "Estudo e ensino" },
+      { label: "Aula completa", href: "aula-completa.html", page: "aula-completa", category: "Estudo e ensino" },
       { label: "Flashcards", href: "flashcards.html", page: "flashcards", category: "Estudo e ensino" },
       { label: "Conversor de ficheiros", href: "conversor.html", page: "conversor", category: "Converter e corrigir" },
       { label: "Conversor de imagens", href: "conversor-imagens.html", page: "conversor-imagens", category: "Converter e corrigir" },

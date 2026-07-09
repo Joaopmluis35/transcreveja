@@ -12,22 +12,47 @@
     </button>
 
     <div class="oe-pro-nav__panel" id="oeProNavPanel">
-      <nav class="oe-pro-nav" aria-label="Hauptmenü">
+      <nav class="oe-pro-nav" aria-label="Hauptnavigation">
         <div class="oe-pro-nav__dropdown">
           <button type="button" class="oe-pro-nav__trigger" aria-expanded="false" aria-haspopup="true">
             Werkzeuge
             <svg class="oe-pro-nav__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
           </button>
-          <div class="oe-pro-nav__menu" role="menu">
-            <a href="resumo.html" data-nav-page="resumo" role="menuitem">PDF / Word zusammenfassen</a>
-            <a href="url-resumo.html" data-nav-page="url-resumo" role="menuitem">URL-Zusammenfassung</a>
-            <a href="perguntas.html" data-nav-page="perguntas" role="menuitem">KI-Fragen</a>
-            <a href="conversor.html" data-nav-page="conversor" role="menuitem">Dateikonverter</a>
+          <div class="oe-pro-nav__menu oe-pro-nav__menu--grouped" data-nav-slot="tools" role="menu">
+            <div class="oe-pro-nav__mega-grid">
+              <div class="oe-pro-nav__mega-col">
+                <div class="oe-pro-nav__group-label" role="presentation">Zusammenfassen & analysieren</div>
+                <div class="oe-pro-nav__group">
+                  <a href="resumo.html" data-nav-page="resumo" role="menuitem">PDF-/Word-Zusammenfassung</a>
+                  <a href="url-resumo.html" data-nav-page="url-resumo" role="menuitem">URL-Zusammenfassung</a>
+                  <a href="capitulos.html" data-nav-page="capitulos" role="menuitem">Kapitel</a>
+                  <a href="podcast-youtube.html" data-nav-page="podcast-youtube" role="menuitem">Podcast & YouTube</a>
+                  <a href="descricao-youtube.html" data-nav-page="descricao-youtube" role="menuitem">YouTube-Beschreibung</a>
+                </div>
+              </div>
+              <div class="oe-pro-nav__mega-col">
+                <div class="oe-pro-nav__group-label" role="presentation">Lernen & Unterricht</div>
+                <div class="oe-pro-nav__group">
+                  <a href="perguntas.html" data-nav-page="perguntas" role="menuitem">KI-Fragen</a>
+                  <a href="aula-completa.html" data-nav-page="aula-completa" role="menuitem">Volle Lektion</a>
+                  <a href="flashcards.html" data-nav-page="flashcards" role="menuitem">Karteikarten</a>
+                </div>
+              </div>
+              <div class="oe-pro-nav__mega-col">
+                <div class="oe-pro-nav__group-label" role="presentation">Konvertieren & korrigieren</div>
+                <div class="oe-pro-nav__group">
+                  <a href="conversor.html" data-nav-page="conversor" role="menuitem">Dateikonverter</a>
+                  <a href="corretor.html" data-nav-page="corretor" role="menuitem">Textkorrektur</a>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
+        <div class="oe-pro-nav__toplinks" data-nav-slot="top-links">
         <a class="oe-pro-nav__link" href="ajuda.html" data-nav-page="ajuda">Hilfe</a>
         <a class="oe-pro-nav__link" href="sugestoes.html" data-nav-page="sugestoes">Vorschläge</a>
+        </div>
       </nav>
 
       <div class="oe-pro-header__actions">

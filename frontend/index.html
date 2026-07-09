@@ -149,6 +149,7 @@
               <div class="oe-output__actions btn-group">
                 <button id="btnGerarResumo" type="button"><span>🧠 Gerar Resumo</span></button>
                 <button type="button" onclick="abrirAulaPronta()"><span>📦 Aula Pronta</span></button>
+                <button type="button" onclick="abrirAulaCompleta()"><span>📚 Aula completa</span></button>
                 <button type="button" onclick="abrirCapitulos()"><span>⏱️ Capítulos</span></button>
                 <button type="button" onclick="abrirPodcastYoutube()"><span>🎙️ Podcast/YouTube</span></button>
                 <button type="button" onclick="abrirFlashcards()"><span>🃏 Flashcards</span></button>
@@ -2200,6 +2201,15 @@
     } finally{
       btn.innerHTML = original; btn.disabled = false;
     }
+  }
+
+  function abrirAulaCompleta() {
+    const text = transcriptionText.value.trim();
+    if (!text) return alert("⚠️ Transcrição vazia.");
+    try {
+      sessionStorage.setItem("oe_aula_completa_text", text);
+    } catch (e) {}
+    window.location.href = "aula-completa.html";
   }
 
   function abrirAulaPronta() {

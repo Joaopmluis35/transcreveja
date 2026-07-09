@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="From transcript to summary, questions and flashcards — guided AI workflow for teachers and students.">
+  <meta name="robots" content="index, follow">
+  <title>Full Lesson Assistant — Summary, Questions & Flashcards | Ouviescrevi</title>
+  <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
+  <link rel="stylesheet" href="../css/ouviescrevi.css">
+  <link rel="stylesheet" href="../css/flashcards.css?v=1">
+  <link rel="stylesheet" href="../css/podcast-youtube.css?v=1">
+  <script src="/js/ouviescrevi-seo.js" defer></script>
+  <script src="../js/ouviescrevi-ui.js" defer></script>
+</head>
+<body class="oe-page oe-pro oe-page--aula-completa">
+<a class="oe-skip" href="#conteudo">Skip to content</a>
+<div id="header"></div>
+
+<div class="oe-pw-layout" id="conteudo">
+  <header class="oe-pw-hero">
+    <h1 data-cms-key="en_aula_completa_title" data-cms-mode="text">📚 Full lesson assistant</h1>
+    <p class="oe-lead" data-cms-key="en_aula_completa_lead" data-cms-mode="text">From transcript to summary, revision questions and flashcards — four AI-powered steps.</p>
+  </header>
+
+  <ol class="oe-pw-steps" aria-label="Steps">
+    <li id="acStep1Label">1. Transcript</li>
+    <li id="acStep2Label">2. Summary</li>
+    <li id="acStep3Label">3. Questions</li>
+    <li id="acStep4Label">4. Flashcards</li>
+  </ol>
+
+  <section class="oe-pw-card" id="acStep1">
+    <h2 class="oe-pw-step-title" id="acStep1Title">Paste transcript</h2>
+    <p class="oe-pw-warn" id="acStep1Hint"></p>
+    <textarea id="texto"></textarea>
+    <div class="oe-pw-footer">
+      <div class="oe-pw-field">
+        <label for="acLang" id="acLangLabel">Language</label>
+        <select id="acLang">
+          <option value="pt">Português</option>
+          <option value="en" selected>English</option>
+          <option value="es">Español</option>
+          <option value="fr">Français</option>
+          <option value="de">Deutsch</option>
+        </select>
+      </div>
+      <div class="oe-pw-field">
+        <label for="acNumQuestions" id="acNumQuestionsLabel">Questions</label>
+        <select id="acNumQuestions">
+          <option value="8">8</option>
+          <option value="10" selected>10</option>
+          <option value="12">12</option>
+          <option value="15">15</option>
+        </select>
+      </div>
+      <div class="oe-pw-field">
+        <label for="acNumCards" id="acNumCardsLabel">Cards</label>
+        <select id="acNumCards">
+          <option value="10">10</option>
+          <option value="15" selected>15</option>
+          <option value="20">20</option>
+        </select>
+      </div>
+      <button type="button" class="oe-pw-btn oe-pw-btn--purple" id="btnAcSummary">🧠 Generate summary</button>
+    </div>
+  </section>
+
+  <section class="oe-pw-card" id="acStep2" hidden>
+    <h2 class="oe-pw-step-title" id="acStep2Title">Summary</h2>
+    <pre class="oe-pw-chapters-preview" id="acSummaryOut"></pre>
+    <div class="oe-pw-footer">
+      <button type="button" class="oe-pw-btn oe-pw-btn--ghost" id="btnAcBack2">← Back</button>
+      <button type="button" class="oe-pw-btn oe-pw-btn--ghost" id="btnAcCopySummary">Copy summary</button>
+      <button type="button" class="oe-pw-btn" id="btnAcQuestions">📘 Generate questions</button>
+    </div>
+  </section>
+
+  <section class="oe-pw-card" id="acStep3" hidden>
+    <h2 class="oe-pw-step-title" id="acStep3Title">Questions</h2>
+    <pre class="oe-pw-chapters-preview" id="acQuestionsOut"></pre>
+    <div class="oe-pw-footer">
+      <button type="button" class="oe-pw-btn oe-pw-btn--ghost" id="btnAcBack3">← Back</button>
+      <button type="button" class="oe-pw-btn oe-pw-btn--ghost" id="btnAcCopyQuestions">Copy questions</button>
+      <button type="button" class="oe-pw-btn" id="btnAcFlashcards">🃏 Generate flashcards</button>
+    </div>
+  </section>
+
+  <section id="acStep4" hidden>
+    <h2 class="oe-pw-step-title" id="acStep4Title">Flashcards</h2>
+    <div id="acFlashcardsOut"></div>
+  </section>
+</div>
+
+<div id="footer"></div>
+
+<script src="../js/ouviescrevi-api.js"></script>
+<script src="../js/aula-completa-ui.js?v=1"></script>
+<script>
+  AulaCompletaUI.init({ lang: "en" });
+  OuviescreviUI.loadHeader();
+  OuviescreviUI.loadFooter();
+</script>
+</body>
+</html>

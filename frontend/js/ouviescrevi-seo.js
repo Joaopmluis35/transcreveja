@@ -18,7 +18,8 @@
     corretor: { pt: "corretor.html", en: "corretor.html", es: "corretor.html", fr: "corretor.html", de: "corretor.html" },
     "aula-pronta": { pt: "aula-pronta.html", en: "aula-pronta.html" },
     flashcards: { pt: "flashcards.html", en: "flashcards.html", es: "flashcards.html", fr: "flashcards.html", de: "flashcards.html" },
-    capitulos: { pt: "capitulos.html", en: "capitulos.html" },
+    capitulos: { pt: "capitulos.html", en: "capitulos.html", es: "capitulos.html", fr: "capitulos.html", de: "capitulos.html" },
+    "aula-completa": { pt: "aula-completa.html", en: "aula-completa.html", es: "aula-completa.html", fr: "aula-completa.html", de: "aula-completa.html" },
     "descricao-youtube": { pt: "descricao-youtube.html", en: "descricao-youtube.html", es: "descricao-youtube.html", fr: "descricao-youtube.html", de: "descricao-youtube.html" },
     "podcast-youtube": { pt: "podcast-youtube.html", en: "podcast-youtube.html", es: "podcast-youtube.html", fr: "podcast-youtube.html", de: "podcast-youtube.html" },
     cookies: { pt: "cookies.html", en: "cookies.html", es: "cookies.html", fr: "cookies.html", de: "cookies.html" },
@@ -372,6 +373,54 @@
       title: "Podcast- & YouTube-Assistent — Kapitel & Beschreibung | Ouviescrevi",
       description:
         "Vom Transkript zu Kapiteln und YouTube-Beschreibung — geführter KI-Workflow für Podcasts und Videos.",
+      lang: "de",
+    },
+
+    "/aula-completa.html": {
+      title: "Assistente Aula Completa — Resumo, Perguntas e Flashcards | Ouviescrevi",
+      description:
+        "Da transcrição ao resumo, perguntas e flashcards — assistente guiado com IA para professores e estudantes.",
+    },
+    "/en/aula-completa.html": {
+      title: "Full Lesson Assistant — Summary, Questions & Flashcards | Ouviescrevi",
+      description:
+        "From transcript to summary, questions and flashcards — guided AI workflow for teachers and students.",
+      lang: "en",
+    },
+    "/es/aula-completa.html": {
+      title: "Asistente Clase Completa — Resumen, Preguntas y Flashcards | Ouviescrevi",
+      description:
+        "De la transcripción al resumen, preguntas y flashcards — flujo guiado con IA.",
+      lang: "es",
+    },
+    "/fr/aula-completa.html": {
+      title: "Assistant Cours Complet — Résumé, Questions et Flashcards | Ouviescrevi",
+      description:
+        "De la transcription au résumé, questions et flashcards — parcours guidé avec l'IA.",
+      lang: "fr",
+    },
+    "/de/aula-completa.html": {
+      title: "Unterrichts-Assistent — Zusammenfassung, Fragen & Karteikarten | Ouviescrevi",
+      description:
+        "Vom Transkript zur Zusammenfassung, Fragen und Karteikarten — geführter KI-Ablauf.",
+      lang: "de",
+    },
+    "/es/capitulos.html": {
+      title: "Capítulos y marcas de tiempo — Podcasts y YouTube | Ouviescrevi",
+      description:
+        "Divide transcripciones largas en capítulos con marcas de tiempo. Ideal para podcasts, clases y vídeos.",
+      lang: "es",
+    },
+    "/fr/capitulos.html": {
+      title: "Chapitres et horodatages — Podcasts et YouTube | Ouviescrevi",
+      description:
+        "Divisez de longues transcriptions en chapitres avec horodatages. Idéal pour podcasts et vidéos.",
+      lang: "fr",
+    },
+    "/de/capitulos.html": {
+      title: "Kapitel & Zeitstempel — Podcasts & YouTube | Ouviescrevi",
+      description:
+        "Teilen Sie lange Transkripte in Kapitel mit Zeitstempeln. Ideal für Podcasts und Videos.",
       lang: "de",
     },
 

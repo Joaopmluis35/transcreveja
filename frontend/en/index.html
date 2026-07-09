@@ -278,6 +278,12 @@
 
       <div class="btn-group">
         <button id="btnGenerateSummary"><span>🧠 Generate Summary</span></button>
+        <button type="button" onclick="abrirAulaCompleta()"><span>📚 Full lesson</span></button>
+        <button type="button" onclick="abrirAulaPronta()"><span>📦 Lesson pack</span></button>
+        <button type="button" onclick="abrirCapitulos()"><span>⏱️ Chapters</span></button>
+        <button type="button" onclick="abrirPodcastYoutube()"><span>🎙️ Podcast/YouTube</span></button>
+        <button type="button" onclick="abrirFlashcards()"><span>🃏 Flashcards</span></button>
+        <button type="button" onclick="abrirDescricaoYoutube()"><span>▶️ YouTube</span></button>
         <button onclick="shareWhatsapp()"><span>📲 Share on WhatsApp</span></button>
         <button onclick="generateMinutes()"><span>📩 Generate Minutes</span></button>
         <button onclick="correctText()"><span>📝 Correct Text</span></button>
@@ -890,6 +896,43 @@
   footerMount.id="footer";
   document.body.appendChild(footerMount);
   fetch("footer.html").then(res=>res.text()).then(html=> document.getElementById("footer").innerHTML=html);
+
+  function abrirAulaPronta() {
+    const text = transcriptionText.value.trim();
+    if (!text) return alert("⚠️ Empty transcription.");
+    try { sessionStorage.setItem("oe_aula_pronta_text", text); } catch (e) {}
+    window.location.href = "aula-pronta.html";
+  }
+  function abrirAulaCompleta() {
+    const text = transcriptionText.value.trim();
+    if (!text) return alert("⚠️ Empty transcription.");
+    try { sessionStorage.setItem("oe_aula_completa_text", text); } catch (e) {}
+    window.location.href = "aula-completa.html";
+  }
+  function abrirCapitulos() {
+    const text = transcriptionText.value.trim();
+    if (!text) return alert("⚠️ Empty transcription.");
+    try { sessionStorage.setItem("oe_capitulos_text", text); } catch (e) {}
+    window.location.href = "capitulos.html";
+  }
+  function abrirPodcastYoutube() {
+    const text = transcriptionText.value.trim();
+    if (!text) return alert("⚠️ Empty transcription.");
+    try { sessionStorage.setItem("oe_podcast_wizard_text", text); } catch (e) {}
+    window.location.href = "podcast-youtube.html";
+  }
+  function abrirFlashcards() {
+    const text = transcriptionText.value.trim();
+    if (!text) return alert("⚠️ Empty transcription.");
+    try { sessionStorage.setItem("oe_flashcards_text", text); } catch (e) {}
+    window.location.href = "flashcards.html";
+  }
+  function abrirDescricaoYoutube() {
+    const text = transcriptionText.value.trim();
+    if (!text) return alert("⚠️ Empty transcription.");
+    try { sessionStorage.setItem("oe_youtube_desc_text", text); } catch (e) {}
+    window.location.href = "descricao-youtube.html";
+  }
 
   // Export dropdown buttons
   document.getElementById("btnGenerateSummary").addEventListener("click", generateSummary);

@@ -141,8 +141,13 @@
       </div>
 
       <div class="btn-group">
-        <button id="btnGerarResumo"><span>🧠 Gerar Resumo</span></button>
-        <button onclick="partilharWhatsapp()"><span>📲 Partilhar no WhatsApp</span></button>
+        <button id="btnGerarResumo"><span>🧠 Zusammenfassung</span></button>
+        <button type="button" onclick="abrirAulaCompleta()"><span>📚 Volle Lektion</span></button>
+        <button type="button" onclick="abrirCapitulos()"><span>⏱️ Kapitel</span></button>
+        <button type="button" onclick="abrirPodcastYoutube()"><span>🎙️ Podcast/YouTube</span></button>
+        <button type="button" onclick="abrirFlashcards()"><span>🃏 Karteikarten</span></button>
+        <button type="button" onclick="abrirDescricaoYoutube()"><span>▶️ YouTube</span></button>
+        <button onclick="partilharWhatsapp()"><span>📲 Auf WhatsApp teilen</span></button>
         <button onclick="gerarMinuta()"><span>📩 Gerar Minuta</span></button>
         <button onclick="corrigirTextoIA()"><span>📝 Corrigir Texto</span></button>
         <button onclick="abrirModalTraducao()"><span>🌍 Traduzir</span></button>
@@ -1493,6 +1498,36 @@
       botao.textContent = "✅ Copiado!";
       setTimeout(() => botao.textContent = "📋 Alles kopieren", 2000);
     });
+  }
+  function abrirAulaCompleta() {
+    const text = transcriptionText.value.trim();
+    if (!text) return alert("⚠️ Leeres Transkript.");
+    try { sessionStorage.setItem("oe_aula_completa_text", text); } catch (e) {}
+    window.location.href = "aula-completa.html";
+  }
+  function abrirCapitulos() {
+    const text = transcriptionText.value.trim();
+    if (!text) return alert("⚠️ Leeres Transkript.");
+    try { sessionStorage.setItem("oe_capitulos_text", text); } catch (e) {}
+    window.location.href = "capitulos.html";
+  }
+  function abrirPodcastYoutube() {
+    const text = transcriptionText.value.trim();
+    if (!text) return alert("⚠️ Leeres Transkript.");
+    try { sessionStorage.setItem("oe_podcast_wizard_text", text); } catch (e) {}
+    window.location.href = "podcast-youtube.html";
+  }
+  function abrirFlashcards() {
+    const text = transcriptionText.value.trim();
+    if (!text) return alert("⚠️ Leeres Transkript.");
+    try { sessionStorage.setItem("oe_flashcards_text", text); } catch (e) {}
+    window.location.href = "flashcards.html";
+  }
+  function abrirDescricaoYoutube() {
+    const text = transcriptionText.value.trim();
+    if (!text) return alert("⚠️ Leeres Transkript.");
+    try { sessionStorage.setItem("oe_youtube_desc_text", text); } catch (e) {}
+    window.location.href = "descricao-youtube.html";
   }
   function limparTudo(){
     const fileInput = document.getElementById("fileInput");
