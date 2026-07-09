@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Générez des flashcards d'étude avec l'IA à partir de texte ou transcription. Recto et verso pour réviser.">
+  <meta name="robots" content="index, follow">
+  <title>Flashcards IA — Étude et Mémorisation | Ouviescrevi</title>
+  <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
+  <link rel="stylesheet" href="../css/ouviescrevi.css">
+  <link rel="stylesheet" href="../css/flashcards.css?v=1">
+  <script src="../js/theme-ui.js"></script>
+  <script src="/js/ouviescrevi-seo.js" defer></script>
+  <script src="../js/ouviescrevi-ui.js" defer></script>
+</head>
+<body class="oe-page oe-pro oe-page--flashcards">
+<a class="oe-skip" href="#conteudo">Aller au contenu</a>
+<div id="header"></div>
+
+<div class="oe-fc-layout" id="conteudo">
+  <header class="oe-fc-hero">
+    <h1 data-cms-key="fr_flashcards_title" data-cms-mode="text">🃏 Flashcards IA</h1>
+    <p class="oe-lead" data-cms-key="fr_flashcards_lead" data-cms-mode="text">Collez une transcription ou des notes et obtenez des cartes d'étude (recto/verso) pour réviser et mémoriser.</p>
+  </header>
+
+  <section class="oe-fc-form" aria-labelledby="fcFormTitle">
+    <h2 class="oe-visually-hidden" id="fcFormTitle">Générer des flashcards</h2>
+    <textarea id="texto"></textarea>
+    <div class="oe-fc-form__footer">
+      <div class="oe-fc-form__field">
+        <label for="fcLang">Langue des cartes</label>
+        <select id="fcLang">
+          <option value="pt">Português</option>
+          <option value="en">English</option>
+          <option value="es">Español</option>
+          <option value="fr" selected>Français</option>
+          <option value="de">Deutsch</option>
+        </select>
+      </div>
+      <div class="oe-fc-form__field">
+        <label for="fcCount">Nombre de cartes</label>
+        <select id="fcCount">
+          <option value="10">10</option>
+          <option value="15" selected>15</option>
+          <option value="20">20</option>
+          <option value="25">25</option>
+        </select>
+      </div>
+      <button type="button" class="oe-fc-form__submit" id="btnFlashcards">🃏 Générer des flashcards</button>
+    </div>
+  </section>
+
+  <div id="resultado" hidden></div>
+</div>
+
+<div id="footer"></div>
+
+<script src="../js/ouviescrevi-api.js"></script>
+<script src="../js/flashcards-ui.js?v=1"></script>
+<script>
+  FlashcardsUI.init({ lang: "fr" });
+  OuviescreviUI.loadHeader();
+  OuviescreviUI.loadFooter();
+</script>
+</body>
+</html>

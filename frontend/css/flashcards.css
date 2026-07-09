@@ -1,0 +1,204 @@
+/* Flashcards */
+
+body.oe-page--flashcards {
+  background: var(--pro-bg, #f6f7fb);
+}
+
+.oe-fc-layout {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 20px 48px;
+  box-sizing: border-box;
+}
+
+body.oe-page--flashcards .oe-fc-hero {
+  padding: 32px 0 20px;
+  text-align: center;
+}
+
+body.oe-page--flashcards .oe-fc-hero h1 {
+  margin: 0 0 10px;
+  font-size: clamp(1.45rem, 4.5vw, 1.95rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+body.oe-page--flashcards .oe-fc-hero .oe-lead {
+  margin: 0 auto;
+  max-width: 38rem;
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--pro-text-secondary, #475569);
+}
+
+.oe-fc-form {
+  padding: 22px;
+  border-radius: 16px;
+  border: 1px solid var(--pro-border, #e2e8f0);
+  background: var(--pro-surface, #fff);
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
+}
+
+.oe-fc-form textarea {
+  width: 100%;
+  min-height: 180px;
+  box-sizing: border-box;
+  margin: 0 0 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--pro-border, #e2e8f0);
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  resize: vertical;
+  background: var(--pro-bg, #f8fafc);
+}
+
+.oe-fc-form__footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.oe-fc-form__field label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--pro-text-secondary, #475569);
+}
+
+.oe-fc-form__field select {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--pro-border, #e2e8f0);
+  font: inherit;
+}
+
+.oe-fc-form__submit {
+  margin-left: auto;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.oe-fc-form__submit:hover {
+  filter: brightness(1.05);
+}
+
+.oe-fc-result {
+  margin-top: 24px;
+  padding: 22px;
+  border-radius: 16px;
+  border: 1px solid var(--pro-border, #e2e8f0);
+  background: var(--pro-surface, #fff);
+}
+
+.oe-fc-result__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.oe-fc-result__title {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.oe-fc-result__btn {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--pro-border, #e2e8f0);
+  background: var(--pro-bg, #f8fafc);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.oe-fc-hint {
+  margin: 0 0 16px;
+  font-size: 0.85rem;
+  color: var(--pro-text-secondary, #64748b);
+}
+
+.oe-fc-warn {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 0.85rem;
+}
+
+.oe-fc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.oe-fc-card {
+  display: block;
+  width: 100%;
+  min-height: 140px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  perspective: 800px;
+  text-align: left;
+}
+
+.oe-fc-card__inner {
+  display: block;
+  position: relative;
+  width: 100%;
+  min-height: 140px;
+  transform-style: preserve-3d;
+  transition: transform 0.45s ease;
+}
+
+.oe-fc-card.is-flipped .oe-fc-card__inner {
+  transform: rotateY(180deg);
+}
+
+.oe-fc-card__face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid var(--pro-border, #e2e8f0);
+  background: var(--pro-bg, #f8fafc);
+  backface-visibility: hidden;
+  box-sizing: border-box;
+}
+
+.oe-fc-card__face--back {
+  transform: rotateY(180deg);
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.08), rgba(124, 58, 237, 0.02));
+  border-color: #c4b5fd;
+}
+
+.oe-fc-card__label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--pro-text-muted, #94a3b8);
+  margin-bottom: 8px;
+}
+
+.oe-fc-card__text {
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--pro-text, #0f172a);
+}

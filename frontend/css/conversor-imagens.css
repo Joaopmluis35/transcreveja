@@ -201,3 +201,45 @@ body.oe-page--conversor-imagens .oe-cimg-hero .oe-lead {
   margin: 8px 0 0;
   padding-left: 1.2rem;
 }
+
+.oe-cimg-modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--pro-bg, #f1f5f9);
+}
+
+.oe-cimg-mode {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--pro-text-secondary, #64748b);
+  cursor: pointer;
+}
+
+.oe-cimg-mode.is-active {
+  background: #fff;
+  color: #6d28d9;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+}
+
+.oe-cimg-panel {
+  margin-bottom: 4px;
+}
+
+.oe-cimg-num {
+  width: 100%;
+  padding: 11px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--pro-border, #e2e8f0);
+  font-size: 0.92rem;
+  box-sizing: border-box;
+}

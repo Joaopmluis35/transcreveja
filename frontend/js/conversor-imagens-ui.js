@@ -6,6 +6,7 @@
 
   var config = { lang: "pt" };
   var files = [];
+  var mode = "convert";
   var avifSupported = null;
   var gifencPromise = null;
 
@@ -41,6 +42,23 @@
       fmtAvif: "AVIF (.avif)",
       fmtBmp: "BMP (.bmp)",
       fmtGif: "GIF (.gif)",
+      modeConvert: "Converter",
+      modeCompress: "Comprimir",
+      modeResize: "Redimensionar",
+      modePdf: "Unir em PDF",
+      btnCompress: "📦 Comprimir e descarregar",
+      btnResize: "📐 Redimensionar e descarregar",
+      btnPdf: "📄 Unir em PDF e descarregar",
+      pdfHint: "Cada imagem numa página A4 — ideal para documentos ou apresentações.",
+      needTwoForPdf: "Escolhe pelo menos uma imagem.",
+      donePdf: "PDF criado com %n imagens!",
+      compressHint: "Reduz o tamanho do ficheiro mantendo boa qualidade visual.",
+      compressFormatLabel: "Formato de saída",
+      compressQualityLabel: "Qualidade",
+      maxWidthLabel: "Largura máxima (px)",
+      customWidthLabel: "Largura personalizada",
+      resizeFormatLabel: "Guardar como",
+      doneSize: "Feito! %before → %after (−%pct%)",
     },
     en: {
       dropTitle: "Drop images here",
@@ -64,8 +82,27 @@
       fmtAvif: "AVIF (.avif)",
       fmtBmp: "BMP (.bmp)",
       fmtGif: "GIF (.gif)",
+      modeConvert: "Convert",
+      modeCompress: "Compress",
+      modeResize: "Resize",
+      modePdf: "Merge to PDF",
+      btnCompress: "📦 Compress and download",
+      btnResize: "📐 Resize and download",
+      btnPdf: "📄 Merge to PDF and download",
+      pdfHint: "One image per A4 page — great for documents or slide decks.",
+      needTwoForPdf: "Choose at least one image.",
+      donePdf: "PDF created with %n images!",
+      compressHint: "Reduce file size while keeping good visual quality.",
+      compressFormatLabel: "Output format",
+      compressQualityLabel: "Quality",
+      maxWidthLabel: "Max width (px)",
+      customWidthLabel: "Custom width",
+      resizeFormatLabel: "Save as",
+      doneSize: "Done! %before → %after (−%pct%)",
     },
   };
+
+  var jspdfPromise = null;
 
   function t(key) {
     var loc = STRINGS[config.lang] || STRINGS.pt;
@@ -298,6 +335,42 @@
     return new Blob([gif.bytes()], { type: "image/gif" });
   }
 
+  function loadJspdf() {
+    if (!jspdfPromise) {
+      jspdfPromise = import("https://cdn.jsdelivr.net/npm/jspdf@2.5.2/+esm");
+    }
+    return jspdfPromise;
+  }
+
+  async function mergeAllToPdf(fileList) {
+    var mod = await loadJspdf();
+    var jsPDF = mod.jsPDF;
+    var pdf = null;
+    var pageW = 595.28;
+    var pageH = 841.89;
+    for (var i = 0; i < fileList.length; i++) {
+      var img = await loadImageFromFile(fileList[i]);
+      var canvas = drawToCanvas(img, true);
+      var dataUrl = canvas.toDataURL("image/jpeg", 0.92);
+      var iw = canvas.width;
+      var ih = canvas.height;
+      var ratio = Math.min(pageW / iw, pageH / ih);
+      var nw = iw * ratio;
+      var nh = ih * ratio;
+      var x = (pageW - nw) / 2;
+      var y = (pageH - nh) / 2;
+      if (!pdf) {
+        pdf = new jsPDF({ unit: "pt", format: "a4" });
+      } else {
+        pdf.addPage();
+      }
+      pdf.addImage(dataUrl, "JPEG", x, y, nw, nh);
+    }
+    var blob = pdf.output("blob");
+    downloadBlob(blob, "imagens-ouviescrevi.pdf");
+    return fileList.length;
+  }
+
   function downloadBlob(blob, filename) {
     var url = URL.createObjectURL(blob);
     var a = document.createElement("a");
@@ -314,20 +387,96 @@
     return base + "-ouviescrevi." + ext;
   }
 
-  async function convertOne(file, fmt, quality) {
-    var img = await loadImageFromFile(file);
-    var canvas = drawToCanvas(img, !!fmt.fillWhite);
-    var blob;
+  function formatBytes(n) {
+    if (n < 1024) return n + " B";
+    if (n < 1024 * 1024) return (n / 1024).toFixed(1) + " KB";
+    return (n / (1024 * 1024)).toFixed(2) + " MB";
+  }
 
-    if (fmt.encoder === "bmp") {
-      blob = encodeBmp(canvas);
-    } else if (fmt.encoder === "gif") {
-      blob = await encodeGif(canvas);
-    } else {
-      blob = await canvasToBlob(canvas, fmt.id, quality);
+  function extFromMime(mime) {
+    if (mime === "image/jpeg") return "jpg";
+    if (mime === "image/webp") return "webp";
+    if (mime === "image/png") return "png";
+    return "jpg";
+  }
+
+  function getMaxWidth() {
+    var sel = document.getElementById("cimgMaxWidth");
+    if (!sel) return 1920;
+    if (sel.value === "custom") {
+      var n = parseInt((document.getElementById("cimgCustomWidth") || {}).value, 10);
+      return Math.max(100, Math.min(8000, n || 1200));
+    }
+    return parseInt(sel.value, 10) || 1920;
+  }
+
+  function scaleToCanvas(img, maxWidth) {
+    var w = img.naturalWidth || img.width;
+    var h = img.naturalHeight || img.height;
+    if (w <= maxWidth) return drawToCanvas(img, false);
+    var nh = Math.round(h * (maxWidth / w));
+    var canvas = document.createElement("canvas");
+    canvas.width = maxWidth;
+    canvas.height = nh;
+    var ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0, maxWidth, nh);
+    return canvas;
+  }
+
+  async function blobFromCanvas(canvas, fmt, quality) {
+    if (fmt.encoder === "bmp") return encodeBmp(canvas);
+    if (fmt.encoder === "gif") return encodeGif(canvas);
+    return canvasToBlob(canvas, fmt.id, quality);
+  }
+
+  async function processFile(file) {
+    var img = await loadImageFromFile(file);
+    var before = file.size;
+
+    if (mode === "compress") {
+      var mime = (document.getElementById("cimgCompressFormat") || {}).value || "image/webp";
+      var cq = parseInt((document.getElementById("cimgCompressQuality") || {}).value, 10) || 75;
+      var quality = Math.max(0.1, Math.min(1, cq / 100));
+      var canvas = drawToCanvas(img, mime === "image/jpeg");
+      var blob = await canvasToBlob(canvas, mime, quality);
+      downloadBlob(blob, outputName(file.name, extFromMime(mime)));
+      return { before: before, after: blob.size };
     }
 
+    if (mode === "resize") {
+      var maxW = getMaxWidth();
+      var canvas = scaleToCanvas(img, maxW);
+      var resizeFmt = (document.getElementById("cimgResizeFormat") || {}).value || "keep";
+      var mime =
+        resizeFmt === "keep"
+          ? file.type && file.type.startsWith("image/") && file.type !== "image/svg+xml"
+            ? file.type
+            : "image/jpeg"
+          : resizeFmt;
+      if (mime === "image/jpeg") {
+        var c2 = document.createElement("canvas");
+        c2.width = canvas.width;
+        c2.height = canvas.height;
+        var ctx = c2.getContext("2d");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, c2.width, c2.height);
+        ctx.drawImage(canvas, 0, 0);
+        canvas = c2;
+      }
+      var rq = mime === "image/png" ? undefined : 0.9;
+      var blob = await canvasToBlob(canvas, mime, rq);
+      downloadBlob(blob, outputName(file.name, extFromMime(mime)));
+      return { before: before, after: blob.size };
+    }
+
+    var fmtId = (document.getElementById("cimgFormat") || {}).value || "image/png";
+    var fmt = getFormatById(fmtId);
+    var q = parseInt((document.getElementById("cimgQuality") || {}).value, 10) || 90;
+    var quality = Math.max(0.1, Math.min(1, q / 100));
+    var canvas = drawToCanvas(img, !!fmt.fillWhite);
+    var blob = await blobFromCanvas(canvas, fmt, quality);
     downloadBlob(blob, outputName(file.name, fmt.ext));
+    return { before: before, after: blob.size };
   }
 
   async function convertAll() {
@@ -335,19 +484,21 @@
       setStatus(t("needFile"), "err");
       return;
     }
-    var fmtId = (document.getElementById("cimgFormat") || {}).value || "image/png";
-    var fmt = getFormatById(fmtId);
-    var q = parseInt((document.getElementById("cimgQuality") || {}).value, 10) || 90;
-    var quality = Math.max(0.1, Math.min(1, q / 100));
     var btn = document.getElementById("btnCimgConvert");
     if (global.OuviescreviUI) {
       global.OuviescreviUI.setButtonLoading(btn, true, t("converting"));
     }
     setStatus(t("converting"));
     var ok = 0;
+    var lastSizes = null;
     try {
+      if (mode === "pdf") {
+        ok = await mergeAllToPdf(files);
+        setStatus(t("donePdf").replace("%n", String(ok)), "ok");
+        return;
+      }
       for (var i = 0; i < files.length; i++) {
-        await convertOne(files[i], fmt, quality);
+        lastSizes = await processFile(files[i]);
         ok++;
         if (files.length > 1) {
           await new Promise(function (r) {
@@ -355,15 +506,69 @@
           });
         }
       }
-      setStatus(
-        ok === 1 ? t("done") : t("doneMany").replace("%n", String(ok)),
-        "ok"
-      );
+      var msg =
+        ok === 1 ? t("done") : t("doneMany").replace("%n", String(ok));
+      if (ok === 1 && lastSizes && mode !== "convert" && lastSizes.before > lastSizes.after) {
+        var pct = Math.round((1 - lastSizes.after / lastSizes.before) * 100);
+        msg = t("doneSize")
+          .replace("%before", formatBytes(lastSizes.before))
+          .replace("%after", formatBytes(lastSizes.after))
+          .replace("%pct", String(pct));
+      }
+      setStatus(msg, "ok");
     } catch (e) {
       console.error(e);
       setStatus(e.message === "unsupported" ? t("unsupported") : t("error"), "err");
     } finally {
       if (global.OuviescreviUI) global.OuviescreviUI.setButtonLoading(btn, false);
+    }
+  }
+
+  function setMode(next) {
+    mode = next || "convert";
+    document.querySelectorAll(".oe-cimg-mode").forEach(function (btn) {
+      var active = btn.getAttribute("data-mode") === mode;
+      btn.classList.toggle("is-active", active);
+      btn.setAttribute("aria-selected", active ? "true" : "false");
+    });
+    var panels = {
+      convert: document.getElementById("cimgPanelConvert"),
+      compress: document.getElementById("cimgPanelCompress"),
+      resize: document.getElementById("cimgPanelResize"),
+      pdf: document.getElementById("cimgPanelPdf"),
+    };
+    Object.keys(panels).forEach(function (key) {
+      if (panels[key]) panels[key].hidden = key !== mode;
+    });
+    var btn = document.getElementById("btnCimgConvert");
+    if (btn) {
+      if (mode === "compress") btn.textContent = t("btnCompress");
+      else if (mode === "resize") btn.textContent = t("btnResize");
+      else if (mode === "pdf") btn.textContent = t("btnPdf");
+      else btn.textContent = t("btnConvert");
+    }
+  }
+
+  function bindModeTabs() {
+    document.querySelectorAll(".oe-cimg-mode").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        setMode(btn.getAttribute("data-mode"));
+      });
+    });
+    var maxSel = document.getElementById("cimgMaxWidth");
+    var customRow = document.getElementById("cimgCustomWidthRow");
+    if (maxSel && customRow) {
+      maxSel.addEventListener("change", function () {
+        customRow.hidden = maxSel.value !== "custom";
+      });
+    }
+    var cq = document.getElementById("cimgCompressQuality");
+    var cqOut = document.getElementById("cimgCompressQualityOut");
+    if (cq && cqOut) {
+      cqOut.textContent = cq.value;
+      cq.addEventListener("input", function () {
+        cqOut.textContent = cq.value;
+      });
     }
   }
 
@@ -417,14 +622,24 @@
       cimgFormatLabel: "formatLabel",
       cimgQualityLabel: "qualityLabel",
       cimgPreviewTitle: "preview",
+      cimgModeConvert: "modeConvert",
+      cimgModeCompress: "modeCompress",
+      cimgModeResize: "modeResize",
+      cimgModePdf: "modePdf",
+      cimgPdfHint: "pdfHint",
+      cimgCompressFormatLabel: "compressFormatLabel",
+      cimgCompressQualityLabel: "compressQualityLabel",
+      cimgCompressHint: "compressHint",
+      cimgMaxWidthLabel: "maxWidthLabel",
+      cimgCustomWidthLabel: "customWidthLabel",
+      cimgResizeFormatLabel: "resizeFormatLabel",
     };
     Object.keys(map).forEach(function (id) {
       var el = document.getElementById(id);
       if (el) el.textContent = t(map[id]);
     });
     populateFormatSelect();
-    var btn = document.getElementById("btnCimgConvert");
-    if (btn) btn.textContent = t("btnConvert");
+    setMode(mode);
     var clr = document.getElementById("btnCimgClear");
     if (clr) clr.textContent = t("btnClear");
   }
@@ -432,6 +647,8 @@
   function init(opts) {
     config = Object.assign({}, config, opts || {});
     bindDropZone();
+    bindModeTabs();
+    setMode("convert");
 
     var fmtSel = document.getElementById("cimgFormat");
     if (fmtSel) {

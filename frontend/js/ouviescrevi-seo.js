@@ -17,7 +17,10 @@
     perguntas: { pt: "perguntas.html", en: "perguntas.html", es: "perguntas.html", fr: "perguntas.html", de: "perguntas.html" },
     corretor: { pt: "corretor.html", en: "corretor.html", es: "corretor.html", fr: "corretor.html", de: "corretor.html" },
     "aula-pronta": { pt: "aula-pronta.html", en: "aula-pronta.html" },
+    flashcards: { pt: "flashcards.html", en: "flashcards.html", es: "flashcards.html", fr: "flashcards.html", de: "flashcards.html" },
     capitulos: { pt: "capitulos.html", en: "capitulos.html" },
+    "descricao-youtube": { pt: "descricao-youtube.html", en: "descricao-youtube.html", es: "descricao-youtube.html", fr: "descricao-youtube.html", de: "descricao-youtube.html" },
+    "podcast-youtube": { pt: "podcast-youtube.html", en: "podcast-youtube.html", es: "podcast-youtube.html", fr: "podcast-youtube.html", de: "podcast-youtube.html" },
     cookies: { pt: "cookies.html", en: "cookies.html", es: "cookies.html", fr: "cookies.html", de: "cookies.html" },
     privacy: { pt: "privacidade.html", en: "privacy.html", es: "privacy.html", fr: "privacy.html", de: "privacy.html" },
     terms: { pt: "termos.html", en: "terms.html", es: "terms.html", fr: "terms.html", de: "terms.html" },
@@ -123,14 +126,14 @@
     },
 
     "/conversor-imagens.html": {
-      title: "Conversor de Imagens — PNG, JPEG, WebP, AVIF, BMP, GIF | Ouviescrevi",
+      title: "Conversor de Imagens — Converter, Comprimir e Redimensionar | Ouviescrevi",
       description:
-        "Converte imagens entre PNG, JPEG, WebP, AVIF, BMP e GIF no browser. Grátis, privado — os ficheiros nunca saem do teu dispositivo.",
+        "Converte, comprime e redimensiona imagens no browser. PNG, JPEG, WebP, AVIF, BMP e GIF — grátis e privado.",
     },
     "/en/conversor-imagens.html": {
-      title: "Image Converter — PNG, JPEG, WebP, AVIF, BMP, GIF | Ouviescrevi",
+      title: "Image Tool — Convert, Compress & Resize | Ouviescrevi",
       description:
-        "Convert images between PNG, JPEG, WebP, AVIF, BMP and GIF in your browser. Free and private — files never leave your device.",
+        "Convert, compress and resize images in your browser. PNG, JPEG, WebP, AVIF, BMP and GIF — free and private.",
       lang: "en",
     },
 
@@ -281,6 +284,95 @@
       description:
         "Split long transcripts into chapters with timestamps. Great for podcasts, lessons and videos — export for YouTube.",
       lang: "en",
+    },
+
+    "/flashcards.html": {
+      title: "Flashcards com IA — Estudo e Memorização | Ouviescrevi",
+      description:
+        "Gera flashcards de estudo com IA a partir de texto ou transcrição. Frente e verso — ideal para revisão escolar.",
+    },
+    "/en/flashcards.html": {
+      title: "AI Flashcards — Study & Memorization | Ouviescrevi",
+      description:
+        "Generate AI study flashcards from any text or transcript. Front and back cards for revision and memorization.",
+      lang: "en",
+    },
+    "/descricao-youtube.html": {
+      title: "Descrição para YouTube com IA — Títulos e Tags | Ouviescrevi",
+      description:
+        "Gera título, descrição e tags para YouTube com IA a partir de transcrições e capítulos. Ideal para podcasts e vídeos.",
+    },
+    "/en/descricao-youtube.html": {
+      title: "YouTube Description Generator — Titles & Tags | Ouviescrevi",
+      description:
+        "Generate YouTube title, description and tags with AI from transcripts and chapters. Great for podcasts and videos.",
+      lang: "en",
+    },
+
+    "/es/flashcards.html": {
+      title: "Flashcards con IA — Estudio y Memorización | Ouviescrevi",
+      description:
+        "Genera flashcards de estudio con IA a partir de texto o transcripción. Anverso y reverso — ideal para repasar.",
+      lang: "es",
+    },
+    "/fr/flashcards.html": {
+      title: "Flashcards IA — Étude et Mémorisation | Ouviescrevi",
+      description:
+        "Générez des flashcards d'étude avec l'IA à partir de texte ou transcription. Recto et verso pour réviser.",
+      lang: "fr",
+    },
+    "/de/flashcards.html": {
+      title: "KI-Karteikarten — Lernen & Merken | Ouviescrevi",
+      description:
+        "Erstellen Sie Lernkarteikarten mit KI aus Text oder Transkript. Vorder- und Rückseite zum Wiederholen.",
+      lang: "de",
+    },
+    "/es/descricao-youtube.html": {
+      title: "Descripción para YouTube con IA — Títulos y Etiquetas | Ouviescrevi",
+      description:
+        "Genera título, descripción y etiquetas para YouTube con IA a partir de transcripciones y capítulos.",
+      lang: "es",
+    },
+    "/fr/descricao-youtube.html": {
+      title: "Description YouTube IA — Titres et Tags | Ouviescrevi",
+      description:
+        "Générez titre, description et tags YouTube avec l'IA à partir de transcriptions et chapitres.",
+      lang: "fr",
+    },
+    "/de/descricao-youtube.html": {
+      title: "YouTube-Beschreibung mit KI — Titel & Tags | Ouviescrevi",
+      description:
+        "Erstellen Sie YouTube-Titel, Beschreibung und Tags mit KI aus Transkripten und Kapiteln.",
+      lang: "de",
+    },
+    "/podcast-youtube.html": {
+      title: "Assistente Podcast & YouTube — Capítulos e Descrição | Ouviescrevi",
+      description:
+        "Da transcrição aos capítulos e à descrição do YouTube — assistente guiado com IA para podcasts e vídeos.",
+    },
+    "/en/podcast-youtube.html": {
+      title: "Podcast & YouTube Assistant — Chapters & Description | Ouviescrevi",
+      description:
+        "From transcript to chapters and YouTube description — guided AI workflow for podcasts and videos.",
+      lang: "en",
+    },
+    "/es/podcast-youtube.html": {
+      title: "Asistente Podcast y YouTube — Capítulos y Descripción | Ouviescrevi",
+      description:
+        "De la transcripción a capítulos y descripción de YouTube — flujo guiado con IA para podcasts y vídeos.",
+      lang: "es",
+    },
+    "/fr/podcast-youtube.html": {
+      title: "Assistant Podcast & YouTube — Chapitres et Description | Ouviescrevi",
+      description:
+        "De la transcription aux chapitres et à la description YouTube — parcours guidé avec l'IA.",
+      lang: "fr",
+    },
+    "/de/podcast-youtube.html": {
+      title: "Podcast- & YouTube-Assistent — Kapitel & Beschreibung | Ouviescrevi",
+      description:
+        "Vom Transkript zu Kapiteln und YouTube-Beschreibung — geführter KI-Workflow für Podcasts und Videos.",
+      lang: "de",
     },
 
     "/url-resumo.html": {

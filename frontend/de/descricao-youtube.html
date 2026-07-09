@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Erstellen Sie YouTube-Titel, Beschreibung und Tags mit KI aus Transkripten und Kapiteln.">
+  <meta name="robots" content="index, follow">
+  <title>YouTube-Beschreibung mit KI — Titel & Tags | Ouviescrevi</title>
+  <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
+  <link rel="stylesheet" href="../css/ouviescrevi.css">
+  <link rel="stylesheet" href="../css/descricao-youtube.css?v=1">
+  <script src="../js/theme-ui.js"></script>
+  <script src="/js/ouviescrevi-seo.js" defer></script>
+  <script src="../js/ouviescrevi-ui.js" defer></script>
+</head>
+<body class="oe-page oe-pro oe-page--youtube-desc">
+<a class="oe-skip" href="#conteudo">Zum Inhalt springen</a>
+<div id="header"></div>
+
+<div class="oe-yt-layout" id="conteudo">
+  <header class="oe-yt-hero">
+    <h1 data-cms-key="de_youtube_desc_title" data-cms-mode="text">▶️ YouTube-Beschreibung</h1>
+    <p class="oe-lead" data-cms-key="de_youtube_desc_lead" data-cms-mode="text">Fügen Sie Transkript oder Zusammenfassung ein und erhalten Sie Titel, Beschreibung und Tags für YouTube.</p>
+  </header>
+
+  <section class="oe-yt-form" aria-labelledby="ytFormTitle">
+    <h2 class="oe-visually-hidden" id="ytFormTitle">Beschreibung generieren</h2>
+    <label for="ytTitleHint">Vorgeschlagener Titel (optional)</label>
+    <input type="text" id="ytTitleHint" placeholder="Z. B. Lektion 3 — Industrielle Revolution">
+    <label for="texto">Transkript oder Zusammenfassung</label>
+    <textarea id="texto" placeholder="Transkript oder Videozusammenfassung hier einfügen…"></textarea>
+    <label for="ytChapters">Kapitel (optional)</label>
+    <textarea id="ytChapters" class="oe-yt-form__chapters" placeholder="0:00 Einführung&#10;2:15 Hauptthema…"></textarea>
+    <div class="oe-yt-form__footer">
+      <div class="oe-yt-form__field">
+        <label for="ytLang">Sprache</label>
+        <select id="ytLang">
+          <option value="pt">Português</option>
+          <option value="en">English</option>
+          <option value="es">Español</option>
+          <option value="fr">Français</option>
+          <option value="de" selected>Deutsch</option>
+        </select>
+      </div>
+      <button type="button" class="oe-yt-form__submit" id="btnYoutube">▶️ Beschreibung generieren</button>
+    </div>
+  </section>
+
+  <div id="resultado" hidden></div>
+</div>
+
+<div id="footer"></div>
+
+<script src="../js/ouviescrevi-api.js"></script>
+<script src="../js/descricao-youtube-ui.js?v=1"></script>
+<script>
+  DescricaoYoutubeUI.init({ lang: "de" });
+  OuviescreviUI.loadHeader();
+  OuviescreviUI.loadFooter();
+</script>
+</body>
+</html>

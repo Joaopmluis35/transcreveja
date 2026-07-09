@@ -17,6 +17,7 @@
       truncated: "O texto foi truncado — os capítulos baseiam-se no início do conteúdo.",
       noTimestamps: "Sem timestamps detetados — os capítulos são lógicos (sem horários).",
       copyYoutube: "Copiar YouTube",
+      openYoutubeDesc: "Descrição YouTube",
       copyAll: "Copiar lista",
       copied: "Copiado!",
       copyFail: "Não foi possível copiar.",
@@ -33,6 +34,7 @@
       truncated: "Text was truncated — chapters are based on the beginning.",
       noTimestamps: "No timestamps detected — chapters are logical (no times).",
       copyYoutube: "Copy YouTube",
+      openYoutubeDesc: "YouTube description",
       copyAll: "Copy list",
       copied: "Copied!",
       copyFail: "Could not copy.",
@@ -130,6 +132,9 @@
       '<button type="button" class="oe-cap-result__btn oe-cap-result__btn--primary" data-cap-copy="youtube">' +
       escapeHtml(t("copyYoutube")) +
       "</button>" +
+      '<button type="button" class="oe-cap-result__btn" data-cap-youtube-desc>' +
+      escapeHtml(t("openYoutubeDesc")) +
+      "</button>" +
       "</div></header>" +
       '<ol class="oe-cap-chapters">' +
       list +
@@ -149,6 +154,30 @@
         }
       });
     });
+    var ytBtn = container.querySelector("[data-cap-youtube-desc]");
+    if (ytBtn) {
+      ytBtn.addEventListener("click", function () {
+        var ta = document.getElementById("texto");
+        var text = ta ? ta.value.trim() : "";
+        try {
+          if (text) sessionStorage.setItem("oe_youtube_desc_text", text);
+          if (lastResult) {
+            sessionStorage.setItem("oe_youtube_desc_chapters", youtubeLines(lastResult.chapters));
+          }
+        } catch (e) {}
+        var dest =
+          config.lang === "en"
+            ? "en/descricao-youtube.html"
+            : config.lang === "es"
+              ? "es/descricao-youtube.html"
+              : config.lang === "fr"
+                ? "fr/descricao-youtube.html"
+                : config.lang === "de"
+                  ? "de/descricao-youtube.html"
+                  : "descricao-youtube.html";
+        window.location.href = dest;
+      });
+    }
     container.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Da transcrição aos capítulos e à descrição do YouTube — assistente guiado com IA para podcasts e vídeos.">
+  <meta name="robots" content="index, follow">
+  <title>Assistente Podcast & YouTube — Capítulos e Descrição | Ouviescrevi</title>
+  <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
+  <link rel="stylesheet" href="css/ouviescrevi.css?v=15">
+  <link rel="stylesheet" href="css/descricao-youtube.css?v=1">
+  <link rel="stylesheet" href="css/podcast-youtube.css?v=1">
+  <script src="js/theme-ui.js"></script>
+  <script src="/js/ouviescrevi-seo.js" defer></script>
+  <script src="js/ouviescrevi-ui.js" defer></script>
+</head>
+<body class="oe-page oe-pro oe-page--podcast-youtube">
+<a class="oe-skip" href="#conteudo">Saltar para o conteúdo</a>
+<div id="header"></div>
+
+<div class="oe-pw-layout" id="conteudo">
+  <header class="oe-pw-hero">
+    <h1 data-cms-key="podcast_youtube_title" data-cms-mode="text">🎙️ Assistente Podcast & YouTube</h1>
+    <p class="oe-lead" data-cms-key="podcast_youtube_lead" data-cms-mode="text">Da transcrição aos capítulos e à descrição do YouTube — três passos com IA.</p>
+  </header>
+
+  <ol class="oe-pw-steps" aria-label="Passos">
+    <li id="pwStep1Label">1. Transcrição</li>
+    <li id="pwStep2Label">2. Capítulos</li>
+    <li id="pwStep3Label">3. Descrição YouTube</li>
+  </ol>
+
+  <section class="oe-pw-card" id="pwStep1">
+    <h2 class="oe-pw-step-title" id="pwStep1Title">Cola a transcrição</h2>
+    <p class="oe-pw-warn" id="pwStep1Hint">Funciona melhor com timestamps [MM:SS].</p>
+    <label for="pwTitleHint" id="pwTitleHintLabel">Título do episódio (opcional)</label>
+    <input type="text" id="pwTitleHint" placeholder="Ex.: Ep. 12 — Entrevista com…">
+    <textarea id="texto" placeholder="Cola aqui a transcrição com timestamps…"></textarea>
+    <div class="oe-pw-footer">
+      <div class="oe-pw-field">
+        <label for="pwLang" id="pwLangLabel">Idioma</label>
+        <select id="pwLang">
+          <option value="pt">Português</option>
+          <option value="en">English</option>
+          <option value="es">Español</option>
+          <option value="fr">Français</option>
+          <option value="de">Deutsch</option>
+        </select>
+      </div>
+      <div class="oe-pw-field">
+        <label for="pwMax" id="pwMaxLabel">Máx. capítulos</label>
+        <select id="pwMax">
+          <option value="8">8</option>
+          <option value="10">10</option>
+          <option value="12" selected>12</option>
+          <option value="15">15</option>
+        </select>
+      </div>
+      <button type="button" class="oe-pw-btn oe-pw-btn--purple" id="btnPwChapters">⏱️ Gerar capítulos</button>
+    </div>
+  </section>
+
+  <section class="oe-pw-card" id="pwStep2" hidden>
+    <h2 class="oe-pw-step-title" id="pwStep2Title">Capítulos gerados</h2>
+    <p id="pwChaptersWarn" class="oe-pw-warn" hidden></p>
+    <label id="pwChaptersPreviewLabel">Pré-visualização</label>
+    <pre class="oe-pw-chapters-preview" id="pwChaptersPreview"></pre>
+    <div class="oe-pw-footer">
+      <button type="button" class="oe-pw-btn oe-pw-btn--ghost" id="btnPwBack">← Voltar</button>
+      <button type="button" class="oe-pw-btn" id="btnPwYoutube">▶️ Gerar descrição YouTube</button>
+    </div>
+  </section>
+
+  <section id="pwStep3" hidden>
+    <h2 class="oe-pw-step-title" id="pwStep3Title">Descrição para YouTube</h2>
+    <div id="pwYoutubeResult"></div>
+  </section>
+</div>
+
+<div id="footer"></div>
+
+<script src="js/ouviescrevi-api.js"></script>
+<script src="js/podcast-youtube-ui.js?v=1"></script>
+<script>
+  PodcastYoutubeUI.init({ lang: "pt" });
+  OuviescreviUI.loadHeader();
+  OuviescreviUI.loadFooter();
+</script>
+</body>
+</html>

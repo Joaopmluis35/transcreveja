@@ -240,7 +240,7 @@
     });
   }
 
-  var LAYOUT_V = "8";
+  var LAYOUT_V = "10";
   var siteContentCache = null;
 
   function withLayoutVersion(url) {
@@ -501,25 +501,74 @@
     return a;
   }
 
+  function navToolsLocale(locale) {
+    if (locale === "pt" || locale === "en" || locale === "es" || locale === "fr" || locale === "de") {
+      return locale;
+    }
+    return "en";
+  }
+
   function builtinToolsForLocale(locale) {
     if (locale === "en") {
       return [
         { label: "Summarize PDF / Word", href: "resumo.html", page: "resumo", category: "Summarize & analyze" },
         { label: "URL Summary", href: "url-resumo.html", page: "url-resumo", category: "Summarize & analyze" },
         { label: "Chapters & timestamps", href: "capitulos.html", page: "capitulos", category: "Summarize & analyze" },
+        { label: "Podcast & YouTube", href: "podcast-youtube.html", page: "podcast-youtube", category: "Summarize & analyze" },
+        { label: "YouTube Description", href: "descricao-youtube.html", page: "descricao-youtube", category: "Summarize & analyze" },
         { label: "AI Questions", href: "perguntas.html", page: "perguntas", category: "Study & teaching" },
         { label: "Lesson Ready", href: "aula-pronta.html", page: "aula-pronta", category: "Study & teaching" },
+        { label: "Flashcards", href: "flashcards.html", page: "flashcards", category: "Study & teaching" },
         { label: "File Converter", href: "conversor.html", page: "conversor", category: "Convert & edit" },
         { label: "Image Converter", href: "conversor-imagens.html", page: "conversor-imagens", category: "Convert & edit" },
         { label: "Text proofreader", href: "corretor.html", page: "corretor", category: "Convert & edit" },
+      ];
+    }
+    if (locale === "es") {
+      return [
+        { label: "Resumen PDF / Word", href: "resumo.html", page: "resumo", category: "Resumir y analizar" },
+        { label: "Resumen por URL", href: "url-resumo.html", page: "url-resumo", category: "Resumir y analizar" },
+        { label: "Podcast y YouTube", href: "podcast-youtube.html", page: "podcast-youtube", category: "Resumir y analizar" },
+        { label: "Descripción YouTube", href: "descricao-youtube.html", page: "descricao-youtube", category: "Resumir y analizar" },
+        { label: "Preguntas con IA", href: "perguntas.html", page: "perguntas", category: "Estudio y enseñanza" },
+        { label: "Flashcards", href: "flashcards.html", page: "flashcards", category: "Estudio y enseñanza" },
+        { label: "Conversor de archivos", href: "conversor.html", page: "conversor", category: "Convertir y corregir" },
+        { label: "Corrector de texto", href: "corretor.html", page: "corretor", category: "Convertir y corregir" },
+      ];
+    }
+    if (locale === "fr") {
+      return [
+        { label: "Résumé PDF / Word", href: "resumo.html", page: "resumo", category: "Résumer et analyser" },
+        { label: "Résumé par URL", href: "url-resumo.html", page: "url-resumo", category: "Résumer et analyser" },
+        { label: "Podcast & YouTube", href: "podcast-youtube.html", page: "podcast-youtube", category: "Résumer et analyser" },
+        { label: "Description YouTube", href: "descricao-youtube.html", page: "descricao-youtube", category: "Résumer et analyser" },
+        { label: "Questions IA", href: "perguntas.html", page: "perguntas", category: "Étude et enseignement" },
+        { label: "Flashcards", href: "flashcards.html", page: "flashcards", category: "Étude et enseignement" },
+        { label: "Convertisseur de fichiers", href: "conversor.html", page: "conversor", category: "Convertir et corriger" },
+        { label: "Correcteur de texte", href: "corretor.html", page: "corretor", category: "Convertir et corriger" },
+      ];
+    }
+    if (locale === "de") {
+      return [
+        { label: "PDF-/Word-Zusammenfassung", href: "resumo.html", page: "resumo", category: "Zusammenfassen & analysieren" },
+        { label: "URL-Zusammenfassung", href: "url-resumo.html", page: "url-resumo", category: "Zusammenfassen & analysieren" },
+        { label: "Podcast & YouTube", href: "podcast-youtube.html", page: "podcast-youtube", category: "Zusammenfassen & analysieren" },
+        { label: "YouTube-Beschreibung", href: "descricao-youtube.html", page: "descricao-youtube", category: "Zusammenfassen & analysieren" },
+        { label: "KI-Fragen", href: "perguntas.html", page: "perguntas", category: "Lernen & Unterricht" },
+        { label: "Karteikarten", href: "flashcards.html", page: "flashcards", category: "Lernen & Unterricht" },
+        { label: "Dateikonverter", href: "conversor.html", page: "conversor", category: "Konvertieren & korrigieren" },
+        { label: "Textkorrektur", href: "corretor.html", page: "corretor", category: "Konvertieren & korrigieren" },
       ];
     }
     return [
       { label: "Resumo PDF / Word", href: "resumo.html", page: "resumo", category: "Resumir e analisar" },
       { label: "Resumo por URL", href: "url-resumo.html", page: "url-resumo", category: "Resumir e analisar" },
       { label: "Capítulos & timestamps", href: "capitulos.html", page: "capitulos", category: "Resumir e analisar" },
+      { label: "Podcast & YouTube", href: "podcast-youtube.html", page: "podcast-youtube", category: "Resumir e analisar" },
+      { label: "Descrição YouTube", href: "descricao-youtube.html", page: "descricao-youtube", category: "Resumir e analisar" },
       { label: "Perguntas com IA", href: "perguntas.html", page: "perguntas", category: "Estudo e ensino" },
       { label: "Aula Pronta", href: "aula-pronta.html", page: "aula-pronta", category: "Estudo e ensino" },
+      { label: "Flashcards", href: "flashcards.html", page: "flashcards", category: "Estudo e ensino" },
       { label: "Conversor de ficheiros", href: "conversor.html", page: "conversor", category: "Converter e corrigir" },
       { label: "Conversor de imagens", href: "conversor-imagens.html", page: "conversor-imagens", category: "Converter e corrigir" },
       { label: "Corretor de texto", href: "corretor.html", page: "corretor", category: "Converter e corrigir" },
@@ -527,7 +576,7 @@
   }
 
   function mergeToolsConfig(stored, locale) {
-    var builtin = builtinToolsForLocale(locale === "pt" ? "pt" : "en");
+    var builtin = builtinToolsForLocale(navToolsLocale(locale));
     var storedMap = {};
     (stored || []).forEach(function (item) {
       if (item && item.page) storedMap[item.page] = item;
@@ -692,7 +741,7 @@
     var toolsMenu = document.querySelector('[data-nav-slot="tools"]');
     var audienceMenu = document.querySelector('[data-nav-slot="audience"]');
     var topLinks = document.querySelector('[data-nav-slot="top-links"]');
-    var toolsLocale = locale === "pt" ? "pt" : "en";
+    var toolsLocale = navToolsLocale(locale);
     var mergedTools = mergeToolsConfig(
       enrichToolsWithCategories(cfg.tools, fallbackDefaults && fallbackDefaults.tools),
       toolsLocale

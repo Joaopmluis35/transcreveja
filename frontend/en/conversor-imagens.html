@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Convert images between PNG, JPEG, WebP, AVIF, BMP and GIF in your browser. Free and private — files never leave your device.">
+  <meta name="description" content="Convert, compress and resize images in your browser. PNG, JPEG, WebP, AVIF, BMP and GIF — free and private.">
   <meta name="robots" content="index, follow">
-  <title>Image Converter — PNG, JPEG, WebP, AVIF, BMP, GIF | Ouviescrevi</title>
+  <title>Image Tool — Convert, Compress & Resize | Ouviescrevi</title>
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
   <link rel="stylesheet" href="../css/ouviescrevi.css?v=15">
-  <link rel="stylesheet" href="../css/conversor-imagens.css?v=2">
+  <link rel="stylesheet" href="../css/conversor-imagens.css?v=3">
   <script src="../js/theme-ui.js"></script>
   <script src="/js/ouviescrevi-seo.js" defer></script>
   <script src="../js/ouviescrevi-ui.js" defer></script>
@@ -20,7 +20,7 @@
 <div class="oe-cimg-layout" id="conteudo">
   <header class="oe-cimg-hero">
     <h1 data-cms-key="en_conversor_imagens_title" data-cms-mode="text">🖼️ Image Converter</h1>
-    <p class="oe-lead" data-cms-key="en_conversor_imagens_lead" data-cms-mode="text">Convert JPG, PNG, WebP, GIF and more — entirely in your browser, private and free.</p>
+    <p class="oe-lead" data-cms-key="en_conversor_imagens_lead" data-cms-mode="text">Convert, compress and resize JPG, PNG, WebP and more — entirely in your browser, private and free.</p>
   </header>
 
   <section class="oe-cimg-card" aria-labelledby="cimgFormTitle">
@@ -35,6 +35,14 @@
     <p class="oe-cimg-meta" id="cimgMeta"></p>
     <div class="oe-cimg-batch" id="cimgBatch" hidden></div>
 
+    <div class="oe-cimg-modes" role="tablist" aria-label="Mode">
+      <button type="button" class="oe-cimg-mode is-active" data-mode="convert" role="tab" aria-selected="true" id="cimgModeConvert">Convert</button>
+      <button type="button" class="oe-cimg-mode" data-mode="compress" role="tab" id="cimgModeCompress">Compress</button>
+      <button type="button" class="oe-cimg-mode" data-mode="resize" role="tab" id="cimgModeResize">Resize</button>
+      <button type="button" class="oe-cimg-mode" data-mode="pdf" role="tab" id="cimgModePdf">Merge to PDF</button>
+    </div>
+
+    <div class="oe-cimg-panel" id="cimgPanelConvert">
     <div class="oe-cimg-options">
       <div>
         <label for="cimgFormat" id="cimgFormatLabel">Convert to</label>
@@ -48,6 +56,59 @@
           <output id="cimgQualityOut" for="cimgQuality">90</output>
         </div>
       </div>
+    </div>
+    </div>
+
+    <div class="oe-cimg-panel" id="cimgPanelCompress" hidden>
+      <div class="oe-cimg-options">
+        <div>
+          <label for="cimgCompressFormat" id="cimgCompressFormatLabel">Output format</label>
+          <select id="cimgCompressFormat">
+            <option value="image/webp">WebP (.webp)</option>
+            <option value="image/jpeg">JPEG (.jpg)</option>
+          </select>
+        </div>
+        <div id="cimgCompressQualityRow">
+          <label for="cimgCompressQuality" id="cimgCompressQualityLabel">Quality</label>
+          <div class="oe-cimg-quality">
+            <input type="range" id="cimgCompressQuality" min="30" max="95" value="75">
+            <output id="cimgCompressQualityOut" for="cimgCompressQuality">75</output>
+          </div>
+        </div>
+      </div>
+      <p class="oe-cimg-format-hint" id="cimgCompressHint">Reduce file size while keeping good visual quality.</p>
+    </div>
+
+    <div class="oe-cimg-panel" id="cimgPanelResize" hidden>
+      <div class="oe-cimg-options">
+        <div>
+          <label for="cimgMaxWidth" id="cimgMaxWidthLabel">Max width (px)</label>
+          <select id="cimgMaxWidth">
+            <option value="1920" selected>1920 px (Full HD)</option>
+            <option value="1200">1200 px (web)</option>
+            <option value="800">800 px</option>
+            <option value="640">640 px (thumbnail)</option>
+            <option value="custom">Custom…</option>
+          </select>
+        </div>
+        <div id="cimgCustomWidthRow" hidden>
+          <label for="cimgCustomWidth" id="cimgCustomWidthLabel">Custom width</label>
+          <input type="number" id="cimgCustomWidth" min="100" max="8000" value="1200" class="oe-cimg-num">
+        </div>
+        <div>
+          <label for="cimgResizeFormat" id="cimgResizeFormatLabel">Save as</label>
+          <select id="cimgResizeFormat">
+            <option value="keep">Same format</option>
+            <option value="image/jpeg">JPEG (.jpg)</option>
+            <option value="image/webp">WebP (.webp)</option>
+            <option value="image/png">PNG (.png)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="oe-cimg-panel" id="cimgPanelPdf" hidden>
+      <p class="oe-cimg-format-hint" id="cimgPdfHint">One image per A4 page — great for documents or slide decks.</p>
     </div>
 
     <div class="oe-cimg-actions">
@@ -65,7 +126,7 @@
 
 <div id="footer"></div>
 
-<script src="../js/conversor-imagens-ui.js?v=2"></script>
+<script src="../js/conversor-imagens-ui.js?v=4"></script>
 <script>
   ConversorImagensUI.init({ lang: "en" });
   OuviescreviUI.loadHeader();

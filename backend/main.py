@@ -2870,6 +2870,219 @@ Texto completo:
         logger.exception("Erro em /generate-chapters")
         raise HTTPException(status_code=500, detail=str(e)) from e
 
+_FLASHCARDS_MAX_CHARS = 14_000
+_YOUTUBE_DESC_MAX_CHARS = 16_000
+
+
+class FlashcardsRequest(BaseModel):
+    text: str
+    token: str = ""
+    lang: str = "pt"
+    num_cards: int = 15
+
+
+class YoutubeDescriptionRequest(BaseModel):
+    text: str
+    token: str = ""
+    lang: str = "pt"
+    title_hint: str = ""
+    chapters_text: str = ""
+
+
+@app.post("/generate-flashcards")
+async def generate_flashcards(req: FlashcardsRequest, request: Request):
+    """Flashcards (frente/verso) a partir de texto ou transcrição."""
+    require_token(req.token)
+    enforce_rate_limit(request, "ai", RATE_LIMIT_AI, RATE_LIMIT_AI_WINDOW)
+
+    source = (req.text or "").strip()
+    if len(source) < 80:
+        raise HTTPException(status_code=400, detail="Texto demasiado curto (mín. ~80 caracteres).")
+
+    lang = (req.lang or "pt").lower()
+    if lang not in ("pt", "en", "es", "fr", "de"):
+        lang = "pt"
+    n_cards = max(5, min(30, int(req.num_cards or 15)))
+
+    truncated = False
+    if len(source) > _FLASHCARDS_MAX_CHARS:
+        source = source[:_FLASHCARDS_MAX_CHARS]
+        truncated = True
+
+    lang_names = {
+        "pt": "português de Portugal",
+        "en": "English",
+        "es": "español",
+        "fr": "français",
+        "de": "Deutsch",
+    }
+    lang_label = lang_names[lang]
+
+    sys = (
+        "És um assistente pedagógico. Respondes APENAS com JSON válido, sem markdown."
+    )
+    prompt = f"""Cria exatamente {n_cards} flashcards de estudo em {lang_label} a partir do texto abaixo.
+
+Devolve um objeto JSON:
+- "title": título curto do conjunto (string)
+- "cards": lista de exatamente {n_cards} cartões, cada um com:
+    "front" (pergunta ou termo, string curta),
+    "back" (resposta ou definição, string clara)
+
+Regras:
+- Cartões variados: conceitos, definições, factos-chave e perguntas rápidas.
+- Frente concisa; verso completo mas sem parágrafos enormes.
+- Tudo em {lang_label}, mesmo que o texto fonte seja outro idioma.
+- Sem texto fora do JSON.
+
+Texto:
+{source}"""
+
+    try:
+        resp = client.chat.completions.create(
+            model=SUM_MODEL,
+            messages=[{"role": "system", "content": sys}, {"role": "user", "content": prompt}],
+            temperature=0.5,
+            max_tokens=2800,
+            response_format={"type": "json_object"},
+        )
+        raw = resp.choices[0].message.content.strip()
+        data = _parse_llm_json(raw)
+        cards = data.get("cards") or []
+        if not isinstance(cards, list) or not cards:
+            raise ValueError("Sem cartões")
+        normalized = []
+        for i, card in enumerate(cards):
+            if not isinstance(card, dict):
+                continue
+            front = str(card.get("front") or "").strip()
+            back = str(card.get("back") or "").strip()
+            if front and back:
+                normalized.append({"index": i + 1, "front": front, "back": back})
+        if not normalized:
+            raise ValueError("Cartões vazios")
+        maybe_notify_activity(
+            request,
+            "Flashcards gerados",
+            "Conjunto de flashcards criado no Ouviescrevi",
+        )
+        return {
+            "title": data.get("title") or "",
+            "cards": normalized,
+            "num_cards": len(normalized),
+            "truncated": truncated,
+        }
+    except json.JSONDecodeError as e:
+        logger.exception("Flashcards JSON inválido")
+        raise HTTPException(status_code=500, detail="Resposta inválida do modelo. Tenta novamente.") from e
+    except Exception as e:
+        logger.exception("Erro em /generate-flashcards")
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+@app.post("/generate-youtube-description")
+async def generate_youtube_description(req: YoutubeDescriptionRequest, request: Request):
+    """Título, descrição e tags para YouTube a partir de transcrição/resumo."""
+    require_token(req.token)
+    enforce_rate_limit(request, "ai", RATE_LIMIT_AI, RATE_LIMIT_AI_WINDOW)
+
+    source = (req.text or "").strip()
+    if len(source) < 120:
+        raise HTTPException(status_code=400, detail="Texto demasiado curto (mín. ~120 caracteres).")
+
+    lang = (req.lang or "pt").lower()
+    if lang not in ("pt", "en", "es", "fr", "de"):
+        lang = "pt"
+
+    truncated = False
+    if len(source) > _YOUTUBE_DESC_MAX_CHARS:
+        source = source[:_YOUTUBE_DESC_MAX_CHARS]
+        truncated = True
+
+    chapters_block = (req.chapters_text or "").strip()
+    title_hint = (req.title_hint or "").strip()
+
+    lang_names = {
+        "pt": "português de Portugal",
+        "en": "English",
+        "es": "español",
+        "fr": "français",
+        "de": "Deutsch",
+    }
+    lang_label = lang_names[lang]
+
+    chapters_note = ""
+    if chapters_block:
+        chapters_note = (
+            "\n\nCapítulos já definidos (inclui estes na descrição, um por linha, formato 0:00 Título):\n"
+            + chapters_block[:3000]
+        )
+
+    hint_note = f'\nSugestão de título do criador: "{title_hint}"\n' if title_hint else ""
+
+    sys = (
+        "És um especialista em SEO para YouTube e podcasts. Respondes APENAS com JSON válido, sem markdown."
+    )
+    prompt = f"""Cria metadados para um vídeo YouTube em {lang_label} com base no conteúdo abaixo.
+{hint_note}{chapters_note}
+
+Devolve um objeto JSON:
+- "titles": lista de 3 títulos alternativos (strings, máx. ~70 caracteres, apelativos e claros)
+- "description": descrição completa para YouTube (string com parágrafos usando \\n):
+    * 2-3 frases de gancho no início
+    * bullet points ou lista do que o espectador aprende (3-6 itens)
+    * bloco "Capítulos:" com timestamps se fornecidos ou inferidos do texto (formato M:SS ou H:MM:SS + título, um por linha)
+    * linha final: "Gerado com Ouviescrevi — transcrição e IA grátis"
+- "tags": lista de 8-15 tags/palavras-chave (strings curtas, sem #)
+
+Regras:
+- Tudo em {lang_label}.
+- Descrição pronta a colar no YouTube (sem markdown).
+- Tags relevantes para descoberta, separadas conceptualmente.
+
+Conteúdo:
+{source}"""
+
+    try:
+        resp = client.chat.completions.create(
+            model=SUM_MODEL,
+            messages=[{"role": "system", "content": sys}, {"role": "user", "content": prompt}],
+            temperature=0.55,
+            max_tokens=2800,
+            response_format={"type": "json_object"},
+        )
+        raw = resp.choices[0].message.content.strip()
+        data = _parse_llm_json(raw)
+        titles = data.get("titles") or []
+        description = str(data.get("description") or "").strip()
+        tags = data.get("tags") or []
+        if not description:
+            raise ValueError("Descrição vazia")
+        if not isinstance(titles, list):
+            titles = []
+        if not isinstance(tags, list):
+            tags = []
+        titles = [str(t).strip() for t in titles if str(t).strip()][:5]
+        tags = [str(t).strip() for t in tags if str(t).strip()][:20]
+        maybe_notify_activity(
+            request,
+            "Descrição YouTube gerada",
+            "Metadados YouTube criados no Ouviescrevi",
+        )
+        return {
+            "titles": titles,
+            "description": description,
+            "tags": tags,
+            "tags_csv": ", ".join(tags),
+            "truncated": truncated,
+        }
+    except json.JSONDecodeError as e:
+        logger.exception("YouTube description JSON inválido")
+        raise HTTPException(status_code=500, detail="Resposta inválida do modelo. Tenta novamente.") from e
+    except Exception as e:
+        logger.exception("Erro em /generate-youtube-description")
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
 def extract_url_article_text(html_bytes: bytes) -> str:
     soup = BeautifulSoup(html_bytes, "html.parser")
     for tag in soup(["script", "style", "nav", "footer", "noscript", "iframe", "svg", "form"]):

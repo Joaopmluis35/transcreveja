@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Erstellen Sie Lernkarteikarten mit KI aus Text oder Transkript. Vorder- und Rückseite zum Wiederholen.">
+  <meta name="robots" content="index, follow">
+  <title>KI-Karteikarten — Lernen & Merken | Ouviescrevi</title>
+  <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
+  <link rel="stylesheet" href="../css/ouviescrevi.css">
+  <link rel="stylesheet" href="../css/flashcards.css?v=1">
+  <script src="../js/theme-ui.js"></script>
+  <script src="/js/ouviescrevi-seo.js" defer></script>
+  <script src="../js/ouviescrevi-ui.js" defer></script>
+</head>
+<body class="oe-page oe-pro oe-page--flashcards">
+<a class="oe-skip" href="#conteudo">Zum Inhalt springen</a>
+<div id="header"></div>
+
+<div class="oe-fc-layout" id="conteudo">
+  <header class="oe-fc-hero">
+    <h1 data-cms-key="de_flashcards_title" data-cms-mode="text">🃏 KI-Karteikarten</h1>
+    <p class="oe-lead" data-cms-key="de_flashcards_lead" data-cms-mode="text">Fügen Sie ein Transkript oder Notizen ein und erhalten Sie Lernkarten (Vorder-/Rückseite) zum Wiederholen.</p>
+  </header>
+
+  <section class="oe-fc-form" aria-labelledby="fcFormTitle">
+    <h2 class="oe-visually-hidden" id="fcFormTitle">Karteikarten generieren</h2>
+    <textarea id="texto"></textarea>
+    <div class="oe-fc-form__footer">
+      <div class="oe-fc-form__field">
+        <label for="fcLang">Sprache der Karten</label>
+        <select id="fcLang">
+          <option value="pt">Português</option>
+          <option value="en">English</option>
+          <option value="es">Español</option>
+          <option value="fr">Français</option>
+          <option value="de" selected>Deutsch</option>
+        </select>
+      </div>
+      <div class="oe-fc-form__field">
+        <label for="fcCount">Anzahl Karten</label>
+        <select id="fcCount">
+          <option value="10">10</option>
+          <option value="15" selected>15</option>
+          <option value="20">20</option>
+          <option value="25">25</option>
+        </select>
+      </div>
+      <button type="button" class="oe-fc-form__submit" id="btnFlashcards">🃏 Karteikarten generieren</button>
+    </div>
+  </section>
+
+  <div id="resultado" hidden></div>
+</div>
+
+<div id="footer"></div>
+
+<script src="../js/ouviescrevi-api.js"></script>
+<script src="../js/flashcards-ui.js?v=1"></script>
+<script>
+  FlashcardsUI.init({ lang: "de" });
+  OuviescreviUI.loadHeader();
+  OuviescreviUI.loadFooter();
+</script>
+</body>
+</html>

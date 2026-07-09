@@ -150,6 +150,9 @@
                 <button id="btnGerarResumo" type="button"><span>🧠 Gerar Resumo</span></button>
                 <button type="button" onclick="abrirAulaPronta()"><span>📦 Aula Pronta</span></button>
                 <button type="button" onclick="abrirCapitulos()"><span>⏱️ Capítulos</span></button>
+                <button type="button" onclick="abrirPodcastYoutube()"><span>🎙️ Podcast/YouTube</span></button>
+                <button type="button" onclick="abrirFlashcards()"><span>🃏 Flashcards</span></button>
+                <button type="button" onclick="abrirDescricaoYoutube()"><span>▶️ YouTube</span></button>
                 <button type="button" onclick="corrigirTextoIA()"><span>📝 Corrigir Texto</span></button>
                 <button type="button" onclick="abrirModalTraducao()"><span>🌍 Traduzir</span></button>
                 <button type="button" onclick="classificarConteudo()"><span>📚 Classificar</span></button>
@@ -2215,6 +2218,33 @@
       sessionStorage.setItem("oe_capitulos_text", text);
     } catch (e) {}
     window.location.href = "capitulos.html";
+  }
+
+  function abrirPodcastYoutube() {
+    const text = transcriptionText.value.trim();
+    if (!text) return alert("⚠️ Transcrição vazia.");
+    try {
+      sessionStorage.setItem("oe_podcast_wizard_text", text);
+    } catch (e) {}
+    window.location.href = "podcast-youtube.html";
+  }
+
+  function abrirFlashcards() {
+    const text = transcriptionText.value.trim();
+    if (!text) return alert("⚠️ Transcrição vazia.");
+    try {
+      sessionStorage.setItem("oe_flashcards_text", text);
+    } catch (e) {}
+    window.location.href = "flashcards.html";
+  }
+
+  function abrirDescricaoYoutube() {
+    const text = transcriptionText.value.trim();
+    if (!text) return alert("⚠️ Transcrição vazia.");
+    try {
+      sessionStorage.setItem("oe_youtube_desc_text", text);
+    } catch (e) {}
+    window.location.href = "descricao-youtube.html";
   }
 
   async function gerarMinuta(){
