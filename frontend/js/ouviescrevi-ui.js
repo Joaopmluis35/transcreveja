@@ -221,7 +221,7 @@
     }
     return new Promise(function (resolve) {
       var s = document.createElement("script");
-      s.src = "/js/news-ticker.js?v=1";
+      s.src = "/js/news-ticker.js?v=2";
       s.dataset.oeNewsTicker = "1";
       s.onload = function () {
         s.setAttribute("data-ready", "1");

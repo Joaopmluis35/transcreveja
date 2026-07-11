@@ -1,42 +1,52 @@
 (function (global) {
   "use strict";
 
-  var RELEASE = "25/06/2026";
+  var RELEASE = "11/07/2026";
 
   var PACKS = {
     pt: {
       badge: "NOVO",
       items: [
-        "Partilha no WhatsApp disponível",
-        "Legendar vídeo (SRT + MP4)",
+        "Flashcards com IA — PDF e impressão personalizada",
+        "Assistente Aula completa: transcrição → flashcards",
+        "Descrição YouTube com IA",
+        "Conversor de imagens: comprimir e unir em PDF",
       ],
     },
     en: {
       badge: "NEW",
       items: [
-        "Share on WhatsApp available",
-        "Video subtitling (SRT + MP4)",
+        "AI flashcards — custom PDF export and print",
+        "Full Lesson Assistant: transcript to flashcards",
+        "AI YouTube descriptions",
+        "Image converter: compress and merge to PDF",
       ],
     },
     es: {
       badge: "NUEVO",
       items: [
-        "Compartir en WhatsApp disponible",
-        "Subtitular vídeo (SRT + MP4)",
+        "Flashcards con IA — PDF e impresión personalizada",
+        "Asistente Clase completa: transcripción → flashcards",
+        "Descripción YouTube con IA",
+        "Conversor de imágenes: comprimir y unir en PDF",
       ],
     },
     fr: {
       badge: "NOUVEAU",
       items: [
-        "Partage sur WhatsApp disponible",
-        "Sous-titrage vidéo (SRT + MP4)",
+        "Flashcards IA — PDF et impression personnalisée",
+        "Assistant Cours complet : transcription → flashcards",
+        "Descriptions YouTube par IA",
+        "Convertisseur d'images : compresser et fusionner en PDF",
       ],
     },
     de: {
       badge: "NEU",
       items: [
-        "WhatsApp-Teilen verfügbar",
-        "Video-Untertitel (SRT + MP4)",
+        "KI-Karteikarten — PDF exportieren und drucken",
+        "Assistent Vollständige Lektion: Transkript → Karteikarten",
+        "YouTube-Beschreibungen mit KI",
+        "Bildkonverter: komprimieren und zu PDF zusammenführen",
       ],
     },
   };
@@ -47,7 +57,7 @@
   }
 
   function displayDate(code) {
-    if (code === "de") return "25.06.2026";
+    if (code === "de") return "11.07.2026";
     return RELEASE;
   }
 

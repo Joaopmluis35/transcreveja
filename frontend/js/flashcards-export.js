@@ -263,20 +263,20 @@
       ".card{border:" +
       border +
       ";border-radius:8px;padding:0;display:flex;flex-direction:column;overflow:hidden;background:#fff;position:relative;min-height:0;}" +
-      ".card--single{padding:14px 16px;}" +
+      ".card--single{padding:16px 18px;display:flex;flex-direction:column;gap:14px;}" +
       ".card--study{justify-content:stretch;}" +
       ".card--fold{flex-direction:row;gap:0;padding:0;}" +
-      ".card__side{flex:1;min-height:0;padding:14px 16px;display:flex;flex-direction:column;overflow:hidden;}" +
+      ".card__side{flex:1;min-height:0;padding:16px 18px;display:flex;flex-direction:column;overflow:hidden;gap:14px;}" +
       ".card__side--back{background:#faf5ff;}" +
-      ".card__half{flex:1;padding:14px 16px;display:flex;flex-direction:column;border-right:1px dashed #cbd5e1;overflow:hidden;min-height:0;}" +
+      ".card__half{flex:1;padding:16px 18px;display:flex;flex-direction:column;gap:14px;border-right:1px dashed #cbd5e1;overflow:hidden;min-height:0;}" +
       ".card__half:last-child{border-right:none;}" +
       ".card__num{position:absolute;top:8px;right:10px;font-size:9px;color:#94a3b8;font-weight:700;z-index:1;}" +
       ".card__label{display:block;flex-shrink:0;font-size:" +
       fs.label +
-      "px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6d28d9;margin:0 0 10px;line-height:1.2;}" +
+      "px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6d28d9;margin:0;padding:0;line-height:1.35;}" +
       ".card__text{font-size:" +
       fs.body +
-      "px;line-height:1.45;white-space:pre-wrap;word-break:break-word;flex:1;min-height:0;overflow:hidden;}" +
+      "px;line-height:1.5;white-space:pre-wrap;word-break:break-word;flex:1;min-height:0;overflow:hidden;margin:0;padding:0;}" +
       ".card__divider{flex-shrink:0;height:1px;background:#cbd5e1;margin:0;}" +
       "@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}"
     );
@@ -454,15 +454,16 @@
   function drawSideBlock(doc, x, y, w, h, label, text, fs) {
     var labelSize = fs.label || 8;
     var bodySize = fs.body || 10;
-    var labelY = y + labelSize + 2;
+    var labelGap = Math.max(16, bodySize * 1.1);
+    var labelY = y + labelSize + 4;
     doc.setFontSize(labelSize);
     doc.setTextColor(109, 40, 217);
     doc.text(String(label || "").toUpperCase(), x, labelY);
-    var textStartY = labelY + 8;
+    var textStartY = labelY + labelGap;
     doc.setFontSize(bodySize);
     doc.setTextColor(15, 23, 42);
     var lines = doc.splitTextToSize(String(text || ""), w);
-    var lineH = bodySize * 0.48;
+    var lineH = bodySize * 0.52;
     var maxLines = Math.max(1, Math.floor((y + h - textStartY) / lineH));
     doc.text(lines.slice(0, maxLines), x, textStartY);
   }
