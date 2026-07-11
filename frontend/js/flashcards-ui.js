@@ -13,6 +13,7 @@
       loading: "A gerar flashcards…",
       needText: "Introduz texto (mín. ~80 caracteres).",
       error: "Erro ao gerar flashcards.",
+      errorTitle: "Não foi possível gerar os flashcards",
       truncated: "O texto foi truncado — os cartões baseiam-se no início do conteúdo.",
       copyAll: "Copiar tudo",
       exportAnki: "Exportar Anki",
@@ -30,6 +31,7 @@
       loading: "Generating flashcards…",
       needText: "Paste some text first (min. ~80 characters).",
       error: "Error generating flashcards.",
+      errorTitle: "Could not generate flashcards",
       truncated: "Text was truncated — cards are based on the beginning.",
       copyAll: "Copy all",
       exportAnki: "Export Anki",
@@ -47,6 +49,7 @@
       loading: "Generando flashcards…",
       needText: "Introduce texto (mín. ~80 caracteres).",
       error: "Error al generar flashcards.",
+      errorTitle: "No se pudieron generar las flashcards",
       truncated: "El texto fue truncado — las tarjetas se basan en el inicio.",
       copyAll: "Copiar todo",
       exportAnki: "Exportar Anki",
@@ -64,6 +67,7 @@
       loading: "Génération des flashcards…",
       needText: "Saisissez du texte (min. ~80 caractères).",
       error: "Erreur lors de la génération.",
+      errorTitle: "Impossible de générer les flashcards",
       truncated: "Texte tronqué — les cartes sont basées sur le début.",
       copyAll: "Tout copier",
       exportAnki: "Exporter Anki",
@@ -81,6 +85,7 @@
       loading: "Karteikarten werden erstellt…",
       needText: "Text eingeben (min. ~80 Zeichen).",
       error: "Fehler beim Generieren.",
+      errorTitle: "Karteikarten konnten nicht erstellt werden",
       truncated: "Text gekürzt — Karten basieren auf dem Anfang.",
       copyAll: "Alles kopieren",
       exportAnki: "Anki exportieren",
@@ -169,12 +174,46 @@
     );
   }
 
+  function renderError(container, message) {
+    container.innerHTML =
+      '<div class="oe-fc-error" role="alert">' +
+      '<p class="oe-fc-error__title">' +
+      escapeHtml(t("errorTitle")) +
+      "</p>" +
+      "<p>" +
+      escapeHtml(message || t("error")) +
+      "</p></div>";
+    container.hidden = false;
+    lastData = null;
+  }
+
+  function bindFlashcardCards(root, cardLabel) {
+    if (!root) return;
+    root.querySelectorAll(".oe-fc-card").forEach(function (btn, i) {
+      btn.setAttribute("aria-pressed", "false");
+      if (!btn.getAttribute("aria-label")) {
+        btn.setAttribute("aria-label", (cardLabel || t("card")) + " " + (i + 1));
+      }
+      function flip() {
+        var flipped = btn.classList.toggle("is-flipped");
+        btn.setAttribute("aria-pressed", flipped ? "true" : "false");
+      }
+      btn.addEventListener("click", flip);
+      btn.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          flip();
+        }
+      });
+    });
+  }
+
   function renderResult(container, data, truncated) {
     lastData = data;
     var cards = (data.cards || [])
       .map(function (c) {
         return (
-          '<button type="button" class="oe-fc-card" aria-label="' +
+          '<button type="button" class="oe-fc-card" aria-pressed="false" aria-label="' +
           escapeHtml(t("card") + " " + c.index) +
           '">' +
           '<span class="oe-fc-card__inner">' +
@@ -220,12 +259,9 @@
       cards +
       "</div></div>";
 
+    container.setAttribute("aria-live", "polite");
     container.hidden = false;
-    container.querySelectorAll(".oe-fc-card").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        btn.classList.toggle("is-flipped");
-      });
-    });
+    bindFlashcardCards(container, t("card"));
     var copyBtn = document.getElementById("btnFcCopy");
     if (copyBtn) {
       copyBtn.addEventListener("click", function () {
@@ -277,8 +313,7 @@
       });
       var data = await res.json();
       if (!res.ok) {
-        out.innerHTML = "<pre>" + escapeHtml(data.detail || t("error")) + "</pre>";
-        out.hidden = false;
+        renderError(out, data.detail || t("error"));
         return;
       }
       renderResult(out, data, !!data.truncated);
@@ -308,5 +343,5 @@
     } catch (e) {}
   }
 
-  global.FlashcardsUI = { init: init };
+  global.FlashcardsUI = { init: init, bindFlashcardCards: bindFlashcardCards };
 })(typeof window !== "undefined" ? window : this);

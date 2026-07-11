@@ -226,8 +226,12 @@
     document.querySelectorAll(".oe-pw-steps li").forEach(function (li, i) {
       var n = i + 1;
       li.classList.remove("is-active", "is-done");
+      li.removeAttribute("aria-current");
       if (n < state.step) li.classList.add("is-done");
-      if (n === state.step) li.classList.add("is-active");
+      if (n === state.step) {
+        li.classList.add("is-active");
+        li.setAttribute("aria-current", "step");
+      }
     });
     ["acStep1", "acStep2", "acStep3", "acStep4"].forEach(function (id, i) {
       var el = document.getElementById(id);
@@ -275,9 +279,11 @@
 
   function renderFlashcards(container, data) {
     var cards = (data.cards || [])
-      .map(function (c) {
+      .map(function (c, i) {
         return (
-          '<button type="button" class="oe-fc-card">' +
+          '<button type="button" class="oe-fc-card" aria-pressed="false" aria-label="' +
+          escapeHtml(t("card") + " " + (i + 1)) +
+          '">' +
           '<span class="oe-fc-card__inner">' +
           '<span class="oe-fc-card__face oe-fc-card__face--front">' +
           '<span class="oe-fc-card__label">' +
@@ -321,11 +327,15 @@
       escapeHtml(t("restart")) +
       "</button></div>";
 
-    container.querySelectorAll(".oe-fc-card").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        btn.classList.toggle("is-flipped");
+    if (global.FlashcardsUI && global.FlashcardsUI.bindFlashcardCards) {
+      global.FlashcardsUI.bindFlashcardCards(container, t("card"));
+    } else {
+      container.querySelectorAll(".oe-fc-card").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          btn.classList.toggle("is-flipped");
+        });
       });
-    });
+    }
     var copyBtn = document.getElementById("btnAcCopyCards");
     if (copyBtn) copyBtn.addEventListener("click", function () {
       copyText(cardsToPlain(data));

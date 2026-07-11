@@ -31,6 +31,12 @@
     "podcast-youtube": { pt: "podcast-youtube.html", en: "podcast-youtube.html", es: "podcast-youtube.html", fr: "podcast-youtube.html", de: "podcast-youtube.html" },
     "descricao-youtube": { pt: "descricao-youtube.html", en: "descricao-youtube.html", es: "descricao-youtube.html", fr: "descricao-youtube.html", de: "descricao-youtube.html" },
     corretor: { pt: "corretor.html", en: "corretor.html", es: "corretor.html", fr: "corretor.html", de: "corretor.html" },
+    professores: { pt: "professores.html", en: "professores.html" },
+    podcasts: { pt: "podcasts.html", en: "podcasts.html" },
+    aulas: { pt: "aulas.html", en: "aulas.html" },
+    jornalistas: { pt: "jornalistas.html", en: "jornalistas.html" },
+    reunioes: { pt: "reunioes.html", en: "reunioes.html" },
+    testemunhos: { pt: "testemunhos.html", en: "testemunhos.html" },
     cookies: { pt: "cookies.html", en: "cookies.html", es: "cookies.html", fr: "cookies.html", de: "cookies.html" },
     privacy: { pt: "privacidade.html", en: "privacy.html", es: "privacy.html", fr: "privacy.html", de: "privacy.html" },
     terms: { pt: "termos.html", en: "terms.html", es: "terms.html", fr: "terms.html", de: "terms.html" },
@@ -61,8 +67,13 @@
   function pathFor(locale, slug) {
     var map = PAGES[slug];
     if (!map) return localePrefix(locale) + "/index.html";
-    var file = map[locale] || map.en || map.pt;
-    var prefix = localePrefix(locale);
+    var useLocale = locale;
+    if (!map[locale]) {
+      if (map.en) useLocale = "en";
+      else if (map.pt) useLocale = "pt";
+    }
+    var file = map[useLocale] || map.en || map.pt;
+    var prefix = localePrefix(useLocale);
     return (prefix || "") + "/" + file;
   }
 

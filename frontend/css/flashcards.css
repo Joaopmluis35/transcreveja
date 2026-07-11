@@ -150,6 +150,27 @@ body.oe-page--flashcards .oe-fc-hero .oe-lead {
   font-size: 0.85rem;
 }
 
+.oe-fc-error {
+  margin-top: 16px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.oe-fc-error__title {
+  margin: 0 0 6px;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.oe-fc-error p:last-child {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
 .oe-fc-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
