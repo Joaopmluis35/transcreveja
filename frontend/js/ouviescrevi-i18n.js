@@ -31,16 +31,16 @@
     "podcast-youtube": { pt: "podcast-youtube.html", en: "podcast-youtube.html", es: "podcast-youtube.html", fr: "podcast-youtube.html", de: "podcast-youtube.html" },
     "descricao-youtube": { pt: "descricao-youtube.html", en: "descricao-youtube.html", es: "descricao-youtube.html", fr: "descricao-youtube.html", de: "descricao-youtube.html" },
     corretor: { pt: "corretor.html", en: "corretor.html", es: "corretor.html", fr: "corretor.html", de: "corretor.html" },
-    professores: { pt: "professores.html", en: "professores.html" },
-    podcasts: { pt: "podcasts.html", en: "podcasts.html" },
-    aulas: { pt: "aulas.html", en: "aulas.html" },
-    jornalistas: { pt: "jornalistas.html", en: "jornalistas.html" },
-    reunioes: { pt: "reunioes.html", en: "reunioes.html" },
-    testemunhos: { pt: "testemunhos.html", en: "testemunhos.html" },
+    professores: { pt: "professores.html", en: "professores.html", es: "professores.html", fr: "professores.html", de: "professores.html" },
+    podcasts: { pt: "podcasts.html", en: "podcasts.html", es: "podcasts.html", fr: "podcasts.html", de: "podcasts.html" },
+    aulas: { pt: "aulas.html", en: "aulas.html", es: "aulas.html", fr: "aulas.html", de: "aulas.html" },
+    jornalistas: { pt: "jornalistas.html", en: "jornalistas.html", es: "jornalistas.html", fr: "jornalistas.html", de: "jornalistas.html" },
+    reunioes: { pt: "reunioes.html", en: "reunioes.html", es: "reunioes.html", fr: "reunioes.html", de: "reunioes.html" },
+    testemunhos: { pt: "testemunhos.html", en: "testemunhos.html", es: "testemunhos.html", fr: "testemunhos.html", de: "testemunhos.html" },
     cookies: { pt: "cookies.html", en: "cookies.html", es: "cookies.html", fr: "cookies.html", de: "cookies.html" },
     privacy: { pt: "privacidade.html", en: "privacy.html", es: "privacy.html", fr: "privacy.html", de: "privacy.html" },
     terms: { pt: "termos.html", en: "terms.html", es: "terms.html", fr: "terms.html", de: "terms.html" },
-    precos: { pt: "precos.html", en: "precos.html" },
+    precos: { pt: "precos.html", en: "precos.html", es: "precos.html", fr: "precos.html", de: "precos.html" },
   };
 
   function localeFromPath(path) {

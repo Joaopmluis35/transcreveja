@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Ouviescrevi-Tarife für KI-Transkription, SRT-Untertitel und Export. Gratis- und Pro-Optionen.">
+  <title>Preise & Pläne — KI-Transkription | Ouviescrevi</title>
+  <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
+  <link rel="stylesheet" href="../css/ouviescrevi.css">
+  <link rel="stylesheet" href="../css/ouviescrevi-pro.css">
+  <link rel="stylesheet" href="../css/index-home.css?v=18">
+  <script src="/js/ouviescrevi-seo.js" defer></script>
+  <script src="../js/pricing-visibility.js" defer></script>
+  <script src="../js/ouviescrevi-ui.js" defer></script>
+  <script src="../js/ouviescrevi-api.js" defer></script>
+  <script src="../js/auth-ui.js" defer></script>
+  <style>
+    body.oe-page--pricing .oe-pricing-hero { text-align: center; max-width: 720px; margin: 32px auto 24px; padding: 0 16px; }
+    body.oe-page--pricing .oe-pricing-hero h1 { font-size: 2rem; margin-bottom: 8px; color: var(--pro-text, #0f172a); }
+    body.oe-page--pricing .oe-pricing-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px; max-width: 900px; margin: 0 auto 40px; padding: 0 16px;
+    }
+    body.oe-page--pricing .oe-pricing-card {
+      border: 1px solid var(--pro-border, #e2e8f0); border-radius: 16px; padding: 28px 24px;
+      background: var(--pro-surface, #fff);
+      box-shadow: 0 4px 24px rgba(15, 23, 42, 0.06);
+    }
+    body.oe-page--pricing .oe-pricing-card--pro {
+      border-color: #8b5cf6; box-shadow: 0 8px 32px rgba(109, 40, 217, 0.12);
+    }
+    body.oe-page--pricing .oe-pricing-card h2 { margin: 0 0 8px; font-size: 1.25rem; color: var(--pro-text, #0f172a); }
+    body.oe-page--pricing .oe-pricing-price { font-size: 1.8rem; font-weight: 700; margin: 12px 0; color: #6d28d9; }
+    body.oe-page--pricing .oe-pricing-card ul { margin: 16px 0 24px; padding-left: 1.2rem; line-height: 1.7; color: var(--pro-text-secondary, #475569); }
+    body.oe-page--pricing .oe-pricing-cta {
+      display: flex; align-items: center; justify-content: center;
+      width: 100%; min-height: 48px; text-align: center; padding: 12px 20px;
+      border-radius: 12px; font-weight: 700; font-size: 1rem;
+      text-decoration: none; border: none; cursor: pointer;
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+    body.oe-page--pricing .oe-pricing-cta:hover { transform: translateY(-1px); }
+    body.oe-page--pricing .oe-pricing-cta--primary {
+      background: linear-gradient(135deg, #7c3aed, #2563eb); color: #fff;
+      box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
+    }
+    body.oe-page--pricing .oe-pricing-cta--ghost {
+      background: #fff; color: #6d28d9;
+      border: 2px solid #8b5cf6;
+      box-shadow: 0 2px 12px rgba(139, 92, 246, 0.12);
+    }
+    body.oe-page--pricing .oe-pricing-note { text-align: center; opacity: .85; max-width: 560px; margin: 0 auto 48px; padding: 0 16px; color: var(--pro-text-muted, #64748b); }
+    body.oe-page--pricing .oe-pricing-badge {
+      display: inline-block; font-size: .75rem; font-weight: 600;
+      background: #ede9fe; color: #6d28d9; padding: 4px 10px; border-radius: 999px; margin-bottom: 8px;
+    }
+    body.oe-page--pricing .oe-pricing-free-panel {
+      max-width: 520px; margin: 0 auto 48px; padding: 0 16px; text-align: center;
+    }
+    body.oe-page--pricing .oe-pricing-free-panel .oe-pricing-card { text-align: left; }
+  </style>
+</head>
+<body class="oe-page oe-pro oe-page--pricing">
+<a class="oe-skip" href="#conteudo">Zum Inhalt springen</a>
+<div id="header"></div>
+<main id="conteudo">
+  <section class="oe-pricing-hero">
+    <h1 data-pricing-only>Einfache Pläne, keine Überraschungen</h1>
+    <h1 data-pricing-free-only hidden>Kostenlos starten</h1>
+    <p data-pricing-only>Starte gratis. Wechsle zu Pro für mehr Transkriptionen, DOCX-Export und höhere Limits.</p>
+    <p data-pricing-free-only hidden>Ouviescrevi ist kostenlos — transkribiere Aufnahmen, exportiere in mehreren Formaten und speichere den Verlauf.</p>
+  </section>
+  <div class="oe-pricing-grid" data-pricing-only>
+    <article class="oe-pricing-card">
+      <h2>Gratis</h2>
+      <p class="oe-pricing-price">0 €</p>
+      <ul>
+        <li>3 Transkriptionen/Tag (anonym)</li>
+        <li>20/Tag mit Konto</li>
+        <li>Verlauf im Konto</li>
+        <li>Export TXT, PDF, SRT</li>
+      </ul>
+      <a href="index.html" class="oe-pricing-cta oe-pricing-cta--ghost">Kostenlos starten</a>
+    </article>
+    <article class="oe-pricing-card oe-pricing-card--pro">
+      <span class="oe-pricing-badge">Empfohlen</span>
+      <h2>Pro</h2>
+      <p class="oe-pricing-price" id="proPriceLabel">9,99 €/Monat</p>
+      <ul>
+        <li><span id="proQuotaLabel">200</span> Transkriptionen/Tag</li>
+        <li>Professioneller <strong>DOCX</strong>-Export</li>
+        <li>Erweiterter Verlauf</li>
+        <li>Verarbeitungspriorität</li>
+      </ul>
+      <button type="button" id="btnCheckoutPro" class="oe-pricing-cta oe-pricing-cta--primary">Pro abonnieren</button>
+      <p class="oe-pricing-note" id="billingDisabledNote" style="margin-top:12px;font-size:.85rem"></p>
+    </article>
+  </div>
+  <section class="oe-pricing-free-panel" data-pricing-free-only hidden>
+    <article class="oe-pricing-card">
+      <h2>Was enthalten ist</h2>
+      <ul>
+        <li>KI-Transkription</li>
+        <li>3/Tag ohne Konto · 20/Tag mit Konto</li>
+        <li>Verlauf im Konto</li>
+        <li>Export TXT, PDF, SRT</li>
+      </ul>
+      <a href="index.html" class="oe-pricing-cta oe-pricing-cta--primary">Kostenlos starten</a>
+    </article>
+  </section>
+  <p class="oe-pricing-note" id="pricingFootnote" data-pricing-only>Sichere Zahlung via Stripe. Jederzeit kündbar. Made in Portugal 🇵🇹</p>
+</main>
+<div id="footer"></div>
+<script>
+  OuviescreviUI.loadHeader();
+  OuviescreviUI.loadFooter();
+  (async function () {
+    await OuviescreviAPI.init();
+    if (OuviescreviPricingVisibility) await OuviescreviPricingVisibility.whenReady();
+    var params = new URLSearchParams(location.search);
+    if (params.get("ok") === "1") {
+      OuviescreviUI.toast("Abo erhalten — danke! Pro wird bald aktiviert.", "success");
+    }
+    if (OuviescreviPricing && OuviescreviPricing.hidden) return;
+    var res = await fetch(OuviescreviAPI.getBase() + "/api/billing/status");
+    var data = res.ok ? await res.json() : {};
+    if (data.price_label) document.getElementById("proPriceLabel").textContent = data.price_label;
+    if (data.pro_quota_daily) document.getElementById("proQuotaLabel").textContent = data.pro_quota_daily;
+    var note = document.getElementById("billingDisabledNote");
+    var btn = document.getElementById("btnCheckoutPro");
+    if (!btn) return;
+    if (!data.enabled || !data.checkout_ready) {
+      note.textContent = "Pro-Checkout kommt bald — Konto erstellen für Benachrichtigung.";
+      btn.textContent = "Konto erstellen (benachrichtigen)";
+      btn.addEventListener("click", function () {
+        if (OuviescreviAuth) OuviescreviAuth.openModal("register");
+      });
+    } else {
+      btn.addEventListener("click", async function () {
+        try {
+          var cres = await fetch(OuviescreviAPI.getBase() + "/api/billing/checkout", {
+            method: "POST",
+            headers: OuviescreviAPI.authHeaders({ "Content-Type": "application/json" }),
+            body: JSON.stringify({}),
+          });
+          var checkout = await cres.json();
+          if (!cres.ok) throw new Error(checkout.detail || "Unavailable");
+          if (checkout.url) location.href = checkout.url;
+        } catch (e) {
+          OuviescreviUI.toast(e.message || "Zum Abonnieren anmelden.", "error");
+          if (OuviescreviAuth) OuviescreviAuth.openModal("login");
+        }
+      });
+    }
+  })();
+</script>
+</body>
+</html>

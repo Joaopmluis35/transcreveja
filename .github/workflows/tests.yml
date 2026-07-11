@@ -1,15 +1,19 @@
-name: Backend tests
+name: Tests
 
 on:
   push:
     branches: [main]
     paths:
       - "backend/**"
+      - "frontend/**"
+      - "scripts/**"
       - ".github/workflows/tests.yml"
   pull_request:
     branches: [main]
     paths:
       - "backend/**"
+      - "frontend/**"
+      - "scripts/**"
       - ".github/workflows/tests.yml"
 
 jobs:
@@ -35,3 +39,15 @@ jobs:
 
       - name: Run pytest
         run: pytest -v --tb=short
+
+  frontend-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Frontend smoke tests
+        run: python scripts/frontend_smoke_test.py

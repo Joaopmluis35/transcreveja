@@ -46,26 +46,44 @@
   <url><loc>https://www.ouviescrevi.pt/aulas.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/aulas.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/aulas.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/aulas.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/aulas.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/aulas.html"/>
   </url>
   <url><loc>https://www.ouviescrevi.pt/professores.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/professores.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/professores.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/professores.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/professores.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/professores.html"/>
   </url>
   <url><loc>https://www.ouviescrevi.pt/jornalistas.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/jornalistas.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/jornalistas.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/jornalistas.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/jornalistas.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/jornalistas.html"/>
   </url>
   <url><loc>https://www.ouviescrevi.pt/podcasts.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/podcasts.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/podcasts.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/podcasts.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/podcasts.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/podcasts.html"/>
   </url>
   <url><loc>https://www.ouviescrevi.pt/reunioes.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/reunioes.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/reunioes.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/reunioes.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/reunioes.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/reunioes.html"/>
   </url>
   <url><loc>https://www.ouviescrevi.pt/testemunhos.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
     <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/testemunhos.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/testemunhos.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/testemunhos.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/testemunhos.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/testemunhos.html"/>
   </url>
   <url><loc>https://www.ouviescrevi.pt/corretor.html</loc><lastmod>2026-06-22</lastmod><changefreq>monthly</changefreq><priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/corretor.html"/>
@@ -217,12 +235,39 @@
   <url><loc>https://www.ouviescrevi.pt/precos.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/precos.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/precos.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/precos.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/precos.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/precos.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/precos.html"/>
   </url>
   <url><loc>https://www.ouviescrevi.pt/en/precos.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/precos.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/precos.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/precos.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/precos.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/precos.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/precos.html"/>
   </url>
+  <url><loc>https://www.ouviescrevi.pt/es/precos.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/fr/precos.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/de/precos.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/es/professores.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/fr/professores.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/de/professores.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/es/aulas.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/fr/aulas.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/de/aulas.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/es/podcasts.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/fr/podcasts.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/de/podcasts.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/es/jornalistas.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/fr/jornalistas.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/de/jornalistas.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/es/reunioes.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/fr/reunioes.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/de/reunioes.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/es/testemunhos.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/fr/testemunhos.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/de/testemunhos.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
 
 </urlset>
