@@ -31,9 +31,6 @@
       text-align:center;
     }
 
-    header{ padding:20px; }
-    header h1{ margin:0; font-size:2em; }
-
     main{
       padding:40px;
       display:flex;
@@ -880,23 +877,6 @@
     m.classList.remove("show");
   });
 
-  // Header/Footer inject
-  fetch("header.html").then(r=>r.text()).then(html=>{
-    const headerDiv=document.getElementById("header");
-    headerDiv.innerHTML=html;
-    const tempDiv=document.createElement("div"); tempDiv.innerHTML=html;
-    tempDiv.querySelectorAll("script").forEach(oldScript=>{
-      const s=document.createElement("script");
-      if (oldScript.src) s.src=oldScript.src; else s.textContent=oldScript.textContent;
-      document.body.appendChild(s);
-    });
-    tempDiv.querySelectorAll("style").forEach(style=> document.head.appendChild(style.cloneNode(true)));
-  });
-  const footerMount=document.createElement("div");
-  footerMount.id="footer";
-  document.body.appendChild(footerMount);
-  fetch("footer.html").then(res=>res.text()).then(html=> document.getElementById("footer").innerHTML=html);
-
   function abrirAulaPronta() {
     const text = transcriptionText.value.trim();
     if (!text) return alert("⚠️ Empty transcription.");
@@ -948,5 +928,6 @@
     options.addEventListener('click', (e)=>{ const target=e.target.closest('button[data-export]'); if (!target) return; const type=target.getAttribute('data-export'); close(); setTimeout(()=> exportText(type), 0); });
   })();
 </script>
+<div id="footer"></div>
 </body>
 </html>

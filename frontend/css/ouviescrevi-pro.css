@@ -63,6 +63,7 @@ body.oe-pro {
   top: 0;
   z-index: 100;
   height: var(--pro-header-h);
+  padding: 0;
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--pro-border);
@@ -1626,6 +1627,12 @@ body.oe-pro.oe-page--home #cmsSeoClosing {
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
+}
+@media (min-width: 900px) {
+  .oe-pro-auth {
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+  }
 }
 .oe-pro-auth__user {
   font-size: 0.8125rem;
