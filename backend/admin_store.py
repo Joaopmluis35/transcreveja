@@ -37,6 +37,7 @@ DEFAULT_CONFIG: dict[str, str] = {
     "notify_activity_enabled": "1",
     "alert_transcriptions_daily": "50",
     "alert_visits_daily": "500",
+    "owner_visitor_uids": "",
     "quota_anonymous_daily": "3",
     "quota_registered_daily": "20",
     "billing_enabled": "0",
@@ -652,6 +653,24 @@ def set_config(updates: dict[str, str], actor: str = "admin") -> dict[str, str]:
         conn.close()
     log_audit(actor, "config_update", json.dumps(list(updates.keys())))
     return get_config()
+
+
+def add_owner_visitor_uid(uid: str, actor: str = "admin") -> dict[str, str]:
+    uid = (uid or "").strip()
+    if not uid:
+        return get_config()
+    cfg = get_config()
+    existing = {part.strip() for part in (cfg.get("owner_visitor_uids") or "").split(",") if part.strip()}
+    existing.add(uid)
+    return set_config({"owner_visitor_uids": ",".join(sorted(existing))}, actor)
+
+
+def remove_owner_visitor_uid(uid: str, actor: str = "admin") -> dict[str, str]:
+    uid = (uid or "").strip()
+    cfg = get_config()
+    existing = {part.strip() for part in (cfg.get("owner_visitor_uids") or "").split(",") if part.strip()}
+    existing.discard(uid)
+    return set_config({"owner_visitor_uids": ",".join(sorted(existing))}, actor)
 
 
 def get_maintenance() -> dict:
@@ -1303,12 +1322,12 @@ def export_csv(table: str) -> str:
     try:
         if table == "visitas":
             rows = conn.execute(
-                "SELECT path, day, referrer, device_type, created_at FROM visitas ORDER BY id DESC LIMIT 5000"
+                "SELECT path, day, referrer, device_type, ip_label, visitor_uid, created_at FROM visitas ORDER BY id DESC LIMIT 5000"
             ).fetchall()
             w = csv.writer(buf)
-            w.writerow(["path", "day", "referrer", "device", "created_at"])
+            w.writerow(["path", "day", "referrer", "device", "ip_label", "visitor_uid", "created_at"])
             for r in rows:
-                w.writerow([r["path"], r["day"], r["referrer"], r["device_type"], r["created_at"]])
+                w.writerow([r["path"], r["day"], r["referrer"], r["device_type"], r["ip_label"], r["visitor_uid"], r["created_at"]])
         elif table == "transcricoes":
             rows = conn.execute(
                 """

@@ -15,12 +15,18 @@ from analytics import (
     get_daily_transcription_outcomes,
     get_daily_transcription_series,
     get_daily_visit_series,
+    get_owner_traffic_today,
     get_recent_visits,
     get_top_pages,
     get_visit_stats,
+    get_visitor_breakdown,
+    mask_ip_label,
+    parse_owner_visitor_uids,
+    visitor_uid,
 )
 from cms import get_all_content, get_page_schema, get_seo_overrides, keys_for_page, nav_defaults_for_admin, parse_nav_config, reset_content, update_content
 from database import database_backend, use_turso
+from security import client_ip
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 logger = logging.getLogger(__name__)
@@ -46,6 +52,7 @@ def admin_dashboard(request: Request):
     conv = _safe("conversao", store.conversion_stats, {})
     maint = _safe("manutencao", store.get_maintenance, {})
     cfg = _safe("config", store.get_config, {})
+    owner_uids = parse_owner_visitor_uids(cfg.get("owner_visitor_uids"))
     trans_total = _safe("trans_total", store.count_transcriptions, 0)
     trans_hoje = _safe(
         "trans_hoje",
@@ -68,7 +75,12 @@ def admin_dashboard(request: Request):
         ),
         "visitas": stats,
         "visitas_total": stats.get("visitas_total", 0),
-        "visitas_recentes": _safe("visitas_recentes", lambda: get_recent_visits(15), []),
+        "visitas_trafego": _safe("visitas_trafego", lambda: get_owner_traffic_today(owner_uids), {}),
+        "visitas_recentes": _safe("visitas_recentes", lambda: get_recent_visits(20, owner_uids), []),
+        "visitantes_distintos": _safe(
+            "visitantes_distintos", lambda: get_visitor_breakdown(14, 50, owner_uids), []
+        ),
+        "owner_visitor_uids": sorted(owner_uids),
         "charts": {
             "visitas_diarias": _safe("visitas_diarias", lambda: get_daily_visit_series(14), []),
             "transcricoes_diarias": _safe("transcricoes_diarias", lambda: get_daily_transcription_series(14), []),
@@ -222,6 +234,34 @@ def admin_put_config(request: Request, body: ConfigUpdateRequest):
     store.require_role(getattr(request.state, "admin_session", None), "admin")
     cfg = store.set_config(body.updates, _actor(request))
     return {"ok": True, "config": cfg}
+
+
+@router.post("/visitors/mark-owner")
+def admin_mark_owner_visitor(request: Request):
+    """Marca o IP atual (backoffice) como visitante da equipa — para separar tráfego teu vs outros."""
+    store.require_role(getattr(request.state, "admin_session", None), "admin")
+    ip = client_ip(request)
+    uid = visitor_uid(ip)
+    cfg = store.add_owner_visitor_uid(uid, _actor(request))
+    return {
+        "ok": True,
+        "visitor_uid": uid,
+        "ip_label": mask_ip_label(ip),
+        "owner_visitor_uids": parse_owner_visitor_uids(cfg.get("owner_visitor_uids")),
+    }
+
+
+@router.post("/visitors/unmark-owner")
+def admin_unmark_owner_visitor(request: Request):
+    store.require_role(getattr(request.state, "admin_session", None), "admin")
+    ip = client_ip(request)
+    uid = visitor_uid(ip)
+    cfg = store.remove_owner_visitor_uid(uid, _actor(request))
+    return {
+        "ok": True,
+        "visitor_uid": uid,
+        "owner_visitor_uids": parse_owner_visitor_uids(cfg.get("owner_visitor_uids")),
+    }
 
 
 class MaintenanceRequest(BaseModel):

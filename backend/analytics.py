@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import hashlib
-import re
+import ipaddress
 from datetime import date, datetime, timedelta
 from typing import Any
 
@@ -11,6 +11,33 @@ from database import get_connection, row_to_dict, scalar_int
 
 def _day_str(when: date | None = None) -> str:
     return (when or date.today()).isoformat()
+
+
+def mask_ip_label(client_ip: str) -> str:
+    """Etiqueta legível sem guardar IP completo (ex.: 89.123.45.x)."""
+    ip = (client_ip or "unknown").strip()
+    if not ip or ip == "unknown":
+        return "desconhecido"
+    try:
+        addr = ipaddress.ip_address(ip)
+        if isinstance(addr, ipaddress.IPv4Address):
+            parts = ip.split(".")
+            if len(parts) == 4:
+                return f"{parts[0]}.{parts[1]}.{parts[2]}.x"
+        parts = addr.exploded.split(":")
+        return ":".join(parts[:3]) + ":…"
+    except ValueError:
+        return ip[:24] + "…" if len(ip) > 24 else ip
+
+
+def visitor_uid(client_ip: str) -> str:
+    """Identificador estável por IP — permite ver o mesmo visitante em dias diferentes."""
+    ip = (client_ip or "unknown").strip()
+    return hashlib.sha256(f"uid|{ip}".encode()).hexdigest()[:16]
+
+
+def parse_owner_visitor_uids(raw: str | None) -> set[str]:
+    return {part.strip() for part in (raw or "").split(",") if part.strip()}
 
 
 def _device_type(user_agent: str | None) -> str:
@@ -33,7 +60,9 @@ def record_visit(
 ) -> None:
     path = (path or "/").strip()[:500] or "/"
     day = _day_str()
+    uid = visitor_uid(client_ip)
     visitor_hash = hashlib.sha256(f"{client_ip}|{day}".encode()).hexdigest()[:32]
+    ip_label = mask_ip_label(client_ip)
     ref = (referrer or "")[:500] or None
     ua = (user_agent or "")[:500] or None
     device = _device_type(ua)
@@ -42,10 +71,10 @@ def record_visit(
     try:
         conn.execute(
             """
-            INSERT INTO visitas (path, day, visitor_hash, created_at, referrer, user_agent, device_type)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO visitas (path, day, visitor_hash, visitor_uid, ip_label, created_at, referrer, user_agent, device_type)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (path, day, visitor_hash, now, ref, ua, device),
+            (path, day, visitor_hash, uid, ip_label, now, ref, ua, device),
         )
         conn.commit()
     finally:
@@ -112,20 +141,112 @@ def get_visit_stats() -> dict:
     }
 
 
-def get_recent_visits(limit: int = 20) -> list[dict]:
+def get_recent_visits(limit: int = 20, owner_uids: set[str] | None = None) -> list[dict]:
+    owner_uids = owner_uids or set()
     conn = get_connection()
     try:
         rows = conn.execute(
             """
-            SELECT path, day, created_at, referrer, device_type
+            SELECT path, day, created_at, referrer, device_type, visitor_uid, ip_label
             FROM visitas ORDER BY id DESC LIMIT ?
             """,
             (max(1, min(limit, 100)),),
         ).fetchall()
-        return [
-            row_to_dict(row)
-            for row in rows
-        ]
+        out = []
+        for row in rows:
+            item = row_to_dict(row)
+            uid = item.get("visitor_uid") or ""
+            item["is_owner"] = uid in owner_uids if uid else False
+            item["visitor_label"] = uid[:8] if uid else "—"
+            out.append(item)
+        return out
+    finally:
+        conn.close()
+
+
+def get_visitor_breakdown(days: int = 14, limit: int = 40, owner_uids: set[str] | None = None) -> list[dict]:
+    """Agrupa visitas por visitante (IP estável mascarado) nos últimos N dias."""
+    owner_uids = owner_uids or set()
+    days = max(1, min(days, 90))
+    limit = max(1, min(limit, 100))
+    since = (date.today() - timedelta(days=days - 1)).isoformat()
+    conn = get_connection()
+    try:
+        rows = conn.execute(
+            """
+            SELECT
+              COALESCE(NULLIF(visitor_uid, ''), visitor_hash, '?') AS visitor_id,
+              MAX(ip_label) AS ip_label,
+              COUNT(*) AS pageviews,
+              COUNT(DISTINCT day) AS dias_ativos,
+              MIN(created_at) AS first_seen,
+              MAX(created_at) AS last_seen,
+              MAX(device_type) AS device_type
+            FROM visitas
+            WHERE day >= ?
+            GROUP BY COALESCE(NULLIF(visitor_uid, ''), visitor_hash, '?')
+            ORDER BY last_seen DESC
+            LIMIT ?
+            """,
+            (since, limit),
+        ).fetchall()
+        out = []
+        for row in rows:
+            item = row_to_dict(row)
+            vid = str(item.get("visitor_id") or "")
+            item["visitor_short"] = vid[:8] if vid else "—"
+            item["is_owner"] = vid in owner_uids
+            item["tipo"] = "equipa" if item["is_owner"] else "outro"
+            out.append(item)
+        return out
+    finally:
+        conn.close()
+
+
+def get_owner_traffic_today(owner_uids: set[str]) -> dict:
+    """Separa visitas/visitantes de hoje entre IPs marcados como equipa e restantes."""
+    today_s = _day_str()
+    if not owner_uids:
+        stats = get_visit_stats()
+        return {
+            "visitas_tuas_hoje": 0,
+            "visitas_outros_hoje": stats.get("visitas_hoje", 0),
+            "unicos_tuas_hoje": 0,
+            "unicos_outros_hoje": stats.get("visitantes_unicos_hoje", 0),
+        }
+    placeholders = ",".join("?" for _ in owner_uids)
+    params = [today_s, *owner_uids]
+    conn = get_connection()
+    try:
+        total_row = conn.execute(
+            "SELECT COUNT(*) AS c FROM visitas WHERE day = ?",
+            (today_s,),
+        ).fetchone()
+        owner_row = conn.execute(
+            f"SELECT COUNT(*) AS c FROM visitas WHERE day = ? AND visitor_uid IN ({placeholders})",
+            params,
+        ).fetchone()
+        unicos_row = conn.execute(
+            "SELECT COUNT(DISTINCT COALESCE(NULLIF(visitor_uid, ''), visitor_hash)) AS c FROM visitas WHERE day = ?",
+            (today_s,),
+        ).fetchone()
+        owner_unicos_row = conn.execute(
+            f"""
+            SELECT COUNT(DISTINCT COALESCE(NULLIF(visitor_uid, ''), visitor_hash)) AS c
+            FROM visitas WHERE day = ? AND visitor_uid IN ({placeholders})
+            """,
+            params,
+        ).fetchone()
+        total = scalar_int(total_row, "c", index=0) if total_row else 0
+        owner = scalar_int(owner_row, "c", index=0) if owner_row else 0
+        unicos = scalar_int(unicos_row, "c", index=0) if unicos_row else 0
+        owner_unicos = scalar_int(owner_unicos_row, "c", index=0) if owner_unicos_row else 0
+        return {
+            "visitas_tuas_hoje": owner,
+            "visitas_outros_hoje": max(0, total - owner),
+            "unicos_tuas_hoje": owner_unicos,
+            "unicos_outros_hoje": max(0, unicos - owner_unicos),
+        }
     finally:
         conn.close()
 

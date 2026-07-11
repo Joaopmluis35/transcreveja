@@ -349,16 +349,90 @@
     div.innerHTML = "";
     div.appendChild(
       buildTable(
-        ["Página", "Dia", "Hora"],
+        ["Tipo", "IP", "Página", "Dia", "Hora", "Disp."],
         rows.map(function (r) {
+          var tipo = r.is_owner ? "Tu" : "Outro";
           return [
+            tipo,
+            r.ip_label || "—",
             r.path || "—",
             r.day || "—",
             (r.created_at || "").replace("T", " ").replace("Z", ""),
+            r.device_type || "—",
           ];
         })
       )
     );
+  }
+
+  function renderVisitantesDistintos(rows) {
+    var div = document.getElementById("visitantesDistintos");
+    if (!div) return;
+    if (!rows.length) {
+      div.innerHTML = '<p class="oe-admin-empty">Ainda sem visitantes com IP registado (só visitas novas aparecem aqui).</p>';
+      return;
+    }
+    div.innerHTML = "";
+    div.appendChild(
+      buildTable(
+        ["Tipo", "IP mascarado", "ID", "Páginas", "Dias", "Dispositivo", "Última visita"],
+        rows.map(function (r) {
+          return [
+            r.is_owner ? "Tu (equipa)" : "Outro",
+            r.ip_label || "—",
+            r.visitor_short || "—",
+            String(r.pageviews || 0),
+            String(r.dias_ativos || 0),
+            r.device_type || "—",
+            (r.last_seen || "").replace("T", " ").replace("Z", ""),
+          ];
+        })
+      )
+    );
+  }
+
+  function renderOwnerIpStatus(data) {
+    var el = document.getElementById("ownerIpStatus");
+    if (!el) return;
+    var uids = data.owner_visitor_uids || [];
+    var traf = data.visitas_trafego || {};
+    if (!uids.length) {
+      el.textContent =
+        "Nenhum IP marcado como equipa. Clica em «Marcar o meu IP atual» enquanto estás no backoffice (mesma rede que usas no site).";
+      return;
+    }
+    el.innerHTML =
+      "<strong>" +
+      uids.length +
+      " IP(s) marcado(s) como equipa.</strong> Hoje: " +
+      (traf.visitas_tuas_hoje || 0) +
+      " visitas tuas · " +
+      (traf.visitas_outros_hoje || 0) +
+      " de outros · " +
+      (traf.unicos_outros_hoje || 0) +
+      " visitante(s) único(s) que não és tu.";
+  }
+
+  async function markOwnerIp(unmark) {
+    var path = unmark ? "/api/admin/visitors/unmark-owner" : "/api/admin/visitors/mark-owner";
+    try {
+      var res = await fetch(apiBase() + path, { method: "POST", headers: authHeaders() });
+      var data = await res.json().catch(function () { return {}; });
+      if (!res.ok) throw new Error(data.detail || "Falhou");
+      if (global.OuviescreviUI && global.OuviescreviUI.toast) {
+        global.OuviescreviUI.toast(
+          unmark
+            ? "Marcação removida para este IP."
+            : "IP marcado como equipa (" + (data.ip_label || data.visitor_uid || "") + ").",
+          "success"
+        );
+      }
+      await carregarDashboard();
+    } catch (e) {
+      if (global.OuviescreviUI && global.OuviescreviUI.toast) {
+        global.OuviescreviUI.toast(e.message || "Erro", "error");
+      }
+    }
   }
 
   function applyDashboardData(data) {
@@ -366,6 +440,12 @@
     var v = data.visitas || {};
     document.getElementById("statVisitasHoje").textContent = v.visitas_hoje ?? "0";
     document.getElementById("statUnicosHoje").textContent = v.visitantes_unicos_hoje ?? "0";
+    var outrosEl = document.getElementById("statOutrosHoje");
+    if (outrosEl) {
+      var traf = data.visitas_trafego || {};
+      outrosEl.textContent =
+        traf.unicos_outros_hoje != null ? String(traf.unicos_outros_hoje) : "—";
+    }
     document.getElementById("statVisitas7").textContent = v.visitas_7_dias ?? "0";
     document.getElementById("statVisitas30").textContent = v.visitas_30_dias ?? "0";
     var totalEl = document.getElementById("statVisitasTotal");
@@ -412,6 +492,8 @@
     var sugStat = document.getElementById("statSugestoesNovas");
     if (sugStat) sugStat.textContent = String(data.sugestoes_nao_lidas || 0);
     renderVisitasRecentes(data.visitas_recentes || []);
+    renderVisitantesDistintos(data.visitantes_distintos || []);
+    renderOwnerIpStatus(data);
 
     try {
       renderCharts(data.charts);
@@ -977,6 +1059,11 @@
         }
       });
     }
+
+    var btnMarkOwner = document.getElementById("btnMarkOwnerIp");
+    if (btnMarkOwner) btnMarkOwner.addEventListener("click", function () { markOwnerIp(false); });
+    var btnUnmarkOwner = document.getElementById("btnUnmarkOwnerIp");
+    if (btnUnmarkOwner) btnUnmarkOwner.addEventListener("click", function () { markOwnerIp(true); });
 
     document.getElementById("btnRefresh").addEventListener("click", function () {
       carregarDashboard();

@@ -98,7 +98,7 @@
           <div class="oe-admin-card oe-admin-card--blue">
             <div class="oe-admin-card__label">Visitantes únicos</div>
             <div class="oe-admin-card__value" id="statUnicosHoje">—</div>
-            <div class="oe-admin-card__sub">Hoje</div>
+            <div class="oe-admin-card__sub">Hoje · outros: <span id="statOutrosHoje">—</span></div>
           </div>
           <div class="oe-admin-card oe-admin-card--purple">
             <div class="oe-admin-card__label">Visitas 7 dias</div>
@@ -231,6 +231,27 @@
           <div class="oe-admin-panel__head">Páginas mais visitadas <span style="font-weight:400;color:var(--bo-muted)">(30 dias)</span></div>
           <div class="oe-admin-panel__body oe-admin-table-wrap" id="topPaginas">
             <p class="oe-admin-empty">A carregar...</p>
+          </div>
+        </div>
+
+        <div class="oe-admin-panel">
+          <div class="oe-admin-panel__head">
+            Visitantes distintos
+            <span style="font-weight:400;color:var(--bo-muted)">(14 dias — IP mascarado, ex. 89.123.45.x)</span>
+          </div>
+          <div class="oe-admin-panel__body">
+            <p class="oe-admin-cms-hint" style="margin-top:0">
+              Cada linha é um <strong>IP diferente</strong> (ou rede). Marca o teu IP para veres quantas visitas são tuas vs outras pessoas.
+              Se mudares de rede (telefone, casa, VPN), marca outra vez.
+            </p>
+            <div class="oe-admin-form-actions" style="border:0;padding:0 0 12px;margin:0">
+              <button type="button" id="btnMarkOwnerIp" class="oe-admin-btn oe-admin-btn--secondary">📍 Marcar o meu IP atual (equipa)</button>
+              <button type="button" id="btnUnmarkOwnerIp" class="oe-admin-btn oe-admin-btn--secondary">✕ Remover marcação deste IP</button>
+            </div>
+            <p class="oe-admin-cms-hint" id="ownerIpStatus" style="margin-bottom:12px">—</p>
+            <div class="oe-admin-table-wrap" id="visitantesDistintos">
+              <p class="oe-admin-empty">A carregar...</p>
+            </div>
           </div>
         </div>
 
@@ -660,7 +681,7 @@
 <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 <script src="js/ouviescrevi-api.js"></script>
 <script src="js/backoffice-cms-locales.js?v=5"></script>
-<script src="js/backoffice.js?v=16"></script>
+<script src="js/backoffice.js?v=17"></script>
 <script src="js/backoffice-admin.js?v=23"></script>
 <script src="js/backoffice-nav.js?v=2"></script>
 <script src="js/backoffice-billing.js?v=4"></script>

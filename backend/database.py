@@ -245,6 +245,8 @@ def _migrate_visitas(cur: sqlite3.Cursor) -> None:
         ("referrer", "TEXT"),
         ("user_agent", "TEXT"),
         ("device_type", "TEXT"),
+        ("visitor_uid", "TEXT"),
+        ("ip_label", "TEXT"),
     ):
         if not _column_exists(cur, "visitas", col):
             cur.execute(f"ALTER TABLE visitas ADD COLUMN {col} {typedef}")
