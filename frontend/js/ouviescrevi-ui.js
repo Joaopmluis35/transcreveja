@@ -358,6 +358,63 @@
     }
   }
 
+  function maybeShowAdminTrafficTools() {
+    try {
+      if ((global.location.pathname || "").indexOf("backoffice") !== -1) return;
+      if (!global.OuviescreviAPI || !global.OuviescreviAPI.isAdminSession()) return;
+      if (document.getElementById("oe-admin-traffic-pill")) return;
+    } catch (e) {
+      return;
+    }
+
+    var wrap = document.createElement("div");
+    wrap.id = "oe-admin-traffic-pill";
+    wrap.className = "oe-admin-traffic-pill";
+    wrap.innerHTML =
+      '<button type="button" id="oeMarkSiteIp" class="oe-admin-traffic-pill__btn">📍 Marcar o meu IP</button>' +
+      '<a href="/backoffice.html" class="oe-admin-traffic-pill__link">Painel</a>';
+    document.body.appendChild(wrap);
+
+    var btn = document.getElementById("oeMarkSiteIp");
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      if (!global.OuviescreviAPI || !global.OuviescreviAPI.adminAuthHeaders) return;
+      btn.disabled = true;
+      global.OuviescreviAPI.init()
+        .then(function () {
+          var base = global.OuviescreviAPI.getBase() || global.OuviescreviAPI.detectApiBase();
+          return fetch(base + "/api/admin/visitors/mark-owner", {
+            method: "POST",
+            headers: global.OuviescreviAPI.adminAuthHeaders(),
+          });
+        })
+        .then(function (res) {
+          return res.json().then(function (data) {
+            return { ok: res.ok, data: data };
+          });
+        })
+        .then(function (result) {
+          if (!result.ok) {
+            throw new Error(
+              typeof result.data.detail === "string"
+                ? result.data.detail
+                : "Não foi possível marcar o IP."
+            );
+          }
+          toast(
+            "IP marcado (" + (result.data.ip_label || "") + ") — visitas desta rede aparecem como «Tu».",
+            "success"
+          );
+        })
+        .catch(function (err) {
+          toast(err.message || "Erro ao marcar IP.", "error");
+        })
+        .finally(function () {
+          btn.disabled = false;
+        });
+    });
+  }
+
   function trackPageView() {
     var path;
     var key;
@@ -905,6 +962,7 @@
       mountNewsTicker();
     });
     trackPageView();
+    maybeShowAdminTrafficTools();
     if (document.body && document.body.dataset.cmsAuto !== "false") {
       loadSiteConfig();
     }

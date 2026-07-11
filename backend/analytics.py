@@ -40,6 +40,69 @@ def parse_owner_visitor_uids(raw: str | None) -> set[str]:
     return {part.strip() for part in (raw or "").split(",") if part.strip()}
 
 
+_BOT_UA_MARKERS = (
+    "googlebot",
+    "bingbot",
+    "yandexbot",
+    "duckduckbot",
+    "baiduspider",
+    "facebookexternalhit",
+    "twitterbot",
+    "linkedinbot",
+    "slackbot",
+    "semrushbot",
+    "ahrefsbot",
+    "petalbot",
+    "applebot",
+    "bytespider",
+    "gptbot",
+    "claudebot",
+)
+
+_BOT_IP_PREFIXES = (
+    "66.249.",
+    "66.102.",
+    "64.233.",
+    "72.14.",
+    "209.85.",
+    "157.55.",
+    "40.77.",
+    "207.46.",
+    "17.58.",
+)
+
+
+def is_bot_ip_label(ip_label: str | None) -> bool:
+    label = (ip_label or "").strip().lower()
+    if not label or label in ("—", "desconhecido", "legado"):
+        return False
+    return any(label.startswith(prefix) for prefix in _BOT_IP_PREFIXES)
+
+
+def is_bot_user_agent(user_agent: str | None) -> bool:
+    ua = (user_agent or "").lower()
+    return any(marker in ua for marker in _BOT_UA_MARKERS)
+
+
+def is_bot_visit(ip_label: str | None, user_agent: str | None) -> bool:
+    return is_bot_ip_label(ip_label) or is_bot_user_agent(user_agent)
+
+
+def is_legacy_ip_label(ip_label: str | None) -> bool:
+    label = (ip_label or "").strip()
+    return not label or label in ("—", "desconhecido")
+
+
+def _bot_sql_condition() -> str:
+    ua_checks = " OR ".join(
+        f"LOWER(COALESCE(user_agent, '')) LIKE '%{marker}%'" for marker in _BOT_UA_MARKERS[:8]
+    )
+    ip_checks = " OR ".join(
+        f"COALESCE(ip_label, '') LIKE '{prefix}%'" for prefix in _BOT_IP_PREFIXES[:6]
+    )
+    return f"({ua_checks} OR {ip_checks})"
+
+
 def _device_type(user_agent: str | None) -> str:
     ua = (user_agent or "").lower()
     if not ua:
@@ -147,7 +210,7 @@ def get_recent_visits(limit: int = 20, owner_uids: set[str] | None = None) -> li
     try:
         rows = conn.execute(
             """
-            SELECT path, day, created_at, referrer, device_type, visitor_uid, ip_label
+            SELECT path, day, created_at, referrer, device_type, visitor_uid, ip_label, user_agent
             FROM visitas ORDER BY id DESC LIMIT ?
             """,
             (max(1, min(limit, 100)),),
@@ -156,7 +219,10 @@ def get_recent_visits(limit: int = 20, owner_uids: set[str] | None = None) -> li
         for row in rows:
             item = row_to_dict(row)
             uid = item.get("visitor_uid") or ""
+            ip_label = item.get("ip_label")
             item["is_owner"] = uid in owner_uids if uid else False
+            item["is_legacy"] = is_legacy_ip_label(ip_label)
+            item["is_bot"] = not item["is_owner"] and is_bot_visit(ip_label, item.get("user_agent"))
             item["visitor_label"] = uid[:8] if uid else "—"
             out.append(item)
         return out
@@ -177,6 +243,7 @@ def get_visitor_breakdown(days: int = 14, limit: int = 40, owner_uids: set[str] 
             SELECT
               COALESCE(NULLIF(visitor_uid, ''), visitor_hash, '?') AS visitor_id,
               MAX(ip_label) AS ip_label,
+              MAX(user_agent) AS user_agent,
               COUNT(*) AS pageviews,
               COUNT(DISTINCT day) AS dias_ativos,
               MIN(created_at) AS first_seen,
@@ -194,9 +261,17 @@ def get_visitor_breakdown(days: int = 14, limit: int = 40, owner_uids: set[str] 
         for row in rows:
             item = row_to_dict(row)
             vid = str(item.get("visitor_id") or "")
+            ip_label = item.get("ip_label")
             item["visitor_short"] = vid[:8] if vid else "—"
             item["is_owner"] = vid in owner_uids
-            item["tipo"] = "equipa" if item["is_owner"] else "outro"
+            item["is_legacy"] = is_legacy_ip_label(ip_label)
+            item["is_bot"] = not item["is_owner"] and is_bot_visit(ip_label, item.get("user_agent"))
+            if item["is_owner"]:
+                item["tipo"] = "equipa"
+            elif item["is_bot"]:
+                item["tipo"] = "bot"
+            else:
+                item["tipo"] = "outro"
             out.append(item)
         return out
     finally:
@@ -273,9 +348,10 @@ def _pair_day_count(row: Any) -> tuple[str, int]:
     return day, count
 
 
-def get_daily_visit_series(days: int = 14) -> list[dict]:
+def get_daily_visit_series(days: int = 14, owner_uids: set[str] | None = None) -> list[dict]:
     days = max(1, min(days, 90))
     since = (date.today() - timedelta(days=days - 1)).isoformat()
+    owner_uids = owner_uids or set()
     conn = get_connection()
     try:
         rows = conn.execute(
@@ -294,8 +370,48 @@ def get_daily_visit_series(days: int = 14) -> list[dict]:
             (since,),
         ).fetchall()
         unicos_map = {day: count for day, count in (_pair_day_count(r) for r in unicos_rows)}
+        bot_cond = _bot_sql_condition()
+        tuas_map: dict[str, int] = {}
+        bots_map: dict[str, int] = {}
+        if owner_uids:
+            placeholders = ",".join("?" for _ in owner_uids)
+            split_rows = conn.execute(
+                f"""
+                SELECT day,
+                  SUM(CASE WHEN visitor_uid IN ({placeholders}) THEN 1 ELSE 0 END) AS tuas,
+                  SUM(CASE WHEN {bot_cond} THEN 1 ELSE 0 END) AS bots
+                FROM visitas
+                WHERE day >= ?
+                GROUP BY day
+                """,
+                (*owner_uids, since),
+            ).fetchall()
+        else:
+            split_rows = conn.execute(
+                f"""
+                SELECT day,
+                  0 AS tuas,
+                  SUM(CASE WHEN {bot_cond} THEN 1 ELSE 0 END) AS bots
+                FROM visitas
+                WHERE day >= ?
+                GROUP BY day
+                """,
+                (since,),
+            ).fetchall()
+        for row in split_rows:
+            item = row_to_dict(row)
+            day = str(item.get("day") or "")
+            tuas_map[day] = int(item.get("tuas") or 0)
+            bots_map[day] = int(item.get("bots") or 0)
         for item in totals:
-            item["unicos"] = unicos_map.get(item["day"], 0)
+            day = item["day"]
+            total = int(item.get("total") or 0)
+            tuas = tuas_map.get(day, 0)
+            bots = bots_map.get(day, 0)
+            item["unicos"] = unicos_map.get(day, 0)
+            item["tuas"] = tuas
+            item["bots"] = bots
+            item["outros"] = max(0, total - tuas - bots)
         return totals
     finally:
         conn.close()

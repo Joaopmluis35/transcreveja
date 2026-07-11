@@ -38,6 +38,7 @@ DEFAULT_CONFIG: dict[str, str] = {
     "alert_transcriptions_daily": "50",
     "alert_visits_daily": "500",
     "owner_visitor_uids": "",
+    "owner_ip_labels": "",
     "quota_anonymous_daily": "3",
     "quota_registered_daily": "20",
     "billing_enabled": "0",
@@ -655,14 +656,41 @@ def set_config(updates: dict[str, str], actor: str = "admin") -> dict[str, str]:
     return get_config()
 
 
-def add_owner_visitor_uid(uid: str, actor: str = "admin") -> dict[str, str]:
+def parse_owner_ip_labels(raw: str | None) -> dict[str, str]:
+    out: dict[str, str] = {}
+    for part in (raw or "").split(","):
+        part = part.strip()
+        if not part or ":" not in part:
+            continue
+        uid, label = part.split(":", 1)
+        uid = uid.strip()
+        label = label.strip()
+        if uid and label:
+            out[uid] = label
+    return out
+
+
+def serialize_owner_ip_labels(mapping: dict[str, str]) -> str:
+    return ",".join(f"{uid}:{label}" for uid, label in sorted(mapping.items()))
+
+
+def add_owner_visitor_uid(uid: str, actor: str = "admin", ip_label: str = "") -> dict[str, str]:
     uid = (uid or "").strip()
     if not uid:
         return get_config()
     cfg = get_config()
     existing = {part.strip() for part in (cfg.get("owner_visitor_uids") or "").split(",") if part.strip()}
     existing.add(uid)
-    return set_config({"owner_visitor_uids": ",".join(sorted(existing))}, actor)
+    labels = parse_owner_ip_labels(cfg.get("owner_ip_labels"))
+    if ip_label:
+        labels[uid] = ip_label
+    return set_config(
+        {
+            "owner_visitor_uids": ",".join(sorted(existing)),
+            "owner_ip_labels": serialize_owner_ip_labels(labels),
+        },
+        actor,
+    )
 
 
 def remove_owner_visitor_uid(uid: str, actor: str = "admin") -> dict[str, str]:
@@ -670,7 +698,21 @@ def remove_owner_visitor_uid(uid: str, actor: str = "admin") -> dict[str, str]:
     cfg = get_config()
     existing = {part.strip() for part in (cfg.get("owner_visitor_uids") or "").split(",") if part.strip()}
     existing.discard(uid)
-    return set_config({"owner_visitor_uids": ",".join(sorted(existing))}, actor)
+    labels = parse_owner_ip_labels(cfg.get("owner_ip_labels"))
+    labels.pop(uid, None)
+    return set_config(
+        {
+            "owner_visitor_uids": ",".join(sorted(existing)),
+            "owner_ip_labels": serialize_owner_ip_labels(labels),
+        },
+        actor,
+    )
+
+
+def get_owner_ip_labels_list(cfg: dict[str, str] | None = None) -> list[str]:
+    cfg = cfg or get_config()
+    labels = parse_owner_ip_labels(cfg.get("owner_ip_labels"))
+    return sorted({label for label in labels.values() if label})
 
 
 def get_maintenance() -> dict:

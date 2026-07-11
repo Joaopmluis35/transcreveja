@@ -109,7 +109,7 @@
     return p[2] + "/" + p[1];
   }
 
-  function buildTable(headers, rows) {
+  function buildTable(headers, rows, rowClassFn) {
     var table = document.createElement("table");
     table.className = "oe-admin-table";
     var thead = document.createElement("thead");
@@ -122,16 +122,24 @@
     thead.appendChild(hr);
     table.appendChild(thead);
     var tbody = document.createElement("tbody");
-    rows.forEach(function (row) {
+    rows.forEach(function (row, rowIndex) {
       var tr = document.createElement("tr");
-      row.forEach(function (cell, i) {
+      var cells = row && row.cells ? row.cells : row;
+      var meta = row && row.meta ? row.meta : null;
+      if (rowClassFn) {
+        var cls = rowClassFn(cells, rowIndex, meta);
+        if (cls) tr.className = cls;
+      }
+      cells.forEach(function (cell, i) {
         var td = document.createElement("td");
-        if (i === 0 && String(cell).indexOf("/") === 0) {
+        if (cell && typeof cell === "object" && cell.nodeType === 1) {
+          td.appendChild(cell);
+        } else if (i === 0 && String(cell).indexOf("/") === 0) {
           var code = document.createElement("code");
           code.textContent = cell;
           td.appendChild(code);
         } else {
-          td.textContent = cell;
+          td.textContent = cell == null ? "" : String(cell);
         }
         tr.appendChild(td);
       });
@@ -199,22 +207,31 @@
           labels: labels,
           datasets: [
             {
-              label: "Visitas",
-              data: visitas.map(function (d) { return d.total; }),
+              label: "Outros (humanos)",
+              data: visitas.map(function (d) { return d.outros != null ? d.outros : d.total; }),
               borderColor: "#7c3aed",
-              backgroundColor: "rgba(124, 58, 237, 0.1)",
+              backgroundColor: "rgba(124, 58, 237, 0.12)",
               fill: true,
               tension: 0.35,
               pointRadius: 3,
             },
             {
-              label: "Visitantes únicos",
-              data: visitas.map(function (d) { return d.unicos || 0; }),
-              borderColor: "#2563eb",
-              backgroundColor: "transparent",
-              borderDash: [4, 4],
+              label: "Tu (equipa)",
+              data: visitas.map(function (d) { return d.tuas || 0; }),
+              borderColor: "#059669",
+              backgroundColor: "rgba(5, 150, 105, 0.08)",
+              fill: true,
               tension: 0.35,
               pointRadius: 2,
+            },
+            {
+              label: "Bots",
+              data: visitas.map(function (d) { return d.bots || 0; }),
+              borderColor: "#d97706",
+              backgroundColor: "transparent",
+              borderDash: [3, 3],
+              tension: 0.35,
+              pointRadius: 1,
             },
           ],
         },
@@ -401,16 +418,21 @@
       buildTable(
         ["Tipo", "IP", "Página", "Dia", "Hora", "Disp."],
         rows.map(function (r) {
-          var tipo = r.is_owner ? "Tu" : "Outro";
-          return [
-            tipo,
-            r.ip_label || "—",
-            r.path || "—",
-            r.day || "—",
-            (r.created_at || "").replace("T", " ").replace("Z", "").slice(0, 16),
-            r.device_type || "—",
-          ];
-        })
+          return {
+            meta: r,
+            cells: [
+              visitorTipoBadge(r),
+              r.ip_label && r.ip_label !== "—" ? r.ip_label : "legado",
+              r.path || "—",
+              r.day || "—",
+              (r.created_at || "").replace("T", " ").replace("Z", "").slice(0, 16),
+              r.device_type || "—",
+            ],
+          };
+        }),
+        function (_cells, _idx, meta) {
+          return visitorRowClass(meta);
+        }
       )
     );
   }
@@ -419,13 +441,42 @@
     return (iso || "").replace("T", " ").replace("Z", "").slice(0, 16);
   }
 
+  function visitorRowClass(meta) {
+    if (!meta) return "";
+    if (meta.is_owner) return "oe-admin-row--owner";
+    if (meta.is_bot) return "oe-admin-row--bot";
+    if (meta.is_legacy) return "oe-admin-row--legacy";
+    return "";
+  }
+
+  function visitorTipoBadge(r) {
+    var span = document.createElement("span");
+    span.className = "oe-admin-visitor-tag";
+    if (r.is_owner) {
+      span.className += " oe-admin-visitor-tag--owner";
+      span.textContent = "Tu";
+    } else if (r.is_bot) {
+      span.className += " oe-admin-visitor-tag--bot";
+      span.textContent = "Bot";
+    } else if (r.is_legacy) {
+      span.className += " oe-admin-visitor-tag--legacy";
+      span.textContent = "Legado";
+    } else {
+      span.textContent = "Outro";
+    }
+    return span;
+  }
+
   function filterVisitantesRows(rows) {
     rows = rows || [];
     if (visitorsFilterMode === "team") {
       return rows.filter(function (r) { return r.is_owner; });
     }
+    if (visitorsFilterMode === "humans") {
+      return rows.filter(function (r) { return !r.is_bot; });
+    }
     if (visitorsFilterMode === "others") {
-      return rows.filter(function (r) { return !r.is_owner; });
+      return rows.filter(function (r) { return !r.is_owner && !r.is_bot; });
     }
     return rows;
   }
@@ -454,9 +505,11 @@
     if (!filtered.length) {
       var emptyMsg =
         visitorsFilterMode === "others"
-          ? "Nenhum visitante «outro» nos últimos 14 dias — boa sinal! (Ou marca o teu IP para excluir as tuas visitas.)"
+          ? "Nenhum visitante humano «outro» — só bots ou tráfego teu."
+          : visitorsFilterMode === "humans"
+            ? "Nenhum visitante humano neste filtro."
           : visitorsFilterMode === "team"
-            ? "Nenhum IP marcado como equipa ainda. Clica em «Marcar o meu IP»."
+            ? "Nenhum IP marcado como equipa ainda. Clica em «Marcar IP»."
             : "Ainda sem visitantes registados.";
       div.innerHTML = '<p class="oe-admin-empty">' + emptyMsg + "</p>";
       if (meta) meta.textContent = "0 visitantes";
@@ -470,15 +523,21 @@
         ["Tipo", "IP", "Páginas", "Dias", "Disp.", "Última"],
         visible.map(function (r) {
           var ip = r.ip_label && r.ip_label !== "—" ? r.ip_label : "legado";
-          return [
-            r.is_owner ? "Tu" : "Outro",
-            ip,
-            String(r.pageviews || 0),
-            String(r.dias_ativos || 0),
-            (r.device_type || "—").replace("desktop", "💻").replace("mobile", "📱").replace("tablet", "📱"),
-            formatVisitTime(r.last_seen),
-          ];
-        })
+          return {
+            meta: r,
+            cells: [
+              visitorTipoBadge(r),
+              ip,
+              String(r.pageviews || 0),
+              String(r.dias_ativos || 0),
+              (r.device_type || "—").replace("desktop", "💻").replace("mobile", "📱").replace("tablet", "📱"),
+              formatVisitTime(r.last_seen),
+            ],
+          };
+        }),
+        function (_cells, _idx, meta) {
+          return visitorRowClass(meta);
+        }
       )
     );
 
@@ -509,22 +568,28 @@
     var el = document.getElementById("ownerIpStatus");
     if (!el) return;
     var uids = data.owner_visitor_uids || [];
+    var labels = data.owner_ip_labels || [];
     var traf = data.visitas_trafego || {};
     if (!uids.length) {
       el.innerHTML =
-        "<strong>Sem IP marcado.</strong> Usa «Marcar IP» na mesma rede do site. Antigas = <em>legado</em>.";
+        "<strong>Sem IP marcado.</strong> Usa «Marcar IP» no painel ou no site (como admin). Antigas = <em>legado</em>.";
       return;
     }
+    var ipLine = labels.length
+      ? " IP(s): <code>" + labels.join("</code>, <code>") + "</code>."
+      : " Visita o site e marca outra vez para ver o IP mascarado.";
     el.innerHTML =
       "<strong>" +
       uids.length +
-      " IP equipa.</strong> Hoje: " +
+      " IP equipa.</strong>" +
+      ipLine +
+      " Hoje: " +
       (traf.visitas_tuas_hoje || 0) +
       " tuas · " +
       (traf.visitas_outros_hoje || 0) +
       " outros · " +
       (traf.unicos_outros_hoje || 0) +
-      " único(s) externo(s).";
+      " único(s) externo(s). Procura linhas <span class=\"oe-admin-visitor-tag oe-admin-visitor-tag--owner\">Tu</span>.";
   }
 
   async function markOwnerIp(unmark) {
@@ -1188,7 +1253,7 @@
     if (btnMarkOwner) btnMarkOwner.addEventListener("click", function () { markOwnerIp(false); });
     var btnUnmarkOwner = document.getElementById("btnUnmarkOwnerIp");
     if (btnUnmarkOwner) btnUnmarkOwner.addEventListener("click", function () { markOwnerIp(true); });
-    ["visitorsFilterOthers", "visitorsFilterAll", "visitorsFilterTeam"].forEach(function (id) {
+    ["visitorsFilterOthers", "visitorsFilterHumans", "visitorsFilterAll", "visitorsFilterTeam"].forEach(function (id) {
       var btn = document.getElementById(id);
       if (btn) {
         btn.addEventListener("click", function () {

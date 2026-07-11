@@ -81,8 +81,13 @@ def admin_dashboard(request: Request):
             "visitantes_distintos", lambda: get_visitor_breakdown(14, 25, owner_uids), []
         ),
         "owner_visitor_uids": sorted(owner_uids),
+        "owner_ip_labels": _safe(
+            "owner_ip_labels", lambda: store.get_owner_ip_labels_list(cfg), []
+        ),
         "charts": {
-            "visitas_diarias": _safe("visitas_diarias", lambda: get_daily_visit_series(14), []),
+            "visitas_diarias": _safe(
+                "visitas_diarias", lambda: get_daily_visit_series(14, owner_uids), []
+            ),
             "transcricoes_diarias": _safe("transcricoes_diarias", lambda: get_daily_transcription_series(14), []),
             "transcricoes_resultados": _safe(
                 "transcricoes_resultados", lambda: get_daily_transcription_outcomes(14), []
@@ -242,12 +247,14 @@ def admin_mark_owner_visitor(request: Request):
     store.require_role(getattr(request.state, "admin_session", None), "admin")
     ip = client_ip(request)
     uid = visitor_uid(ip)
-    cfg = store.add_owner_visitor_uid(uid, _actor(request))
+    label = mask_ip_label(ip)
+    cfg = store.add_owner_visitor_uid(uid, _actor(request), label)
     return {
         "ok": True,
         "visitor_uid": uid,
-        "ip_label": mask_ip_label(ip),
+        "ip_label": label,
         "owner_visitor_uids": parse_owner_visitor_uids(cfg.get("owner_visitor_uids")),
+        "owner_ip_labels": store.get_owner_ip_labels_list(cfg),
     }
 
 
@@ -261,6 +268,7 @@ def admin_unmark_owner_visitor(request: Request):
         "ok": True,
         "visitor_uid": uid,
         "owner_visitor_uids": parse_owner_visitor_uids(cfg.get("owner_visitor_uids")),
+        "owner_ip_labels": store.get_owner_ip_labels_list(cfg),
     }
 
 

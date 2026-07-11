@@ -493,6 +493,56 @@ body.oe-admin.oe-admin--dark table.oe-admin-table tbody tr:hover td {
   color: var(--bo-muted);
 }
 
+.oe-admin-visitor-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.oe-admin-visitor-tag--owner {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.oe-admin-visitor-tag--bot {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.oe-admin-visitor-tag--legacy {
+  background: var(--bo-table-th-bg);
+  color: var(--bo-muted);
+}
+
+tr.oe-admin-row--owner td {
+  background: rgba(5, 150, 105, 0.06);
+}
+
+tr.oe-admin-row--bot td {
+  background: rgba(217, 119, 6, 0.05);
+}
+
+tr.oe-admin-row--legacy td {
+  opacity: 0.72;
+}
+
+body.oe-admin.oe-admin--dark tr.oe-admin-row--owner td {
+  background: rgba(5, 150, 105, 0.12);
+}
+
+body.oe-admin.oe-admin--dark .oe-admin-visitor-tag--owner {
+  background: rgba(5, 150, 105, 0.2);
+  color: #6ee7b7;
+}
+
+body.oe-admin.oe-admin--dark .oe-admin-visitor-tag--bot {
+  background: rgba(217, 119, 6, 0.18);
+  color: #fdba74;
+}
+
 details.oe-admin-visitors-recent {
   margin-top: 10px;
 }
