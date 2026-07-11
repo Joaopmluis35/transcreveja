@@ -305,16 +305,16 @@ html.oe-theme-dark .oe-seo-block p {
 }
 
 html.oe-theme-dark .oe-btn,
-html.oe-theme-dark .oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(#oeThemeToggle):not(.oe-fc-card),
-html.oe-theme-dark .container button:not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card) {
+html.oe-theme-dark .oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(#oeThemeToggle):not(.oe-fc-card):not(.oe-fc-export__btn),
+html.oe-theme-dark .container button:not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card):not(.oe-fc-export__btn) {
   background: var(--oe-btn-bg) !important;
   color: var(--oe-btn-text) !important;
   border-color: var(--oe-btn-border) !important;
 }
 
 html.oe-theme-dark .oe-btn:hover:not(:disabled),
-html.oe-theme-dark .oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(#oeThemeToggle):not(.oe-fc-card):hover:not(:disabled),
-html.oe-theme-dark .container button:not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card):hover:not(:disabled) {
+html.oe-theme-dark .oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(#oeThemeToggle):not(.oe-fc-card):not(.oe-fc-export__btn):hover:not(:disabled),
+html.oe-theme-dark .container button:not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card):not(.oe-fc-export__btn):hover:not(:disabled) {
   background: var(--oe-gradient) !important;
   color: #fff !important;
   border-color: transparent !important;

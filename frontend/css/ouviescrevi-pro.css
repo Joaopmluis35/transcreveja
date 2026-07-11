@@ -1229,7 +1229,7 @@ body.oe-pro .oe-landing .oe-btn:hover {
 
 body.oe-pro .oe-btn,
 body.oe-pro .container button,
-body.oe-pro .oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(#oeThemeToggle):not(.oe-fc-card) {
+body.oe-pro .oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(#oeThemeToggle):not(.oe-fc-card):not(.oe-fc-export__btn) {
   border-radius: 10px;
   font-weight: 600;
 }

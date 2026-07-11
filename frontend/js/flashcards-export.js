@@ -262,54 +262,73 @@
       ".grid--3x3{grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);}" +
       ".card{border:" +
       border +
-      ";border-radius:8px;padding:10px;display:flex;flex-direction:column;overflow:hidden;background:#fff;position:relative;}" +
+      ";border-radius:8px;padding:0;display:flex;flex-direction:column;overflow:hidden;background:#fff;position:relative;min-height:0;}" +
+      ".card--single{padding:14px 16px;}" +
+      ".card--study{justify-content:stretch;}" +
       ".card--fold{flex-direction:row;gap:0;padding:0;}" +
-      ".card__half{flex:1;padding:10px;display:flex;flex-direction:column;border-right:1px dashed #cbd5e1;}" +
+      ".card__side{flex:1;min-height:0;padding:14px 16px;display:flex;flex-direction:column;overflow:hidden;}" +
+      ".card__side--back{background:#faf5ff;}" +
+      ".card__half{flex:1;padding:14px 16px;display:flex;flex-direction:column;border-right:1px dashed #cbd5e1;overflow:hidden;min-height:0;}" +
       ".card__half:last-child{border-right:none;}" +
-      ".card__num{position:absolute;top:6px;right:8px;font-size:9px;color:#94a3b8;font-weight:700;}" +
-      ".card__label{font-size:" +
+      ".card__num{position:absolute;top:8px;right:10px;font-size:9px;color:#94a3b8;font-weight:700;z-index:1;}" +
+      ".card__label{display:block;flex-shrink:0;font-size:" +
       fs.label +
-      "px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6d28d9;margin-bottom:6px;}" +
+      "px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6d28d9;margin:0 0 10px;line-height:1.2;}" +
       ".card__text{font-size:" +
       fs.body +
-      "px;line-height:1.4;white-space:pre-wrap;word-break:break-word;}" +
-      ".card__divider{height:1px;background:#e2e8f0;margin:8px 0;}" +
+      "px;line-height:1.45;white-space:pre-wrap;word-break:break-word;flex:1;min-height:0;overflow:hidden;}" +
+      ".card__divider{flex-shrink:0;height:1px;background:#cbd5e1;margin:0;}" +
       "@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}"
     );
   }
 
   function renderPrintCard(card, idx, opts) {
-    var sides = cardSides(card, opts.mode, opts.lang);
+    var mode = opts.mode;
     var num = opts.showNumbers ? '<span class="card__num">' + (idx + 1) + "</span>" : "";
-    if (opts.mode === "fold") {
+
+    if (mode === "fold") {
       return (
         '<article class="card card--fold">' +
         num +
         '<div class="card__half"><span class="card__label">' +
-        escapeHtml(sides[0].label) +
+        escapeHtml(t(opts.lang, "front")) +
         '</span><div class="card__text">' +
-        escapeHtml(sides[0].text) +
+        escapeHtml(card.front) +
         '</div></div><div class="card__half"><span class="card__label">' +
-        escapeHtml(sides[1].label) +
+        escapeHtml(t(opts.lang, "back")) +
         '</span><div class="card__text">' +
-        escapeHtml(sides[1].text) +
+        escapeHtml(card.back) +
         "</div></div></article>"
       );
     }
-    var inner = sides
-      .map(function (side, i) {
-        var div = i > 0 ? '<div class="card__divider"></div>' : "";
-        return (
-          div +
-          '<span class="card__label">' +
-          escapeHtml(side.label) +
-          '</span><div class="card__text">' +
-          escapeHtml(side.text) +
-          "</div>"
-        );
-      })
-      .join("");
-    return '<article class="card">' + num + inner + "</article>";
+
+    if (mode === "study") {
+      return (
+        '<article class="card card--study">' +
+        num +
+        '<div class="card__side card__side--front"><span class="card__label">' +
+        escapeHtml(t(opts.lang, "front")) +
+        '</span><div class="card__text">' +
+        escapeHtml(card.front) +
+        '</div></div><div class="card__divider"></div><div class="card__side card__side--back"><span class="card__label">' +
+        escapeHtml(t(opts.lang, "back")) +
+        '</span><div class="card__text">' +
+        escapeHtml(card.back) +
+        "</div></div></article>"
+      );
+    }
+
+    var label = mode === "back" ? t(opts.lang, "back") : t(opts.lang, "front");
+    var text = mode === "back" ? card.back : card.front;
+    return (
+      '<article class="card card--single">' +
+      num +
+      '<span class="card__label">' +
+      escapeHtml(label) +
+      '</span><div class="card__text">' +
+      escapeHtml(text) +
+      "</div></article>"
+    );
   }
 
   function buildPrintHtml(data, opts, autoPrint) {
@@ -411,6 +430,16 @@
       return;
     }
 
+    if (mode === "study") {
+      var gap = 4;
+      var halfH = (h - pad * 2 - gap) / 2;
+      drawSideBlock(doc, innerX, innerY, innerW, halfH, t(opts.lang, "front"), card.front, fs);
+      doc.setDrawColor(203, 213, 225);
+      doc.line(innerX, innerY + halfH + gap / 2, innerX + innerW, innerY + halfH + gap / 2);
+      drawSideBlock(doc, innerX, innerY + halfH + gap, innerW, halfH, t(opts.lang, "back"), card.back, fs);
+      return;
+    }
+
     var sides = cardSides(card, mode, opts.lang);
     var blockH = (h - pad * 2) / sides.length;
     sides.forEach(function (side, i) {
@@ -423,15 +452,19 @@
   }
 
   function drawSideBlock(doc, x, y, w, h, label, text, fs) {
-    doc.setFontSize(fs.label);
+    var labelSize = fs.label || 8;
+    var bodySize = fs.body || 10;
+    var labelY = y + labelSize + 2;
+    doc.setFontSize(labelSize);
     doc.setTextColor(109, 40, 217);
-    doc.text(String(label || "").toUpperCase(), x, y + 4);
-    doc.setFontSize(fs.body);
+    doc.text(String(label || "").toUpperCase(), x, labelY);
+    var textStartY = labelY + 8;
+    doc.setFontSize(bodySize);
     doc.setTextColor(15, 23, 42);
     var lines = doc.splitTextToSize(String(text || ""), w);
-    var lineH = fs.body * 0.42;
-    var maxLines = Math.max(1, Math.floor((h - 8) / lineH));
-    doc.text(lines.slice(0, maxLines), x, y + 10);
+    var lineH = bodySize * 0.48;
+    var maxLines = Math.max(1, Math.floor((y + h - textStartY) / lineH));
+    doc.text(lines.slice(0, maxLines), x, textStartY);
   }
 
   async function downloadPdf(data, opts) {
