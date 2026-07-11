@@ -7,7 +7,7 @@
   <title>Backoffice | Ouviescrevi</title>
   <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png">
   <link rel="stylesheet" href="css/ouviescrevi.css">
-  <link rel="stylesheet" href="css/backoffice.css?v=18">
+  <link rel="stylesheet" href="css/backoffice.css?v=19">
   <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
   <script src="js/ouviescrevi-ui.js" defer></script>
 </head>
@@ -142,121 +142,132 @@
 
         <div id="dashboardAlerts" class="oe-admin-alerts-stack hidden"></div>
 
-        <div class="oe-admin-panel">
-          <div class="oe-admin-panel__head">Cloudflare <span style="font-weight:400;color:var(--bo-muted)">(pedidos HTTP, 7 dias)</span></div>
-          <div class="oe-admin-panel__body">
-            <div class="oe-admin-chart-wrap oe-admin-chart-wrap--short">
-              <canvas id="chartCloudflare" aria-label="Gráfico Cloudflare"></canvas>
-            </div>
-            <div id="cloudflareStats" style="margin-top:12px">
-              <p class="oe-admin-empty">Configura Zone ID e API Token em Sistema para ver tráfego.</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="oe-admin-panel">
-          <div class="oe-admin-panel__head">Taxa de sucesso — transcrições (14 dias)</div>
-          <div class="oe-admin-panel__body">
-            <div class="oe-admin-chart-wrap oe-admin-chart-wrap--short">
-              <canvas id="chartTransSuccess" aria-label="Gráfico taxa sucesso transcrições"></canvas>
-            </div>
-          </div>
-        </div>
-
-        <div class="oe-admin-panel">
-          <div class="oe-admin-panel__head">Exportar dados</div>
-          <div class="oe-admin-panel__body oe-admin-form-actions" style="border:0;padding:0">
-            <a id="exportVisitas" class="oe-admin-btn oe-admin-btn--secondary" href="#">📥 Visitas CSV</a>
-            <a id="exportTranscricoes" class="oe-admin-btn oe-admin-btn--secondary" href="#">📥 Transcrições CSV</a>
-            <a id="exportBackup" class="oe-admin-btn oe-admin-btn--secondary" href="#">💾 Backup JSON</a>
-          </div>
-        </div>
-
-        <div class="oe-admin-charts">
-          <div class="oe-admin-panel">
-            <div class="oe-admin-panel__head">Visitas — últimos 14 dias</div>
+        <div class="oe-admin-charts oe-admin-charts--compact">
+          <div class="oe-admin-panel oe-admin-panel--compact">
+            <div class="oe-admin-panel__head">Visitas — 14 dias</div>
             <div class="oe-admin-panel__body">
-              <div class="oe-admin-chart-wrap">
+              <div class="oe-admin-chart-wrap oe-admin-chart-wrap--compact">
                 <canvas id="chartVisitas" aria-label="Gráfico de visitas"></canvas>
               </div>
             </div>
           </div>
-          <div class="oe-admin-panel">
-            <div class="oe-admin-panel__head">Transcrições — últimos 14 dias</div>
+          <div class="oe-admin-panel oe-admin-panel--compact">
+            <div class="oe-admin-panel__head">Transcrições — 14 dias</div>
             <div class="oe-admin-panel__body">
-              <div class="oe-admin-chart-wrap">
+              <div class="oe-admin-chart-wrap oe-admin-chart-wrap--compact">
                 <canvas id="chartTranscricoes" aria-label="Gráfico de transcrições"></canvas>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="oe-admin-panel">
-          <div class="oe-admin-panel__head">Horas de pico <span style="font-weight:400;color:var(--bo-muted)">(visitas, 7 dias)</span></div>
-          <div class="oe-admin-panel__body">
-            <div class="oe-admin-chart-wrap oe-admin-chart-wrap--short">
-              <canvas id="chartPeakHours" aria-label="Gráfico horas de pico"></canvas>
-            </div>
-          </div>
-        </div>
-
-        <div class="oe-admin-panel" data-min-role="admin">
-          <div class="oe-admin-panel__head">Modo manutenção</div>
-          <div class="oe-admin-toggle-row">
-            <div>
-              <strong>Bloquear novas transcrições</strong>
-              <small>Os visitantes veem um aviso na homepage.</small>
-            </div>
-            <label class="oe-admin-switch">
-              <input type="checkbox" id="manutencaoToggle">
-              <span></span>
-            </label>
-          </div>
-          <div class="oe-admin-field" style="margin-top:16px">
-            <label for="maintenanceMessage">Mensagem de manutenção (HTML)</label>
-            <textarea id="maintenanceMessage" rows="3" placeholder="Mensagem visível no site..."></textarea>
-          </div>
-          <button type="button" id="btnSaveMaintenance" class="oe-admin-btn oe-admin-btn--primary">Guardar mensagem</button>
-        </div>
-
-        <div class="oe-admin-panel">
-          <div class="oe-admin-panel__head">Referrers e dispositivos</div>
-          <div class="oe-admin-grid-2">
-            <div class="oe-admin-panel__body oe-admin-table-wrap" id="topReferrers"><p class="oe-admin-empty">—</p></div>
-            <div class="oe-admin-panel__body oe-admin-table-wrap" id="deviceStats"><p class="oe-admin-empty">—</p></div>
-          </div>
-        </div>
-
-        <div class="oe-admin-panel">
-          <div class="oe-admin-panel__head">Páginas mais visitadas <span style="font-weight:400;color:var(--bo-muted)">(30 dias)</span></div>
-          <div class="oe-admin-panel__body oe-admin-table-wrap" id="topPaginas">
-            <p class="oe-admin-empty">A carregar...</p>
-          </div>
-        </div>
-
-        <div class="oe-admin-panel oe-admin-panel--visitors">
-          <div class="oe-admin-panel__head">Tráfego: tu vs outros visitantes</div>
+        <div class="oe-admin-panel oe-admin-panel--compact oe-admin-panel--visitors">
+          <div class="oe-admin-panel__head">Tráfego: tu vs outros</div>
           <div class="oe-admin-panel__body">
             <div class="oe-admin-visitors-summary" id="ownerIpStatus">A carregar…</div>
             <div class="oe-admin-visitors-toolbar">
-              <button type="button" id="btnMarkOwnerIp" class="oe-admin-btn oe-admin-btn--secondary">📍 Marcar o meu IP</button>
-              <button type="button" id="btnUnmarkOwnerIp" class="oe-admin-btn oe-admin-btn--secondary">✕ Desmarcar este IP</button>
+              <button type="button" id="btnMarkOwnerIp" class="oe-admin-btn oe-admin-btn--secondary">📍 Marcar IP</button>
+              <button type="button" id="btnUnmarkOwnerIp" class="oe-admin-btn oe-admin-btn--secondary">✕ Desmarcar</button>
               <button type="button" id="visitorsFilterOthers" class="oe-admin-btn oe-admin-btn--secondary oe-admin-visitors-filter is-active" data-filter="others">Só outros</button>
               <button type="button" id="visitorsFilterAll" class="oe-admin-btn oe-admin-btn--secondary oe-admin-visitors-filter" data-filter="all">Todos</button>
-              <button type="button" id="visitorsFilterTeam" class="oe-admin-btn oe-admin-btn--secondary oe-admin-visitors-filter" data-filter="team">Só equipa</button>
+              <button type="button" id="visitorsFilterTeam" class="oe-admin-btn oe-admin-btn--secondary oe-admin-visitors-filter" data-filter="team">Equipa</button>
               <span class="oe-admin-visitors-meta" id="visitantesDistintosMeta"></span>
             </div>
-            <div class="oe-admin-table-wrap oe-admin-table-wrap--scroll" id="visitantesDistintos">
+            <div class="oe-admin-table-wrap oe-admin-table-wrap--scroll oe-admin-table-wrap--scroll-sm" id="visitantesDistintos">
               <p class="oe-admin-empty">A carregar...</p>
             </div>
-            <details class="oe-admin-visitors-recent">
-              <summary>Últimas visitas (detalhe)</summary>
-              <div class="oe-admin-table-wrap oe-admin-table-wrap--scroll" id="visitasRecentes">
+            <details class="oe-admin-dash-details">
+              <summary>Últimas visitas</summary>
+              <div class="oe-admin-table-wrap oe-admin-table-wrap--scroll oe-admin-table-wrap--scroll-sm" id="visitasRecentes">
                 <p class="oe-admin-empty">A carregar...</p>
               </div>
             </details>
           </div>
         </div>
+
+        <details class="oe-admin-dash-details oe-admin-dash-details--block">
+          <summary>Páginas, referrers e horas de pico</summary>
+          <div class="oe-admin-dash-details__body">
+            <div class="oe-admin-panel oe-admin-panel--compact">
+              <div class="oe-admin-panel__head">Horas de pico <span style="font-weight:400;color:var(--bo-muted)">(7 dias)</span></div>
+              <div class="oe-admin-panel__body">
+                <div class="oe-admin-chart-wrap oe-admin-chart-wrap--short">
+                  <canvas id="chartPeakHours" aria-label="Gráfico horas de pico"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="oe-admin-panel oe-admin-panel--compact">
+              <div class="oe-admin-panel__head">Referrers e dispositivos</div>
+              <div class="oe-admin-grid-2">
+                <div class="oe-admin-panel__body oe-admin-table-wrap oe-admin-table-wrap--scroll oe-admin-table-wrap--scroll-sm" id="topReferrers"><p class="oe-admin-empty">—</p></div>
+                <div class="oe-admin-panel__body oe-admin-table-wrap oe-admin-table-wrap--scroll oe-admin-table-wrap--scroll-sm" id="deviceStats"><p class="oe-admin-empty">—</p></div>
+              </div>
+            </div>
+            <div class="oe-admin-panel oe-admin-panel--compact">
+              <div class="oe-admin-panel__head">Páginas mais visitadas <span style="font-weight:400;color:var(--bo-muted)">(30 dias)</span></div>
+              <div class="oe-admin-panel__body oe-admin-table-wrap oe-admin-table-wrap--scroll oe-admin-table-wrap--scroll-sm" id="topPaginas">
+                <p class="oe-admin-empty">A carregar...</p>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <details class="oe-admin-dash-details oe-admin-dash-details--block">
+          <summary>Cloudflare, taxa de sucesso e exportação</summary>
+          <div class="oe-admin-dash-details__body">
+            <div class="oe-admin-panel oe-admin-panel--compact">
+              <div class="oe-admin-panel__head">Cloudflare <span style="font-weight:400;color:var(--bo-muted)">(7 dias)</span></div>
+              <div class="oe-admin-panel__body">
+                <div class="oe-admin-chart-wrap oe-admin-chart-wrap--short">
+                  <canvas id="chartCloudflare" aria-label="Gráfico Cloudflare"></canvas>
+                </div>
+                <div id="cloudflareStats" style="margin-top:8px">
+                  <p class="oe-admin-empty">Configura Zone ID e API Token em Sistema.</p>
+                </div>
+              </div>
+            </div>
+            <div class="oe-admin-panel oe-admin-panel--compact">
+              <div class="oe-admin-panel__head">Taxa de sucesso — transcrições</div>
+              <div class="oe-admin-panel__body">
+                <div class="oe-admin-chart-wrap oe-admin-chart-wrap--short">
+                  <canvas id="chartTransSuccess" aria-label="Gráfico taxa sucesso transcrições"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="oe-admin-panel oe-admin-panel--compact">
+              <div class="oe-admin-panel__body oe-admin-form-actions" style="border:0;padding:0;margin:0">
+                <a id="exportVisitas" class="oe-admin-btn oe-admin-btn--secondary" href="#">📥 Visitas CSV</a>
+                <a id="exportTranscricoes" class="oe-admin-btn oe-admin-btn--secondary" href="#">📥 Transcrições CSV</a>
+                <a id="exportBackup" class="oe-admin-btn oe-admin-btn--secondary" href="#">💾 Backup JSON</a>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <details class="oe-admin-dash-details oe-admin-dash-details--block" data-min-role="admin">
+          <summary>Modo manutenção</summary>
+          <div class="oe-admin-dash-details__body">
+            <div class="oe-admin-panel oe-admin-panel--compact">
+              <div class="oe-admin-panel__body">
+                <div class="oe-admin-toggle-row">
+                  <div>
+                    <strong>Bloquear novas transcrições</strong>
+                    <small>Os visitantes veem um aviso na homepage.</small>
+                  </div>
+                  <label class="oe-admin-switch">
+                    <input type="checkbox" id="manutencaoToggle">
+                    <span></span>
+                  </label>
+                </div>
+                <div class="oe-admin-field" style="margin-top:12px">
+                  <label for="maintenanceMessage">Mensagem de manutenção (HTML)</label>
+                  <textarea id="maintenanceMessage" rows="2" placeholder="Mensagem visível no site..."></textarea>
+                </div>
+                <button type="button" id="btnSaveMaintenance" class="oe-admin-btn oe-admin-btn--primary">Guardar mensagem</button>
+              </div>
+            </div>
+          </div>
+        </details>
       </div>
 
       <!-- Conteúdo -->
@@ -677,8 +688,8 @@
 <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 <script src="js/ouviescrevi-api.js"></script>
 <script src="js/backoffice-cms-locales.js?v=5"></script>
-<script src="js/backoffice.js?v=18"></script>
-<script src="js/backoffice-admin.js?v=23"></script>
+<script src="js/backoffice.js?v=19"></script>
+<script src="js/backoffice-admin.js?v=24"></script>
 <script src="js/backoffice-nav.js?v=2"></script>
 <script src="js/backoffice-billing.js?v=4"></script>
 </body>

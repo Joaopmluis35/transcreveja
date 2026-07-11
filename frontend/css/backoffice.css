@@ -321,8 +321,8 @@ body.oe-admin.oe-admin--dark table.oe-admin-table tbody tr:hover td {
 .oe-admin-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 .oe-admin-card {
@@ -398,13 +398,38 @@ body.oe-admin.oe-admin--dark table.oe-admin-table tbody tr:hover td {
 .oe-admin-charts {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  margin-bottom: 20px;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.oe-admin-charts--compact {
+  margin-bottom: 12px;
+}
+
+.oe-admin-panel--compact {
+  margin-bottom: 12px;
+}
+
+.oe-admin-panel--compact .oe-admin-panel__head {
+  padding: 10px 14px;
+  font-size: 0.875rem;
+}
+
+.oe-admin-panel--compact .oe-admin-panel__body {
+  padding: 12px 14px;
 }
 
 .oe-admin-chart-wrap {
   position: relative;
   height: 260px;
+}
+
+.oe-admin-chart-wrap--compact {
+  height: 180px;
+}
+
+.oe-admin-chart-wrap--compact canvas {
+  max-height: 180px;
 }
 
 .oe-admin-chart-wrap canvas {
@@ -423,27 +448,37 @@ body.oe-admin.oe-admin--dark table.oe-admin-table tbody tr:hover td {
   border-radius: 10px;
 }
 
+.oe-admin-table-wrap--scroll-sm {
+  max-height: min(160px, 24vh);
+}
+
+.oe-admin-table-wrap--scroll .oe-admin-table th,
+.oe-admin-table-wrap--scroll .oe-admin-table td {
+  padding: 6px 10px;
+  font-size: 0.8125rem;
+}
+
 .oe-admin-visitors-summary {
-  padding: 10px 14px;
-  margin-bottom: 12px;
-  border-radius: 10px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  border-radius: 8px;
   background: var(--bo-table-th-bg);
-  font-size: 0.875rem;
-  line-height: 1.5;
+  font-size: 0.8125rem;
+  line-height: 1.4;
   color: var(--bo-text-secondary);
 }
 
 .oe-admin-visitors-toolbar {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .oe-admin-visitors-filter {
-  font-size: 0.8125rem;
-  padding: 6px 12px;
+  font-size: 0.75rem;
+  padding: 5px 10px;
 }
 
 .oe-admin-visitors-filter.is-active {
@@ -459,9 +494,21 @@ body.oe-admin.oe-admin--dark table.oe-admin-table tbody tr:hover td {
 }
 
 details.oe-admin-visitors-recent {
-  margin-top: 14px;
+  margin-top: 10px;
 }
 
+details.oe-admin-dash-details {
+  margin-bottom: 10px;
+}
+
+details.oe-admin-dash-details--block {
+  background: var(--bo-card);
+  border: 1px solid var(--bo-border);
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
+details.oe-admin-dash-details > summary,
 details.oe-admin-visitors-recent > summary {
   cursor: pointer;
   font-size: 0.875rem;
@@ -469,18 +516,30 @@ details.oe-admin-visitors-recent > summary {
   color: var(--bo-text-secondary);
   padding: 8px 0;
   list-style: none;
+  user-select: none;
 }
 
+details.oe-admin-dash-details--block > summary {
+  padding: 12px 16px;
+}
+
+details.oe-admin-dash-details > summary::-webkit-details-marker,
 details.oe-admin-visitors-recent > summary::-webkit-details-marker {
   display: none;
 }
 
+details.oe-admin-dash-details > summary::before,
 details.oe-admin-visitors-recent > summary::before {
   content: "▸ ";
 }
 
+details.oe-admin-dash-details[open] > summary::before,
 details.oe-admin-visitors-recent[open] > summary::before {
   content: "▾ ";
+}
+
+.oe-admin-dash-details__body {
+  padding: 0 14px 14px;
 }
 
 table.oe-admin-table {
@@ -969,7 +1028,7 @@ table.oe-admin-table td code {
 }
 
 .oe-admin-chart-wrap--short {
-  height: 220px;
+  height: 160px;
 }
 
 .oe-admin-burger {

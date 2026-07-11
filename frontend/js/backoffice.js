@@ -79,7 +79,29 @@
   var visitantesRowsCache = [];
   var visitorsFilterMode = "others";
   var visitorsShowAll = false;
-  var VISITORS_DISPLAY_LIMIT = 12;
+  var VISITORS_DISPLAY_LIMIT = 6;
+  var topPagesCache = [];
+  var topPagesShowAll = false;
+  var TOP_PAGES_DISPLAY_LIMIT = 8;
+
+  function resizeDashboardCharts() {
+    [chartVisitas, chartTranscricoes, chartPeakHours, chartTransSuccess].forEach(function (c) {
+      if (c && typeof c.resize === "function") c.resize();
+    });
+    if (global.OuviescreviAdminExt && global.OuviescreviAdminExt.resizeCloudflareChart) {
+      global.OuviescreviAdminExt.resizeCloudflareChart();
+    }
+  }
+
+  function bindDashboardDetailsResize() {
+    document.querySelectorAll("details.oe-admin-dash-details").forEach(function (el) {
+      el.addEventListener("toggle", function () {
+        if (el.open) {
+          window.setTimeout(resizeDashboardCharts, 80);
+        }
+      });
+    });
+  }
 
   function formatDay(iso) {
     if (!iso) return "";
@@ -336,19 +358,35 @@
   }
 
   function renderTopPages(pages) {
+    topPagesCache = pages || [];
     var div = document.getElementById("topPaginas");
     if (!div) return;
-    if (!pages || !pages.length) {
+    if (!topPagesCache.length) {
       div.innerHTML = '<p class="oe-admin-empty">Sem dados de páginas (últimos 30 dias).</p>';
       return;
     }
+    var visible = topPagesShowAll
+      ? topPagesCache
+      : topPagesCache.slice(0, TOP_PAGES_DISPLAY_LIMIT);
     div.innerHTML = "";
     div.appendChild(
       buildTable(
         ["Página", "Visitas"],
-        pages.map(function (p) { return [p.path || "—", String(p.total)]; })
+        visible.map(function (p) { return [p.path || "—", String(p.total)]; })
       )
     );
+    if (!topPagesShowAll && topPagesCache.length > TOP_PAGES_DISPLAY_LIMIT) {
+      var more = document.createElement("button");
+      more.type = "button";
+      more.className = "oe-admin-btn oe-admin-btn--secondary";
+      more.style.marginTop = "8px";
+      more.textContent = "Ver todas (" + topPagesCache.length + ")";
+      more.addEventListener("click", function () {
+        topPagesShowAll = true;
+        renderTopPages(topPagesCache);
+      });
+      div.appendChild(more);
+    }
   }
 
   function renderVisitasRecentes(rows) {
@@ -474,20 +512,19 @@
     var traf = data.visitas_trafego || {};
     if (!uids.length) {
       el.innerHTML =
-        '<strong>Nenhum IP marcado.</strong> Clica em «Marcar o meu IP» (mesma rede/Wi‑Fi que usas no site). ' +
-        "Visitas antigas aparecem como <em>legado</em> até haver tráfego novo com IP mascarado.";
+        "<strong>Sem IP marcado.</strong> Usa «Marcar IP» na mesma rede do site. Antigas = <em>legado</em>.";
       return;
     }
     el.innerHTML =
       "<strong>" +
       uids.length +
-      " IP(s) marcado(s) como equipa.</strong> Hoje: " +
+      " IP equipa.</strong> Hoje: " +
       (traf.visitas_tuas_hoje || 0) +
-      " visitas tuas · " +
+      " tuas · " +
       (traf.visitas_outros_hoje || 0) +
-      " de outros · " +
+      " outros · " +
       (traf.unicos_outros_hoje || 0) +
-      " visitante(s) único(s) que não és tu.";
+      " único(s) externo(s).";
   }
 
   async function markOwnerIp(unmark) {
@@ -1178,6 +1215,7 @@
       mostrarApp();
     }
     if (global.OuviescreviAdminNav) global.OuviescreviAdminNav.setup();
+    bindDashboardDetailsResize();
   }
 
   if (document.readyState === "loading") {

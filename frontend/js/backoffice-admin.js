@@ -1407,10 +1407,17 @@
     init();
   }
 
+  function resizeCloudflareChart() {
+    if (chartCloudflare && typeof chartCloudflare.resize === "function") {
+      chartCloudflare.resize();
+    }
+  }
+
   global.OuviescreviAdminExt = {
     setupSeo: setupSeo,
     renderReferrersAndDevices: renderReferrersAndDevices,
     destroyCharts: destroyCharts,
+    resizeCloudflareChart: resizeCloudflareChart,
     onTab: onTab,
     loadSugestoes: loadSugestoes,
     loadSystem: loadSystem,
