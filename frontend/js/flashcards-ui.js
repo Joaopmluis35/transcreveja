@@ -209,6 +209,9 @@
       "</button>" +
       '<button type="button" class="oe-fc-result__btn oe-fc-result__btn--secondary" id="btnFcAnki">' +
       escapeHtml(t("exportAnki")) +
+      "</button>" +
+      '<button type="button" class="oe-fc-result__btn oe-fc-result__btn--secondary" id="btnFcPrint">' +
+      escapeHtml(global.FlashcardsExport ? global.FlashcardsExport.label(config.lang) : "Imprimir / PDF") +
       "</button></div></header>" +
       '<p class="oe-fc-hint">' +
       escapeHtml(t("flipHint")) +
@@ -233,6 +236,12 @@
     if (ankiBtn) {
       ankiBtn.addEventListener("click", function () {
         if (lastData) exportAnki(lastData);
+      });
+    }
+    var printBtn = document.getElementById("btnFcPrint");
+    if (printBtn && global.FlashcardsExport) {
+      printBtn.addEventListener("click", function () {
+        if (lastData) global.FlashcardsExport.open(lastData, config.lang);
       });
     }
     container.scrollIntoView({ behavior: "smooth", block: "start" });

@@ -298,15 +298,19 @@
     container.innerHTML =
       '<div class="oe-fc-result">' +
       '<header class="oe-fc-result__head">' +
-      "<h2>" +
+      "<h2 class=\"oe-fc-result__title\">" +
       escapeHtml(data.title || t("step4Title")) +
       "</h2>" +
+      '<div class="oe-fc-result__actions">' +
       '<button type="button" class="oe-fc-result__btn" id="btnAcCopyCards">' +
       escapeHtml(t("copyAllCards")) +
       "</button>" +
       '<button type="button" class="oe-fc-result__btn oe-fc-result__btn--secondary" id="btnAcAnki">' +
       escapeHtml(t("exportAnki")) +
-      "</button></header>" +
+      "</button>" +
+      '<button type="button" class="oe-fc-result__btn oe-fc-result__btn--secondary" id="btnAcPrint">' +
+      escapeHtml(global.FlashcardsExport ? global.FlashcardsExport.label(config.lang) : "Imprimir / PDF") +
+      "</button></div></header>" +
       '<p class="oe-fc-hint">' +
       escapeHtml(t("flipHint")) +
       "</p>" +
@@ -330,6 +334,12 @@
     if (ankiBtn) ankiBtn.addEventListener("click", function () {
       downloadAnki(data);
     });
+    var printBtn = document.getElementById("btnAcPrint");
+    if (printBtn && global.FlashcardsExport) {
+      printBtn.addEventListener("click", function () {
+        global.FlashcardsExport.open(data, config.lang);
+      });
+    }
     var restart = document.getElementById("btnAcRestart");
     if (restart) {
       restart.addEventListener("click", function () {
