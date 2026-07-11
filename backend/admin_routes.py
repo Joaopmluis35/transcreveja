@@ -76,9 +76,9 @@ def admin_dashboard(request: Request):
         "visitas": stats,
         "visitas_total": stats.get("visitas_total", 0),
         "visitas_trafego": _safe("visitas_trafego", lambda: get_owner_traffic_today(owner_uids), {}),
-        "visitas_recentes": _safe("visitas_recentes", lambda: get_recent_visits(20, owner_uids), []),
+        "visitas_recentes": _safe("visitas_recentes", lambda: get_recent_visits(10, owner_uids), []),
         "visitantes_distintos": _safe(
-            "visitantes_distintos", lambda: get_visitor_breakdown(14, 50, owner_uids), []
+            "visitantes_distintos", lambda: get_visitor_breakdown(14, 25, owner_uids), []
         ),
         "owner_visitor_uids": sorted(owner_uids),
         "charts": {

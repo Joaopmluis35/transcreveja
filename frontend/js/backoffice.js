@@ -69,6 +69,18 @@
     return global.OuviescreviAPI.getBase() || global.OuviescreviAPI.detectApiBase();
   }
 
+  function adminAuthHeaders(extra) {
+    if (global.OuviescreviAPI && global.OuviescreviAPI.adminAuthHeaders) {
+      return global.OuviescreviAPI.adminAuthHeaders(extra);
+    }
+    return extra || {};
+  }
+
+  var visitantesRowsCache = [];
+  var visitorsFilterMode = "others";
+  var visitorsShowAll = false;
+  var VISITORS_DISPLAY_LIMIT = 12;
+
   function formatDay(iso) {
     if (!iso) return "";
     var p = iso.split("-");
@@ -357,7 +369,7 @@
             r.ip_label || "—",
             r.path || "—",
             r.day || "—",
-            (r.created_at || "").replace("T", " ").replace("Z", ""),
+            (r.created_at || "").replace("T", " ").replace("Z", "").slice(0, 16),
             r.device_type || "—",
           ];
         })
@@ -365,30 +377,94 @@
     );
   }
 
+  function formatVisitTime(iso) {
+    return (iso || "").replace("T", " ").replace("Z", "").slice(0, 16);
+  }
+
+  function filterVisitantesRows(rows) {
+    rows = rows || [];
+    if (visitorsFilterMode === "team") {
+      return rows.filter(function (r) { return r.is_owner; });
+    }
+    if (visitorsFilterMode === "others") {
+      return rows.filter(function (r) { return !r.is_owner; });
+    }
+    return rows;
+  }
+
+  function setVisitorsFilter(mode) {
+    visitorsFilterMode = mode || "others";
+    visitorsShowAll = false;
+    document.querySelectorAll(".oe-admin-visitors-filter").forEach(function (btn) {
+      btn.classList.toggle("is-active", btn.getAttribute("data-filter") === visitorsFilterMode);
+    });
+    renderVisitantesDistintos(visitantesRowsCache);
+  }
+
   function renderVisitantesDistintos(rows) {
+    visitantesRowsCache = rows || [];
     var div = document.getElementById("visitantesDistintos");
+    var meta = document.getElementById("visitantesDistintosMeta");
     if (!div) return;
-    if (!rows.length) {
-      div.innerHTML = '<p class="oe-admin-empty">Ainda sem visitantes com IP registado (só visitas novas aparecem aqui).</p>';
+
+    var filtered = filterVisitantesRows(visitantesRowsCache);
+    filtered.sort(function (a, b) {
+      if (!!a.is_owner !== !!b.is_owner) return a.is_owner ? 1 : -1;
+      return String(b.last_seen || "").localeCompare(String(a.last_seen || ""));
+    });
+
+    if (!filtered.length) {
+      var emptyMsg =
+        visitorsFilterMode === "others"
+          ? "Nenhum visitante «outro» nos últimos 14 dias — boa sinal! (Ou marca o teu IP para excluir as tuas visitas.)"
+          : visitorsFilterMode === "team"
+            ? "Nenhum IP marcado como equipa ainda. Clica em «Marcar o meu IP»."
+            : "Ainda sem visitantes registados.";
+      div.innerHTML = '<p class="oe-admin-empty">' + emptyMsg + "</p>";
+      if (meta) meta.textContent = "0 visitantes";
       return;
     }
+
+    var visible = visitorsShowAll ? filtered : filtered.slice(0, VISITORS_DISPLAY_LIMIT);
     div.innerHTML = "";
     div.appendChild(
       buildTable(
-        ["Tipo", "IP mascarado", "ID", "Páginas", "Dias", "Dispositivo", "Última visita"],
-        rows.map(function (r) {
+        ["Tipo", "IP", "Páginas", "Dias", "Disp.", "Última"],
+        visible.map(function (r) {
+          var ip = r.ip_label && r.ip_label !== "—" ? r.ip_label : "legado";
           return [
-            r.is_owner ? "Tu (equipa)" : "Outro",
-            r.ip_label || "—",
-            r.visitor_short || "—",
+            r.is_owner ? "Tu" : "Outro",
+            ip,
             String(r.pageviews || 0),
             String(r.dias_ativos || 0),
-            r.device_type || "—",
-            (r.last_seen || "").replace("T", " ").replace("Z", ""),
+            (r.device_type || "—").replace("desktop", "💻").replace("mobile", "📱").replace("tablet", "📱"),
+            formatVisitTime(r.last_seen),
           ];
         })
       )
     );
+
+    if (meta) {
+      meta.textContent =
+        visible.length +
+        " de " +
+        filtered.length +
+        " visitante(s)" +
+        (filtered.length > visible.length ? " — mostrando top " + VISITORS_DISPLAY_LIMIT : "");
+    }
+
+    if (!visitorsShowAll && filtered.length > VISITORS_DISPLAY_LIMIT) {
+      var more = document.createElement("button");
+      more.type = "button";
+      more.className = "oe-admin-btn oe-admin-btn--secondary";
+      more.style.marginTop = "10px";
+      more.textContent = "Ver todos (" + filtered.length + ")";
+      more.addEventListener("click", function () {
+        visitorsShowAll = true;
+        renderVisitantesDistintos(visitantesRowsCache);
+      });
+      div.appendChild(more);
+    }
   }
 
   function renderOwnerIpStatus(data) {
@@ -397,8 +473,9 @@
     var uids = data.owner_visitor_uids || [];
     var traf = data.visitas_trafego || {};
     if (!uids.length) {
-      el.textContent =
-        "Nenhum IP marcado como equipa. Clica em «Marcar o meu IP atual» enquanto estás no backoffice (mesma rede que usas no site).";
+      el.innerHTML =
+        '<strong>Nenhum IP marcado.</strong> Clica em «Marcar o meu IP» (mesma rede/Wi‑Fi que usas no site). ' +
+        "Visitas antigas aparecem como <em>legado</em> até haver tráfego novo com IP mascarado.";
       return;
     }
     el.innerHTML =
@@ -415,23 +492,33 @@
 
   async function markOwnerIp(unmark) {
     var path = unmark ? "/api/admin/visitors/unmark-owner" : "/api/admin/visitors/mark-owner";
+    var btnMark = document.getElementById("btnMarkOwnerIp");
+    var btnUnmark = document.getElementById("btnUnmarkOwnerIp");
+    if (btnMark) btnMark.disabled = true;
+    if (btnUnmark) btnUnmark.disabled = true;
     try {
-      var res = await fetch(apiBase() + path, { method: "POST", headers: authHeaders() });
+      var res = await fetch(apiBase() + path, { method: "POST", headers: adminAuthHeaders() });
       var data = await res.json().catch(function () { return {}; });
-      if (!res.ok) throw new Error(data.detail || "Falhou");
+      if (!res.ok) {
+        var detail = data.detail;
+        throw new Error(typeof detail === "string" ? detail : "Não foi possível marcar o IP.");
+      }
       if (global.OuviescreviUI && global.OuviescreviUI.toast) {
         global.OuviescreviUI.toast(
           unmark
             ? "Marcação removida para este IP."
-            : "IP marcado como equipa (" + (data.ip_label || data.visitor_uid || "") + ").",
+            : "IP marcado (" + (data.ip_label || "") + ") — as tuas visitas aparecem como «Tu».",
           "success"
         );
       }
       await carregarDashboard();
     } catch (e) {
       if (global.OuviescreviUI && global.OuviescreviUI.toast) {
-        global.OuviescreviUI.toast(e.message || "Erro", "error");
+        global.OuviescreviUI.toast(e.message || "Erro ao marcar IP.", "error");
       }
+    } finally {
+      if (btnMark) btnMark.disabled = false;
+      if (btnUnmark) btnUnmark.disabled = false;
     }
   }
 
@@ -1064,6 +1151,14 @@
     if (btnMarkOwner) btnMarkOwner.addEventListener("click", function () { markOwnerIp(false); });
     var btnUnmarkOwner = document.getElementById("btnUnmarkOwnerIp");
     if (btnUnmarkOwner) btnUnmarkOwner.addEventListener("click", function () { markOwnerIp(true); });
+    ["visitorsFilterOthers", "visitorsFilterAll", "visitorsFilterTeam"].forEach(function (id) {
+      var btn = document.getElementById(id);
+      if (btn) {
+        btn.addEventListener("click", function () {
+          setVisitorsFilter(btn.getAttribute("data-filter"));
+        });
+      }
+    });
 
     document.getElementById("btnRefresh").addEventListener("click", function () {
       carregarDashboard();

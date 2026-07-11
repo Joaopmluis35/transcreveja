@@ -7,7 +7,7 @@
   <title>Backoffice | Ouviescrevi</title>
   <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png">
   <link rel="stylesheet" href="css/ouviescrevi.css">
-  <link rel="stylesheet" href="css/backoffice.css?v=17">
+  <link rel="stylesheet" href="css/backoffice.css?v=18">
   <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
   <script src="js/ouviescrevi-ui.js" defer></script>
 </head>
@@ -234,31 +234,27 @@
           </div>
         </div>
 
-        <div class="oe-admin-panel">
-          <div class="oe-admin-panel__head">
-            Visitantes distintos
-            <span style="font-weight:400;color:var(--bo-muted)">(14 dias — IP mascarado, ex. 89.123.45.x)</span>
-          </div>
+        <div class="oe-admin-panel oe-admin-panel--visitors">
+          <div class="oe-admin-panel__head">Tráfego: tu vs outros visitantes</div>
           <div class="oe-admin-panel__body">
-            <p class="oe-admin-cms-hint" style="margin-top:0">
-              Cada linha é um <strong>IP diferente</strong> (ou rede). Marca o teu IP para veres quantas visitas são tuas vs outras pessoas.
-              Se mudares de rede (telefone, casa, VPN), marca outra vez.
-            </p>
-            <div class="oe-admin-form-actions" style="border:0;padding:0 0 12px;margin:0">
-              <button type="button" id="btnMarkOwnerIp" class="oe-admin-btn oe-admin-btn--secondary">📍 Marcar o meu IP atual (equipa)</button>
-              <button type="button" id="btnUnmarkOwnerIp" class="oe-admin-btn oe-admin-btn--secondary">✕ Remover marcação deste IP</button>
+            <div class="oe-admin-visitors-summary" id="ownerIpStatus">A carregar…</div>
+            <div class="oe-admin-visitors-toolbar">
+              <button type="button" id="btnMarkOwnerIp" class="oe-admin-btn oe-admin-btn--secondary">📍 Marcar o meu IP</button>
+              <button type="button" id="btnUnmarkOwnerIp" class="oe-admin-btn oe-admin-btn--secondary">✕ Desmarcar este IP</button>
+              <button type="button" id="visitorsFilterOthers" class="oe-admin-btn oe-admin-btn--secondary oe-admin-visitors-filter is-active" data-filter="others">Só outros</button>
+              <button type="button" id="visitorsFilterAll" class="oe-admin-btn oe-admin-btn--secondary oe-admin-visitors-filter" data-filter="all">Todos</button>
+              <button type="button" id="visitorsFilterTeam" class="oe-admin-btn oe-admin-btn--secondary oe-admin-visitors-filter" data-filter="team">Só equipa</button>
+              <span class="oe-admin-visitors-meta" id="visitantesDistintosMeta"></span>
             </div>
-            <p class="oe-admin-cms-hint" id="ownerIpStatus" style="margin-bottom:12px">—</p>
-            <div class="oe-admin-table-wrap" id="visitantesDistintos">
+            <div class="oe-admin-table-wrap oe-admin-table-wrap--scroll" id="visitantesDistintos">
               <p class="oe-admin-empty">A carregar...</p>
             </div>
-          </div>
-        </div>
-
-        <div class="oe-admin-panel">
-          <div class="oe-admin-panel__head">Visitas recentes</div>
-          <div class="oe-admin-panel__body oe-admin-table-wrap" id="visitasRecentes">
-            <p class="oe-admin-empty">A carregar...</p>
+            <details class="oe-admin-visitors-recent">
+              <summary>Últimas visitas (detalhe)</summary>
+              <div class="oe-admin-table-wrap oe-admin-table-wrap--scroll" id="visitasRecentes">
+                <p class="oe-admin-empty">A carregar...</p>
+              </div>
+            </details>
           </div>
         </div>
       </div>
@@ -681,7 +677,7 @@
 <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 <script src="js/ouviescrevi-api.js"></script>
 <script src="js/backoffice-cms-locales.js?v=5"></script>
-<script src="js/backoffice.js?v=17"></script>
+<script src="js/backoffice.js?v=18"></script>
 <script src="js/backoffice-admin.js?v=23"></script>
 <script src="js/backoffice-nav.js?v=2"></script>
 <script src="js/backoffice-billing.js?v=4"></script>

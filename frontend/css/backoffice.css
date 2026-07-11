@@ -416,6 +416,73 @@ body.oe-admin.oe-admin--dark table.oe-admin-table tbody tr:hover td {
   overflow-x: auto;
 }
 
+.oe-admin-table-wrap--scroll {
+  max-height: min(280px, 42vh);
+  overflow: auto;
+  border: 1px solid var(--bo-border);
+  border-radius: 10px;
+}
+
+.oe-admin-visitors-summary {
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  background: var(--bo-table-th-bg);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--bo-text-secondary);
+}
+
+.oe-admin-visitors-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.oe-admin-visitors-filter {
+  font-size: 0.8125rem;
+  padding: 6px 12px;
+}
+
+.oe-admin-visitors-filter.is-active {
+  background: var(--bo-accent-soft, #ede9fe);
+  border-color: var(--bo-accent, #6d28d9);
+  color: var(--bo-accent, #6d28d9);
+}
+
+.oe-admin-visitors-meta {
+  margin-left: auto;
+  font-size: 0.8125rem;
+  color: var(--bo-muted);
+}
+
+details.oe-admin-visitors-recent {
+  margin-top: 14px;
+}
+
+details.oe-admin-visitors-recent > summary {
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--bo-text-secondary);
+  padding: 8px 0;
+  list-style: none;
+}
+
+details.oe-admin-visitors-recent > summary::-webkit-details-marker {
+  display: none;
+}
+
+details.oe-admin-visitors-recent > summary::before {
+  content: "▸ ";
+}
+
+details.oe-admin-visitors-recent[open] > summary::before {
+  content: "▾ ";
+}
+
 table.oe-admin-table {
   width: 100%;
   border-collapse: collapse;
