@@ -155,16 +155,31 @@
 
   global.OuviescreviNewsTicker = { mount: mount };
 
+  function watchHeaderForTicker() {
+    if (!shouldShow()) return;
+    if (document.getElementById("oeNewsTicker")) return;
+    var header = document.getElementById("header");
+    if (!header) return;
+    if (header.querySelector("#oeProHeader")) {
+      mount();
+      return;
+    }
+    var obs = new MutationObserver(function () {
+      if (document.getElementById("oeNewsTicker")) {
+        obs.disconnect();
+        return;
+      }
+      if (header.querySelector("#oeProHeader")) {
+        mount();
+        obs.disconnect();
+      }
+    });
+    obs.observe(header, { childList: true, subtree: true });
+  }
+
   function boot() {
     mount();
-    var tries = 0;
-    var timer = global.setInterval(function () {
-      mount();
-      tries += 1;
-      if (document.getElementById("oeNewsTicker") || tries > 48) {
-        global.clearInterval(timer);
-      }
-    }, 250);
+    watchHeaderForTicker();
   }
 
   if (document.readyState === "loading") {

@@ -221,7 +221,7 @@
     }
     return new Promise(function (resolve) {
       var s = document.createElement("script");
-      s.src = "/js/news-ticker.js?v=2";
+      s.src = "/js/news-ticker.js?v=3";
       s.dataset.oeNewsTicker = "1";
       s.onload = function () {
         s.setAttribute("data-ready", "1");
@@ -266,43 +266,46 @@
     return withLayoutVersion("footer.html");
   }
 
-  function loadHeader(url) {
-    url = resolveHeaderUrl(url);
-    return ensureNavScript()
-      .then(function () {
-        return ensureThemeScript();
-      })
-      .then(function () {
-        return fetch(url);
-      })
-      .then(function (r) {
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        return r.text();
-      })
-      .then(function (html) {
-        const el = document.getElementById("header");
-        if (!el) return;
-        el.innerHTML = html;
-        el.dataset.oeHeaderLoaded = "true";
-        const temp = document.createElement("div");
-        temp.innerHTML = html;
-        injectScriptsFromHtml(html, temp);
-        if (global.OuviescreviNav && global.OuviescreviNav.init) {
-          global.OuviescreviNav.init();
-        }
-        if (global.OuviescreviTheme) global.OuviescreviTheme.init();
-        markCurrentNav();
-        maybeApplyNavFromCache();
-        return ensureAuthScript();
-      })
+  function injectHeaderHtml(html) {
+    var el = document.getElementById("header");
+    if (!el) return;
+    el.innerHTML = html;
+    el.dataset.oeHeaderLoaded = "true";
+    var temp = document.createElement("div");
+    temp.innerHTML = html;
+    injectScriptsFromHtml(html, temp);
+    if (global.OuviescreviNav && global.OuviescreviNav.init) {
+      global.OuviescreviNav.init();
+    }
+    if (global.OuviescreviTheme) global.OuviescreviTheme.init();
+    markCurrentNav();
+    maybeApplyNavFromCache();
+    mountNewsTicker();
+  }
+
+  function enhanceHeaderAfterInject() {
+    ensureAuthScript()
       .then(function () {
         if (global.OuviescreviAuth && global.OuviescreviAuth.init) {
           global.OuviescreviAuth.init();
         }
         return ensurePricingVisibilityScript();
       })
-      .then(function () {
-        return mountNewsTicker();
+      .catch(function () {});
+  }
+
+  function loadHeader(url) {
+    url = resolveHeaderUrl(url);
+    var htmlPromise = fetch(url).then(function (r) {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.text();
+    });
+    var depsPromise = Promise.all([ensureNavScript(), ensureThemeScript()]);
+
+    return Promise.all([htmlPromise, depsPromise])
+      .then(function (results) {
+        injectHeaderHtml(results[0]);
+        enhanceHeaderAfterInject();
       })
       .catch(function (err) {
         console.error("OuviescreviUI: falha ao carregar", url, err);
@@ -953,13 +956,18 @@
 
   function bootLayout() {
     if (global.OuviescreviSEO) global.OuviescreviSEO.apply();
+    autoLoadLayout();
     ensureI18nScript().then(function () {
       maybeShowCookieBanner();
     });
     ensureNavScript().then(function () {
-      autoLoadLayout();
-      setTimeout(markCurrentNav, 400);
-      mountNewsTicker();
+      if (document.querySelector("#oeProHeader")) {
+        if (global.OuviescreviNav && global.OuviescreviNav.init) {
+          global.OuviescreviNav.init();
+        }
+        markCurrentNav();
+        mountNewsTicker();
+      }
     });
     trackPageView();
     maybeShowAdminTrafficTools();
