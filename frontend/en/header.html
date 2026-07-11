@@ -18,19 +18,53 @@
             Tools
             <svg class="oe-pro-nav__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
           </button>
-          <div class="oe-pro-nav__menu" role="menu">
-            <a href="resumo.html" data-nav-page="resumo" role="menuitem">Summarize PDF / Word</a>
-            <a href="url-resumo.html" data-nav-page="url-resumo" role="menuitem">URL Summary</a>
-            <a href="perguntas.html" data-nav-page="perguntas" role="menuitem">AI Questions</a>
-            <a href="conversor.html" data-nav-page="conversor" role="menuitem">File Converter</a>
+          <div class="oe-pro-nav__menu oe-pro-nav__menu--grouped" data-nav-slot="tools" role="menu">
+            <div class="oe-pro-nav__mega-grid">
+              <div class="oe-pro-nav__mega-col">
+                <div class="oe-pro-nav__group-label" role="presentation">Summarize & analyze</div>
+                <div class="oe-pro-nav__group">
+                  <a href="resumo.html" data-nav-page="resumo" role="menuitem">Summarize PDF / Word</a>
+                  <a href="url-resumo.html" data-nav-page="url-resumo" role="menuitem">URL Summary</a>
+                  <a href="capitulos.html" data-nav-page="capitulos" role="menuitem">Chapters & timestamps</a>
+                  <a href="podcast-youtube.html" data-nav-page="podcast-youtube" role="menuitem">Podcast & YouTube</a>
+                  <a href="descricao-youtube.html" data-nav-page="descricao-youtube" role="menuitem">YouTube Description</a>
+                </div>
+              </div>
+              <div class="oe-pro-nav__mega-col">
+                <div class="oe-pro-nav__group-label" role="presentation">Study & teaching</div>
+                <div class="oe-pro-nav__group">
+                  <a href="perguntas.html" data-nav-page="perguntas" role="menuitem">AI Questions</a>
+                  <a href="aula-pronta.html" data-nav-page="aula-pronta" role="menuitem">Lesson Ready</a>
+                  <a href="aula-completa.html" data-nav-page="aula-completa" role="menuitem">Full lesson</a>
+                  <a href="flashcards.html" data-nav-page="flashcards" role="menuitem">Flashcards</a>
+                </div>
+              </div>
+              <div class="oe-pro-nav__mega-col">
+                <div class="oe-pro-nav__group-label" role="presentation">Convert & correct</div>
+                <div class="oe-pro-nav__group">
+                  <a href="conversor.html" data-nav-page="conversor" role="menuitem">File Converter</a>
+                  <a href="conversor-imagens.html" data-nav-page="conversor-imagens" role="menuitem">Image Converter</a>
+                  <a href="corretor.html" data-nav-page="corretor" role="menuitem">Text Corrector</a>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
+        <div class="oe-pro-nav__toplinks" data-nav-slot="top-links">
         <a class="oe-pro-nav__link" href="ajuda.html" data-nav-page="ajuda">Help</a>
+        <a class="oe-pro-nav__link" href="../precos.html" data-nav-page="precos" data-pricing-only>Pricing</a>
         <a class="oe-pro-nav__link" href="sugestoes.html" data-nav-page="sugestoes">Suggestions</a>
+        </div>
       </nav>
 
       <div class="oe-pro-header__actions">
+        <div class="oe-pro-auth" id="oeProAuth">
+          <span class="oe-pro-auth__user hidden" id="oeAuthUser"></span>
+          <button type="button" class="oe-pro-btn oe-pro-btn--ghost hidden" id="oeAuthLogout">Log out</button>
+          <button type="button" class="oe-pro-btn oe-pro-btn--ghost" id="oeAuthLogin">Log in</button>
+          <button type="button" class="oe-pro-btn oe-pro-btn--ghost" id="oeAuthRegister">Sign up</button>
+        </div>
         <div class="oe-pro-lang">
           <button type="button" class="oe-pro-theme__btn" id="oeThemeToggle" aria-label="Dark mode" title="Dark mode">🌙</button>
           <button type="button" class="oe-pro-lang__btn" id="oeLangBtn" aria-expanded="false" aria-haspopup="true" aria-label="Language">

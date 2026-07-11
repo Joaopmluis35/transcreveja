@@ -34,6 +34,7 @@
                 <div class="oe-pro-nav__group-label" role="presentation">Estudio y enseñanza</div>
                 <div class="oe-pro-nav__group">
                   <a href="perguntas.html" data-nav-page="perguntas" role="menuitem">Preguntas con IA</a>
+                  <a href="aula-pronta.html" data-nav-page="aula-pronta" role="menuitem">Clase lista</a>
                   <a href="aula-completa.html" data-nav-page="aula-completa" role="menuitem">Clase completa</a>
                   <a href="flashcards.html" data-nav-page="flashcards" role="menuitem">Flashcards</a>
                 </div>
@@ -42,6 +43,7 @@
                 <div class="oe-pro-nav__group-label" role="presentation">Convertir y corregir</div>
                 <div class="oe-pro-nav__group">
                   <a href="conversor.html" data-nav-page="conversor" role="menuitem">Conversor de archivos</a>
+                  <a href="conversor-imagens.html" data-nav-page="conversor-imagens" role="menuitem">Conversor de imágenes</a>
                   <a href="corretor.html" data-nav-page="corretor" role="menuitem">Corrector de texto</a>
                 </div>
               </div>
@@ -51,11 +53,18 @@
 
         <div class="oe-pro-nav__toplinks" data-nav-slot="top-links">
         <a class="oe-pro-nav__link" href="ajuda.html" data-nav-page="ajuda">Ayuda</a>
+        <a class="oe-pro-nav__link" href="../precos.html" data-nav-page="precos" data-pricing-only>Precios</a>
         <a class="oe-pro-nav__link" href="sugestoes.html" data-nav-page="sugestoes">Sugerencias</a>
         </div>
       </nav>
 
       <div class="oe-pro-header__actions">
+        <div class="oe-pro-auth" id="oeProAuth">
+          <span class="oe-pro-auth__user hidden" id="oeAuthUser"></span>
+          <button type="button" class="oe-pro-btn oe-pro-btn--ghost hidden" id="oeAuthLogout">Cerrar sesión</button>
+          <button type="button" class="oe-pro-btn oe-pro-btn--ghost" id="oeAuthLogin">Entrar</button>
+          <button type="button" class="oe-pro-btn oe-pro-btn--ghost" id="oeAuthRegister">Registrarse</button>
+        </div>
         <div class="oe-pro-lang">
           <button type="button" class="oe-pro-theme__btn" id="oeThemeToggle" aria-label="Modo oscuro" title="Modo oscuro">🌙</button>
           <button type="button" class="oe-pro-lang__btn" id="oeLangBtn" aria-expanded="false" aria-haspopup="true" aria-label="Idioma">

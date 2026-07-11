@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Transformez une transcription de cours en pack d'étude : résumé, glossaire, points clés et questions avec réponses.">
+  <meta name="robots" content="index, follow">
+  <title>Cours prêt — Pack d'étude IA | Ouviescrevi</title>
+  <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
+  <link rel="stylesheet" href="../css/ouviescrevi.css?v=16">
+  <link rel="stylesheet" href="../css/aula-pronta.css?v=1">
+  <script src="../js/theme-ui.js"></script>
+  <script src="/js/ouviescrevi-seo.js" defer></script>
+  <script src="../js/ouviescrevi-ui.js" defer></script>
+</head>
+<body class="oe-page oe-pro oe-page--aula-pronta">
+<a class="oe-skip" href="#conteudo">Aller au contenu</a>
+<div id="header"></div>
+
+<div class="oe-ap-layout" id="conteudo">
+  <header class="oe-ap-hero">
+    <h1 data-cms-key="fr_aula_pronta_title" data-cms-mode="text">📦 Cours prêt</h1>
+    <p class="oe-lead" data-cms-key="fr_aula_pronta_lead" data-cms-mode="text">Collez la transcription d'un cours et recevez un pack complet : résumé, glossaire, points clés et questions de révision avec réponses.</p>
+  </header>
+
+  <section class="oe-ap-form" aria-labelledby="apFormTitle">
+    <p class="oe-ap-form__eyebrow" id="apFormEyebrow">Enseignants · Étudiants · Révision</p>
+    <h2 class="oe-ap-form__title" id="apFormTitle">Texte du cours</h2>
+    <p class="oe-ap-form__hint" id="apFormHint">Fonctionne avec les transcriptions Ouviescrevi, des notes ou tout texte long.</p>
+    <textarea id="texto" aria-labelledby="apFormTitle"></textarea>
+    <div class="oe-ap-form__footer">
+      <div class="oe-ap-form__field">
+        <label for="apLang" id="apLangLabel">Langue du pack</label>
+        <select id="apLang" aria-labelledby="apLangLabel">
+          <option value="pt">Português</option>
+          <option value="en">English</option>
+          <option value="es">Español</option>
+          <option value="fr" selected>Français</option>
+          <option value="de">Deutsch</option>
+        </select>
+      </div>
+      <div class="oe-ap-form__field">
+        <label for="apNumQuestions" id="apCountLabel">Questions</label>
+        <select id="apNumQuestions" aria-labelledby="apCountLabel">
+          <option value="8">8</option>
+          <option value="10" selected>10</option>
+          <option value="12">12</option>
+          <option value="15">15</option>
+        </select>
+      </div>
+      <button type="button" class="oe-ap-form__submit" id="btnAulaPronta">📦 Générer le pack</button>
+    </div>
+  </section>
+
+  <div id="resultado" hidden></div>
+</div>
+
+<div id="footer"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="../js/ouviescrevi-api.js"></script>
+<script src="../js/perguntas-templates.js?v=4"></script>
+<script src="../js/aula-pronta-ui.js?v=1"></script>
+<script>
+  AulaProntaUI.init({ lang: "fr" });
+  OuviescreviUI.loadHeader();
+  OuviescreviUI.loadFooter();
+</script>
+</body>
+</html>
