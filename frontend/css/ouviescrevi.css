@@ -427,8 +427,8 @@ nav#nichoMenu button span { position: relative; z-index: 1; }
 .oe-page textarea,
 .container textarea { min-height: 160px; resize: vertical; line-height: 1.55; }
 
-.oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close),
-.container button:not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close),
+.oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card),
+.container button:not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card),
 .oe-btn {
   display: inline-flex;
   align-items: center;
@@ -448,8 +448,8 @@ nav#nichoMenu button span { position: relative; z-index: 1; }
   width: auto;
   min-width: 140px;
 }
-.oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):hover:not(:disabled),
-.container button:not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):hover:not(:disabled),
+.oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card):hover:not(:disabled),
+.container button:not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card):hover:not(:disabled),
 .oe-btn:hover:not(:disabled) {
   background: var(--oe-gradient);
   color: #fff;
@@ -457,14 +457,14 @@ nav#nichoMenu button span { position: relative; z-index: 1; }
   transform: translateY(-1px);
   box-shadow: 0 6px 20px rgba(124, 58, 237, 0.3);
 }
-.oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):focus-visible,
-.container button:not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):focus-visible,
+.oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card):focus-visible,
+.container button:not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card):focus-visible,
 .oe-btn:focus-visible {
   outline: none;
   box-shadow: var(--oe-focus);
 }
-.oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):disabled,
-.container button:not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):disabled,
+.oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card):disabled,
+.container button:not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card):disabled,
 .oe-btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;

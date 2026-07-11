@@ -161,11 +161,30 @@ body.oe-page--flashcards .oe-fc-hero .oe-lead {
   width: 100%;
   min-height: 140px;
   padding: 0;
+  margin: 0;
   border: none;
-  background: transparent;
+  background: transparent !important;
   cursor: pointer;
   perspective: 800px;
   text-align: left;
+  min-width: 0;
+  box-shadow: none !important;
+  transform: none;
+  color: inherit;
+}
+
+.oe-fc-card:hover,
+.oe-fc-card:focus-visible {
+  background: transparent !important;
+  color: inherit !important;
+  border: none !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.oe-fc-card:focus-visible .oe-fc-card__face {
+  outline: 2px solid #7c3aed;
+  outline-offset: 2px;
 }
 
 .oe-fc-card__inner {
@@ -189,15 +208,32 @@ body.oe-page--flashcards .oe-fc-hero .oe-lead {
   padding: 14px;
   border-radius: 12px;
   border: 1px solid var(--pro-border, #e2e8f0);
-  background: var(--pro-bg, #f8fafc);
+  background: #fff;
   backface-visibility: hidden;
   box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.oe-fc-card:hover .oe-fc-card__face,
+.oe-fc-card:focus-visible .oe-fc-card__face {
+  border-color: #a78bfa;
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.12);
 }
 
 .oe-fc-card__face--back {
   transform: rotateY(180deg);
-  background: linear-gradient(135deg, rgba(124, 58, 237, 0.08), rgba(124, 58, 237, 0.02));
+  background: #f5f3ff;
   border-color: #c4b5fd;
+}
+
+.oe-fc-card__face--back .oe-fc-card__label {
+  color: #6d28d9;
+}
+
+.oe-fc-card.is-flipped:hover .oe-fc-card__face--back,
+.oe-fc-card.is-flipped:focus-visible .oe-fc-card__face--back {
+  border-color: #7c3aed;
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.18);
 }
 
 .oe-fc-card__label {
@@ -213,4 +249,27 @@ body.oe-page--flashcards .oe-fc-hero .oe-lead {
   font-size: 0.88rem;
   line-height: 1.45;
   color: var(--pro-text, #0f172a);
+  flex: 1;
+}
+
+html.oe-theme-dark .oe-fc-card__face {
+  background: var(--pro-surface, #1e293b);
+  border-color: var(--pro-border, #334155);
+}
+
+html.oe-theme-dark .oe-fc-card__face--back {
+  background: #2e1065;
+  border-color: #7c3aed;
+}
+
+html.oe-theme-dark .oe-fc-card__face--back .oe-fc-card__label {
+  color: #c4b5fd;
+}
+
+html.oe-theme-dark .oe-fc-card__face--back .oe-fc-card__text {
+  color: #f8fafc;
+}
+
+html.oe-theme-dark .oe-fc-card__text {
+  color: var(--pro-text, #f1f5f9);
 }
