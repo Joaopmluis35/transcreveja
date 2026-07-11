@@ -214,4 +214,15 @@
   <url><loc>https://www.ouviescrevi.pt/de/aula-pronta.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://www.ouviescrevi.pt/de/conversor-imagens.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
 
+  <url><loc>https://www.ouviescrevi.pt/precos.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/precos.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/precos.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/precos.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/en/precos.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/precos.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/precos.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/precos.html"/>
+  </url>
+
 </urlset>

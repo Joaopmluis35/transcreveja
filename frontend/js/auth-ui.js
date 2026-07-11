@@ -7,6 +7,52 @@
   const SITE_EMAIL_KEY = "ouviescrevi_site_email";
   const SITE_NAME_KEY = "ouviescrevi_site_name";
 
+  var AUTH_FALLBACK = {
+    pt: {
+      close: "Fechar",
+      titleLogin: "Entrar na conta",
+      titleRegister: "Criar conta",
+      titleAdmin: "Entrar como administrador",
+      tabLogin: "Entrar",
+      tabRegister: "Registar",
+      tabAdmin: "Admin",
+      email: "Email",
+      password: "Palavra-passe",
+      passwordMin: "Palavra-passe (mín. 8)",
+      nameOptional: "Nome (opcional)",
+      username: "Utilizador",
+      loginBtn: "Entrar",
+      registerBtn: "Criar conta",
+      adminBtn: "Entrar como admin",
+      registerHint: "Ao registares-te podes usar o site com a tua conta. Atividade normal envia notificação ao administrador.",
+      adminHint: "Conta de equipa — atividade no site não envia emails de notificação.",
+      accountLabel: "Conta",
+      staffSuffix: " (equipa)",
+      logoutToast: "Sessão terminada.",
+      welcomeBack: "Bem-vindo de volta!",
+      accountCreated: "Conta criada — 20 transcrições por dia!",
+      adminSession: "Sessão de administrador ativa.",
+      loginFail: "Não foi possível entrar.",
+      registerFail: "Não foi possível registar.",
+      invalidCreds: "Credenciais inválidas.",
+      loginError: "Erro ao entrar.",
+      registerError: "Erro ao registar.",
+    },
+  };
+
+  function locale() {
+    if (global.OuviescreviI18n) return global.OuviescreviI18n.localeFromPath();
+    var m = (global.location && global.location.pathname || "").match(/^\/(en|es|fr|de)(\/|$)/);
+    return m ? m[1] : "pt";
+  }
+
+  function t() {
+    if (global.OuviescreviI18n && global.OuviescreviI18n.authStrings) {
+      return global.OuviescreviI18n.authStrings(locale());
+    }
+    return AUTH_FALLBACK.pt;
+  }
+
   function staffRoles() {
     return ["admin", "editor", "viewer"];
   }
@@ -36,13 +82,14 @@
   }
 
   function getDisplayLabel() {
+    var strings = t();
     var name = sessionStorage.getItem(SITE_NAME_KEY);
     var email = sessionStorage.getItem(SITE_EMAIL_KEY);
     var role = sessionStorage.getItem(SITE_ROLE_KEY) || "";
     if (staffRoles().indexOf(role) !== -1) {
-      return (email || "Admin") + " (equipa)";
+      return (email || "Admin") + strings.staffSuffix;
     }
-    return name || email || "Conta";
+    return name || email || strings.accountLabel;
   }
 
   function isLoggedIn() {
@@ -56,8 +103,44 @@
     return false;
   }
 
+  function applyModalStrings(modal) {
+    if (!modal) return;
+    var s = t();
+    var closeBtn = modal.querySelector(".oe-auth-modal__close");
+    if (closeBtn) closeBtn.setAttribute("aria-label", s.close);
+    modal.querySelector('[data-oe-auth-tab="login"]').textContent = s.tabLogin;
+    modal.querySelector('[data-oe-auth-tab="register"]').textContent = s.tabRegister;
+    modal.querySelector('[data-oe-auth-tab="admin"]').textContent = s.tabAdmin;
+
+    var loginForm = modal.querySelector('[data-oe-auth-panel="login"]');
+    if (loginForm) {
+      loginForm.querySelector("label:nth-of-type(1)").childNodes[0].textContent = s.email;
+      loginForm.querySelector("label:nth-of-type(2)").childNodes[0].textContent = s.password;
+      loginForm.querySelector('button[type="submit"]').textContent = s.loginBtn;
+    }
+    var regForm = modal.querySelector('[data-oe-auth-panel="register"]');
+    if (regForm) {
+      regForm.querySelector("label:nth-of-type(1)").childNodes[0].textContent = s.nameOptional;
+      regForm.querySelector("label:nth-of-type(2)").childNodes[0].textContent = s.email;
+      regForm.querySelector("label:nth-of-type(3)").childNodes[0].textContent = s.passwordMin;
+      regForm.querySelector(".oe-auth-form__hint").textContent = s.registerHint;
+      regForm.querySelector('button[type="submit"]').textContent = s.registerBtn;
+    }
+    var adminForm = modal.querySelector('[data-oe-auth-panel="admin"]');
+    if (adminForm) {
+      adminForm.querySelector("label:nth-of-type(1)").childNodes[0].textContent = s.username;
+      adminForm.querySelector("label:nth-of-type(2)").childNodes[0].textContent = s.password;
+      adminForm.querySelector(".oe-auth-form__hint").textContent = s.adminHint;
+      adminForm.querySelector('button[type="submit"]').textContent = s.adminBtn;
+    }
+  }
+
   function ensureModal() {
-    if (document.getElementById("oeAuthModal")) return document.getElementById("oeAuthModal");
+    if (document.getElementById("oeAuthModal")) {
+      applyModalStrings(document.getElementById("oeAuthModal"));
+      return document.getElementById("oeAuthModal");
+    }
+    var s = t();
     var wrap = document.createElement("div");
     wrap.id = "oeAuthModal";
     wrap.className = "oe-auth-modal hidden";
@@ -67,33 +150,33 @@
     wrap.innerHTML =
       '<div class="oe-auth-modal__backdrop" data-oe-auth-close="1"></div>' +
       '<div class="oe-auth-modal__card">' +
-      '  <button type="button" class="oe-auth-modal__close" data-oe-auth-close="1" aria-label="Fechar">✕</button>' +
-      '  <h2 id="oeAuthModalTitle" class="oe-auth-modal__title">Entrar na conta</h2>' +
+      '  <button type="button" class="oe-auth-modal__close" data-oe-auth-close="1" aria-label="' + s.close + '">✕</button>' +
+      '  <h2 id="oeAuthModalTitle" class="oe-auth-modal__title">' + s.titleLogin + '</h2>' +
       '  <div class="oe-auth-tabs" role="tablist">' +
-      '    <button type="button" class="oe-auth-tabs__btn oe-auth-tabs__btn--active" data-oe-auth-tab="login" role="tab">Entrar</button>' +
-      '    <button type="button" class="oe-auth-tabs__btn" data-oe-auth-tab="register" role="tab">Registar</button>' +
-      '    <button type="button" class="oe-auth-tabs__btn" data-oe-auth-tab="admin" role="tab">Admin</button>' +
+      '    <button type="button" class="oe-auth-tabs__btn oe-auth-tabs__btn--active" data-oe-auth-tab="login" role="tab">' + s.tabLogin + '</button>' +
+      '    <button type="button" class="oe-auth-tabs__btn" data-oe-auth-tab="register" role="tab">' + s.tabRegister + '</button>' +
+      '    <button type="button" class="oe-auth-tabs__btn" data-oe-auth-tab="admin" role="tab">' + s.tabAdmin + '</button>' +
       "  </div>" +
       '  <form id="oeAuthLoginForm" class="oe-auth-form" data-oe-auth-panel="login">' +
-      '    <label>Email<input type="email" name="email" required autocomplete="email" /></label>' +
-      '    <label>Palavra-passe<input type="password" name="password" required minlength="8" autocomplete="current-password" /></label>' +
+      '    <label>' + s.email + '<input type="email" name="email" required autocomplete="email" /></label>' +
+      '    <label>' + s.password + '<input type="password" name="password" required minlength="8" autocomplete="current-password" /></label>' +
       '    <p class="oe-auth-form__error hidden" id="oeAuthLoginError"></p>' +
-      '    <button type="submit" class="oe-pro-btn oe-pro-btn--primary">Entrar</button>' +
+      '    <button type="submit" class="oe-pro-btn oe-pro-btn--primary">' + s.loginBtn + '</button>' +
       "  </form>" +
       '  <form id="oeAuthRegisterForm" class="oe-auth-form hidden" data-oe-auth-panel="register">' +
-      '    <label>Nome (opcional)<input type="text" name="name" autocomplete="name" /></label>' +
-      '    <label>Email<input type="email" name="email" required autocomplete="email" /></label>' +
-      '    <label>Palavra-passe (mín. 8)<input type="password" name="password" required minlength="8" autocomplete="new-password" /></label>' +
-      '    <p class="oe-auth-form__hint">Ao registares-te podes usar o site com a tua conta. Atividade normal envia notificação ao administrador.</p>' +
+      '    <label>' + s.nameOptional + '<input type="text" name="name" autocomplete="name" /></label>' +
+      '    <label>' + s.email + '<input type="email" name="email" required autocomplete="email" /></label>' +
+      '    <label>' + s.passwordMin + '<input type="password" name="password" required minlength="8" autocomplete="new-password" /></label>' +
+      '    <p class="oe-auth-form__hint">' + s.registerHint + '</p>' +
       '    <p class="oe-auth-form__error hidden" id="oeAuthRegisterError"></p>' +
-      '    <button type="submit" class="oe-pro-btn oe-pro-btn--primary">Criar conta</button>' +
+      '    <button type="submit" class="oe-pro-btn oe-pro-btn--primary">' + s.registerBtn + '</button>' +
       "  </form>" +
       '  <form id="oeAuthAdminForm" class="oe-auth-form hidden" data-oe-auth-panel="admin">' +
-      '    <label>Utilizador<input type="text" name="email" value="admin" autocomplete="username" /></label>' +
-      '    <label>Palavra-passe<input type="password" name="password" required autocomplete="current-password" /></label>' +
-      '    <p class="oe-auth-form__hint">Conta de equipa — atividade no site não envia emails de notificação.</p>' +
+      '    <label>' + s.username + '<input type="text" name="email" value="admin" autocomplete="username" /></label>' +
+      '    <label>' + s.password + '<input type="password" name="password" required autocomplete="current-password" /></label>' +
+      '    <p class="oe-auth-form__hint">' + s.adminHint + '</p>' +
       '    <p class="oe-auth-form__error hidden" id="oeAuthAdminError"></p>' +
-      '    <button type="submit" class="oe-pro-btn oe-pro-btn--primary">Entrar como admin</button>' +
+      '    <button type="submit" class="oe-pro-btn oe-pro-btn--primary">' + s.adminBtn + '</button>' +
       "  </form>" +
       "</div>";
     document.body.appendChild(wrap);
@@ -122,7 +205,8 @@
     modal.querySelectorAll("[data-oe-auth-panel]").forEach(function (panel) {
       panel.classList.toggle("hidden", panel.getAttribute("data-oe-auth-panel") !== tab);
     });
-    var titles = { login: "Entrar na conta", register: "Criar conta", admin: "Entrar como administrador" };
+    var s = t();
+    var titles = { login: s.titleLogin, register: s.titleRegister, admin: s.titleAdmin };
     var title = document.getElementById("oeAuthModalTitle");
     if (title) title.textContent = titles[tab] || titles.login;
   }
@@ -171,10 +255,11 @@
       openModal("register");
     });
     document.getElementById("oeAuthLogout")?.addEventListener("click", function () {
+      var s = t();
       clearSession();
       refreshChrome();
       if (global.OuviescreviUI && global.OuviescreviUI.toast) {
-        global.OuviescreviUI.toast("Sessão terminada.", "info");
+        global.OuviescreviUI.toast(s.logoutToast, "info");
       }
     });
 
@@ -190,6 +275,7 @@
 
     document.getElementById("oeAuthLoginForm")?.addEventListener("submit", async function (e) {
       e.preventDefault();
+      var s = t();
       showError("oeAuthLoginError", "");
       var fd = new FormData(e.target);
       try {
@@ -200,20 +286,21 @@
           body: JSON.stringify({ email: fd.get("email"), password: fd.get("password"), admin: false }),
         });
         var data = await res.json().catch(function () { return {}; });
-        if (!res.ok) throw new Error(data.detail || "Não foi possível entrar.");
+        if (!res.ok) throw new Error(data.detail || s.loginFail);
         persistSession(data);
         closeModal();
         refreshChrome();
         if (global.OuviescreviUI && global.OuviescreviUI.toast) {
-          global.OuviescreviUI.toast("Bem-vindo de volta!", "success");
+          global.OuviescreviUI.toast(s.welcomeBack, "success");
         }
       } catch (err) {
-        showError("oeAuthLoginError", err.message || "Erro ao entrar.");
+        showError("oeAuthLoginError", err.message || s.loginError);
       }
     });
 
     document.getElementById("oeAuthRegisterForm")?.addEventListener("submit", async function (e) {
       e.preventDefault();
+      var s = t();
       showError("oeAuthRegisterError", "");
       var fd = new FormData(e.target);
       try {
@@ -228,20 +315,21 @@
           }),
         });
         var data = await res.json().catch(function () { return {}; });
-        if (!res.ok) throw new Error(data.detail || "Não foi possível registar.");
+        if (!res.ok) throw new Error(data.detail || s.registerFail);
         persistSession(data);
         closeModal();
         refreshChrome();
         if (global.OuviescreviUI && global.OuviescreviUI.toast) {
-          global.OuviescreviUI.toast("Conta criada — 20 transcrições por dia!", "success");
+          global.OuviescreviUI.toast(s.accountCreated, "success");
         }
       } catch (err) {
-        showError("oeAuthRegisterError", err.message || "Erro ao registar.");
+        showError("oeAuthRegisterError", err.message || s.registerError);
       }
     });
 
     document.getElementById("oeAuthAdminForm")?.addEventListener("submit", async function (e) {
       e.preventDefault();
+      var s = t();
       showError("oeAuthAdminError", "");
       var fd = new FormData(e.target);
       try {
@@ -256,7 +344,7 @@
           }),
         });
         var data = await res.json().catch(function () { return {}; });
-        if (!res.ok) throw new Error(data.detail || "Credenciais inválidas.");
+        if (!res.ok) throw new Error(data.detail || s.invalidCreds);
         persistSession(data);
         if (global.OuviescreviAPI) {
           sessionStorage.setItem("ouviescrevi_admin_token", data.sessionToken);
@@ -267,10 +355,10 @@
         closeModal();
         refreshChrome();
         if (global.OuviescreviUI && global.OuviescreviUI.toast) {
-          global.OuviescreviUI.toast("Sessão de administrador ativa.", "success");
+          global.OuviescreviUI.toast(s.adminSession, "success");
         }
       } catch (err) {
-        showError("oeAuthAdminError", err.message || "Erro ao entrar.");
+        showError("oeAuthAdminError", err.message || s.loginError);
       }
     });
   }

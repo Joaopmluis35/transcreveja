@@ -657,6 +657,12 @@
       description:
         "Planos Ouviescrevi para transcrição com IA, legendas SRT e exportação. Opções gratuitas e premium para criadores e educadores.",
     },
+    "/en/precos.html": {
+      title: "Pricing & Plans — AI Transcription | Ouviescrevi",
+      description:
+        "Ouviescrevi plans for AI transcription, SRT captions and export. Free and Pro options for creators and educators.",
+      lang: "en",
+    },
 
     "/sugestoes.html": {
       title: "Enviar Sugestões — Ouviescrevi",
