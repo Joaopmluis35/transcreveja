@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 import admin_store as store
 from analytics import (
+    build_visit_report,
     get_daily_transcription_outcomes,
     get_daily_transcription_series,
     get_daily_visit_series,
@@ -417,6 +418,22 @@ def admin_update_user(request: Request, user_id: int, body: UserUpdateRequest):
         raise HTTPException(status_code=400, detail="Papel inválido.") from exc
     store.log_audit(_actor(request), "user_role_update", f"{user.get('username')}:{body.role}")
     return {"ok": True, "user": user}
+
+
+@router.get("/export/visit-report")
+def admin_export_visit_report(request: Request):
+    """JSON compacto ontem+hoje para análise (partilhar no chat)."""
+    store.require_role(getattr(request.state, "admin_session", None), "viewer")
+    cfg = store.get_config()
+    owner_uids = parse_owner_visitor_uids(cfg.get("owner_visitor_uids"))
+    report = build_visit_report(owner_uids)
+    day = report.get("range", {}).get("hoje") or date.today().isoformat()
+    return JSONResponse(
+        report,
+        headers={
+            "Content-Disposition": f'attachment; filename="ouviescrevi-visitas-{day}.json"',
+        },
+    )
 
 
 @router.get("/export/{table}")

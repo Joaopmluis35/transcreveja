@@ -60,9 +60,86 @@
   var serverLogTimer = null;
   var lastServerLogText = "";
 
+  function downloadBlob(blob, name) {
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    a.click();
+    setTimeout(function () {
+      URL.revokeObjectURL(a.href);
+    }, 1500);
+  }
+
+  function fetchVisitReport() {
+    var base = apiBase();
+    return fetch(base + "/api/admin/export/visit-report", { headers: authHeaders() }).then(
+      function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      }
+    );
+  }
+
+  function initVisitReportExport() {
+    var btnDl = document.getElementById("btnExportVisitReport");
+    var btnCopy = document.getElementById("btnCopyVisitReport");
+    var linkLegacy = document.getElementById("exportVisitReport");
+
+    function doDownload() {
+      return fetchVisitReport()
+        .then(function (data) {
+          var day = (data.range && data.range.hoje) || "hoje";
+          var blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+          downloadBlob(blob, "ouviescrevi-visitas-" + day + ".json");
+          global.OuviescreviUI.toast("Relatório descarregado — cola no chat para analisar.", "success");
+        })
+        .catch(function () {
+          global.OuviescreviUI.toast("Erro ao exportar análise.", "error");
+        });
+    }
+
+    function doCopy() {
+      return fetchVisitReport()
+        .then(function (data) {
+          var text = JSON.stringify(data, null, 2);
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            return navigator.clipboard.writeText(text).then(function () {
+              global.OuviescreviUI.toast("JSON copiado — cola no chat Cursor.", "success");
+            });
+          }
+          throw new Error("clipboard");
+        })
+        .catch(function () {
+          global.OuviescreviUI.toast("Não foi possível copiar. Usa «Exportar análise».", "error");
+        });
+    }
+
+    if (btnDl) {
+      btnDl.addEventListener("click", function () {
+        btnDl.disabled = true;
+        doDownload().finally(function () {
+          btnDl.disabled = false;
+        });
+      });
+    }
+    if (btnCopy) {
+      btnCopy.addEventListener("click", function () {
+        btnCopy.disabled = true;
+        doCopy().finally(function () {
+          btnCopy.disabled = false;
+        });
+      });
+    }
+    if (linkLegacy) {
+      linkLegacy.addEventListener("click", function (e) {
+        e.preventDefault();
+        doDownload();
+      });
+    }
+  }
+
   function initExports() {
     var base = apiBase();
-    var token = global.OuviescreviAPI.getAdminToken();
     ["exportVisitas", "exportTranscricoes", "exportBackup"].forEach(function (id) {
       var el = document.getElementById(id);
       if (!el) return;
@@ -83,16 +160,14 @@
               blob = new Blob([data], { type: "text/csv" });
               name = table + ".csv";
             }
-            var a = document.createElement("a");
-            a.href = URL.createObjectURL(blob);
-            a.download = name;
-            a.click();
+            downloadBlob(blob, name);
           })
           .catch(function () {
             global.OuviescreviUI.toast("Erro ao exportar.", "error");
           });
       };
     });
+    initVisitReportExport();
   }
 
   function renderReferrersAndDevices(data) {

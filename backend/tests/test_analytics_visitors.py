@@ -39,6 +39,21 @@ def test_bot_detection():
     assert is_bot_visit("89.123.45.x", "Mozilla/5.0 (compatible; Googlebot/2.1)") is True
 
 
+def test_build_visit_report_shape(client):
+    from analytics import build_visit_report
+
+    uid = visitor_uid("198.51.100.20")
+    record_visit("/index.html", "198.51.100.20", user_agent="Mozilla/5.0")
+    report = build_visit_report({uid})
+    assert "range" in report
+    assert "by_day" in report
+    assert report["range"]["hoje"] in report["by_day"]
+    assert report["range"]["ontem"] in report["by_day"]
+    assert "totals_2d" in report
+    assert "series_14d" in report
+    assert isinstance(report["series_14d"], list)
+
+
 def test_record_visit_and_breakdown(client):
     """Smoke: grava visita e agrupa por visitor_uid."""
     uid_a = visitor_uid("198.51.100.20")

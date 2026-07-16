@@ -491,3 +491,244 @@ def get_top_pages(limit: int = 8) -> list[dict]:
         return [{"path": d.get("path"), "total": int(d.get("total") or 0)} for d in (row_to_dict(row) for row in rows)]
     finally:
         conn.close()
+
+
+def _scalar_count(conn: Any, sql: str, params: tuple = ()) -> int:
+    row = conn.execute(sql, params).fetchone()
+    d = row_to_dict(row) if row else {}
+    try:
+        return int(d.get("c") or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
+def build_visit_report(owner_uids: set[str] | None = None) -> dict[str, Any]:
+    """Relatório compacto ontem+hoje para análise (export JSON no backoffice)."""
+    import admin_store as store
+    from database import database_backend, use_turso
+
+    owner_uids = owner_uids or set()
+    today = date.today()
+    yesterday = today - timedelta(days=1)
+    days = [yesterday.isoformat(), today.isoformat()]
+    now = datetime.utcnow().isoformat(timespec="seconds") + "Z"
+
+    conn = get_connection()
+    try:
+        by_day: dict[str, dict[str, int]] = {}
+        for d in days:
+            pageviews = _scalar_count(conn, "SELECT COUNT(*) AS c FROM visitas WHERE day=?", (d,))
+            unicos = _scalar_count(
+                conn,
+                """
+                SELECT COUNT(DISTINCT COALESCE(NULLIF(visitor_uid,''), visitor_hash)) AS c
+                FROM visitas WHERE day=?
+                """,
+                (d,),
+            )
+            humans = bots = owner = legacy = 0
+            for row in conn.execute(
+                "SELECT visitor_uid, ip_label, user_agent FROM visitas WHERE day=?",
+                (d,),
+            ).fetchall():
+                item = row_to_dict(row)
+                uid = item.get("visitor_uid") or ""
+                ip = item.get("ip_label")
+                is_owner = uid in owner_uids if uid else False
+                is_bot = (not is_owner) and is_bot_visit(ip, item.get("user_agent"))
+                if is_owner:
+                    owner += 1
+                elif is_bot:
+                    bots += 1
+                else:
+                    humans += 1
+                if is_legacy_ip_label(ip):
+                    legacy += 1
+            by_day[d] = {
+                "pageviews": pageviews,
+                "unicos": unicos,
+                "human_pageviews": humans,
+                "bot_pageviews": bots,
+                "owner_pageviews": owner,
+                "legacy_pageviews": legacy,
+            }
+
+        unicos_2d = _scalar_count(
+            conn,
+            """
+            SELECT COUNT(DISTINCT COALESCE(NULLIF(visitor_uid,''), visitor_hash)) AS c
+            FROM visitas WHERE day IN (?,?)
+            """,
+            (days[0], days[1]),
+        )
+        humans_unicos_2d = 0
+        for row in conn.execute(
+            """
+            SELECT COALESCE(NULLIF(visitor_uid,''), visitor_hash,'?') AS vid,
+                   MAX(ip_label) AS ip_label, MAX(user_agent) AS user_agent,
+                   MAX(visitor_uid) AS visitor_uid
+            FROM visitas WHERE day IN (?,?)
+            GROUP BY COALESCE(NULLIF(visitor_uid,''), visitor_hash,'?')
+            """,
+            (days[0], days[1]),
+        ).fetchall():
+            item = row_to_dict(row)
+            uid = item.get("visitor_uid") or ""
+            if uid in owner_uids:
+                continue
+            if is_bot_visit(item.get("ip_label"), item.get("user_agent")):
+                continue
+            humans_unicos_2d += 1
+
+        pages = [
+            row_to_dict(r)
+            for r in conn.execute(
+                """
+                SELECT day, path, COUNT(*) AS c FROM visitas
+                WHERE day IN (?,?) GROUP BY day, path ORDER BY day, c DESC
+                """,
+                (days[0], days[1]),
+            ).fetchall()
+        ]
+        devices = [
+            row_to_dict(r)
+            for r in conn.execute(
+                """
+                SELECT day, COALESCE(device_type,'?') AS device_type, COUNT(*) AS c
+                FROM visitas WHERE day IN (?,?) GROUP BY day, device_type ORDER BY day, c DESC
+                """,
+                (days[0], days[1]),
+            ).fetchall()
+        ]
+        refs = [
+            row_to_dict(r)
+            for r in conn.execute(
+                """
+                SELECT day, COALESCE(NULLIF(referrer,''),'(direct)') AS referrer, COUNT(*) AS c
+                FROM visitas WHERE day IN (?,?) GROUP BY day, referrer ORDER BY day, c DESC
+                LIMIT 40
+                """,
+                (days[0], days[1]),
+            ).fetchall()
+        ]
+        hours = [
+            row_to_dict(r)
+            for r in conn.execute(
+                """
+                SELECT day, substr(created_at,12,2) AS hora, COUNT(*) AS c
+                FROM visitas WHERE day IN (?,?) GROUP BY day, hora ORDER BY day, hora
+                """,
+                (days[0], days[1]),
+            ).fetchall()
+        ]
+        locales = [
+            row_to_dict(r)
+            for r in conn.execute(
+                """
+                SELECT day,
+                  CASE
+                    WHEN path LIKE '/en/%' OR path='/en' THEN 'en'
+                    WHEN path LIKE '/es/%' OR path='/es' THEN 'es'
+                    WHEN path LIKE '/fr/%' OR path='/fr' THEN 'fr'
+                    WHEN path LIKE '/de/%' OR path='/de' THEN 'de'
+                    ELSE 'pt'
+                  END AS locale,
+                  COUNT(*) AS c
+                FROM visitas WHERE day IN (?,?)
+                GROUP BY day, locale ORDER BY day, c DESC
+                """,
+                (days[0], days[1]),
+            ).fetchall()
+        ]
+        visitors = [
+            row_to_dict(r)
+            for r in conn.execute(
+                """
+                SELECT COALESCE(NULLIF(visitor_uid,''), visitor_hash,'?') AS visitor_id,
+                       MAX(ip_label) AS ip_label, MAX(user_agent) AS user_agent,
+                       COUNT(*) AS pageviews, COUNT(DISTINCT day) AS dias,
+                       MIN(created_at) AS first_seen, MAX(created_at) AS last_seen,
+                       MAX(device_type) AS device_type
+                FROM visitas WHERE day IN (?,?)
+                GROUP BY COALESCE(NULLIF(visitor_uid,''), visitor_hash,'?')
+                ORDER BY pageviews DESC LIMIT 40
+                """,
+                (days[0], days[1]),
+            ).fetchall()
+        ]
+        for v in visitors:
+            uid = str(v.get("visitor_id") or "")
+            v["is_owner"] = uid in owner_uids
+            v["is_legacy"] = is_legacy_ip_label(v.get("ip_label"))
+            v["is_bot"] = (not v["is_owner"]) and is_bot_visit(v.get("ip_label"), v.get("user_agent"))
+            v["user_agent"] = (v.get("user_agent") or "")[:80]
+            v["visitor_id"] = uid[:8] + "…" if len(uid) > 8 else uid
+
+        trans = [
+            row_to_dict(r)
+            for r in conn.execute(
+                """
+                SELECT substr(data,1,10) AS day, COUNT(*) AS c
+                FROM transcricoes WHERE substr(data,1,10) IN (?,?) GROUP BY day
+                """,
+                (days[0], days[1]),
+            ).fetchall()
+        ]
+    finally:
+        conn.close()
+
+    series = get_daily_visit_series(14, owner_uids)
+    breakdown = get_visitor_breakdown(2, 40, owner_uids)
+    try:
+        conv_locale = store.conversion_by_locale(14)
+    except Exception:
+        conv_locale = []
+
+    return {
+        "exported_at": now,
+        "purpose": "Análise ontem vs hoje — partilhar este JSON no chat Cursor",
+        "source": {
+            "database_backend": database_backend(),
+            "use_turso": use_turso(),
+            "note": "turso production" if use_turso() else "local sqlite",
+        },
+        "range": {"ontem": days[0], "hoje": days[1]},
+        "by_day": by_day,
+        "totals_2d": {
+            "pageviews": sum(v["pageviews"] for v in by_day.values()),
+            "unicos": unicos_2d,
+            "human_unicos_approx": humans_unicos_2d,
+            "human_pageviews": sum(v["human_pageviews"] for v in by_day.values()),
+            "bot_pageviews": sum(v["bot_pageviews"] for v in by_day.values()),
+            "owner_pageviews": sum(v["owner_pageviews"] for v in by_day.values()),
+        },
+        "visitas": get_visit_stats(),
+        "trafego_hoje": get_owner_traffic_today(owner_uids),
+        "conversao_hoje": store.conversion_stats(),
+        "conversao_por_idioma_14d": conv_locale,
+        "pages": pages,
+        "devices": devices,
+        "referrers": refs,
+        "hours": hours,
+        "locales": locales,
+        "visitors_top": visitors,
+        "transcriptions": trans,
+        "series_14d": series,
+        "breakdown_2d": [
+            {
+                "tipo": b.get("tipo"),
+                "ip_label": b.get("ip_label"),
+                "pageviews": b.get("pageviews"),
+                "dias_ativos": b.get("dias_ativos"),
+                "device_type": b.get("device_type"),
+                "last_seen": b.get("last_seen"),
+                "is_owner": b.get("is_owner"),
+                "is_bot": b.get("is_bot"),
+                "is_legacy": b.get("is_legacy"),
+            }
+            for b in breakdown
+        ],
+        "top_pages_30d": get_top_pages(10),
+        "owner_uids_count": len(owner_uids),
+        "owner_ip_labels": store.get_owner_ip_labels_list(),
+    }
