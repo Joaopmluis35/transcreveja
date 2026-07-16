@@ -70,14 +70,96 @@
     }, 1500);
   }
 
+  function dashboardCacheKey() {
+    return "oe_admin_dashboard_v1";
+  }
+
+  function buildVisitReportFromDashboard(data) {
+    var charts = (data && data.charts) || {};
+    var series = charts.visitas_diarias || [];
+    var today = series.length ? series[series.length - 1] : null;
+    var yesterday = series.length > 1 ? series[series.length - 2] : null;
+    var byDay = {};
+    if (yesterday) {
+      byDay[yesterday.day] = {
+        pageviews: yesterday.total || 0,
+        unicos: yesterday.unicos || 0,
+        human_pageviews: yesterday.outros != null ? yesterday.outros : yesterday.total || 0,
+        bot_pageviews: yesterday.bots || 0,
+        owner_pageviews: yesterday.tuas || 0,
+        legacy_pageviews: null,
+      };
+    }
+    if (today) {
+      byDay[today.day] = {
+        pageviews: today.total || 0,
+        unicos: today.unicos || 0,
+        human_pageviews: today.outros != null ? today.outros : today.total || 0,
+        bot_pageviews: today.bots || 0,
+        owner_pageviews: today.tuas || 0,
+        legacy_pageviews: null,
+      };
+    }
+    return {
+      exported_at: new Date().toISOString(),
+      purpose: "Análise ontem vs hoje — gerado a partir do painel (fallback)",
+      source: { note: "dashboard-cache-fallback", database_backend: "unknown" },
+      range: {
+        ontem: yesterday ? yesterday.day : null,
+        hoje: today ? today.day : null,
+      },
+      by_day: byDay,
+      visitas: data.visitas || {},
+      trafego_hoje: data.visitas_trafego || {},
+      conversao_hoje: data.conversao || {},
+      conversao_por_idioma_14d: data.conversao_por_idioma || [],
+      series_14d: series,
+      visitantes_distintos: data.visitantes_distintos || [],
+      visitas_recentes: data.visitas_recentes || [],
+      top_pages_30d: data.top_paginas || [],
+      top_referrers: data.top_referrers || [],
+      devices: data.devices || [],
+      owner_ip_labels: data.owner_ip_labels || [],
+      owner_uids_count: (data.owner_visitor_uids || []).length,
+      fallback: true,
+    };
+  }
+
+  function loadDashboardCache() {
+    try {
+      var raw = sessionStorage.getItem(dashboardCacheKey());
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch (e) {
+      return null;
+    }
+  }
+
   function fetchVisitReport() {
     var base = apiBase();
-    return fetch(base + "/api/admin/export/visit-report", { headers: authHeaders() }).then(
-      function (r) {
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        return r.json();
-      }
-    );
+    return fetch(base + "/api/admin/export/visit-report", { headers: authHeaders() })
+      .then(function (r) {
+        if (r.ok) return r.json();
+        return r.text().then(function (body) {
+          var detail = "";
+          try {
+            var j = JSON.parse(body);
+            detail = typeof j.detail === "string" ? j.detail : "";
+          } catch (e) {}
+          var err = new Error(detail || ("HTTP " + r.status));
+          err.status = r.status;
+          throw err;
+        });
+      })
+      .catch(function (err) {
+        var cached = loadDashboardCache();
+        if (cached && (cached.visitas || cached.charts)) {
+          var report = buildVisitReportFromDashboard(cached);
+          report.fallback_reason = (err && err.message) || "endpoint_unavailable";
+          return report;
+        }
+        throw err;
+      });
   }
 
   function initVisitReportExport() {
@@ -91,10 +173,16 @@
           var day = (data.range && data.range.hoje) || "hoje";
           var blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
           downloadBlob(blob, "ouviescrevi-visitas-" + day + ".json");
-          global.OuviescreviUI.toast("Relatório descarregado — cola no chat para analisar.", "success");
+          var msg = data.fallback
+            ? "Relatório (fallback do painel) descarregado — cola no chat."
+            : "Relatório descarregado — cola no chat para analisar.";
+          global.OuviescreviUI.toast(msg, "success");
         })
-        .catch(function () {
-          global.OuviescreviUI.toast("Erro ao exportar análise.", "error");
+        .catch(function (err) {
+          global.OuviescreviUI.toast(
+            "Erro ao exportar: " + ((err && err.message) || "desconhecido"),
+            "error"
+          );
         });
     }
 
@@ -104,13 +192,19 @@
           var text = JSON.stringify(data, null, 2);
           if (navigator.clipboard && navigator.clipboard.writeText) {
             return navigator.clipboard.writeText(text).then(function () {
-              global.OuviescreviUI.toast("JSON copiado — cola no chat Cursor.", "success");
+              var msg = data.fallback
+                ? "JSON (fallback) copiado — cola no chat Cursor."
+                : "JSON copiado — cola no chat Cursor.";
+              global.OuviescreviUI.toast(msg, "success");
             });
           }
-          throw new Error("clipboard");
+          throw new Error("clipboard indisponível");
         })
-        .catch(function () {
-          global.OuviescreviUI.toast("Não foi possível copiar. Usa «Exportar análise».", "error");
+        .catch(function (err) {
+          global.OuviescreviUI.toast(
+            "Não foi possível copiar: " + ((err && err.message) || "erro"),
+            "error"
+          );
         });
     }
 

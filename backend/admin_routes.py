@@ -424,9 +424,13 @@ def admin_update_user(request: Request, user_id: int, body: UserUpdateRequest):
 def admin_export_visit_report(request: Request):
     """JSON compacto ontem+hoje para análise (partilhar no chat)."""
     store.require_role(getattr(request.state, "admin_session", None), "viewer")
-    cfg = store.get_config()
-    owner_uids = parse_owner_visitor_uids(cfg.get("owner_visitor_uids"))
-    report = build_visit_report(owner_uids)
+    try:
+        cfg = store.get_config()
+        owner_uids = parse_owner_visitor_uids(cfg.get("owner_visitor_uids"))
+        report = build_visit_report(owner_uids)
+    except Exception as exc:
+        logger.exception("export visit-report falhou")
+        raise HTTPException(status_code=500, detail=f"Falha ao gerar relatório: {exc}") from exc
     day = report.get("range", {}).get("hoje") or date.today().isoformat()
     return JSONResponse(
         report,
