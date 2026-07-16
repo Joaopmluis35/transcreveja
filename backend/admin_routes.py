@@ -98,6 +98,9 @@ def admin_dashboard(request: Request):
         "top_referrers": _safe("top_referrers", lambda: store.top_referrers(8), []),
         "devices": _safe("devices", store.device_breakdown, []),
         "conversao": conv,
+        "conversao_por_idioma": _safe(
+            "conversao_por_idioma", lambda: store.conversion_by_locale(14), []
+        ),
         "custos_openai": costs,
         "cloudflare": _safe("cloudflare", store.fetch_cloudflare_analytics, None),
         "banner": _safe("banner", store.get_active_banner, None),

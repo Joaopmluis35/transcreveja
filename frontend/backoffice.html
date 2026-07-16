@@ -6,10 +6,10 @@
   <meta name="robots" content="noindex, nofollow">
   <title>Backoffice | Ouviescrevi</title>
   <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png">
-  <link rel="stylesheet" href="css/ouviescrevi.css">
+  <link rel="stylesheet" href="css/ouviescrevi.css?v=25">
   <link rel="stylesheet" href="css/backoffice.css?v=20">
   <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
-  <script src="js/ouviescrevi-ui.js" defer></script>
+  <script src="js/ouviescrevi-ui.js?v=25" defer></script>
 </head>
 <body class="oe-admin" data-oe-auto-footer="false">
 
@@ -161,6 +161,13 @@
           </div>
         </div>
 
+        <div class="oe-admin-panel oe-admin-panel--compact">
+          <div class="oe-admin-panel__head">Conversão por idioma <span style="font-weight:400;color:var(--bo-muted)">(14 dias)</span></div>
+          <div class="oe-admin-panel__body oe-admin-table-wrap oe-admin-table-wrap--scroll oe-admin-table-wrap--scroll-sm" id="conversaoPorIdioma">
+            <p class="oe-admin-empty">A carregar...</p>
+          </div>
+        </div>
+
         <div class="oe-admin-panel oe-admin-panel--compact oe-admin-panel--visitors">
           <div class="oe-admin-panel__head">Tráfego: tu vs outros</div>
           <div class="oe-admin-panel__body">
@@ -169,6 +176,7 @@
               <button type="button" id="btnMarkOwnerIp" class="oe-admin-btn oe-admin-btn--secondary">📍 Marcar IP</button>
               <button type="button" id="btnUnmarkOwnerIp" class="oe-admin-btn oe-admin-btn--secondary">✕ Desmarcar</button>
               <button type="button" id="visitorsFilterOthers" class="oe-admin-btn oe-admin-btn--secondary oe-admin-visitors-filter is-active" data-filter="others">Só outros</button>
+              <button type="button" id="visitorsFilterWithIp" class="oe-admin-btn oe-admin-btn--secondary oe-admin-visitors-filter" data-filter="with_ip">Só com IP</button>
               <button type="button" id="visitorsFilterHumans" class="oe-admin-btn oe-admin-btn--secondary oe-admin-visitors-filter" data-filter="humans">Só humanos</button>
               <button type="button" id="visitorsFilterAll" class="oe-admin-btn oe-admin-btn--secondary oe-admin-visitors-filter" data-filter="all">Todos</button>
               <button type="button" id="visitorsFilterTeam" class="oe-admin-btn oe-admin-btn--secondary oe-admin-visitors-filter" data-filter="team">Equipa</button>
@@ -687,9 +695,9 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
-<script src="js/ouviescrevi-api.js"></script>
+<script src="js/ouviescrevi-api.js?v=25"></script>
 <script src="js/backoffice-cms-locales.js?v=5"></script>
-<script src="js/backoffice.js?v=20"></script>
+<script src="js/backoffice.js?v=25"></script>
 <script src="js/backoffice-admin.js?v=24"></script>
 <script src="js/backoffice-nav.js?v=2"></script>
 <script src="js/backoffice-billing.js?v=4"></script>

@@ -374,6 +374,32 @@
     });
   }
 
+  function renderConversaoPorIdioma(rows) {
+    var div = document.getElementById("conversaoPorIdioma");
+    if (!div) return;
+    rows = rows || [];
+    if (!rows.length) {
+      div.innerHTML =
+        '<p class="oe-admin-empty">Sem dados por idioma ainda. As transcrições novas passam a gravar o idioma da UI.</p>';
+      return;
+    }
+    var labels = { pt: "PT", en: "EN", es: "ES", fr: "FR", de: "DE" };
+    div.innerHTML = "";
+    div.appendChild(
+      buildTable(
+        ["Idioma", "Visitas", "Transcrições", "Conversão"],
+        rows.map(function (r) {
+          return [
+            labels[r.locale] || String(r.locale || "—").toUpperCase(),
+            String(r.visitas || 0),
+            String(r.transcricoes || 0),
+            (r.taxa_conversao_pct || 0) + "%",
+          ];
+        })
+      )
+    );
+  }
+
   function renderTopPages(pages) {
     topPagesCache = pages || [];
     var div = document.getElementById("topPaginas");
@@ -472,11 +498,18 @@
     if (visitorsFilterMode === "team") {
       return rows.filter(function (r) { return r.is_owner; });
     }
+    if (visitorsFilterMode === "with_ip") {
+      return rows.filter(function (r) {
+        return !r.is_legacy && r.ip_label && r.ip_label !== "—" && r.ip_label !== "legado";
+      });
+    }
     if (visitorsFilterMode === "humans") {
-      return rows.filter(function (r) { return !r.is_bot; });
+      return rows.filter(function (r) { return !r.is_bot && !r.is_legacy; });
     }
     if (visitorsFilterMode === "others") {
-      return rows.filter(function (r) { return !r.is_owner && !r.is_bot; });
+      return rows.filter(function (r) {
+        return !r.is_owner && !r.is_bot && !r.is_legacy;
+      });
     }
     return rows;
   }
@@ -505,9 +538,11 @@
     if (!filtered.length) {
       var emptyMsg =
         visitorsFilterMode === "others"
-          ? "Nenhum visitante humano «outro» — só bots ou tráfego teu."
+          ? "Nenhum visitante humano «outro» com IP — só bots, legado ou tráfego teu."
+          : visitorsFilterMode === "with_ip"
+            ? "Nenhum visitante com IP marcado (legado oculto)."
           : visitorsFilterMode === "humans"
-            ? "Nenhum visitante humano neste filtro."
+            ? "Nenhum visitante humano com IP neste filtro."
           : visitorsFilterMode === "team"
             ? "Nenhum IP marcado como equipa ainda. Clica em «Marcar IP»."
             : "Ainda sem visitantes registados.";
@@ -688,6 +723,7 @@
       renderCharts(data.charts);
       renderPeakHoursChart((data.charts && data.charts.horas_pico) || []);
       renderTopPages(data.top_paginas);
+      renderConversaoPorIdioma(data.conversao_por_idioma);
       if (global.OuviescreviAdminExt) global.OuviescreviAdminExt.renderReferrersAndDevices(data);
     } catch (e2) {
       global.OuviescreviUI.toast("Erro ao desenhar gráficos do painel.", "error");
@@ -1253,7 +1289,13 @@
     if (btnMarkOwner) btnMarkOwner.addEventListener("click", function () { markOwnerIp(false); });
     var btnUnmarkOwner = document.getElementById("btnUnmarkOwnerIp");
     if (btnUnmarkOwner) btnUnmarkOwner.addEventListener("click", function () { markOwnerIp(true); });
-    ["visitorsFilterOthers", "visitorsFilterHumans", "visitorsFilterAll", "visitorsFilterTeam"].forEach(function (id) {
+    [
+      "visitorsFilterOthers",
+      "visitorsFilterWithIp",
+      "visitorsFilterHumans",
+      "visitorsFilterAll",
+      "visitorsFilterTeam",
+    ].forEach(function (id) {
       var btn = document.getElementById(id);
       if (btn) {
         btn.addEventListener("click", function () {

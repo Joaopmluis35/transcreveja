@@ -8,11 +8,11 @@
   <meta name="robots" content="index, follow">
   <title>Conversor de Ficheiros Online Grátis — Word, PDF, Imagem | Ouviescrevi</title>
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
-  <link rel="stylesheet" href="css/ouviescrevi.css?v=15">
+  <link rel="stylesheet" href="css/ouviescrevi.css?v=25">
   <link rel="stylesheet" href="css/conversor.css?v=1">
   <script src="js/theme-ui.js"></script>
   <script src="/js/ouviescrevi-seo.js" defer></script>
-  <script src="js/ouviescrevi-ui.js" defer></script>
+  <script src="js/ouviescrevi-ui.js?v=25" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
   <script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -74,6 +74,7 @@
   </p>
 </section>
 
+<script src="js/docx-export.js?v=25"></script>
 <script>
   function setStatus(msg, kind) {
     const status = document.getElementById("wordStatus");
@@ -159,30 +160,24 @@
     const reader = new FileReader();
     reader.onload = function () {
       const typedarray = new Uint8Array(reader.result);
-      pdfjsLib.getDocument({ data: typedarray }).promise.then(function (pdf) {
+      pdfjsLib.getDocument({ data: typedarray }).promise.then(async function (pdf) {
         let textContent = "";
-        let totalPages = pdf.numPages;
-        let processed = 0;
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          const strings = content.items.map(function (item) { return item.str; }).join(" ");
+          textContent += strings + "
 
-        for (let i = 1; i <= totalPages; i++) {
-          pdf.getPage(i).then(function (page) {
-            page.getTextContent().then(function (content) {
-              const strings = content.items.map(function (item) { return item.str; }).join(" ");
-              textContent += strings + "\n\n";
-              processed++;
-              if (processed === totalPages) {
-                const blob = new Blob([textContent], { type: "text/plain;charset=utf-8" });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = "ficheiro_extraido.txt";
-                a.click();
-                URL.revokeObjectURL(url);
-                setStatus("✅ Texto extraído!", "ok");
-              }
-            });
-          });
+";
         }
+        const blob = new Blob([textContent], { type: "text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "ficheiro_extraido.txt";
+        a.click();
+        URL.revokeObjectURL(url);
+        setStatus("✅ Texto extraído!", "ok");
       });
     };
     reader.readAsArrayBuffer(input.files[0]);
@@ -234,14 +229,18 @@
           textContent += strings + "\n\n";
         }
 
-        const blob = new Blob([textContent], { type: "application/msword;charset=utf-8" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "ficheiro_convertido.doc";
-        a.click();
-        URL.revokeObjectURL(url);
-        setStatus("✅ Conversão concluída!", "ok");
+        if (window.OuviescreviDocx) {
+          OuviescreviDocx.exportLocalDocx(textContent, "ficheiro_convertido.docx", "Ouviescrevi");
+        } else {
+          const blob = new Blob([textContent], { type: "application/msword;charset=utf-8" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "ficheiro_convertido.doc";
+          a.click();
+          URL.revokeObjectURL(url);
+        }
+        setStatus("✅ Conversão DOCX concluída!", "ok");
       });
     };
     reader.readAsArrayBuffer(input.files[0]);

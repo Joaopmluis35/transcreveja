@@ -7,9 +7,12 @@
   <meta name="robots" content="index, follow">
   <title>Gerar Vídeo com Voz e Legendas — IA | Ouviescrevi</title>
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
-  <link rel="stylesheet" href="css/ouviescrevi.css">
+  <link rel="stylesheet" href="css/ouviescrevi.css?v=25">
   <script src="/js/ouviescrevi-seo.js" defer></script>
-  <script src="js/ouviescrevi-ui.js" defer></script>
+  <script src="js/ouviescrevi-api.js?v=25"></script>
+  <script src="js/transcribe-jobs-ui.js?v=25" defer></script>
+  <script src="js/docx-export.js?v=25" defer></script>
+  <script src="js/ouviescrevi-ui.js?v=25" defer></script>
   <style>
     body.oe-page video {
       margin: 24px auto 0;
@@ -41,7 +44,6 @@
   <video id="videoPlayer" controls></video>
 </div>
 
-<script src="js/ouviescrevi-api.js"></script>
 <script>
   async function gerarVideo() {
     const texto = document.getElementById("texto").value.trim();
@@ -64,6 +66,9 @@
 
     try {
       await OuviescreviAPI.init();
+      if (!OuviescreviAPI.getToken || !OuviescreviAPI.getToken()) {
+        throw new Error("Não foi possível obter o token da API. Recarrega a página.");
+      }
       progressBar.style.width = "45%";
       const res = await fetch(`${OuviescreviAPI.getBase()}/generate-video`, {
         method: "POST",
@@ -94,23 +99,28 @@
   }
 </script>
 <script>
-  fetch("header.html").then(r => r.text()).then(html => {
-    document.getElementById("header").innerHTML = html;
-    const t = document.createElement("div");
-    t.innerHTML = html;
-    t.querySelectorAll("script").forEach(s => {
-      const n = document.createElement("script");
-      if (s.src) n.src = s.src; else n.textContent = s.textContent;
-      document.body.appendChild(n);
+  if (window.OuviescreviUI && typeof OuviescreviUI.loadHeader === "function") {
+    OuviescreviUI.loadHeader();
+    if (typeof OuviescreviUI.loadFooter === "function") OuviescreviUI.loadFooter();
+  } else {
+    fetch("header.html").then(r => r.text()).then(html => {
+      document.getElementById("header").innerHTML = html;
+      const t = document.createElement("div");
+      t.innerHTML = html;
+      t.querySelectorAll("script").forEach(s => {
+        const n = document.createElement("script");
+        if (s.src) n.src = s.src; else n.textContent = s.textContent;
+        document.body.appendChild(n);
+      });
+      if (window.OuviescreviUI) OuviescreviUI.markCurrentNav();
     });
-    if (window.OuviescreviUI) OuviescreviUI.markCurrentNav();
-  });
-  fetch("footer.html").then(r => r.text()).then(html => {
-    const f = document.createElement("div");
-    f.id = "footer";
-    f.innerHTML = html;
-    document.body.appendChild(f);
-  });
+    fetch("footer.html").then(r => r.text()).then(html => {
+      const f = document.createElement("div");
+      f.id = "footer";
+      f.innerHTML = html;
+      document.body.appendChild(f);
+    });
+  }
 </script>
 </body>
 </html>

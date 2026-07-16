@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <link rel="stylesheet" href="css/ouviescrevi.css?v=15">
-  <link rel="stylesheet" href="css/index-home.css?v=24">
+  <link rel="stylesheet" href="css/ouviescrevi.css?v=25">
+  <link rel="stylesheet" href="css/index-home.css?v=25">
   <link rel="stylesheet" href="css/pricing-visibility.css">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <title>Ouviescrevi — Transcrição de Áudio e Vídeo com IA Grátis</title>
@@ -72,7 +72,7 @@
       <label class="switch-container">
         <input type="checkbox" id="identificarLocutores">
         <span class="slider"></span>
-        <span class="switch-label">Identificar falas com nomes de locutores</span>
+        <span class="switch-label">Identificar locutores (IA)</span>
       </label>
 
       <label class="oe-lang-select" for="transcribeLanguage">
@@ -428,13 +428,15 @@
 </main>
 
 <script src="/js/ouviescrevi-seo.js"></script>
-<script src="js/ouviescrevi-ui.js?v=3"></script>
-<script src="js/ouviescrevi-api.js"></script>
-<script src="js/pricing-visibility.js"></script>
-<script src="js/history-ui.js"></script>
-<script src="js/upsell-ui.js"></script>
-<script src="/js/suggestion-fab.js" defer></script>
-<script src="/js/media-trim-ui.js?v=7" defer></script>
+<script src="js/ouviescrevi-api.js?v=25"></script>
+<script src="js/transcribe-jobs-ui.js?v=25"></script>
+<script src="js/docx-export.js?v=25"></script>
+<script src="js/ouviescrevi-ui.js?v=25"></script>
+<script src="js/pricing-visibility.js?v=25"></script>
+<script src="js/history-ui.js?v=25"></script>
+<script src="js/upsell-ui.js?v=25"></script>
+<script src="/js/suggestion-fab.js?v=25" defer></script>
+<script src="/js/media-trim-ui.js?v=25" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
   const ADMIN_EMAIL = "admin@ouviescrevi.pt";
@@ -950,6 +952,7 @@
       mostrarAlertaUpload(prepErr.message || "Não foi possível preparar o trecho.");
       return;
     }
+    if (window.OuviescreviJobs) OuviescreviJobs.appendAnalyticsFields(formData);
     pararFrasesAnimadas(statusEl);
     if (uploadFile !== file && fileSizeMb(uploadFile) < fileSizeMb(file) * 0.5) {
       statusEl.textContent =
@@ -1066,7 +1069,7 @@
     const textoRecebido = data.formatted || data.transcription || data.text || "";
     if (sucesso && textoRecebido.trim()){
       let textoFinal = textoRecebido;
-      if (identificar) textoFinal = aplicarLocutores(textoFinal);
+      if (identificar) textoFinal = await aplicarLocutores(textoFinal);
       definirTranscricao(textoFinal);
       setOutputPanelVisible(true);
       focusTranscriptionResult();
@@ -1673,6 +1676,7 @@
     formData.append("style", JSON.stringify(getStyle()));
     formData.append("burn_mp4", wantBurnMp4 ? "true" : "false");
     formData.append("token", API_TOKEN);
+    if (window.OuviescreviJobs) OuviescreviJobs.appendAnalyticsFields(formData);
 
     let srtPhaseDone = false;
     function onSrtReady(st) {
@@ -1822,11 +1826,15 @@
       }
       doc.save("transcricao.pdf");
     } else if (type === 'doc'){
-      const blob = new Blob([text], { type: 'application/msword;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = "transcricao.doc"; a.click();
-      URL.revokeObjectURL(url);
+      if (window.OuviescreviDocx) {
+        OuviescreviDocx.exportLocalDocx(text, "transcricao.docx", "Transcrição Ouviescrevi");
+      } else {
+        const blob = new Blob([text], { type: 'application/msword;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = "transcricao.doc"; a.click();
+        URL.revokeObjectURL(url);
+      }
     } else if (type === 'txt'){
       const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
       const url = URL.createObjectURL(blob);
@@ -1864,6 +1872,25 @@
   async function exportDocxPro(text) {
     await ensureApi();
     try {
+      if (window.OuviescreviDocx) {
+        const result = await OuviescreviDocx.exportDocxPro(text, {
+          title: "Transcrição Ouviescrevi",
+          filename: "transcricao.docx",
+          allowLocalFallback: false,
+        });
+        if (result && result.proRequired && !result.ok) {
+          if (window.OuviescreviUpsell) {
+            OuviescreviUpsell.show(
+              "Exportação DOCX — plano Pro",
+              result.detail || "Disponível no plano Pro.",
+              { hideRegister: true }
+            );
+          } else {
+            alert(result.detail || "Disponível no plano Pro.");
+          }
+        }
+        return;
+      }
       const res = await fetch(`${API_BASE}/api/export/docx`, {
         method: "POST",
         headers: Object.assign({ "Content-Type": "application/json" }, OuviescreviAPI.authHeaders()),
@@ -1995,6 +2022,7 @@
 
       const formData = new FormData();
       formData.append("file", blob, `gravacao.${ext}`);
+      if (window.OuviescreviJobs) OuviescreviJobs.appendAnalyticsFields(formData);
       const lang = document.getElementById("transcribeLanguage").value;
       if (lang && lang !== "auto") formData.append("language", lang);
 
@@ -2049,7 +2077,7 @@
         if (sucesso && textoRecebido.trim()) {
           const identificar = document.getElementById("identificarLocutores").checked;
           let textoFinal = textoRecebido;
-          if (identificar) textoFinal = aplicarLocutores(textoFinal);
+          if (identificar) textoFinal = await aplicarLocutores(textoFinal);
           definirTranscricao(textoFinal);
           setOutputPanelVisible(true);
           focusTranscriptionResult();
@@ -2377,7 +2405,10 @@
     }
   }
 
-  function aplicarLocutores(transcricao){
+  async function aplicarLocutores(transcricao){
+    if (window.OuviescreviJobs) {
+      return OuviescreviJobs.diarizeSpeakers(transcricao, { names: ["João", "Maria"], lang: "pt" });
+    }
     const linhas = transcricao.split('\n');
     let resultado = '';
     let locutorAtual = 'João';

@@ -770,6 +770,8 @@ def record_transcription(
     processing_sec: float | None = None,
     status: str = "ok",
     error_message: str | None = None,
+    ui_locale: str | None = None,
+    page_path: str | None = None,
 ) -> None:
     conn = get_connection()
     try:
@@ -777,8 +779,8 @@ def record_transcription(
             """
             INSERT INTO transcricoes (
                 ficheiro, data, language, size_bytes, duration_sec,
-                processing_sec, status, error_message
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                processing_sec, status, error_message, ui_locale, page_path
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 nome_ficheiro,
@@ -789,6 +791,8 @@ def record_transcription(
                 processing_sec,
                 status,
                 (error_message or "")[:2000] or None,
+                (ui_locale or "")[:16] or None,
+                (page_path or "")[:500] or None,
             ),
         )
         conn.commit()
@@ -1303,6 +1307,75 @@ def conversion_stats() -> dict:
         )
         rate = round((trans / visitas * 100), 2) if visitas else 0.0
         return {"visitas_hoje": visitas, "transcricoes_hoje": trans, "taxa_conversao_pct": rate}
+    finally:
+        conn.close()
+
+
+def _locale_from_path_sql(path_col: str = "path") -> str:
+    """SQL CASE expression mapping URL path → ui locale code."""
+    return f"""
+    CASE
+      WHEN {path_col} LIKE '/en/%' OR {path_col} = '/en' OR {path_col} LIKE '/en' THEN 'en'
+      WHEN {path_col} LIKE '/es/%' OR {path_col} = '/es' OR {path_col} LIKE '/es' THEN 'es'
+      WHEN {path_col} LIKE '/fr/%' OR {path_col} = '/fr' OR {path_col} LIKE '/fr' THEN 'fr'
+      WHEN {path_col} LIKE '/de/%' OR {path_col} = '/de' OR {path_col} LIKE '/de' THEN 'de'
+      ELSE 'pt'
+    END
+    """
+
+
+def conversion_by_locale(days: int = 14) -> list[dict]:
+    """Visitas (por path) vs transcrições (por ui_locale) nos últimos N dias."""
+    since = (date.today() - timedelta(days=max(1, min(days, 90)) - 1)).isoformat()
+    locale_expr = _locale_from_path_sql("path")
+    conn = get_connection()
+    try:
+        visit_rows = conn.execute(
+            f"""
+            SELECT {locale_expr} AS locale, COUNT(*) AS visitas
+            FROM visitas WHERE day >= ?
+            GROUP BY locale
+            """,
+            (since,),
+        ).fetchall()
+        visits = {
+            (row_to_dict(r).get("locale") or "pt"): int(row_to_dict(r).get("visitas") or 0)
+            for r in visit_rows
+        }
+        try:
+            trans_rows = conn.execute(
+                """
+                SELECT COALESCE(NULLIF(TRIM(ui_locale), ''), 'pt') AS locale, COUNT(*) AS transcricoes
+                FROM transcricoes
+                WHERE substr(data,1,10) >= ?
+                GROUP BY locale
+                """,
+                (since,),
+            ).fetchall()
+            trans = {
+                (row_to_dict(r).get("locale") or "pt"): int(row_to_dict(r).get("transcricoes") or 0)
+                for r in trans_rows
+            }
+        except Exception:
+            # coluna ui_locale pode não existir ainda em DBs antigas a meio da migração
+            trans = {}
+        locales = sorted(set(visits) | set(trans) | {"pt", "en", "es", "fr", "de"})
+        out = []
+        for loc in locales:
+            v = visits.get(loc, 0)
+            t = trans.get(loc, 0)
+            if v == 0 and t == 0:
+                continue
+            out.append(
+                {
+                    "locale": loc,
+                    "visitas": v,
+                    "transcricoes": t,
+                    "taxa_conversao_pct": round((t / v * 100), 2) if v else 0.0,
+                }
+            )
+        out.sort(key=lambda x: (-x["visitas"], x["locale"]))
+        return out
     finally:
         conn.close()
 

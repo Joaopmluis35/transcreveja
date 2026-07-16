@@ -4,9 +4,11 @@
   <meta charset="UTF-8" />
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="../css/ouviescrevi.css">
+  <link rel="stylesheet" href="../css/ouviescrevi.css?v=25">
   <script src="/js/ouviescrevi-seo.js" defer></script>
-  <script src="../js/ouviescrevi-ui.js" defer></script>
+  <script src="../js/transcribe-jobs-ui.js?v=25" defer></script>
+  <script src="../js/docx-export.js?v=25" defer></script>
+  <script src="../js/ouviescrevi-ui.js?v=25" defer></script>
   <title>Ouviescrevi — Free AI Audio & Video Transcription</title>
   <meta name="description" content="Transcribe audio and video online with AI for free. Summaries, translation, SRT subtitles, study questions and file conversion. No sign-up required.">
   <meta name="keywords" content="convert Word to PDF, PDF to text, image to PDF, online file converter, audio transcription, automatic transcription, Ouviescrevi">
@@ -335,7 +337,7 @@
   </section>
 </main>
 
-<script src="../js/ouviescrevi-api.js"></script>
+<script src="../js/ouviescrevi-api.js?v=25"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
   const ADMIN_EMAIL = "admin@ouviescrevi.pt";
@@ -419,6 +421,7 @@
 
     const formData = new FormData();
     formData.append("file", file);
+    if (window.OuviescreviJobs) OuviescreviJobs.appendAnalyticsFields(formData);
 
     let success=false, data={};
     for (let attempt=1; attempt<=3 && !success; attempt++){
@@ -433,6 +436,20 @@
 
         let txt=await res.text(); try{ data=JSON.parse(txt); }catch{ data={ error:`Invalid server response (${res.status})` }; }
         if (!res.ok) throw new Error(data.error||`Error ${res.status}`);
+        if (data.job_id && window.OuviescreviJobs) {
+          clearInterval(interval);
+          stopStatusAnimation(statusEl);
+          statusEl.textContent = "✅ Uploaded — transcribing on server…";
+          progressBar.style.width = "45%";
+          try {
+            data = await OuviescreviJobs.awaitTranscribeResult(data, { statusEl: statusEl, progressBar: progressBar });
+            success=!!(data.formatted||data.transcription||data.text);
+          } catch (pollErr) {
+            data = { error: pollErr.message };
+            success = false;
+          }
+          break;
+        }
         success=!!(data.formatted||data.transcription||data.text);
       }catch(err){
         if (err.name==="AbortError") data={ error:"Timeout. Retrying…" };
@@ -449,7 +466,7 @@
     const received=data.formatted||data.transcription||data.text||"";
     if (success && received.trim()){
       let finalText=received;
-      if (identify) finalText=applySpeakers(finalText);
+      if (identify) finalText = await applySpeakers(finalText);
       transcriptionText.value=finalText;
       output.classList.remove("hidden");
       statusEl.textContent="✅ Transcription completed successfully!";
@@ -495,7 +512,9 @@
 
     const formData=new FormData();
     formData.append("file", file);
+    if (window.OuviescreviJobs) OuviescreviJobs.appendAnalyticsFields(formData);
     formData.append("token", API_TOKEN);
+    if (typeof getStyle === "function") formData.append("style", JSON.stringify(getStyle()));
 
     try{
       const controller=new AbortController();
@@ -512,6 +531,9 @@
 
       if (!res.ok) throw new Error(data.detail||data.error||`Error ${res.status}`);
 
+      if (data.job_id && window.OuviescreviJobs) {
+        data = await OuviescreviJobs.awaitVideoSubsResult(data, { statusEl: statusEl, progressBar: progressBar });
+      }
       const srtUrl = toAbsUrl(data.srt_url);
       const mp4Url = data.video_url ? toAbsUrl(data.video_url) : null;
 
@@ -547,9 +569,15 @@
 
   function toAbsUrl(url){ if(!url) return ""; if(/^https?:\/\//i.test(url)) return url; return `${API_BASE}${url.startsWith("/")?"":"/"}${url}`; }
 
-  function exportText(type){
+  async function exportText(type){
     const text=transcriptionText.value||"";
     if (!text) return;
+    if (type==='docx' || type==='doc'){
+      if (window.OuviescreviDocx) {
+        await OuviescreviDocx.exportDocxPro(text, { title: 'Ouviescrevi', filename: 'transcription.docx', allowLocalFallback: true });
+        return;
+      }
+    }
     if (type==='pdf'){
       const { jsPDF } = window.jspdf; const doc=new jsPDF();
       const lines=doc.splitTextToSize(text,180); let y=20;
@@ -763,7 +791,10 @@
     finally{ btn.innerHTML=original; btn.disabled=false; }
   }
 
-  function applySpeakers(t){
+  async function applySpeakers(t){
+    if (window.OuviescreviJobs) {
+      return OuviescreviJobs.diarizeSpeakers(t, { names: ["John", "Mary"], lang: "en" });
+    }
     const lines=t.split('\n'); let out='', sp='John';
     for (const lineRaw of lines){
       const line=lineRaw.trim(); if (!line) continue;

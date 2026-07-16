@@ -275,10 +275,10 @@ def pricing_html(loc: str, t: dict) -> str:
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
   <link rel="stylesheet" href="../css/ouviescrevi.css">
   <link rel="stylesheet" href="../css/ouviescrevi-pro.css">
-  <link rel="stylesheet" href="../css/index-home.css?v=18">
+  <link rel="stylesheet" href="../css/index-home.css?v=25">
   <script src="/js/ouviescrevi-seo.js" defer></script>
   <script src="../js/pricing-visibility.js" defer></script>
-  <script src="../js/ouviescrevi-ui.js" defer></script>
+  <script src="../js/ouviescrevi-ui.js?v=25" defer></script>
   <script src="../js/ouviescrevi-api.js" defer></script>
   <script src="../js/auth-ui.js" defer></script>
   <style>
@@ -396,10 +396,10 @@ def landing_html(loc: str, slug: str, data: dict) -> str:
   <meta name="robots" content="index, follow">
   <title>{data['title']}</title>
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
-  <link rel="stylesheet" href="../css/ouviescrevi.css?v=16">
+  <link rel="stylesheet" href="../css/ouviescrevi.css?v=25">
   <link rel="stylesheet" href="../css/landing-pages.css">
   <script src="/js/ouviescrevi-seo.js" defer></script>
-  <script src="../js/ouviescrevi-ui.js" defer></script>
+  <script src="../js/ouviescrevi-ui.js?v=25" defer></script>
 </head>
 <body class="oe-page oe-pro {body_class}">
 <a class="oe-skip" href="#conteudo">{SKIP[loc]}</a>

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <link rel="stylesheet" href="../css/ouviescrevi.css?v=10">
-  <link rel="stylesheet" href="../css/index-home.css?v=22">
+  <link rel="stylesheet" href="../css/ouviescrevi.css?v=25">
+  <link rel="stylesheet" href="../css/index-home.css?v=25">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <title>Ouviescrevi — Kostenlose KI-Audio- und Video-Transkription</title>
   <meta name="description" content="Transkribiere Audio und Video online mit KI, kostenlos und ohne Anmeldung. Zusammenfassungen, Übersetzung, SRT-Untertitel, Lernfragen und Dateikonvertierung.">
@@ -319,9 +319,11 @@
 </main>
 
 <script src="/js/ouviescrevi-seo.js"></script>
-<script src="../js/ouviescrevi-ui.js"></script>
-<script src="../js/ouviescrevi-api.js"></script>
-<script src="/js/suggestion-fab.js" defer></script>
+<script src="../js/transcribe-jobs-ui.js?v=25"></script>
+<script src="../js/docx-export.js?v=25"></script>
+<script src="../js/ouviescrevi-ui.js?v=25"></script>
+<script src="../js/ouviescrevi-api.js?v=25"></script>
+<script src="/js/suggestion-fab.js?v=25" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
   const ADMIN_EMAIL = "admin@ouviescrevi.pt";
@@ -544,6 +546,7 @@
     // pedido com retries
     const formData = new FormData();
     formData.append("file", file);
+    if (window.OuviescreviJobs) OuviescreviJobs.appendAnalyticsFields(formData);
     const lang = document.getElementById("transcribeLanguage").value;
     if (lang && lang !== "auto") formData.append("language", lang);
 
@@ -579,6 +582,20 @@
           }
           throw new Error(data.error || data.detail || `Erro ${res.status}`);
         }
+        if (data.job_id && window.OuviescreviJobs) {
+          clearInterval(interval);
+          pararFrasesAnimadas(statusEl);
+          statusEl.textContent = "✅ Ficheiro enviado — a transcrever no servidor…";
+          progressBar.style.width = "45%";
+          try {
+            data = await OuviescreviJobs.awaitTranscribeResult(data, { statusEl: statusEl, progressBar: progressBar });
+            sucesso = transcricaoRecebidaComSucesso(data);
+          } catch (pollErr) {
+            data = { error: pollErr.message };
+            sucesso = false;
+          }
+          break;
+        }
         sucesso = transcricaoRecebidaComSucesso(data);
       }catch(err){
         if (err.name === "AbortError"){
@@ -597,7 +614,7 @@
     const textoRecebido = data.formatted || data.transcription || data.text || "";
     if (sucesso && textoRecebido.trim()){
       let textoFinal = textoRecebido;
-      if (identificar) textoFinal = aplicarLocutores(textoFinal);
+      if (identificar) textoFinal = await aplicarLocutores(textoFinal);
       transcriptionText.value = textoFinal;
       output.classList.remove("hidden");
       statusEl.textContent = "✅ Transcrição concluída com sucesso!";
@@ -895,6 +912,7 @@
 
     const formData = new FormData();
     formData.append("file", file);
+    if (window.OuviescreviJobs) OuviescreviJobs.appendAnalyticsFields(formData);
     const lang = document.getElementById("transcribeLanguage").value;
     if (lang && lang !== "auto") formData.append("language", lang);
     // parâmetros de estilo (JSON)
@@ -926,6 +944,9 @@
         throw new Error(data.detail || data.error || `Erro ${res.status}`);
       }
 
+      if (data.job_id && window.OuviescreviJobs) {
+        data = await OuviescreviJobs.awaitVideoSubsResult(data, { statusEl: statusEl, progressBar: progressBar });
+      }
       const srtUrl = toAbsUrl(data.srt_url);
       const mp4Url = data.video_url ? toAbsUrl(data.video_url) : null;
 
@@ -977,9 +998,16 @@
   // =========================
   // Exportações
   // =========================
-  function exportText(type){
+  async function exportText(type){
     const text = transcriptionText.value || "";
     if (!text) return;
+
+    if (type === 'docx' || type === 'doc'){
+      if (window.OuviescreviDocx) {
+        await OuviescreviDocx.exportDocxPro(text, { title: 'Ouviescrevi', filename: 'transkript.docx', allowLocalFallback: true });
+        return;
+      }
+    }
 
     if (type === 'pdf'){
       const { jsPDF } = window.jspdf;
@@ -1408,21 +1436,11 @@
     }
   }
 
-  function aplicarLocutores(transcricao){
-    const linhas = transcricao.split('\n');
-    let resultado = '';
-    let locutorAtual = 'João';
-    for (let i = 0; i < linhas.length; i++){
-      const linha = linhas[i].trim();
-      if (!linha) continue;
-      const nova = linha.replace(/^\[(\d{2}:\d{2})\]/, (m, ts) => {
-        const nome = locutorAtual;
-        locutorAtual = locutorAtual === 'João' ? 'Maria' : 'João';
-        return `[${ts}] ${nome}:`;
-      });
-      resultado += nova + '\n';
+  async function aplicarLocutores(transcricao){
+    if (window.OuviescreviJobs) {
+      return OuviescreviJobs.diarizeSpeakers(transcricao, { names: ["Hans","Maria"], lang: "de" });
     }
-    return resultado.trim();
+    return (window.OuviescreviJobs ? OuviescreviJobs.applyAlternatingSpeakers(transcricao, ["Hans","Maria"]) : transcricao);
   }
 
   function abrirModalTraducao(){ document.getElementById("modalTraducao").classList.add("show"); }

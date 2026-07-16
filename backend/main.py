@@ -925,6 +925,7 @@ def _style_json_to_ass_force_style(
 ) -> str:
     font_size = int(style.get("fontSize") or 40)
     vw = video_width or 1280
+    vh = video_height or 720
     preview_ref_w = min(854, vw)
     ass_font = max(12, round(font_size * vw / preview_ref_w))
 
@@ -944,10 +945,30 @@ def _style_json_to_ass_force_style(
     position = style.get("position") or "bottom"
     if position == "top":
         alignment = {"left": 7, "center": 8, "right": 9}.get(align_h, 8)
+    elif position == "custom":
+        # custom ≈ meio vertical; alinhamento horizontal mantém-se
+        alignment = {"left": 4, "center": 5, "right": 6}.get(align_h, 5)
     else:
         alignment = {"left": 1, "center": 2, "right": 3}.get(align_h, 2)
 
     margin_v = int(style.get("marginV") if style.get("marginV") is not None else 48)
+    # padding da UI → margem lateral aproximada
+    padding = int(style.get("padding") if style.get("padding") is not None else 12)
+    margin_lr = max(10, min(vw // 3, padding * 3))
+
+    # maxWidthPct → margens laterais para limitar largura da caixa
+    max_width_pct = style.get("maxWidthPct")
+    if max_width_pct is not None:
+        try:
+            pct = max(20, min(100, int(max_width_pct)))
+            side = int(vw * (100 - pct) / 200)
+            margin_lr = max(margin_lr, side)
+        except (TypeError, ValueError):
+            pass
+
+    if position == "custom":
+        # centrar verticalmente com MarginV relativo à metade da altura
+        margin_v = max(margin_v, int(vh * 0.08))
 
     return ",".join(
         [
@@ -961,6 +982,8 @@ def _style_json_to_ass_force_style(
             f"Shadow={shadow_depth}",
             f"Alignment={alignment}",
             f"MarginV={margin_v}",
+            f"MarginL={margin_lr}",
+            f"MarginR={margin_lr}",
         ]
     )
 
@@ -1204,6 +1227,8 @@ def registar_transcricao(
     processing_sec: float | None = None,
     status: str = "ok",
     error_message: str | None = None,
+    ui_locale: str | None = None,
+    page_path: str | None = None,
 ):
     admin_store.record_transcription(
         nome_ficheiro,
@@ -1213,6 +1238,8 @@ def registar_transcricao(
         processing_sec=processing_sec,
         status=status,
         error_message=error_message,
+        ui_locale=ui_locale,
+        page_path=page_path,
     )
     try:
         stats = admin_store.estimate_costs()
@@ -1648,6 +1675,13 @@ def debug():
     return {"status": "OK", "versao": "1.6"}
 
 
+def _normalize_ui_locale(raw: str | None) -> str | None:
+    loc = (raw or "").strip().lower()[:8]
+    if loc in ("pt", "en", "es", "fr", "de"):
+        return loc
+    return None
+
+
 @app.post("/transcribe")
 async def transcribe(
     request: Request,
@@ -1656,6 +1690,8 @@ async def transcribe(
     language: str | None = Form(None),
     trim_start_sec: str | None = Form(None),
     trim_end_sec: str | None = Form(None),
+    ui_locale: str | None = Form(None),
+    page_path: str | None = Form(None),
 ):
     """
     Upload → job_id imediato → processamento em segundo plano.
@@ -1722,6 +1758,8 @@ async def transcribe(
     actor_label = activity_actor_label(request)
     duration_sec = probe_media_duration_sec(tmp_path)
     estimate_sec = _estimate_transcribe_seconds(duration_sec, written)
+    locale_norm = _normalize_ui_locale(ui_locale)
+    path_norm = (page_path or "").strip()[:500] or None
 
     job_id = str(uuid.uuid4())
     _prune_transcribe_jobs()
@@ -1749,6 +1787,8 @@ async def transcribe(
             usage_key,
             notify_email,
             actor_label,
+            locale_norm,
+            path_norm,
         ),
         daemon=True,
     ).start()
@@ -1781,6 +1821,8 @@ def _execute_transcribe_job(
     usage_key: str,
     notify_email: bool,
     actor_label: str,
+    ui_locale: str | None = None,
+    page_path: str | None = None,
 ) -> None:
     t_start = time.monotonic()
     audio_wav_path = os.path.join(tempfile.gettempdir(), f"audio_{uuid.uuid4()}.wav")
@@ -1874,6 +1916,8 @@ def _execute_transcribe_job(
                 processing_sec=round(processing_sec, 2),
                 status="ok",
                 error_message=None if not quota_exceeded else "insufficient_quota",
+                ui_locale=ui_locale,
+                page_path=page_path,
             )
         except Exception as e:
             logger.warning("[%s] Falha ao registar na DB: %s", rid, e)
@@ -2321,6 +2365,83 @@ def video_subs_job_status(job_id: str, request: Request):
     return {k: v for k, v in job.items() if k != "updated_at"}
 
 # ── IA payloads ───────────────────────────────────────────────────────────────
+class DiarizeRequest(BaseModel):
+    text: str
+    token: str = ""
+    names: list[str] | None = None
+    language: str = "pt"
+
+
+@app.post("/api/diarize")
+async def diarize_speakers(req: DiarizeRequest, request: Request):
+    """Atribui locutores ao texto com timestamps via GPT (com fallback heurístico)."""
+    require_api_token(request, req.token or None)
+    enforce_rate_limit(request, "ai", RATE_LIMIT_AI, RATE_LIMIT_AI_WINDOW)
+    text = (req.text or "").strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="Texto em falta.")
+    names = [n.strip() for n in (req.names or []) if n and str(n).strip()]
+    if len(names) < 2:
+        names = ["João", "Maria"] if (req.language or "pt").startswith("pt") else ["Speaker 1", "Speaker 2"]
+    names = names[:6]
+
+    def _heuristic() -> str:
+        lines_out = []
+        idx = 0
+        for raw in text.splitlines():
+            line = raw.strip()
+            if not line:
+                continue
+            m = re.match(r"^\[(\d{2}:\d{2})\]\s*(.*)$", line)
+            if m:
+                name = names[idx % len(names)]
+                idx += 1
+                rest = m.group(2)
+                # evitar duplicar nome se já existir
+                if re.match(rf"^{re.escape(name)}\s*:", rest):
+                    lines_out.append(line)
+                else:
+                    lines_out.append(f"[{m.group(1)}] {name}: {rest}".rstrip())
+            else:
+                lines_out.append(line)
+        return "\n".join(lines_out).strip()
+
+    lang = (req.language or "pt").lower()
+    sys = (
+        "You assign speakers to a timestamped transcript. "
+        "Keep every line that starts with [MM:SS]. "
+        f"Use only these speaker names in order of turns: {', '.join(names)}. "
+        "Format each line as: [MM:SS] Name: text. "
+        "Group consecutive lines from the same speaker when the dialogue clearly continues. "
+        "Do not invent timestamps. Return only the labeled transcript."
+    )
+    if lang.startswith("pt"):
+        sys = (
+            "Atribui locutores a uma transcrição com timestamps. "
+            "Mantém todas as linhas que começam com [MM:SS]. "
+            f"Usa apenas estes nomes: {', '.join(names)}. "
+            "Formato: [MM:SS] Nome: texto. "
+            "Agrupa falas consecutivas do mesmo locutor quando fizer sentido. "
+            "Não inventes timestamps. Devolve só a transcrição etiquetada."
+        )
+    try:
+        resp = client.chat.completions.create(
+            model=SUM_MODEL,
+            messages=[
+                {"role": "system", "content": sys},
+                {"role": "user", "content": text[:12000]},
+            ],
+            temperature=0.2,
+            max_tokens=min(4000, max(400, len(text) // 2 + 200)),
+        )
+        out = (resp.choices[0].message.content or "").strip()
+        if out and "[" in out:
+            return {"text": out, "method": "llm", "names": names}
+    except Exception as exc:
+        logger.warning("Diarização LLM falhou: %s", exc)
+    return {"text": _heuristic(), "method": "heuristic", "names": names}
+
+
 class SummarizeRequest(BaseModel):
     text: str
     token: str = ""
@@ -3239,11 +3360,11 @@ class VideoRequest(BaseModel):
     text: str
     image_url: str = "https://placehold.co/720x1280?text=Ouviescrevi"
     voice_lang: str = "pt"
-    token: str
+    token: str = ""
 
 @router.post("/generate-video")
 async def generate_video(req: VideoRequest, request: Request):
-    require_token(req.token)
+    require_api_token(request, req.token or None)
     enforce_rate_limit(request, "ai", RATE_LIMIT_AI, RATE_LIMIT_AI_WINDOW)
     try:
         audio_tmp = os.path.join(tempfile.gettempdir(), f"{uuid.uuid4()}.mp3")

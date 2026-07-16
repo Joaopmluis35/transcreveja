@@ -226,6 +226,8 @@ def _migrate_transcricoes(cur: sqlite3.Cursor) -> None:
         ("processing_sec", "REAL"),
         ("status", "TEXT"),
         ("error_message", "TEXT"),
+        ("ui_locale", "TEXT"),
+        ("page_path", "TEXT"),
     ):
         if not _column_exists(cur, "transcricoes", col):
             cur.execute(f"ALTER TABLE transcricoes ADD COLUMN {col} {typedef}")
