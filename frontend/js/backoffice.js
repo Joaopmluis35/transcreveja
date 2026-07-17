@@ -1173,6 +1173,9 @@
     document.getElementById("adminApp").classList.remove("hidden");
     applyRoleUI();
     hydrateDashboardFromCache();
+    if (global.OuviescreviAdminExt && global.OuviescreviAdminExt.initVisitReportExport) {
+      global.OuviescreviAdminExt.initVisitReportExport();
+    }
     setTimeout(function () {
       carregarDashboard();
     }, 0);

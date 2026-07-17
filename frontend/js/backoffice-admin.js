@@ -60,14 +60,36 @@
   var serverLogTimer = null;
   var lastServerLogText = "";
 
+  function safeToast(message, type) {
+    if (global.OuviescreviUI && global.OuviescreviUI.toast) {
+      global.OuviescreviUI.toast(message, type);
+    }
+  }
+
   function downloadBlob(blob, name) {
+    var url = URL.createObjectURL(blob);
     var a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
+    a.href = url;
     a.download = name;
+    a.rel = "noopener";
+    a.style.display = "none";
+    document.body.appendChild(a);
     a.click();
     setTimeout(function () {
-      URL.revokeObjectURL(a.href);
-    }, 1500);
+      if (a.parentNode) a.parentNode.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 2000);
+  }
+
+  function fetchWithTimeout(url, options, timeoutMs) {
+    var ctrl = new AbortController();
+    var timer = setTimeout(function () {
+      ctrl.abort();
+    }, timeoutMs || 12000);
+    var opts = Object.assign({}, options || {}, { signal: ctrl.signal });
+    return fetch(url, opts).finally(function () {
+      clearTimeout(timer);
+    });
   }
 
   function dashboardCacheKey() {
@@ -136,8 +158,16 @@
   }
 
   function fetchVisitReport() {
+    var cached = loadDashboardCache();
+    if (cached && (cached.visitas || cached.charts)) {
+      var fromCache = buildVisitReportFromDashboard(cached);
+      fromCache.fallback = true;
+      fromCache.fallback_reason = "dashboard_cache";
+      return Promise.resolve(fromCache);
+    }
+
     var base = apiBase();
-    return fetch(base + "/api/admin/export/visit-report", { headers: authHeaders() })
+    return fetchWithTimeout(base + "/api/admin/export/visit-report", { headers: authHeaders() }, 12000)
       .then(function (r) {
         if (r.ok) return r.json();
         return r.text().then(function (body) {
@@ -150,15 +180,45 @@
           err.status = r.status;
           throw err;
         });
+      });
+  }
+
+  function deliverVisitReport(data, mode) {
+    var text = JSON.stringify(data, null, 2);
+    var day = (data.range && data.range.hoje) || "hoje";
+    if (mode === "copy") {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(text).then(function () {
+          var msg = data.fallback
+            ? "JSON (painel) copiado — cola no chat Cursor."
+            : "JSON copiado — cola no chat Cursor.";
+          safeToast(msg, "success");
+        });
+      }
+      mode = "download";
+    }
+    downloadBlob(
+      new Blob([text], { type: "application/json" }),
+      "ouviescrevi-visitas-" + day + ".json"
+    );
+    var dlMsg = data.fallback
+      ? "Relatório (painel) descarregado — cola no chat."
+      : "Relatório descarregado — cola no chat para analisar.";
+    safeToast(dlMsg, "success");
+    return Promise.resolve();
+  }
+
+  function runVisitReportExport(mode) {
+    safeToast("A preparar exportação…", "success");
+    return fetchVisitReport()
+      .then(function (data) {
+        return deliverVisitReport(data, mode);
       })
       .catch(function (err) {
-        var cached = loadDashboardCache();
-        if (cached && (cached.visitas || cached.charts)) {
-          var report = buildVisitReportFromDashboard(cached);
-          report.fallback_reason = (err && err.message) || "endpoint_unavailable";
-          return report;
-        }
-        throw err;
+        var msg = (err && err.name === "AbortError")
+          ? "Tempo esgotado — tenta «Copiar JSON» ou atualiza o painel."
+          : ((err && err.message) || "desconhecido");
+        safeToast("Erro ao exportar: " + msg, "error");
       });
   }
 
@@ -167,69 +227,25 @@
     var btnCopy = document.getElementById("btnCopyVisitReport");
     var linkLegacy = document.getElementById("exportVisitReport");
 
-    function doDownload() {
-      return fetchVisitReport()
-        .then(function (data) {
-          var day = (data.range && data.range.hoje) || "hoje";
-          var blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-          downloadBlob(blob, "ouviescrevi-visitas-" + day + ".json");
-          var msg = data.fallback
-            ? "Relatório (fallback do painel) descarregado — cola no chat."
-            : "Relatório descarregado — cola no chat para analisar.";
-          global.OuviescreviUI.toast(msg, "success");
-        })
-        .catch(function (err) {
-          global.OuviescreviUI.toast(
-            "Erro ao exportar: " + ((err && err.message) || "desconhecido"),
-            "error"
-          );
+    function bindOnce(el, mode) {
+      if (!el || el.dataset.oeVisitExportBound === "1") return;
+      el.dataset.oeVisitExportBound = "1";
+      el.addEventListener("click", function (e) {
+        if (e && e.preventDefault) e.preventDefault();
+        if (el.disabled) return;
+        el.disabled = true;
+        var prev = el.textContent;
+        if (mode === "download") el.textContent = "A exportar…";
+        runVisitReportExport(mode).finally(function () {
+          el.disabled = false;
+          if (mode === "download" && prev) el.textContent = prev;
         });
+      });
     }
 
-    function doCopy() {
-      return fetchVisitReport()
-        .then(function (data) {
-          var text = JSON.stringify(data, null, 2);
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            return navigator.clipboard.writeText(text).then(function () {
-              var msg = data.fallback
-                ? "JSON (fallback) copiado — cola no chat Cursor."
-                : "JSON copiado — cola no chat Cursor.";
-              global.OuviescreviUI.toast(msg, "success");
-            });
-          }
-          throw new Error("clipboard indisponível");
-        })
-        .catch(function (err) {
-          global.OuviescreviUI.toast(
-            "Não foi possível copiar: " + ((err && err.message) || "erro"),
-            "error"
-          );
-        });
-    }
-
-    if (btnDl) {
-      btnDl.addEventListener("click", function () {
-        btnDl.disabled = true;
-        doDownload().finally(function () {
-          btnDl.disabled = false;
-        });
-      });
-    }
-    if (btnCopy) {
-      btnCopy.addEventListener("click", function () {
-        btnCopy.disabled = true;
-        doCopy().finally(function () {
-          btnCopy.disabled = false;
-        });
-      });
-    }
-    if (linkLegacy) {
-      linkLegacy.addEventListener("click", function (e) {
-        e.preventDefault();
-        doDownload();
-      });
-    }
+    bindOnce(btnDl, "download");
+    bindOnce(btnCopy, "copy");
+    bindOnce(linkLegacy, "download");
   }
 
   function initExports() {
@@ -1591,5 +1607,7 @@
     loadSugestoes: loadSugestoes,
     loadSystem: loadSystem,
     loadEmails: loadEmails,
+    initVisitReportExport: initVisitReportExport,
+    exportVisitReport: runVisitReportExport,
   };
 })(window);
