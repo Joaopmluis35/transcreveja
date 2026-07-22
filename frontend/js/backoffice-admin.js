@@ -96,41 +96,63 @@
     return "oe_admin_dashboard_v1";
   }
 
-  function buildVisitReportFromDashboard(data) {
+  function buildVisitReportFromDashboard(data, days) {
+    var nDays = Math.max(1, Math.min(parseInt(days, 10) || 7, 90));
     var charts = (data && data.charts) || {};
     var series = charts.visitas_diarias || [];
-    var today = series.length ? series[series.length - 1] : null;
-    var yesterday = series.length > 1 ? series[series.length - 2] : null;
+    var slice = series.slice(-nDays);
     var byDay = {};
-    if (yesterday) {
-      byDay[yesterday.day] = {
-        pageviews: yesterday.total || 0,
-        unicos: yesterday.unicos || 0,
-        human_pageviews: yesterday.outros != null ? yesterday.outros : yesterday.total || 0,
-        bot_pageviews: yesterday.bots || 0,
-        owner_pageviews: yesterday.tuas || 0,
+    var totalPv = 0;
+    var totalHumans = 0;
+    var totalBots = 0;
+    var totalOwner = 0;
+    slice.forEach(function (row) {
+      if (!row || !row.day) return;
+      var pv = row.total || 0;
+      var humans = row.outros != null ? row.outros : pv;
+      var bots = row.bots || 0;
+      var owner = row.tuas || 0;
+      byDay[row.day] = {
+        pageviews: pv,
+        unicos: row.unicos || 0,
+        human_pageviews: humans,
+        bot_pageviews: bots,
+        owner_pageviews: owner,
         legacy_pageviews: null,
       };
-    }
-    if (today) {
-      byDay[today.day] = {
-        pageviews: today.total || 0,
-        unicos: today.unicos || 0,
-        human_pageviews: today.outros != null ? today.outros : today.total || 0,
-        bot_pageviews: today.bots || 0,
-        owner_pageviews: today.tuas || 0,
-        legacy_pageviews: null,
-      };
-    }
+      totalPv += pv;
+      totalHumans += humans;
+      totalBots += bots;
+      totalOwner += owner;
+    });
+    var dayFrom = slice.length ? slice[0].day : null;
+    var dayTo = slice.length ? slice[slice.length - 1].day : null;
     return {
       exported_at: new Date().toISOString(),
-      purpose: "Análise ontem vs hoje — gerado a partir do painel (fallback)",
+      purpose: "Análise últimos " + nDays + " dia(s) — gerado a partir do painel (fallback)",
       source: { note: "dashboard-cache-fallback", database_backend: "unknown" },
       range: {
-        ontem: yesterday ? yesterday.day : null,
-        hoje: today ? today.day : null,
+        days: nDays,
+        from: dayFrom,
+        to: dayTo,
+        hoje: dayTo,
+        ontem: slice.length > 1 ? slice[slice.length - 2].day : null,
       },
       by_day: byDay,
+      totals: {
+        pageviews: totalPv,
+        unicos: null,
+        human_unicos_approx: null,
+        human_pageviews: totalHumans,
+        bot_pageviews: totalBots,
+        owner_pageviews: totalOwner,
+      },
+      totals_2d: {
+        pageviews: totalPv,
+        human_pageviews: totalHumans,
+        bot_pageviews: totalBots,
+        owner_pageviews: totalOwner,
+      },
       visitas: data.visitas || {},
       trafego_hoje: data.visitas_trafego || {},
       conversao_hoje: data.conversao || {},
@@ -157,17 +179,31 @@
     }
   }
 
-  function fetchVisitReport() {
-    var cached = loadDashboardCache();
-    if (cached && (cached.visitas || cached.charts)) {
-      var fromCache = buildVisitReportFromDashboard(cached);
-      fromCache.fallback = true;
-      fromCache.fallback_reason = "dashboard_cache";
-      return Promise.resolve(fromCache);
-    }
+  function selectedVisitReportDays() {
+    var sel = document.getElementById("visitReportDays");
+    var n = sel ? parseInt(sel.value, 10) : 7;
+    if (isNaN(n) || n < 1) n = 7;
+    return Math.min(n, 90);
+  }
 
+  function updateVisitReportHint() {
+    var hint = document.getElementById("visitReportHint");
+    if (!hint) return;
+    var n = selectedVisitReportDays();
+    hint.textContent =
+      n === 2
+        ? "Ontem + hoje — partilhar no chat para analisar"
+        : "Últimos " + n + " dias — partilhar no chat para analisar";
+  }
+
+  function fetchVisitReport() {
+    var days = selectedVisitReportDays();
     var base = apiBase();
-    return fetchWithTimeout(base + "/api/admin/export/visit-report", { headers: authHeaders() }, 12000)
+    return fetchWithTimeout(
+      base + "/api/admin/export/visit-report?days=" + encodeURIComponent(days),
+      { headers: authHeaders() },
+      15000
+    )
       .then(function (r) {
         if (r.ok) return r.json();
         return r.text().then(function (body) {
@@ -180,12 +216,24 @@
           err.status = r.status;
           throw err;
         });
+      })
+      .catch(function (err) {
+        var cached = loadDashboardCache();
+        if (cached && (cached.visitas || cached.charts)) {
+          var fromCache = buildVisitReportFromDashboard(cached, days);
+          fromCache.fallback = true;
+          fromCache.fallback_reason = (err && err.message) || "api_error";
+          return fromCache;
+        }
+        throw err;
       });
   }
 
   function deliverVisitReport(data, mode) {
     var text = JSON.stringify(data, null, 2);
-    var day = (data.range && data.range.hoje) || "hoje";
+    var rng = data.range || {};
+    var day = rng.to || rng.hoje || "hoje";
+    var nDays = rng.days || selectedVisitReportDays();
     if (mode === "copy") {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         return navigator.clipboard.writeText(text).then(function () {
@@ -199,7 +247,7 @@
     }
     downloadBlob(
       new Blob([text], { type: "application/json" }),
-      "ouviescrevi-visitas-" + day + ".json"
+      "ouviescrevi-visitas-" + nDays + "d-" + day + ".json"
     );
     var dlMsg = data.fallback
       ? "Relatório (painel) descarregado — cola no chat."
@@ -226,6 +274,13 @@
     var btnDl = document.getElementById("btnExportVisitReport");
     var btnCopy = document.getElementById("btnCopyVisitReport");
     var linkLegacy = document.getElementById("exportVisitReport");
+    var daysSel = document.getElementById("visitReportDays");
+
+    if (daysSel && daysSel.dataset.oeVisitDaysBound !== "1") {
+      daysSel.dataset.oeVisitDaysBound = "1";
+      daysSel.addEventListener("change", updateVisitReportHint);
+      updateVisitReportHint();
+    }
 
     function bindOnce(el, mode) {
       if (!el || el.dataset.oeVisitExportBound === "1") return;

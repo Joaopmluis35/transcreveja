@@ -7,7 +7,7 @@
   <title>Backoffice | Ouviescrevi</title>
   <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png">
   <link rel="stylesheet" href="css/ouviescrevi.css?v=25">
-  <link rel="stylesheet" href="css/backoffice.css?v=21">
+  <link rel="stylesheet" href="css/backoffice.css?v=22">
   <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
   <script src="js/ouviescrevi-ui.js?v=25" defer></script>
 </head>
@@ -182,10 +182,28 @@
               <button type="button" id="visitorsFilterTeam" class="oe-admin-btn oe-admin-btn--secondary oe-admin-visitors-filter" data-filter="team">Equipa</button>
               <span class="oe-admin-visitors-meta" id="visitantesDistintosMeta"></span>
             </div>
+            <div class="oe-admin-visitors-week" id="visitorsWeekSummary">
+              <div class="oe-admin-visitors-week__title">Últimos 7 dias</div>
+              <div class="oe-admin-visitors-week__grid">
+                <div><span class="oe-admin-visitors-week__n" id="weekTotal">—</span><span class="oe-admin-visitors-week__l">visitas</span></div>
+                <div><span class="oe-admin-visitors-week__n" id="weekHumans">—</span><span class="oe-admin-visitors-week__l">humanos</span></div>
+                <div><span class="oe-admin-visitors-week__n" id="weekBots">—</span><span class="oe-admin-visitors-week__l">bots</span></div>
+                <div><span class="oe-admin-visitors-week__n" id="weekOwner">—</span><span class="oe-admin-visitors-week__l">tu</span></div>
+              </div>
+            </div>
             <div class="oe-admin-visitors-export">
+              <label class="oe-admin-visitors-days" for="visitReportDays">
+                Dias
+                <select id="visitReportDays" aria-label="Número de dias para exportar">
+                  <option value="2">2 (ontem+hoje)</option>
+                  <option value="7" selected>7</option>
+                  <option value="14">14</option>
+                  <option value="30">30</option>
+                </select>
+              </label>
               <button type="button" id="btnExportVisitReport" class="oe-admin-btn oe-admin-btn--primary">⬇ Exportar análise (JSON)</button>
               <button type="button" id="btnCopyVisitReport" class="oe-admin-btn oe-admin-btn--secondary">📋 Copiar JSON</button>
-              <span class="oe-admin-visitors-meta">Ontem + hoje — para partilhar no chat e analisar</span>
+              <span class="oe-admin-visitors-meta" id="visitReportHint">Últimos 7 dias — partilhar no chat para analisar</span>
             </div>
             <div class="oe-admin-table-wrap oe-admin-table-wrap--scroll oe-admin-table-wrap--scroll-sm" id="visitantesDistintos">
               <p class="oe-admin-empty">A carregar...</p>
@@ -703,8 +721,8 @@
 <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 <script src="js/ouviescrevi-api.js?v=25"></script>
 <script src="js/backoffice-cms-locales.js?v=5"></script>
-<script src="js/backoffice.js?v=27"></script>
-<script src="js/backoffice-admin.js?v=27"></script>
+<script src="js/backoffice.js?v=28"></script>
+<script src="js/backoffice-admin.js?v=28"></script>
 <script src="js/backoffice-nav.js?v=2"></script>
 <script src="js/backoffice-billing.js?v=4"></script>
 </body>

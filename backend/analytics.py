@@ -502,21 +502,28 @@ def _scalar_count(conn: Any, sql: str, params: tuple = ()) -> int:
         return 0
 
 
-def build_visit_report(owner_uids: set[str] | None = None) -> dict[str, Any]:
-    """Relatório compacto ontem+hoje para análise (export JSON no backoffice)."""
+def build_visit_report(
+    owner_uids: set[str] | None = None,
+    days: int = 2,
+) -> dict[str, Any]:
+    """Relatório compacto dos últimos N dias para análise (export JSON no backoffice)."""
     import admin_store as store
     from database import database_backend, use_turso
 
     owner_uids = owner_uids or set()
+    n_days = max(1, min(int(days or 2), 90))
     today = date.today()
-    yesterday = today - timedelta(days=1)
-    days = [yesterday.isoformat(), today.isoformat()]
+    day_list = [(today - timedelta(days=n_days - 1 - i)).isoformat() for i in range(n_days)]
+    day_from = day_list[0]
+    day_to = day_list[-1]
+    placeholders = ",".join("?" for _ in day_list)
+    day_params = tuple(day_list)
     now = datetime.utcnow().isoformat(timespec="seconds") + "Z"
 
     conn = get_connection()
     try:
         by_day: dict[str, dict[str, int]] = {}
-        for d in days:
+        for d in day_list:
             pageviews = _scalar_count(conn, "SELECT COUNT(*) AS c FROM visitas WHERE day=?", (d,))
             unicos = _scalar_count(
                 conn,
@@ -553,24 +560,24 @@ def build_visit_report(owner_uids: set[str] | None = None) -> dict[str, Any]:
                 "legacy_pageviews": legacy,
             }
 
-        unicos_2d = _scalar_count(
+        unicos_period = _scalar_count(
             conn,
-            """
+            f"""
             SELECT COUNT(DISTINCT COALESCE(NULLIF(visitor_uid,''), visitor_hash)) AS c
-            FROM visitas WHERE day IN (?,?)
+            FROM visitas WHERE day IN ({placeholders})
             """,
-            (days[0], days[1]),
+            day_params,
         )
-        humans_unicos_2d = 0
+        humans_unicos = 0
         for row in conn.execute(
-            """
+            f"""
             SELECT COALESCE(NULLIF(visitor_uid,''), visitor_hash,'?') AS vid,
                    MAX(ip_label) AS ip_label, MAX(user_agent) AS user_agent,
                    MAX(visitor_uid) AS visitor_uid
-            FROM visitas WHERE day IN (?,?)
+            FROM visitas WHERE day IN ({placeholders})
             GROUP BY COALESCE(NULLIF(visitor_uid,''), visitor_hash,'?')
             """,
-            (days[0], days[1]),
+            day_params,
         ).fetchall():
             item = row_to_dict(row)
             uid = item.get("visitor_uid") or ""
@@ -578,53 +585,56 @@ def build_visit_report(owner_uids: set[str] | None = None) -> dict[str, Any]:
                 continue
             if is_bot_visit(item.get("ip_label"), item.get("user_agent")):
                 continue
-            humans_unicos_2d += 1
+            humans_unicos += 1
 
         pages = [
             row_to_dict(r)
             for r in conn.execute(
-                """
+                f"""
                 SELECT day, path, COUNT(*) AS c FROM visitas
-                WHERE day IN (?,?) GROUP BY day, path ORDER BY day, c DESC
+                WHERE day IN ({placeholders}) GROUP BY day, path ORDER BY day, c DESC
                 """,
-                (days[0], days[1]),
+                day_params,
             ).fetchall()
         ]
         devices = [
             row_to_dict(r)
             for r in conn.execute(
-                """
+                f"""
                 SELECT day, COALESCE(device_type,'?') AS device_type, COUNT(*) AS c
-                FROM visitas WHERE day IN (?,?) GROUP BY day, device_type ORDER BY day, c DESC
+                FROM visitas WHERE day IN ({placeholders})
+                GROUP BY day, device_type ORDER BY day, c DESC
                 """,
-                (days[0], days[1]),
+                day_params,
             ).fetchall()
         ]
         refs = [
             row_to_dict(r)
             for r in conn.execute(
-                """
+                f"""
                 SELECT day, COALESCE(NULLIF(referrer,''),'(direct)') AS referrer, COUNT(*) AS c
-                FROM visitas WHERE day IN (?,?) GROUP BY day, referrer ORDER BY day, c DESC
-                LIMIT 40
+                FROM visitas WHERE day IN ({placeholders})
+                GROUP BY day, referrer ORDER BY day, c DESC
+                LIMIT 80
                 """,
-                (days[0], days[1]),
+                day_params,
             ).fetchall()
         ]
         hours = [
             row_to_dict(r)
             for r in conn.execute(
-                """
+                f"""
                 SELECT day, substr(created_at,12,2) AS hora, COUNT(*) AS c
-                FROM visitas WHERE day IN (?,?) GROUP BY day, hora ORDER BY day, hora
+                FROM visitas WHERE day IN ({placeholders})
+                GROUP BY day, hora ORDER BY day, hora
                 """,
-                (days[0], days[1]),
+                day_params,
             ).fetchall()
         ]
         locales = [
             row_to_dict(r)
             for r in conn.execute(
-                """
+                f"""
                 SELECT day,
                   CASE
                     WHEN path LIKE '/en/%' OR path='/en' THEN 'en'
@@ -634,26 +644,26 @@ def build_visit_report(owner_uids: set[str] | None = None) -> dict[str, Any]:
                     ELSE 'pt'
                   END AS locale,
                   COUNT(*) AS c
-                FROM visitas WHERE day IN (?,?)
+                FROM visitas WHERE day IN ({placeholders})
                 GROUP BY day, locale ORDER BY day, c DESC
                 """,
-                (days[0], days[1]),
+                day_params,
             ).fetchall()
         ]
         visitors = [
             row_to_dict(r)
             for r in conn.execute(
-                """
+                f"""
                 SELECT COALESCE(NULLIF(visitor_uid,''), visitor_hash,'?') AS visitor_id,
                        MAX(ip_label) AS ip_label, MAX(user_agent) AS user_agent,
                        COUNT(*) AS pageviews, COUNT(DISTINCT day) AS dias,
                        MIN(created_at) AS first_seen, MAX(created_at) AS last_seen,
                        MAX(device_type) AS device_type
-                FROM visitas WHERE day IN (?,?)
+                FROM visitas WHERE day IN ({placeholders})
                 GROUP BY COALESCE(NULLIF(visitor_uid,''), visitor_hash,'?')
-                ORDER BY pageviews DESC LIMIT 40
+                ORDER BY pageviews DESC LIMIT 60
                 """,
-                (days[0], days[1]),
+                day_params,
             ).fetchall()
         ]
         for v in visitors:
@@ -667,41 +677,67 @@ def build_visit_report(owner_uids: set[str] | None = None) -> dict[str, Any]:
         trans = [
             row_to_dict(r)
             for r in conn.execute(
-                """
+                f"""
                 SELECT substr(data,1,10) AS day, COUNT(*) AS c
-                FROM transcricoes WHERE substr(data,1,10) IN (?,?) GROUP BY day
+                FROM transcricoes WHERE substr(data,1,10) IN ({placeholders}) GROUP BY day
                 """,
-                (days[0], days[1]),
+                day_params,
             ).fetchall()
         ]
     finally:
         conn.close()
 
-    series = get_daily_visit_series(14, owner_uids)
-    breakdown = get_visitor_breakdown(2, 40, owner_uids)
+    series_days = max(14, n_days)
+    series = get_daily_visit_series(series_days, owner_uids)
+    breakdown_raw = get_visitor_breakdown(n_days, 60, owner_uids)
+    breakdown = [
+        {
+            "tipo": b.get("tipo"),
+            "ip_label": b.get("ip_label"),
+            "pageviews": b.get("pageviews"),
+            "dias_ativos": b.get("dias_ativos"),
+            "device_type": b.get("device_type"),
+            "last_seen": b.get("last_seen"),
+            "is_owner": b.get("is_owner"),
+            "is_bot": b.get("is_bot"),
+            "is_legacy": b.get("is_legacy"),
+        }
+        for b in breakdown_raw
+    ]
     try:
-        conv_locale = store.conversion_by_locale(14)
+        conv_locale = store.conversion_by_locale(max(14, n_days))
     except Exception:
         conv_locale = []
 
+    totals = {
+        "pageviews": sum(v["pageviews"] for v in by_day.values()),
+        "unicos": unicos_period,
+        "human_unicos_approx": humans_unicos,
+        "human_pageviews": sum(v["human_pageviews"] for v in by_day.values()),
+        "bot_pageviews": sum(v["bot_pageviews"] for v in by_day.values()),
+        "owner_pageviews": sum(v["owner_pageviews"] for v in by_day.values()),
+    }
+    range_info: dict[str, Any] = {
+        "days": n_days,
+        "from": day_from,
+        "to": day_to,
+        "hoje": day_to,
+    }
+    if n_days >= 2:
+        range_info["ontem"] = day_list[-2]
+
     return {
         "exported_at": now,
-        "purpose": "Análise ontem vs hoje — partilhar este JSON no chat Cursor",
+        "purpose": f"Análise últimos {n_days} dia(s) — partilhar este JSON no chat Cursor",
         "source": {
             "database_backend": database_backend(),
             "use_turso": use_turso(),
             "note": "turso production" if use_turso() else "local sqlite",
         },
-        "range": {"ontem": days[0], "hoje": days[1]},
+        "range": range_info,
         "by_day": by_day,
-        "totals_2d": {
-            "pageviews": sum(v["pageviews"] for v in by_day.values()),
-            "unicos": unicos_2d,
-            "human_unicos_approx": humans_unicos_2d,
-            "human_pageviews": sum(v["human_pageviews"] for v in by_day.values()),
-            "bot_pageviews": sum(v["bot_pageviews"] for v in by_day.values()),
-            "owner_pageviews": sum(v["owner_pageviews"] for v in by_day.values()),
-        },
+        "totals": totals,
+        "totals_2d": totals,  # compat
         "visitas": get_visit_stats(),
         "trafego_hoje": get_owner_traffic_today(owner_uids),
         "conversao_hoje": store.conversion_stats(),
@@ -714,20 +750,8 @@ def build_visit_report(owner_uids: set[str] | None = None) -> dict[str, Any]:
         "visitors_top": visitors,
         "transcriptions": trans,
         "series_14d": series,
-        "breakdown_2d": [
-            {
-                "tipo": b.get("tipo"),
-                "ip_label": b.get("ip_label"),
-                "pageviews": b.get("pageviews"),
-                "dias_ativos": b.get("dias_ativos"),
-                "device_type": b.get("device_type"),
-                "last_seen": b.get("last_seen"),
-                "is_owner": b.get("is_owner"),
-                "is_bot": b.get("is_bot"),
-                "is_legacy": b.get("is_legacy"),
-            }
-            for b in breakdown
-        ],
+        "breakdown": breakdown,
+        "breakdown_2d": breakdown,  # compat
         "top_pages_30d": get_top_pages(10),
         "owner_uids_count": len(owner_uids),
         "owner_ip_labels": store.get_owner_ip_labels_list(),

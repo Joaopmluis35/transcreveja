@@ -627,6 +627,30 @@
       " único(s) externo(s). Procura linhas <span class=\"oe-admin-visitor-tag oe-admin-visitor-tag--owner\">Tu</span>.";
   }
 
+  function renderWeekSummary(data) {
+    var series = (data.charts && data.charts.visitas_diarias) || [];
+    var last7 = series.slice(-7);
+    var total = 0;
+    var humans = 0;
+    var bots = 0;
+    var owner = 0;
+    last7.forEach(function (row) {
+      if (!row) return;
+      total += Number(row.total) || 0;
+      humans += row.outros != null ? Number(row.outros) || 0 : Number(row.total) || 0;
+      bots += Number(row.bots) || 0;
+      owner += Number(row.tuas) || 0;
+    });
+    function set(id, val) {
+      var el = document.getElementById(id);
+      if (el) el.textContent = String(val);
+    }
+    set("weekTotal", total);
+    set("weekHumans", humans);
+    set("weekBots", bots);
+    set("weekOwner", owner);
+  }
+
   async function markOwnerIp(unmark) {
     var path = unmark ? "/api/admin/visitors/unmark-owner" : "/api/admin/visitors/mark-owner";
     var btnMark = document.getElementById("btnMarkOwnerIp");
@@ -718,6 +742,7 @@
     renderVisitasRecentes(data.visitas_recentes || []);
     renderVisitantesDistintos(data.visitantes_distintos || []);
     renderOwnerIpStatus(data);
+    renderWeekSummary(data);
 
     try {
       renderCharts(data.charts);

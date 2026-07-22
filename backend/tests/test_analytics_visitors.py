@@ -47,11 +47,20 @@ def test_build_visit_report_shape(client):
     report = build_visit_report({uid})
     assert "range" in report
     assert "by_day" in report
+    assert report["range"]["days"] == 2
     assert report["range"]["hoje"] in report["by_day"]
     assert report["range"]["ontem"] in report["by_day"]
+    assert "totals" in report
     assert "totals_2d" in report
     assert "series_14d" in report
     assert isinstance(report["series_14d"], list)
+
+    report7 = build_visit_report({uid}, days=7)
+    assert report7["range"]["days"] == 7
+    assert len(report7["by_day"]) == 7
+    assert report7["range"]["from"] in report7["by_day"]
+    assert report7["range"]["to"] in report7["by_day"]
+    assert "totals" in report7
 
 
 def test_record_visit_and_breakdown(client):
