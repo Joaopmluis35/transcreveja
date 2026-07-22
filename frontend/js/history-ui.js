@@ -3,8 +3,21 @@
  */
 (function (global) {
   function isSiteUser() {
-    var role = sessionStorage.getItem("ouviescrevi_site_role");
-    return role === "user" && sessionStorage.getItem("ouviescrevi_site_session");
+    var role = (function () {
+      try {
+        return localStorage.getItem("ouviescrevi_site_role") || sessionStorage.getItem("ouviescrevi_site_role");
+      } catch (e) {
+        return sessionStorage.getItem("ouviescrevi_site_role");
+      }
+    })();
+    var sess = (function () {
+      try {
+        return localStorage.getItem("ouviescrevi_site_session") || sessionStorage.getItem("ouviescrevi_site_session");
+      } catch (e) {
+        return sessionStorage.getItem("ouviescrevi_site_session");
+      }
+    })();
+    return role === "user" && !!sess;
   }
 
   function formatDate(iso) {
@@ -95,7 +108,17 @@
 
     try {
       await global.OuviescreviAPI.init();
-      var res = await fetch(global.OuviescreviAPI.getBase() + "/api/auth/history?limit=40", {
+      var histLimit = 100;
+      try {
+        var meRes = await fetch(global.OuviescreviAPI.getBase() + "/api/auth/me", {
+          headers: global.OuviescreviAPI.authHeaders(),
+        });
+        if (meRes.ok) {
+          var me = await meRes.json();
+          if (me && (me.plan === "pro" || me.is_pro)) histLimit = 200;
+        }
+      } catch (eMe) {}
+      var res = await fetch(global.OuviescreviAPI.getBase() + "/api/auth/history?limit=" + histLimit, {
         headers: global.OuviescreviAPI.authHeaders(),
       });
       if (!res.ok) throw new Error();

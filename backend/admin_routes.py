@@ -97,6 +97,7 @@ def admin_dashboard(request: Request):
         },
         "top_paginas": _safe("top_paginas", lambda: get_top_pages(8), []),
         "top_referrers": _safe("top_referrers", lambda: store.top_referrers(8), []),
+        "top_utm": _safe("top_utm", lambda: store.top_utm_campaigns(8), []),
         "devices": _safe("devices", store.device_breakdown, []),
         "conversao": conv,
         "conversao_por_idioma": _safe(
@@ -211,6 +212,28 @@ def admin_test_activity_email(request: Request):
     return result
 
 
+@router.post("/marketing/send-lifecycle")
+def admin_send_lifecycle_email(request: Request, body: dict | None = None):
+    """Envia tip semanal ou nudge de quota a utilizadores com marketing_opt_in."""
+    store.require_role(getattr(request.state, "admin_session", None), "admin")
+    kind = ((body or {}).get("kind") or "weekly_tip").strip()
+    limit = int((body or {}).get("limit") or 50)
+    from email_notify import send_quota_nudge_email, send_weekly_tip_email
+
+    send_fn = send_weekly_tip_email if kind != "quota_nudge" else send_quota_nudge_email
+    recipients = store.list_marketing_opt_in_emails(limit=limit)
+    sent = 0
+    failed = 0
+    for row in recipients:
+        ok, _err = send_fn(row.get("email"), row.get("name"))
+        if ok:
+            sent += 1
+        else:
+            failed += 1
+    store.log_audit(_actor(request), "marketing_lifecycle", f"{kind}:{sent}/{len(recipients)}")
+    return {"ok": True, "kind": kind, "recipients": len(recipients), "sent": sent, "failed": failed}
+
+
 @router.get("/email/status")
 def admin_email_status(request: Request):
     store.require_role(getattr(request.state, "admin_session", None), "admin")
@@ -220,6 +243,7 @@ def admin_email_status(request: Request):
     cfg = store.get_config()
     raw_to = cfg.get("alert_email_to") or status.get("default_to") or ""
     status["alert_email_to"] = re.sub(r"\s+", "", raw_to.strip())
+    status["marketing_opt_in_count"] = len(store.list_marketing_opt_in_emails(limit=5000))
     return status
 
 

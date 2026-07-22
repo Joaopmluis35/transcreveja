@@ -3,7 +3,7 @@
  */
 (function (global) {
   var SITE = "https://www.ouviescrevi.pt";
-  var OG_IMAGE = SITE + "/logos/ouviescrevi-logo-pro.png";
+  var OG_IMAGE = SITE + "/og/index.png";
   var ORG_ID = SITE + "/#organization";
 
   var HREFLANG_SLUGS = {

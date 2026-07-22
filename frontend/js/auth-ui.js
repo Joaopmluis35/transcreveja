@@ -37,6 +37,20 @@
       invalidCreds: "Credenciais inválidas.",
       loginError: "Erro ao entrar.",
       registerError: "Erro ao registar.",
+      forgotLink: "Esqueceste a palavra-passe?",
+      forgotHint: "Enviamos um link para repor a palavra-passe.",
+      forgotBtn: "Enviar link",
+      forgotSent: "Se o email existir, enviámos um link de reposição.",
+      forgotFail: "Não foi possível enviar o email.",
+      backToLogin: "Voltar ao login",
+      resetHint: "Escolhe uma nova palavra-passe.",
+      resetBtn: "Guardar nova palavra-passe",
+      resetOk: "Palavra-passe atualizada — podes entrar.",
+      resetFail: "Não foi possível repor.",
+      resetMissing: "Link inválido ou expirado.",
+      titleForgot: "Repor palavra-passe",
+      titleReset: "Nova palavra-passe",
+      marketingOptIn: "Quero receber dicas e avisos de quota por email (opcional)",
     },
   };
 
@@ -57,25 +71,55 @@
     return ["admin", "editor", "viewer"];
   }
 
+  function storageGet(key) {
+    try {
+      return localStorage.getItem(key) || sessionStorage.getItem(key);
+    } catch (e) {
+      try {
+        return sessionStorage.getItem(key);
+      } catch (e2) {
+        return null;
+      }
+    }
+  }
+
+  function storageSet(key, value) {
+    try {
+      localStorage.setItem(key, value);
+    } catch (e) {}
+    try {
+      sessionStorage.setItem(key, value);
+    } catch (e) {}
+  }
+
+  function storageRemove(key) {
+    try {
+      localStorage.removeItem(key);
+    } catch (e) {}
+    try {
+      sessionStorage.removeItem(key);
+    } catch (e) {}
+  }
+
   function persistSession(data) {
     if (!data || !data.sessionToken) return;
-    sessionStorage.setItem(SITE_SESSION_KEY, data.sessionToken);
-    sessionStorage.setItem(SITE_ROLE_KEY, data.role || "user");
-    if (data.email) sessionStorage.setItem(SITE_EMAIL_KEY, data.email);
-    else sessionStorage.removeItem(SITE_EMAIL_KEY);
-    if (data.username) sessionStorage.setItem(SITE_EMAIL_KEY, data.username);
-    if (data.name) sessionStorage.setItem(SITE_NAME_KEY, data.name);
-    else sessionStorage.removeItem(SITE_NAME_KEY);
+    storageSet(SITE_SESSION_KEY, data.sessionToken);
+    storageSet(SITE_ROLE_KEY, data.role || "user");
+    if (data.email) storageSet(SITE_EMAIL_KEY, data.email);
+    else storageRemove(SITE_EMAIL_KEY);
+    if (data.username) storageSet(SITE_EMAIL_KEY, data.username);
+    if (data.name) storageSet(SITE_NAME_KEY, data.name);
+    else storageRemove(SITE_NAME_KEY);
     if (data.isStaff && global.OuviescreviAPI && global.OuviescreviAPI.syncAdminFromSiteSession) {
       global.OuviescreviAPI.syncAdminFromSiteSession(data);
     }
   }
 
   function clearSession() {
-    sessionStorage.removeItem(SITE_SESSION_KEY);
-    sessionStorage.removeItem(SITE_ROLE_KEY);
-    sessionStorage.removeItem(SITE_EMAIL_KEY);
-    sessionStorage.removeItem(SITE_NAME_KEY);
+    storageRemove(SITE_SESSION_KEY);
+    storageRemove(SITE_ROLE_KEY);
+    storageRemove(SITE_EMAIL_KEY);
+    storageRemove(SITE_NAME_KEY);
     if (global.OuviescreviAPI && global.OuviescreviAPI.adminLogout) {
       global.OuviescreviAPI.adminLogout();
     }
@@ -83,9 +127,9 @@
 
   function getDisplayLabel() {
     var strings = t();
-    var name = sessionStorage.getItem(SITE_NAME_KEY);
-    var email = sessionStorage.getItem(SITE_EMAIL_KEY);
-    var role = sessionStorage.getItem(SITE_ROLE_KEY) || "";
+    var name = storageGet(SITE_NAME_KEY);
+    var email = storageGet(SITE_EMAIL_KEY);
+    var role = storageGet(SITE_ROLE_KEY) || "";
     if (staffRoles().indexOf(role) !== -1) {
       return (email || "Admin") + strings.staffSuffix;
     }
@@ -93,11 +137,11 @@
   }
 
   function isLoggedIn() {
-    return !!(sessionStorage.getItem(SITE_SESSION_KEY) || (global.OuviescreviAPI && global.OuviescreviAPI.getAdminToken && global.OuviescreviAPI.getAdminToken()));
+    return !!(storageGet(SITE_SESSION_KEY) || (global.OuviescreviAPI && global.OuviescreviAPI.getAdminToken && global.OuviescreviAPI.getAdminToken()));
   }
 
   function isStaff() {
-    var role = sessionStorage.getItem(SITE_ROLE_KEY);
+    var role = storageGet(SITE_ROLE_KEY);
     if (staffRoles().indexOf(role) !== -1) return true;
     if (global.OuviescreviAPI && global.OuviescreviAPI.isAdminSession && global.OuviescreviAPI.isAdminSession()) return true;
     return false;
@@ -160,6 +204,7 @@
       '  <form id="oeAuthLoginForm" class="oe-auth-form" data-oe-auth-panel="login">' +
       '    <label>' + s.email + '<input type="email" name="email" required autocomplete="email" /></label>' +
       '    <label>' + s.password + '<input type="password" name="password" required minlength="8" autocomplete="current-password" /></label>' +
+      '    <p class="oe-auth-form__hint"><a href="#" id="oeAuthForgotLink">' + (s.forgotLink || "Esqueceste a palavra-passe?") + "</a></p>" +
       '    <p class="oe-auth-form__error hidden" id="oeAuthLoginError"></p>' +
       '    <button type="submit" class="oe-pro-btn oe-pro-btn--primary">' + s.loginBtn + '</button>' +
       "  </form>" +
@@ -167,9 +212,23 @@
       '    <label>' + s.nameOptional + '<input type="text" name="name" autocomplete="name" /></label>' +
       '    <label>' + s.email + '<input type="email" name="email" required autocomplete="email" /></label>' +
       '    <label>' + s.passwordMin + '<input type="password" name="password" required minlength="8" autocomplete="new-password" /></label>' +
+      '    <label class="oe-auth-form__check"><input type="checkbox" name="marketing_opt_in" value="1" /> ' + (s.marketingOptIn || "Quero receber dicas e avisos de quota por email (opcional)") + "</label>" +
       '    <p class="oe-auth-form__hint">' + s.registerHint + '</p>' +
       '    <p class="oe-auth-form__error hidden" id="oeAuthRegisterError"></p>' +
       '    <button type="submit" class="oe-pro-btn oe-pro-btn--primary">' + s.registerBtn + '</button>' +
+      "  </form>" +
+      '  <form id="oeAuthForgotForm" class="oe-auth-form hidden" data-oe-auth-panel="forgot">' +
+      '    <p class="oe-auth-form__hint">' + (s.forgotHint || "Enviamos um link para repor a palavra-passe.") + "</p>" +
+      '    <label>' + s.email + '<input type="email" name="email" required autocomplete="email" /></label>' +
+      '    <p class="oe-auth-form__error hidden" id="oeAuthForgotError"></p>' +
+      '    <button type="submit" class="oe-pro-btn oe-pro-btn--primary">' + (s.forgotBtn || "Enviar link") + "</button>" +
+      '    <button type="button" class="oe-pro-btn oe-pro-btn--ghost" data-oe-auth-tab="login">' + (s.backToLogin || "Voltar ao login") + "</button>" +
+      "  </form>" +
+      '  <form id="oeAuthResetForm" class="oe-auth-form hidden" data-oe-auth-panel="reset">' +
+      '    <p class="oe-auth-form__hint">' + (s.resetHint || "Escolhe uma nova palavra-passe.") + "</p>" +
+      '    <label>' + s.passwordMin + '<input type="password" name="password" required minlength="8" autocomplete="new-password" /></label>' +
+      '    <p class="oe-auth-form__error hidden" id="oeAuthResetError"></p>' +
+      '    <button type="submit" class="oe-pro-btn oe-pro-btn--primary">' + (s.resetBtn || "Guardar nova palavra-passe") + "</button>" +
       "  </form>" +
       '  <form id="oeAuthAdminForm" class="oe-auth-form hidden" data-oe-auth-panel="admin">' +
       '    <label>' + s.username + '<input type="text" name="email" value="admin" autocomplete="username" /></label>' +
@@ -199,14 +258,25 @@
   function setTab(tab) {
     var modal = document.getElementById("oeAuthModal");
     if (!modal) return;
+    var known = { login: 1, register: 1, admin: 1, forgot: 1, reset: 1 };
+    if (!known[tab]) tab = "login";
     modal.querySelectorAll("[data-oe-auth-tab]").forEach(function (btn) {
-      btn.classList.toggle("oe-auth-tabs__btn--active", btn.getAttribute("data-oe-auth-tab") === tab);
+      var tName = btn.getAttribute("data-oe-auth-tab");
+      btn.classList.toggle("oe-auth-tabs__btn--active", tName === tab);
+      if (tName === "forgot" || tName === "reset") return;
+      btn.classList.toggle("hidden", tab === "forgot" || tab === "reset");
     });
     modal.querySelectorAll("[data-oe-auth-panel]").forEach(function (panel) {
       panel.classList.toggle("hidden", panel.getAttribute("data-oe-auth-panel") !== tab);
     });
     var s = t();
-    var titles = { login: s.titleLogin, register: s.titleRegister, admin: s.titleAdmin };
+    var titles = {
+      login: s.titleLogin,
+      register: s.titleRegister,
+      admin: s.titleAdmin,
+      forgot: s.titleForgot || "Repor palavra-passe",
+      reset: s.titleReset || "Nova palavra-passe",
+    };
     var title = document.getElementById("oeAuthModalTitle");
     if (title) title.textContent = titles[tab] || titles.login;
   }
@@ -312,6 +382,7 @@
             email: fd.get("email"),
             password: fd.get("password"),
             name: fd.get("name") || null,
+            marketing_opt_in: !!fd.get("marketing_opt_in"),
           }),
         });
         var data = await res.json().catch(function () { return {}; });
@@ -324,6 +395,66 @@
         }
       } catch (err) {
         showError("oeAuthRegisterError", err.message || s.registerError);
+      }
+    });
+
+    document.getElementById("oeAuthForgotLink")?.addEventListener("click", function (e) {
+      e.preventDefault();
+      setTab("forgot");
+    });
+
+    document.getElementById("oeAuthForgotForm")?.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var s = t();
+      showError("oeAuthForgotError", "");
+      var fd = new FormData(e.target);
+      try {
+        var base = await apiBase();
+        var res = await fetch(base + "/api/auth/forgot-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: fd.get("email") }),
+        });
+        var data = await res.json().catch(function () { return {}; });
+        if (!res.ok) throw new Error(data.detail || s.forgotFail || "Não foi possível enviar o email.");
+        closeModal();
+        if (global.OuviescreviUI && global.OuviescreviUI.toast) {
+          global.OuviescreviUI.toast(
+            data.message || s.forgotSent || "Se o email existir, enviámos um link de reposição.",
+            "success"
+          );
+        }
+      } catch (err) {
+        showError("oeAuthForgotError", err.message || s.forgotFail || "Erro ao enviar.");
+      }
+    });
+
+    document.getElementById("oeAuthResetForm")?.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var s = t();
+      showError("oeAuthResetError", "");
+      var fd = new FormData(e.target);
+      var token = (modal.dataset.resetToken || "").trim();
+      if (!token) {
+        showError("oeAuthResetError", s.resetMissing || "Link inválido ou expirado.");
+        return;
+      }
+      try {
+        var base = await apiBase();
+        var res = await fetch(base + "/api/auth/reset-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: token, password: fd.get("password") }),
+        });
+        var data = await res.json().catch(function () { return {}; });
+        if (!res.ok) throw new Error(data.detail || s.resetFail || "Não foi possível repor.");
+        closeModal();
+        if (global.OuviescreviUI && global.OuviescreviUI.toast) {
+          global.OuviescreviUI.toast(s.resetOk || "Palavra-passe atualizada — podes entrar.", "success");
+        }
+        openModal("login");
+      } catch (err) {
+        showError("oeAuthResetError", err.message || s.resetFail || "Erro ao repor.");
       }
     });
 
@@ -363,10 +494,33 @@
     });
   }
 
+  function maybeOpenFromUrl() {
+    try {
+      var hash = (global.location.hash || "").replace(/^#/, "").toLowerCase();
+      var params = new URLSearchParams(global.location.search || "");
+      var auth = (params.get("auth") || "").toLowerCase();
+      var resetToken = params.get("reset") || params.get("token") || "";
+      if (resetToken && (hash === "reset" || auth === "reset" || params.get("reset"))) {
+        var modal = ensureModal();
+        modal.dataset.resetToken = resetToken;
+        openModal("reset");
+        return;
+      }
+      if (hash === "registar" || hash === "register" || auth === "register" || auth === "registar") {
+        openModal("register");
+        return;
+      }
+      if (hash === "login" || hash === "entrar" || auth === "login") {
+        openModal("login");
+      }
+    } catch (e) {}
+  }
+
   function init() {
     ensureModal();
     bindChrome();
     refreshChrome();
+    maybeOpenFromUrl();
   }
 
   global.OuviescreviAuth = {
@@ -377,6 +531,7 @@
     isLoggedIn,
     isStaff,
     clearSession,
+    storageGet: storageGet,
     SITE_SESSION_KEY,
   };
 })(window);

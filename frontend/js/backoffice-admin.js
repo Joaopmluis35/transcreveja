@@ -343,6 +343,22 @@
       var refs = data.top_referrers || [];
       if (!refs.length) refDiv.innerHTML = '<p class="oe-admin-empty">Sem referrers.</p>';
       else refDiv.appendChild(buildTable(["Origem", "Visitas"], refs.map(function (r) { return [r.referrer, String(r.total)]; })));
+      var utms = data.top_utm || [];
+      if (utms.length) {
+        var utmWrap = document.createElement("div");
+        utmWrap.style.marginTop = "12px";
+        utmWrap.appendChild(document.createElement("div")).textContent = "Campanhas UTM (30d)";
+        utmWrap.firstChild.style.cssText = "font-size:0.75rem;color:var(--bo-muted);margin-bottom:6px";
+        utmWrap.appendChild(
+          buildTable(
+            ["Source", "Medium", "Campaign", "Visitas"],
+            utms.map(function (u) {
+              return [u.utm_source, u.utm_medium, u.utm_campaign, String(u.total)];
+            })
+          )
+        );
+        refDiv.appendChild(utmWrap);
+      }
     }
     if (devDiv) {
       devDiv.innerHTML = "";
@@ -680,11 +696,37 @@
       setChecked("emailCfgAlerts", !!status.alert_email_enabled);
       setField("emailCfgTransLimit", String(status.alert_transcriptions_daily || ""));
       setField("emailCfgVisitLimit", String(status.alert_visits_daily || ""));
+      var mHint = document.getElementById("marketingOptInHint");
+      if (mHint) {
+        mHint.textContent =
+          "Opt-in marketing: " +
+          (status.marketing_opt_in_count != null ? status.marketing_opt_in_count : "—") +
+          " · Search Console: submete https://www.ouviescrevi.pt/sitemap.xml";
+      }
     } catch (e) {
       var grid = document.getElementById("emailStatusCards");
       if (grid) grid.innerHTML = "<p class='oe-admin-empty'>Erro ao carregar estado de email.</p>";
     }
     await loadEmailLogs();
+  }
+
+  async function sendLifecycleEmail(kind) {
+    try {
+      var res = await fetch(apiBase() + "/api/admin/marketing/send-lifecycle", {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({ kind: kind, limit: 50 }),
+      });
+      var data = await res.json().catch(function () { return {}; });
+      if (!res.ok) throw new Error(data.detail || "Falha");
+      global.OuviescreviUI.toast(
+        "Enviado: " + (data.sent || 0) + " / " + (data.recipients || 0) + " (falhas: " + (data.failed || 0) + ")",
+        "success"
+      );
+      loadEmailLogs();
+    } catch (e) {
+      global.OuviescreviUI.toast(e.message || "Erro ao enviar.", "error");
+    }
   }
 
   async function saveEmailConfig(e) {
@@ -1625,6 +1667,10 @@
     if (btnTestActivity) btnTestActivity.addEventListener("click", testActivityEmail);
     var btnTestAlertEmails = document.getElementById("btnTestAlertEmailEmails");
     if (btnTestAlertEmails) btnTestAlertEmails.addEventListener("click", testAlertEmail);
+    var btnWeekly = document.getElementById("btnSendWeeklyTip");
+    if (btnWeekly) btnWeekly.addEventListener("click", function () { sendLifecycleEmail("weekly_tip"); });
+    var btnNudge = document.getElementById("btnSendQuotaNudge");
+    if (btnNudge) btnNudge.addEventListener("click", function () { sendLifecycleEmail("quota_nudge"); });
     var btnSys = document.getElementById("btnRefreshSystem");
     if (btnSys) btnSys.addEventListener("click", loadSystem);
     var btnLogRefresh = document.getElementById("btnRefreshServerLogs");

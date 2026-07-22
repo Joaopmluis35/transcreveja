@@ -180,6 +180,36 @@ def create_checkout_session(email: str, *, success_url: str, cancel_url: str) ->
     return {"url": session.url, "session_id": session.id}
 
 
+def create_portal_session(email: str, *, return_url: str) -> dict:
+    if not billing_enabled():
+        raise ValueError("Pagamentos desativados.")
+    secret = stripe_secret_key()
+    if not secret:
+        raise ValueError("Stripe não configurado.")
+    email = (email or "").strip().lower()
+    conn = _store().get_connection()
+    try:
+        row = conn.execute(
+            "SELECT stripe_customer_id FROM user_subscriptions WHERE user_email = ?",
+            (email,),
+        ).fetchone()
+    finally:
+        conn.close()
+    customer_id = (row["stripe_customer_id"] if row else None) or ""
+    if not customer_id:
+        raise ValueError("Sem subscrição Stripe associada a esta conta.")
+    try:
+        import stripe
+    except ImportError as exc:
+        raise ValueError("Pacote stripe não instalado no servidor.") from exc
+    stripe.api_key = secret
+    session = stripe.billing_portal.Session.create(
+        customer=customer_id,
+        return_url=return_url,
+    )
+    return {"url": session.url}
+
+
 def handle_stripe_webhook(payload: bytes, sig_header: str) -> dict:
     secret = stripe_webhook_secret()
     if not secret:

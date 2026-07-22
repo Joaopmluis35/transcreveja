@@ -430,8 +430,32 @@
       return;
     }
 
+    function readUtms() {
+      var out = { utm_source: "", utm_medium: "", utm_campaign: "" };
+      try {
+        var params = new URLSearchParams(global.location.search || "");
+        ["utm_source", "utm_medium", "utm_campaign"].forEach(function (k) {
+          var v = (params.get(k) || "").trim();
+          if (v) out[k] = v.slice(0, 120);
+        });
+        if (out.utm_source || out.utm_medium || out.utm_campaign) {
+          try {
+            localStorage.setItem("oe_last_utm", JSON.stringify(out));
+          } catch (e2) {}
+          return out;
+        }
+        var raw = localStorage.getItem("oe_last_utm");
+        if (raw) {
+          var cached = JSON.parse(raw);
+          if (cached && typeof cached === "object") return cached;
+        }
+      } catch (e3) {}
+      return out;
+    }
+
     function sendTrack(base) {
       if (!base) return;
+      var utm = readUtms();
       fetch(base + "/api/track-visit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -440,6 +464,9 @@
         body: JSON.stringify({
           path: path,
           referrer: document.referrer || "",
+          utm_source: utm.utm_source || null,
+          utm_medium: utm.utm_medium || null,
+          utm_campaign: utm.utm_campaign || null,
         }),
       })
         .then(function (res) {
@@ -971,6 +998,9 @@
     });
     trackPageView();
     maybeShowAdminTrafficTools();
+    if ("serviceWorker" in navigator && location.protocol.indexOf("http") === 0) {
+      navigator.serviceWorker.register("/sw.js").catch(function () {});
+    }
     if (document.body && document.body.dataset.cmsAuto !== "false") {
       loadSiteConfig();
     }

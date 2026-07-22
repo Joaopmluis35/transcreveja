@@ -74,11 +74,18 @@
   }
 
   function getSiteSessionToken() {
-    return (
-      sessionStorage.getItem(SITE_SESSION_KEY) ||
-      sessionStorage.getItem(ADMIN_KEY) ||
-      null
-    );
+    function read(key) {
+      try {
+        return localStorage.getItem(key) || sessionStorage.getItem(key);
+      } catch (e) {
+        try {
+          return sessionStorage.getItem(key);
+        } catch (e2) {
+          return null;
+        }
+      }
+    }
+    return read(SITE_SESSION_KEY) || read(ADMIN_KEY) || null;
   }
 
   function syncAdminFromSiteSession(data) {

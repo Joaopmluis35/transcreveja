@@ -4,8 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Informação sobre cookies e armazenamento local utilizados no website Ouviescrevi.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://www.ouviescrevi.pt/og/index.png">
+  <meta name="twitter:description" content="Informação sobre cookies e armazenamento local utilizados no website Ouviescrevi.">
+  <meta property="og:description" content="Informação sobre cookies e armazenamento local utilizados no website Ouviescrevi.">
+  <meta name="twitter:title" content="Política de Cookies — Ouviescrevi">
+  <meta property="og:title" content="Política de Cookies — Ouviescrevi">
+  <meta property="og:url" content="https://www.ouviescrevi.pt/cookies.html">
   <meta name="robots" content="index, follow">
   <title>Política de Cookies — Ouviescrevi</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="canonical" href="https://www.ouviescrevi.pt/cookies.html">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
   <link rel="stylesheet" href="css/ouviescrevi.css?v=25">
   <script src="/js/ouviescrevi-seo.js" defer></script>
@@ -37,6 +47,18 @@
           <td>sessionStorage</td>
           <td>Token técnico para comunicar com a API de transcrição</td>
           <td>Até fechar o separador do browser</td>
+        </tr>
+        <tr>
+          <td><code>ouviescrevi_site_session</code> (+ role/email/name)</td>
+          <td>localStorage</td>
+          <td>Sessão da conta no site (login) — termina só com logout ou limpeza de dados</td>
+          <td>Até limpares dados do site ou fazeres logout</td>
+        </tr>
+        <tr>
+          <td><code>oe_last_utm</code></td>
+          <td>localStorage</td>
+          <td>Últimos parâmetros UTM de campanha (atribuição first-party)</td>
+          <td>Até limpares dados do site</td>
         </tr>
         <tr>
           <td><code>lang</code></td>

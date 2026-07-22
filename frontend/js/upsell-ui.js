@@ -165,25 +165,7 @@
     var hidden = await pricingHidden();
     var strings = t();
     var plansHref = pricingPath();
-    if (hidden) {
-      if (quota.tier !== "registered") return;
-      var bannerOnly = document.getElementById("oeSuccessUpsell");
-      if (!bannerOnly) {
-        bannerOnly = document.createElement("div");
-        bannerOnly.id = "oeSuccessUpsell";
-        bannerOnly.className = "oe-success-upsell hidden";
-        bannerOnly.setAttribute("role", "status");
-        var output = document.getElementById("output");
-        if (output && output.parentNode) {
-          output.parentNode.insertBefore(bannerOnly, output);
-        }
-      }
-      bannerOnly.innerHTML = "<strong>" + strings.savedHistory + "</strong>";
-      bannerOnly.classList.remove("hidden");
-      return;
-    }
-    var billing = await fetchBilling();
-    var price = billing.price_label || (locale() === "en" ? "€9.99/month" : "9,99 €/mês");
+    var isUser = quota.tier === "registered";
     var banner = document.getElementById("oeSuccessUpsell");
     if (!banner) {
       banner = document.createElement("div");
@@ -197,7 +179,39 @@
         document.getElementById("adminContent")?.appendChild(banner);
       }
     }
-    var isUser = quota.tier === "registered";
+
+    var tools =
+      '<div class="oe-success-upsell__tools">' +
+      (strings.nextTools || "Continua com:") +
+      ' <a href="' + toolPath("resumo") + '">' + (strings.toolResumo || "Resumo") + "</a>" +
+      ' · <a href="' + toolPath("perguntas") + '">' + (strings.toolPerguntas || "Perguntas") + "</a>" +
+      ' · <a href="' + toolPath("flashcards") + '">' + (strings.toolFlashcards || "Flashcards") + "</a>" +
+      "</div>";
+
+    if (hidden) {
+      if (isUser) {
+        banner.innerHTML =
+          "<strong>" + strings.savedHistory + "</strong>" + tools;
+      } else {
+        banner.innerHTML =
+          "<strong>" + (strings.anonSaved || "Transcrição pronta.") + "</strong> " +
+          (strings.anonPitch || "Cria uma conta grátis para guardar o histórico e ter mais transcrições por dia.") +
+          ' <a href="#" id="oeSuccessUpsellReg">' + strings.createAccount + "</a>" +
+          tools;
+      }
+      banner.classList.remove("hidden");
+      var regAnon = document.getElementById("oeSuccessUpsellReg");
+      if (regAnon) {
+        regAnon.addEventListener("click", function (e) {
+          e.preventDefault();
+          if (global.OuviescreviAuth) global.OuviescreviAuth.openModal("register");
+        });
+      }
+      return;
+    }
+
+    var billing = await fetchBilling();
+    var price = billing.price_label || (locale() === "en" ? "€9.99/month" : "9,99 €/mês");
     var pitch = billing.enabled
       ? strings.proPitch.replace("{price}", price)
       : strings.proSoon;
@@ -205,7 +219,8 @@
       "<strong>" + strings.saved + (isUser ? strings.savedInHistory : "") + ".</strong> " +
       pitch +
       '<a href="' + plansHref + '">' + strings.viewPlans + "</a>" +
-      (isUser ? "" : ' · <a href="#" id="oeSuccessUpsellReg">' + strings.createAccount + "</a>");
+      (isUser ? "" : ' · <a href="#" id="oeSuccessUpsellReg">' + strings.createAccount + "</a>") +
+      tools;
     banner.classList.remove("hidden");
     var reg = document.getElementById("oeSuccessUpsellReg");
     if (reg) {
@@ -214,6 +229,14 @@
         if (global.OuviescreviAuth) global.OuviescreviAuth.openModal("register");
       });
     }
+  }
+
+  function toolPath(slug) {
+    if (global.OuviescreviI18n && global.OuviescreviI18n.pathFor) {
+      return global.OuviescreviI18n.pathFor(locale(), slug);
+    }
+    var map = { resumo: "resumo.html", perguntas: "perguntas.html", flashcards: "flashcards.html" };
+    return locale() === "pt" ? map[slug] : locale() + "/" + map[slug];
   }
 
   global.OuviescreviUpsell = {

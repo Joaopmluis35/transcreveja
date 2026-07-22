@@ -6,3 +6,6 @@
 
 # Pedidos /api/* no domínio do site → API em subdomínio
 /api/*         https://api.ouviescrevi.pt/api/:splat   302
+
+# Partilha pública com OG tags (HTML gerado na API)
+/s/:id         https://api.ouviescrevi.pt/share/:id    200

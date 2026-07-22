@@ -1351,10 +1351,30 @@ def billing_checkout(request: Request, body: BillingCheckoutRequest):
     origin = request.headers.get("origin") or PUBLIC_API_BASE.replace("api.", "www.").rstrip("/")
     if "api." in origin:
         origin = origin.replace("api.", "www.", 1)
+    # Prefer locale-aware success URL from client; fallback to PT.
     success = body.success_url or f"{origin}/precos.html?ok=1"
     cancel = body.cancel_url or f"{origin}/precos.html?cancel=1"
     try:
         session = create_checkout_session(actor["email"], success_url=success, cancel_url=cancel)
+    except ValueError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    return session
+
+
+@app.post("/api/billing/portal")
+def billing_portal(request: Request):
+    """Stripe Customer Portal — gerir/cancelar subscrição Pro."""
+    actor = resolve_site_actor(request)
+    if actor["type"] != "user":
+        raise HTTPException(status_code=403, detail="Inicia sessão para gerir a subscrição.")
+    from billing import create_portal_session
+
+    origin = request.headers.get("origin") or PUBLIC_API_BASE.replace("api.", "www.").rstrip("/")
+    if "api." in origin:
+        origin = origin.replace("api.", "www.", 1)
+    return_url = f"{origin}/precos.html"
+    try:
+        session = create_portal_session(actor["email"], return_url=return_url)
     except ValueError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     return session
@@ -1422,6 +1442,7 @@ class SiteRegisterRequest(BaseModel):
     email: str
     password: str
     name: str | None = None
+    marketing_opt_in: bool = False
 
 
 class SiteLoginRequest(BaseModel):
@@ -1430,11 +1451,31 @@ class SiteLoginRequest(BaseModel):
     admin: bool = False
 
 
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    password: str
+
+
+class ShareTranscriptRequest(BaseModel):
+    text: str
+    title: str | None = None
+    locale: str = "pt"
+
+
 @app.post("/api/auth/register")
 def site_register(req: SiteRegisterRequest, request: Request):
     enforce_rate_limit(request, "auth", 15, 3600)
     try:
-        user = admin_store.register_site_user(req.email, req.password, req.name)
+        user = admin_store.register_site_user(
+            req.email,
+            req.password,
+            req.name,
+            marketing_opt_in=bool(req.marketing_opt_in),
+        )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     token = admin_store.create_session(user["email"], SITE_USER_ROLE, hours=720)
@@ -1447,6 +1488,156 @@ def site_register(req: SiteRegisterRequest, request: Request):
             logger.warning("Falha email boas-vindas %s: %s", user["email"], err)
 
     _run_in_background(_welcome)
+    return {
+        "sessionToken": token,
+        "email": user["email"],
+        "name": user.get("name"),
+        "role": SITE_USER_ROLE,
+        "marketing_opt_in": bool(user.get("marketing_opt_in")),
+    }
+
+
+@app.post("/api/auth/forgot-password")
+def site_forgot_password(req: ForgotPasswordRequest, request: Request):
+    enforce_rate_limit(request, "auth_forgot", 10, 3600)
+    email = (req.email or "").strip().lower()
+    token = admin_store.create_password_reset_token(email) if email else None
+    if token:
+        origin = (request.headers.get("origin") or "https://www.ouviescrevi.pt").rstrip("/")
+        reset_url = f"{origin}/index.html?reset={token}#reset"
+
+        def _send() -> None:
+            from email_notify import send_password_reset_email
+
+            ok, err = send_password_reset_email(email, reset_url)
+            if not ok:
+                logger.warning("Falha email reset %s: %s", email, err)
+
+        _run_in_background(_send)
+    return {
+        "ok": True,
+        "message": "Se o email existir, enviámos um link de reposição.",
+    }
+
+
+@app.post("/api/auth/reset-password")
+def site_reset_password(req: ResetPasswordRequest, request: Request):
+    enforce_rate_limit(request, "auth_reset", 20, 3600)
+    try:
+        ok = admin_store.reset_password_with_token(req.token, req.password)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    if not ok:
+        raise HTTPException(status_code=400, detail="Link inválido ou expirado.")
+    return {"ok": True}
+
+
+@app.post("/api/share/transcript")
+def share_transcript(req: ShareTranscriptRequest, request: Request):
+    if not origin_is_allowed(request, ALLOWED_ORIGINS):
+        raise HTTPException(status_code=403, detail="Origem não autorizada.")
+    enforce_rate_limit(request, "share", 30, 3600)
+    try:
+        created = admin_store.create_shared_transcript(
+            req.text, title=req.title, locale=req.locale or "pt"
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    origin = (request.headers.get("origin") or "https://www.ouviescrevi.pt").rstrip("/")
+    # Prefer pretty /s/{id} (proxied to API HTML with OG tags via Cloudflare Pages)
+    url = f"{origin}/s/{created['id']}"
+    return {"ok": True, "id": created["id"], "url": url, "expires_at": created["expires_at"]}
+
+
+@app.get("/api/share/transcript/{share_id}")
+def get_share_transcript(share_id: str, request: Request):
+    if not origin_is_allowed(request, ALLOWED_ORIGINS):
+        raise HTTPException(status_code=403, detail="Origem não autorizada.")
+    item = admin_store.get_shared_transcript(share_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Partilha não encontrada ou expirada.")
+    return item
+
+
+@app.get("/share/{share_id}")
+def share_html_page(share_id: str):
+    """HTML com Open Graph para crawlers sociais (proxied from /s/:id)."""
+    from fastapi.responses import HTMLResponse
+    import html as html_lib
+
+    item = admin_store.get_shared_transcript(share_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Partilha não encontrada ou expirada.")
+    title = html_lib.escape((item.get("title") or "Transcrição")[:120])
+    text = item.get("text") or ""
+    desc = html_lib.escape(re.sub(r"\s+", " ", text)[:160])
+    body = html_lib.escape(text)
+    page_url = f"https://www.ouviescrevi.pt/s/{html_lib.escape(share_id)}"
+    og_image = "https://www.ouviescrevi.pt/og/partilha.png"
+    html = f"""<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title} | Ouviescrevi</title>
+  <meta name="description" content="{desc}">
+  <meta name="robots" content="noindex, follow">
+  <link rel="canonical" href="{page_url}">
+  <meta property="og:title" content="{title}">
+  <meta property="og:description" content="{desc}">
+  <meta property="og:url" content="{page_url}">
+  <meta property="og:image" content="{og_image}">
+  <meta property="og:type" content="article">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{title}">
+  <meta name="twitter:description" content="{desc}">
+  <link rel="stylesheet" href="https://www.ouviescrevi.pt/css/ouviescrevi.css">
+</head>
+<body>
+  <main style="max-width:720px;margin:2rem auto;padding:0 1.25rem 3rem;font-family:system-ui,sans-serif">
+    <p style="color:#64748b">Partilha pública · Ouviescrevi</p>
+    <h1>{title}</h1>
+    <article style="white-space:pre-wrap;line-height:1.55">{body}</article>
+    <p style="margin-top:2rem"><a href="https://www.ouviescrevi.pt/index.html">Transcrever o teu áudio grátis</a></p>
+    <p style="font-size:0.875rem;color:#64748b">Feito com Ouviescrevi</p>
+  </main>
+</body>
+</html>"""
+    return HTMLResponse(html)
+
+
+@app.post("/api/auth/login")
+def site_login(req: SiteLoginRequest, request: Request):
+    enforce_rate_limit(request, "auth", 30, 3600)
+    ident = (req.email or "").strip()
+    password = req.password or ""
+    if not ident or not password:
+        raise HTTPException(status_code=400, detail="Email e palavra-passe são obrigatórios.")
+    if req.admin:
+        user = admin_store.authenticate_user(ident, password)
+        if not user and password == BACKOFFICE_PASSWORD and ident in ("", "admin"):
+            token = admin_store.create_session("admin", "admin")
+            admin_store.log_audit_login("admin")
+            return {
+                "sessionToken": token,
+                "username": "admin",
+                "role": "admin",
+                "isStaff": True,
+            }
+        if not user:
+            raise HTTPException(status_code=403, detail="Credenciais de administrador inválidas.")
+        token = admin_store.create_session(user["username"], user["role"])
+        admin_store.log_audit_login(user["username"])
+        return {
+            "sessionToken": token,
+            "username": user["username"],
+            "role": user["role"],
+            "isStaff": True,
+        }
+    user = admin_store.authenticate_site_user(ident, password)
+    if not user:
+        raise HTTPException(status_code=403, detail="Email ou palavra-passe incorretos.")
+    token = admin_store.create_session(user["email"], SITE_USER_ROLE, hours=720)
     return {
         "sessionToken": token,
         "email": user["email"],
@@ -1608,6 +1799,9 @@ def admin_login(req: AdminLoginRequest):
 class TrackVisitRequest(BaseModel):
     path: str = "/"
     referrer: str | None = None
+    utm_source: str | None = None
+    utm_medium: str | None = None
+    utm_campaign: str | None = None
 
 
 @app.post("/api/track-visit")
@@ -1621,6 +1815,9 @@ def track_visit(request: Request, body: TrackVisitRequest):
         client_ip(request),
         referrer=body.referrer or request.headers.get("referer"),
         user_agent=request.headers.get("user-agent"),
+        utm_source=body.utm_source,
+        utm_medium=body.utm_medium,
+        utm_campaign=body.utm_campaign,
     )
     return {"ok": True}
 

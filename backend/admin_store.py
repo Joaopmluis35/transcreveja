@@ -192,7 +192,13 @@ def authenticate_user(username: str, password: str) -> dict[str, str] | None:
         conn.close()
 
 
-def register_site_user(email: str, password: str, name: str | None = None) -> dict[str, str]:
+def register_site_user(
+    email: str,
+    password: str,
+    name: str | None = None,
+    *,
+    marketing_opt_in: bool = False,
+) -> dict[str, str]:
     email = email.strip().lower()
     if not email or "@" not in email:
         raise ValueError("Email inválido.")
@@ -205,13 +211,166 @@ def register_site_user(email: str, password: str, name: str | None = None) -> di
             raise ValueError("Já existe uma conta com este email.")
         display = (name or "").strip() or None
         conn.execute(
-            "INSERT INTO site_users (email, password_hash, name, created_at) VALUES (?, ?, ?, ?)",
-            (email, _hash_password(password), display, _now()),
+            """
+            INSERT INTO site_users (email, password_hash, name, created_at, marketing_opt_in)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (email, _hash_password(password), display, _now(), 1 if marketing_opt_in else 0),
         )
         conn.commit()
     finally:
         conn.close()
-    return {"email": email, "name": display}
+    return {"email": email, "name": display, "marketing_opt_in": marketing_opt_in}
+
+
+def set_marketing_opt_in(email: str, opt_in: bool) -> None:
+    conn = get_connection()
+    try:
+        conn.execute(
+            "UPDATE site_users SET marketing_opt_in = ? WHERE email = ?",
+            (1 if opt_in else 0, email.strip().lower()),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def list_marketing_opt_in_emails(limit: int = 500) -> list[dict]:
+    conn = get_connection()
+    try:
+        rows = conn.execute(
+            """
+            SELECT email, name FROM site_users
+            WHERE marketing_opt_in = 1
+            ORDER BY created_at DESC
+            LIMIT ?
+            """,
+            (max(1, min(limit, 2000)),),
+        ).fetchall()
+        return [row_to_dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+def create_password_reset_token(email: str, *, hours: int = 2) -> str | None:
+    email = email.strip().lower()
+    conn = get_connection()
+    try:
+        row = conn.execute("SELECT email FROM site_users WHERE email = ?", (email,)).fetchone()
+        if not row:
+            return None
+        token = secrets.token_urlsafe(32)
+        now = datetime.utcnow()
+        expires = (now + timedelta(hours=max(1, hours))).isoformat(timespec="seconds") + "Z"
+        conn.execute(
+            """
+            INSERT INTO password_reset_tokens (token, email, created_at, expires_at)
+            VALUES (?, ?, ?, ?)
+            """,
+            (token, email, now.isoformat(timespec="seconds") + "Z", expires),
+        )
+        conn.commit()
+        return token
+    finally:
+        conn.close()
+
+
+def reset_password_with_token(token: str, new_password: str) -> bool:
+    if len(new_password or "") < 8:
+        raise ValueError("A palavra-passe deve ter pelo menos 8 caracteres.")
+    token = (token or "").strip()
+    if not token:
+        return False
+    now = datetime.utcnow().isoformat(timespec="seconds") + "Z"
+    conn = get_connection()
+    try:
+        row = conn.execute(
+            """
+            SELECT email, expires_at, used_at FROM password_reset_tokens WHERE token = ?
+            """,
+            (token,),
+        ).fetchone()
+        if not row or row["used_at"]:
+            return False
+        if str(row["expires_at"] or "") < now:
+            return False
+        email = row["email"]
+        conn.execute(
+            "UPDATE site_users SET password_hash = ? WHERE email = ?",
+            (_hash_password(new_password), email),
+        )
+        conn.execute(
+            "UPDATE password_reset_tokens SET used_at = ? WHERE token = ?",
+            (now, token),
+        )
+        conn.commit()
+        return True
+    finally:
+        conn.close()
+
+
+def create_shared_transcript(
+    text: str,
+    *,
+    title: str | None = None,
+    locale: str = "pt",
+    days_valid: int = 30,
+) -> dict:
+    body = (text or "").strip()
+    if len(body) < 20:
+        raise ValueError("Texto demasiado curto para partilhar.")
+    if len(body) > 100_000:
+        body = body[:100_000]
+    share_id = secrets.token_urlsafe(10)
+    now = datetime.utcnow()
+    expires = (now + timedelta(days=max(1, min(days_valid, 90)))).isoformat(timespec="seconds") + "Z"
+    conn = get_connection()
+    try:
+        conn.execute(
+            """
+            INSERT INTO shared_transcripts (id, title, text, locale, created_at, expires_at, view_count)
+            VALUES (?, ?, ?, ?, ?, ?, 0)
+            """,
+            (
+                share_id,
+                (title or "Transcrição")[:120],
+                body,
+                (locale or "pt")[:8],
+                now.isoformat(timespec="seconds") + "Z",
+                expires,
+            ),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+    return {"id": share_id, "expires_at": expires}
+
+
+def get_shared_transcript(share_id: str) -> dict | None:
+    sid = (share_id or "").strip()
+    if not sid:
+        return None
+    now = datetime.utcnow().isoformat(timespec="seconds") + "Z"
+    conn = get_connection()
+    try:
+        row = conn.execute(
+            "SELECT id, title, text, locale, created_at, expires_at, view_count FROM shared_transcripts WHERE id = ?",
+            (sid,),
+        ).fetchone()
+        if not row:
+            return None
+        if row["expires_at"] and str(row["expires_at"]) < now:
+            return None
+        conn.execute(
+            "UPDATE shared_transcripts SET view_count = COALESCE(view_count,0) + 1 WHERE id = ?",
+            (sid,),
+        )
+        conn.commit()
+        item = row_to_dict(row)
+        item["view_count"] = int(item.get("view_count") or 0) + 1
+        return item
+    finally:
+        conn.close()
 
 
 def authenticate_site_user(email: str, password: str) -> dict[str, str] | None:
@@ -368,11 +527,21 @@ def save_user_transcription(
     duration_sec: float | None = None,
     transcription: str | None = None,
     formatted: str | None = None,
+    history_limit: int | None = None,
 ) -> int:
     email = user_email.strip().lower()
     now = _now()
     text = (transcription or "")[:200_000] or None
     fmt = (formatted or "")[:200_000] or None
+    keep = history_limit if history_limit is not None else 100
+    try:
+        import billing as billing_mod
+
+        if billing_mod.is_pro_user(email):
+            keep = max(keep, 500)
+    except Exception:
+        pass
+    keep = max(20, min(int(keep), 2000))
     conn = get_connection()
     try:
         cur = conn.execute(
@@ -389,8 +558,8 @@ def save_user_transcription(
             "SELECT id FROM user_transcriptions WHERE user_email = ? ORDER BY id DESC",
             (email,),
         ).fetchall()
-        if len(rows) > 100:
-            drop_ids = [int(r["id"]) for r in rows[100:]]
+        if len(rows) > keep:
+            drop_ids = [int(r["id"]) for r in rows[keep:]]
             placeholders = ",".join("?" * len(drop_ids))
             conn.execute(
                 f"DELETE FROM user_transcriptions WHERE id IN ({placeholders})",
@@ -403,7 +572,7 @@ def save_user_transcription(
 
 
 def list_user_transcriptions(user_email: str, *, limit: int = 30, offset: int = 0) -> list[dict]:
-    limit = max(1, min(limit, 100))
+    limit = max(1, min(limit, 200))
     offset = max(0, offset)
     email = user_email.strip().lower()
     conn = get_connection()
@@ -1410,6 +1579,43 @@ def top_referrers(limit: int = 8) -> list[dict]:
             (since, limit),
         ).fetchall()
         return [{"referrer": r["ref"], "total": int(r["total"])} for r in rows]
+    finally:
+        conn.close()
+
+
+def top_utm_campaigns(limit: int = 8) -> list[dict]:
+    since = (date.today() - timedelta(days=29)).isoformat()
+    conn = get_connection()
+    try:
+        rows = conn.execute(
+            """
+            SELECT
+              COALESCE(NULLIF(utm_source,''), '(none)') AS source,
+              COALESCE(NULLIF(utm_medium,''), '(none)') AS medium,
+              COALESCE(NULLIF(utm_campaign,''), '(none)') AS campaign,
+              COUNT(*) AS total
+            FROM visitas
+            WHERE day >= ?
+              AND (
+                NULLIF(utm_source,'') IS NOT NULL
+                OR NULLIF(utm_medium,'') IS NOT NULL
+                OR NULLIF(utm_campaign,'') IS NOT NULL
+              )
+            GROUP BY source, medium, campaign
+            ORDER BY total DESC
+            LIMIT ?
+            """,
+            (since, limit),
+        ).fetchall()
+        return [
+            {
+                "utm_source": r["source"],
+                "utm_medium": r["medium"],
+                "utm_campaign": r["campaign"],
+                "total": int(r["total"]),
+            }
+            for r in rows
+        ]
     finally:
         conn.close()
 

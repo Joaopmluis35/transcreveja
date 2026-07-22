@@ -343,10 +343,14 @@
   }
 
   function isSiteUser() {
-    return (
-      sessionStorage.getItem("ouviescrevi_site_role") === "user" &&
-      sessionStorage.getItem("ouviescrevi_site_session")
-    );
+    function read(key) {
+      try {
+        return localStorage.getItem(key) || sessionStorage.getItem(key);
+      } catch (e) {
+        return sessionStorage.getItem(key);
+      }
+    }
+    return read("ouviescrevi_site_role") === "user" && !!read("ouviescrevi_site_session");
   }
 
   function tokenizeWords(s) {

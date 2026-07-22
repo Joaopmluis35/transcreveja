@@ -4,7 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Offres Ouviescrevi pour la transcription IA, sous-titres SRT et export. Options gratuites et Pro.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://www.ouviescrevi.pt/og/precos.png">
+  <meta name="twitter:description" content="Offres Ouviescrevi pour la transcription IA, sous-titres SRT et export. Options gratuites et Pro.">
+  <meta property="og:description" content="Offres Ouviescrevi pour la transcription IA, sous-titres SRT et export. Options gratuites et Pro.">
+  <meta name="twitter:title" content="Tarifs et offres — Transcription IA | Ouviescrevi">
+  <meta property="og:title" content="Tarifs et offres — Transcription IA | Ouviescrevi">
+  <meta property="og:url" content="https://www.ouviescrevi.pt/fr/precos.html">
   <title>Tarifs et offres — Transcription IA | Ouviescrevi</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="canonical" href="https://www.ouviescrevi.pt/fr/precos.html">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
   <link rel="stylesheet" href="../css/ouviescrevi.css?v=25">
   <link rel="stylesheet" href="../css/ouviescrevi-pro.css">
@@ -89,10 +99,11 @@
       <ul>
         <li><span id="proQuotaLabel">200</span> transcriptions/jour</li>
         <li>Export <strong>DOCX</strong> professionnel</li>
-        <li>Historique étendu</li>
-        <li>Priorité de traitement</li>
+        <li>Historique jusqu'à 500 éléments</li>
+        <li>Liens de partage publics</li>
       </ul>
       <button type="button" id="btnCheckoutPro" class="oe-pricing-cta oe-pricing-cta--primary">S'abonner à Pro</button>
+      <button type="button" id="btnBillingPortal" class="oe-pricing-cta oe-pricing-cta--ghost hidden" style="margin-top:8px">Gérer l'abonnement</button>
       <p class="oe-pricing-note" id="billingDisabledNote" style="margin-top:12px;font-size:.85rem"></p>
     </article>
   </div>
@@ -138,19 +149,41 @@
     } else {
       btn.addEventListener("click", async function () {
         try {
+          var here = location.origin + location.pathname;
           var cres = await fetch(OuviescreviAPI.getBase() + "/api/billing/checkout", {
             method: "POST",
             headers: OuviescreviAPI.authHeaders({ "Content-Type": "application/json" }),
-            body: JSON.stringify({}),
+            body: JSON.stringify({
+              success_url: here + (here.indexOf("?") >= 0 ? "&" : "?") + "ok=1",
+              cancel_url: here + (here.indexOf("?") >= 0 ? "&" : "?") + "cancel=1",
+            }),
           });
           var checkout = await cres.json();
-          if (!cres.ok) throw new Error(checkout.detail || "Unavailable");
+          if (!cres.ok) throw new Error(checkout.detail || "Indisponible");
           if (checkout.url) location.href = checkout.url;
         } catch (e) {
           OuviescreviUI.toast(e.message || "Connectez-vous pour vous abonner.", "error");
           if (OuviescreviAuth) OuviescreviAuth.openModal("login");
         }
       });
+      var portalBtn = document.getElementById("btnBillingPortal");
+      if (portalBtn) {
+        portalBtn.classList.remove("hidden");
+        portalBtn.addEventListener("click", async function () {
+          try {
+            var pres = await fetch(OuviescreviAPI.getBase() + "/api/billing/portal", {
+              method: "POST",
+              headers: OuviescreviAPI.authHeaders({ "Content-Type": "application/json" }),
+              body: "{}",
+            });
+            var portal = await pres.json();
+            if (!pres.ok) throw new Error(portal.detail || "Portal unavailable");
+            if (portal.url) location.href = portal.url;
+          } catch (e) {
+            OuviescreviUI.toast(e.message || "Connectez-vous pour vous abonner.", "error");
+          }
+        });
+      }
     }
   })();
 </script>

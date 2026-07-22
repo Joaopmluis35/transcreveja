@@ -270,4 +270,16 @@
   <url><loc>https://www.ouviescrevi.pt/fr/testemunhos.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://www.ouviescrevi.pt/de/testemunhos.html</loc><lastmod>2026-07-11</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
 
+  <url>
+    <loc>https://www.ouviescrevi.pt/blog/index.html</loc>
+    <lastmod>2026-07-22</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/blog/transcrever-audio-online.html</loc><lastmod>2026-07-22</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/blog/legendas-srt-youtube.html</loc><lastmod>2026-07-22</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/blog/transcrever-podcast.html</loc><lastmod>2026-07-22</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/blog/transcrever-aulas.html</loc><lastmod>2026-07-22</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://www.ouviescrevi.pt/blog/reunioes-em-texto.html</loc><lastmod>2026-07-22</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+
 </urlset>

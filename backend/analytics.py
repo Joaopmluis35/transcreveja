@@ -120,6 +120,9 @@ def record_visit(
     *,
     referrer: str | None = None,
     user_agent: str | None = None,
+    utm_source: str | None = None,
+    utm_medium: str | None = None,
+    utm_campaign: str | None = None,
 ) -> None:
     path = (path or "/").strip()[:500] or "/"
     day = _day_str()
@@ -130,14 +133,20 @@ def record_visit(
     ua = (user_agent or "")[:500] or None
     device = _device_type(ua)
     now = datetime.utcnow().isoformat(timespec="seconds") + "Z"
+    us = (utm_source or "").strip()[:80] or None
+    um = (utm_medium or "").strip()[:80] or None
+    uc = (utm_campaign or "").strip()[:120] or None
     conn = get_connection()
     try:
         conn.execute(
             """
-            INSERT INTO visitas (path, day, visitor_hash, visitor_uid, ip_label, created_at, referrer, user_agent, device_type)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO visitas (
+                path, day, visitor_hash, visitor_uid, ip_label, created_at,
+                referrer, user_agent, device_type, utm_source, utm_medium, utm_campaign
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (path, day, visitor_hash, uid, ip_label, now, ref, ua, device),
+            (path, day, visitor_hash, uid, ip_label, now, ref, ua, device, us, um, uc),
         )
         conn.commit()
     finally:

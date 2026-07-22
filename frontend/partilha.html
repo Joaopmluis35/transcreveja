@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Partilha | Ouviescrevi</title>
+  <meta name="description" content="Transcrição partilhada com Ouviescrevi — leitura pública temporária.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:description" content="Transcrição partilhada com Ouviescrevi — leitura pública temporária.">
+  <meta name="twitter:title" content="Partilha | Ouviescrevi">
+  <meta property="og:url" content="https://www.ouviescrevi.pt/partilha.html">
+  <meta name="robots" content="noindex, follow">
+  <link rel="canonical" href="https://www.ouviescrevi.pt/partilha.html">
+  <meta property="og:title" content="Partilha | Ouviescrevi">
+  <meta property="og:description" content="Transcrição partilhada com Ouviescrevi — leitura pública temporária.">
+  <meta property="og:image" content="https://www.ouviescrevi.pt/og/partilha.png">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png">
+  <link rel="stylesheet" href="css/ouviescrevi.css?v=26">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <script src="js/ouviescrevi-api.js?v=26" defer></script>
+  <script src="js/ouviescrevi-ui.js?v=26" defer></script>
+</head>
+<body data-oe-auto-footer="true">
+  <div id="header-placeholder"></div>
+  <main class="oe-page" style="max-width:720px;margin:2rem auto;padding:0 1.25rem">
+    <p class="oe-muted" id="shareMeta">A carregar partilha…</p>
+    <h1 id="shareTitle">Transcrição</h1>
+    <article id="shareBody" class="oe-prose" style="white-space:pre-wrap;line-height:1.55"></article>
+    <p style="margin-top:2rem">
+      <a class="oe-pro-btn oe-pro-btn--primary" href="index.html">Transcrever o teu áudio grátis</a>
+    </p>
+    <p class="oe-muted" style="font-size:0.875rem">Feito com <a href="index.html">Ouviescrevi</a> — transcrição de áudio e vídeo com IA.</p>
+  </main>
+  <div id="footer-placeholder"></div>
+  <script>
+    (async function () {
+      var params = new URLSearchParams(location.search);
+      var id = (params.get("id") || "").trim();
+      var meta = document.getElementById("shareMeta");
+      var title = document.getElementById("shareTitle");
+      var body = document.getElementById("shareBody");
+      if (!id) {
+        meta.textContent = "Ligação inválida.";
+        return;
+      }
+      try {
+        await OuviescreviAPI.init();
+        var res = await fetch(OuviescreviAPI.getBase() + "/api/share/transcript/" + encodeURIComponent(id));
+        var data = await res.json().catch(function () { return {}; });
+        if (!res.ok) throw new Error(data.detail || "Partilha não encontrada.");
+        title.textContent = data.title || "Transcrição";
+        body.textContent = data.text || "";
+        meta.textContent = "Partilha pública · " + (data.created_at || "").slice(0, 10);
+        document.title = (data.title || "Transcrição") + " | Ouviescrevi";
+      } catch (e) {
+        meta.textContent = e.message || "Não foi possível abrir a partilha.";
+      }
+    })();
+  </script>
+</body>
+</html>

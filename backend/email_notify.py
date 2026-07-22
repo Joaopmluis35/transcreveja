@@ -282,11 +282,65 @@ def send_welcome_email(to: str, name: str | None = None) -> tuple[bool, str | No
         "Obrigado por te registares no Ouviescrevi!\n\n"
         "Com a tua conta tens 20 transcrições por dia (em vez de 3 sem registo), "
         "histórico das transcrições e acesso às novidades em primeira mão.\n\n"
-        "Começa já em https://ouviescrevi.pt\n\n"
+        "Começa já em https://www.ouviescrevi.pt\n\n"
         "— Equipa Ouviescrevi"
     )
     return send_notification_email(
         body, subject, to=recipient, kind="welcome", actor=recipient
+    )
+
+
+def send_password_reset_email(to: str, reset_url: str) -> tuple[bool, str | None]:
+    recipient = _normalize_email(to)
+    if not recipient or not _EMAIL_RE.match(recipient):
+        return False, "Email de destino inválido."
+    subject = "Repor palavra-passe — Ouviescrevi"
+    body = (
+        "Olá,\n\n"
+        "Recebemos um pedido para repor a palavra-passe da tua conta Ouviescrevi.\n\n"
+        f"Abre este link (válido por 2 horas):\n{reset_url}\n\n"
+        "Se não foste tu, ignora este email.\n\n"
+        "— Equipa Ouviescrevi"
+    )
+    return send_notification_email(
+        body, subject, to=recipient, kind="password_reset", actor=recipient
+    )
+
+
+def send_quota_nudge_email(to: str, name: str | None = None) -> tuple[bool, str | None]:
+    recipient = _normalize_email(to)
+    if not recipient or not _EMAIL_RE.match(recipient):
+        return False, "Email de destino inválido."
+    display = (name or "").strip() or recipient.split("@")[0]
+    subject = "Ainda tens transcrições disponíveis hoje"
+    body = (
+        f"Olá {display},\n\n"
+        "A tua conta Ouviescrevi tem quota diária disponível. "
+        "Podes voltar a transcrever áudio ou vídeo em https://www.ouviescrevi.pt\n\n"
+        "Dica: depois de transcrever, experimenta o Resumo ou as Perguntas de estudo.\n\n"
+        "— Equipa Ouviescrevi\n"
+        "(Recebes isto porque ativaste avisos por email. Para parar, responde a este email.)"
+    )
+    return send_notification_email(
+        body, subject, to=recipient, kind="quota_nudge", actor=recipient
+    )
+
+
+def send_weekly_tip_email(to: str, name: str | None = None) -> tuple[bool, str | None]:
+    recipient = _normalize_email(to)
+    if not recipient or not _EMAIL_RE.match(recipient):
+        return False, "Email de destino inválido."
+    display = (name or "").strip() or recipient.split("@")[0]
+    subject = "Dica Ouviescrevi: legendas e capítulos"
+    body = (
+        f"Olá {display},\n\n"
+        "Dica da semana: depois de transcreveres um vídeo, gera legendas SRT "
+        "ou capítulos automaticamente — ideal para YouTube e aulas.\n\n"
+        "Experimenta em https://www.ouviescrevi.pt\n\n"
+        "— Equipa Ouviescrevi"
+    )
+    return send_notification_email(
+        body, subject, to=recipient, kind="weekly_tip", actor=recipient
     )
 
 

@@ -249,6 +249,9 @@ def _migrate_visitas(cur: sqlite3.Cursor) -> None:
         ("device_type", "TEXT"),
         ("visitor_uid", "TEXT"),
         ("ip_label", "TEXT"),
+        ("utm_source", "TEXT"),
+        ("utm_medium", "TEXT"),
+        ("utm_campaign", "TEXT"),
     ):
         if not _column_exists(cur, "visitas", col):
             cur.execute(f"ALTER TABLE visitas ADD COLUMN {col} {typedef}")
@@ -464,6 +467,35 @@ def criar_base() -> None:
                 updated_at TEXT NOT NULL
             )
         """)
+
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS password_reset_tokens (
+                token TEXT PRIMARY KEY,
+                email TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                expires_at TEXT NOT NULL,
+                used_at TEXT
+            )
+        """)
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_password_reset_email "
+            "ON password_reset_tokens(email)"
+        )
+
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS shared_transcripts (
+                id TEXT PRIMARY KEY,
+                title TEXT,
+                text TEXT NOT NULL,
+                locale TEXT DEFAULT 'pt',
+                created_at TEXT NOT NULL,
+                expires_at TEXT,
+                view_count INTEGER NOT NULL DEFAULT 0
+            )
+        """)
+
+        if not _column_exists(cur, "site_users", "marketing_opt_in"):
+            cur.execute("ALTER TABLE site_users ADD COLUMN marketing_opt_in INTEGER DEFAULT 0")
 
         conn.commit()
     finally:
