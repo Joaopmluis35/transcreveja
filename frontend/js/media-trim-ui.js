@@ -9,8 +9,8 @@
   var CLIENT_TRIM_LARGE_MB = 120;
   /** Acima disto o FFmpeg.wasm tende a falhar — usar WebAV (corte rápido). */
   var WASM_TRIM_MAX_BYTES = 150 * 1024 * 1024;
-  /** MediaRecorder grava em tempo real — só para trechos curtos se tudo o resto falhar. */
-  var MEDIA_RECORDER_MAX_SEC = 90;
+  /** MediaRecorder grava em tempo real — último recurso se WebAV/FFmpeg falharem. */
+  var MEDIA_RECORDER_MAX_SEC = 15 * 60;
 
   var state = {
     file: null,
@@ -432,9 +432,8 @@
     ffmpegLoadPromise = (async function () {
       onProgress = onProgress || function () {};
       onProgress("A carregar ferramenta de corte…");
-      var ffmpegMod = await import(
-        "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js"
-      );
+      // Pacote FFmpeg na mesma origem — Workers cross-origin (jsDelivr) são bloqueados pelo browser
+      var ffmpegMod = await import("/js/ffmpeg/index.js");
       var utilMod = await import(
         "https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/esm/index.js"
       );
@@ -447,11 +446,9 @@
         onProgress("A cortar no browser… " + pct + "%");
       });
       var coreBase = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm";
-      var pkgBase = "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/esm";
       await ffmpeg.load({
         coreURL: await toBlobURL(coreBase + "/ffmpeg-core.js", "text/javascript"),
         wasmURL: await toBlobURL(coreBase + "/ffmpeg-core.wasm", "application/wasm"),
-        workerURL: await toBlobURL(pkgBase + "/worker.js", "text/javascript"),
       });
       ffmpegCache = ffmpeg;
       ffmpeg._fetchFile = fetchFile;
@@ -1063,9 +1060,9 @@
 
     if (wantAudio && segmentSec <= MEDIA_RECORDER_MAX_SEC) {
       onProgress(
-        "A gravar áudio do trecho em tempo real (~" +
-          Math.ceil(segmentSec) +
-          " s)…"
+        "Métodos rápidos falharam — a gravar áudio em tempo real (~" +
+          Math.max(1, Math.ceil(segmentSec / 60)) +
+          " min). Não feches a página…"
       );
       return extractAudioSegmentViaMedia(startSec, endSec, onProgress);
     }
