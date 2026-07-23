@@ -680,10 +680,33 @@
       }
       var tickTimer = null;
       var startedAt = 0;
+      var stopTimer = null;
+      var stopRequested = false;
+      var boundTimeUpdate = null;
+      var boundEnded = null;
+      var maxWaitSec = Math.max(segmentSec + 12, segmentSec * 1.35);
+
+      function finishRecording() {
+        if (stopRequested) return;
+        stopRequested = true;
+        try {
+          if (recorder.state !== "inactive") recorder.stop();
+        } catch (_) {}
+      }
 
       function cleanup() {
         if (tickTimer) clearInterval(tickTimer);
         tickTimer = null;
+        if (stopTimer) clearInterval(stopTimer);
+        stopTimer = null;
+        if (boundTimeUpdate) {
+          media.removeEventListener("timeupdate", boundTimeUpdate);
+          boundTimeUpdate = null;
+        }
+        if (boundEnded) {
+          media.removeEventListener("ended", boundEnded);
+          boundEnded = null;
+        }
         media.pause();
       }
 
@@ -721,16 +744,28 @@
           onProgress("A gravar áudio do trecho… " + pct + "%");
         }, 400);
 
-        function onTimeUpdate() {
+        boundTimeUpdate = function () {
           if (media.currentTime >= endSec - 0.08 || media.ended) {
-            media.removeEventListener("timeupdate", onTimeUpdate);
             media.pause();
-            try {
-              if (recorder.state !== "inactive") recorder.stop();
-            } catch (_) {}
+            finishRecording();
           }
-        }
-        media.addEventListener("timeupdate", onTimeUpdate);
+        };
+        boundEnded = function () {
+          finishRecording();
+        };
+        media.addEventListener("timeupdate", boundTimeUpdate);
+        media.addEventListener("ended", boundEnded);
+        stopTimer = setInterval(function () {
+          var elapsed = (Date.now() - startedAt) / 1000;
+          if (media.currentTime >= endSec - 0.08 || media.ended) {
+            finishRecording();
+            return;
+          }
+          if (elapsed > maxWaitSec) {
+            onProgress("A fechar extração do trecho…");
+            finishRecording();
+          }
+        }, 250);
         var playPromise = media.play();
         if (playPromise && playPromise.catch) {
           playPromise.catch(function (err) {
