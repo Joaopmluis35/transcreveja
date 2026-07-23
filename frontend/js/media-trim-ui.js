@@ -7,8 +7,10 @@
   var CLIENT_TRIM_MIN_MB = 50;
   var CLIENT_TRIM_MAX_SEGMENT_RATIO = 0.85;
   var CLIENT_TRIM_LARGE_MB = 120;
-  /** Acima disto o FFmpeg.wasm tende a falhar — usar gravação via <video>/<audio>. */
+  /** Acima disto o FFmpeg.wasm tende a falhar — usar WebAV (corte rápido). */
   var WASM_TRIM_MAX_BYTES = 150 * 1024 * 1024;
+  /** MediaRecorder grava em tempo real — só para trechos curtos se tudo o resto falhar. */
+  var MEDIA_RECORDER_MAX_SEC = 90;
 
   var state = {
     file: null,
@@ -95,7 +97,7 @@
       '<button type="button" class="oe-trim-preset" data-sec="3600">Primeira hora</button>' +
       "</div>" +
       '<p class="oe-trim-summary" id="oeTrimSummary"></p>' +
-      '<p class="oe-trim-panel__note">Com um trecho escolhido, extraímos o áudio no teu dispositivo antes do envio — em MP4 costuma levar segundos a poucos minutos, não o tempo inteiro do trecho.</p>' +
+      '<p class="oe-trim-panel__note">Com um trecho escolhido, cortamos no teu dispositivo antes do envio (método rápido). Em ficheiros muito grandes pode demorar 1–3 minutos — não grava o vídeo inteiro em tempo real.</p>' +
       '<button type="button" class="oe-trim-play" id="oeTrimPlay">▶ Ouvir / ver trecho</button>' +
       "</div>";
     var anchor = $("videoPreviewWrap") || $("dropZone");
@@ -798,87 +800,150 @@
     });
   }
 
+  function estimateSegmentBytes(file, startSec, endSec) {
+    var totalSec = Math.max(1, state.duration || endSec - startSec || 1);
+    var seg = Math.max(0.5, endSec - startSec);
+    return Math.ceil(file.size * (seg / totalSec) * 1.2);
+  }
+
+  function maxUploadBytes() {
+    return Math.max(1, state.maxFileMb || 500) * 1024 * 1024;
+  }
+
+  /**
+   * Corte no browser sem gravar em tempo real.
+   * Ficheiros grandes (ex. 689 MB): WebAV áudio → WebAV vídeo do trecho → FFmpeg.
+   * MediaRecorder só como último recurso em trechos ≤ 90 s.
+   */
   async function trimClientSide(file, startSec, endSec, onProgress, opts) {
     onProgress = onProgress || function () {};
     opts = opts || {};
-    if (file.size > WASM_TRIM_MAX_BYTES && isMp4LikeFile(file)) {
-      try {
-        return await extractSegmentViaWebAV(file, startSec, endSec, onProgress, {
-          audioOnly: !!opts.audioOnly,
-        });
-      } catch (err) {
-        console.warn("OuviescreviMediaTrim: WebAV falhou", err);
-        if (opts.audioOnly) {
-          return extractAudioSegmentViaMedia(startSec, endSec, onProgress);
+    var wantAudio = !!opts.audioOnly;
+    var segmentSec = Math.max(0.5, endSec - startSec);
+    var largeFile = file.size > WASM_TRIM_MAX_BYTES;
+    var lastErr = null;
+
+    if (largeFile && isMp4LikeFile(file)) {
+      if (wantAudio) {
+        try {
+          return await extractSegmentViaWebAV(file, startSec, endSec, onProgress, {
+            audioOnly: true,
+          });
+        } catch (err) {
+          lastErr = err;
+          console.warn("OuviescreviMediaTrim: WebAV áudio falhou", err);
+          onProgress("Corte de áudio rápido falhou — a cortar só o trecho de vídeo…");
         }
-        throw err;
+      }
+      try {
+        var videoSeg = await extractSegmentViaWebAV(file, startSec, endSec, onProgress, {
+          audioOnly: false,
+        });
+        if (videoSeg.size > maxUploadBytes()) {
+          throw new Error(
+            "O trecho ainda fica com ~" +
+              Math.round(videoSeg.size / (1024 * 1024)) +
+              " MB (limite " +
+              state.maxFileMb +
+              " MB). Escolhe um trecho mais curto."
+          );
+        }
+        return videoSeg;
+      } catch (err) {
+        lastErr = err;
+        console.warn("OuviescreviMediaTrim: WebAV vídeo falhou", err);
       }
     }
-    if (opts.audioOnly && file.size > WASM_TRIM_MAX_BYTES) {
+
+    if (!largeFile) {
+      try {
+        var ffmpeg = await loadFfmpeg(onProgress);
+        var fetchFile = ffmpeg._fetchFile;
+        var ext = (file.name.split(".").pop() || "mp4").toLowerCase();
+        var inName = "input." + ext;
+        var outName = wantAudio ? "trecho.wav" : "trecho." + ext;
+        onProgress(
+          wantAudio
+            ? "A extrair só o áudio do trecho no browser…"
+            : "A cortar o trecho no browser…"
+        );
+        await ffmpeg.writeFile(inName, await fetchFile(file));
+        var args;
+        if (wantAudio) {
+          args = [
+            "-ss",
+            String(startSec),
+            "-to",
+            String(endSec),
+            "-i",
+            inName,
+            "-vn",
+            "-sn",
+            "-ar",
+            "16000",
+            "-ac",
+            "1",
+            "-c:a",
+            "pcm_s16le",
+            outName,
+          ];
+          await ffmpeg.exec(args);
+        } else {
+          args = ["-ss", String(startSec), "-to", String(endSec), "-i", inName, "-c", "copy", outName];
+          try {
+            await ffmpeg.exec(args);
+          } catch (err) {
+            args = [
+              "-ss",
+              String(startSec),
+              "-to",
+              String(endSec),
+              "-i",
+              inName,
+              "-c:v",
+              "libx264",
+              "-preset",
+              "ultrafast",
+              "-crf",
+              "28",
+              "-c:a",
+              "aac",
+              outName,
+            ];
+            await ffmpeg.exec(args);
+          }
+        }
+        var data = await ffmpeg.readFile(outName);
+        var mime = wantAudio ? "audio/wav" : file.type || "application/octet-stream";
+        var blob = new Blob([data.buffer], { type: mime });
+        var base = (file.name || "media").replace(/\.[^.]+$/, "");
+        var outExt = wantAudio ? "wav" : ext;
+        return new File([blob], base + "_trecho." + outExt, { type: mime });
+      } catch (err) {
+        lastErr = err;
+        console.warn("OuviescreviMediaTrim: FFmpeg falhou", err);
+      }
+    }
+
+    // Último recurso: só trechos curtos (gravação em tempo real é inviável em 10 min)
+    if (wantAudio && segmentSec <= MEDIA_RECORDER_MAX_SEC) {
+      onProgress(
+        "A gravar áudio do trecho em tempo real (~" +
+          Math.ceil(segmentSec) +
+          " s)…"
+      );
       return extractAudioSegmentViaMedia(startSec, endSec, onProgress);
     }
-    var ffmpeg = await loadFfmpeg(onProgress);
-    var fetchFile = ffmpeg._fetchFile;
-    var ext = (file.name.split(".").pop() || "mp4").toLowerCase();
-    var inName = "input." + ext;
-    var outName = opts.audioOnly ? "trecho.wav" : "trecho." + ext;
-    onProgress(
-      opts.audioOnly
-        ? "A extrair só o áudio do trecho no browser…"
-        : "A cortar o trecho no browser…"
+
+    var estMb = Math.round(estimateSegmentBytes(file, startSec, endSec) / (1024 * 1024));
+    var detail = lastErr && lastErr.message ? " (" + lastErr.message + ")" : "";
+    throw new Error(
+      "Não foi possível cortar este trecho de forma rápida no browser" +
+        detail +
+        ". Tenta um trecho mais curto (estimativa ~" +
+        estMb +
+        " MB) ou outro browser (Chrome/Edge)."
     );
-    await ffmpeg.writeFile(inName, await fetchFile(file));
-    var args;
-    if (opts.audioOnly) {
-      args = [
-        "-ss",
-        String(startSec),
-        "-to",
-        String(endSec),
-        "-i",
-        inName,
-        "-vn",
-        "-sn",
-        "-ar",
-        "16000",
-        "-ac",
-        "1",
-        "-c:a",
-        "pcm_s16le",
-        outName,
-      ];
-      await ffmpeg.exec(args);
-    } else {
-      args = ["-ss", String(startSec), "-to", String(endSec), "-i", inName, "-c", "copy", outName];
-      try {
-        await ffmpeg.exec(args);
-      } catch (err) {
-        args = [
-          "-ss",
-          String(startSec),
-          "-to",
-          String(endSec),
-          "-i",
-          inName,
-          "-c:v",
-          "libx264",
-          "-preset",
-          "ultrafast",
-          "-crf",
-          "28",
-          "-c:a",
-          "aac",
-          outName,
-        ];
-        await ffmpeg.exec(args);
-      }
-    }
-    var data = await ffmpeg.readFile(outName);
-    var mime = opts.audioOnly ? "audio/wav" : file.type || "application/octet-stream";
-    var blob = new Blob([data.buffer], { type: mime });
-    var base = (file.name || "media").replace(/\.[^.]+$/, "");
-    var outExt = opts.audioOnly ? "wav" : ext;
-    return new File([blob], base + "_trecho." + outExt, { type: mime });
   }
 
   async function prepareForUpload(file, onProgress, opts) {
