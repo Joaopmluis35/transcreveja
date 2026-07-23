@@ -11,9 +11,9 @@
   var WASM_TRIM_MAX_BYTES = 150 * 1024 * 1024;
   /** MediaRecorder grava em tempo real — último recurso se WebAV/FFmpeg falharem. */
   var MEDIA_RECORDER_MAX_SEC = 15 * 60;
-  /** Áudio útil mínimo (~1.5 KB/s; silêncio/WebM vazio fica bem abaixo). */
-  var MIN_AUDIO_BYTES_PER_SEC = 1500;
-  var MIN_AUDIO_BYTES_FLOOR = 12000;
+  /** Áudio com fala típica >> silêncio Opus (~0.5–1.5 KB/s). */
+  var MIN_AUDIO_BYTES_PER_SEC = 2500;
+  var MIN_AUDIO_BYTES_FLOOR = 20000;
 
   var state = {
     file: null,
@@ -690,6 +690,7 @@
       await ffmpeg.mount("WORKERFS", { blobs: [{ name: safeName, data: file }] }, mountDir);
       var args;
       if (opts.audioOnly) {
+        // Meet/fMP4: -c:a copy costuma dar ficheiros minúsculos — re-codificar AAC direto
         args = [
           "-ss",
           String(startSec),
@@ -699,13 +700,22 @@
           inputPath,
           "-vn",
           "-sn",
+          "-map",
+          "0:a:0",
+          "-ar",
+          "16000",
+          "-ac",
+          "1",
           "-c:a",
-          "copy",
+          "aac",
+          "-b:a",
+          "64k",
           outName,
         ];
         try {
           await ffmpeg.exec(args);
-        } catch (_) {
+        } catch (mapErr) {
+          console.warn("OuviescreviMediaTrim: FFmpeg map a:0 falhou, a tentar sem map", mapErr);
           args = [
             "-ss",
             String(startSec),
@@ -760,15 +770,21 @@
   }
 
   /**
-   * Fallback: grava via <video> (tempo real). Só para trechos curtos.
+   * Fallback: grava áudio em tempo real via Web Audio API.
+   * captureStream() em Meet/Chrome devolve muitas vezes faixas de silêncio (~20 KB).
+   * MediaElementSource + MediaStreamDestination captura o áudio descodificado de verdade.
    */
   function extractAudioSegmentViaMedia(startSec, endSec, onProgress) {
     onProgress = onProgress || function () {};
-    var media = getMediaEl();
-    if (!media) return Promise.reject(new Error("Pré-visualização do vídeo indisponível."));
+    var srcUrl = state.objectUrl;
+    if (!srcUrl) return Promise.reject(new Error("Pré-visualização do vídeo indisponível."));
     var mime = pickRecorderMime();
     if (!mime) {
       return Promise.reject(new Error("O browser não consegue gravar áudio deste vídeo."));
+    }
+    var AC = global.AudioContext || global.webkitAudioContext;
+    if (!AC) {
+      return Promise.reject(new Error("Web Audio API indisponível neste browser."));
     }
     var segmentSec = Math.max(0.5, endSec - startSec);
     onProgress(
@@ -780,47 +796,49 @@
     return new Promise(function (resolve, reject) {
       stopSegmentPreview();
       var chunks = [];
-      var prevMuted = media.muted;
-      var prevVolume = media.volume;
-      // captureStream precisa de áudio ativo — vídeo muted = WebM quase vazio
+      var media = document.createElement(state.isVideo ? "video" : "audio");
+      media.preload = "auto";
+      media.playsInline = true;
+      media.controls = false;
+      // muted/volume=0 → silêncio no MediaElementSource (Chrome)
       media.muted = false;
       media.volume = 1;
-      var capture =
-        typeof media.captureStream === "function"
-          ? media.captureStream()
-          : typeof media.mozCaptureStream === "function"
-            ? media.mozCaptureStream()
-            : null;
-      if (!capture || !capture.getAudioTracks().length) {
-        media.muted = prevMuted;
-        media.volume = prevVolume;
-        reject(new Error("Não foi possível capturar áudio do vídeo."));
-        return;
-      }
-      var audioStream = new MediaStream(capture.getAudioTracks());
-      var recorder;
-      try {
-        recorder = new MediaRecorder(audioStream, { mimeType: mime, audioBitsPerSecond: 64000 });
-      } catch (err) {
-        media.muted = prevMuted;
-        media.volume = prevVolume;
-        reject(err);
-        return;
-      }
+      media.src = srcUrl;
+      media.style.cssText = "position:fixed;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;";
+      document.body.appendChild(media);
+
+      var audioCtx = null;
+      var elementSource = null;
+      var recorder = null;
       var tickTimer = null;
-      var startedAt = 0;
       var stopTimer = null;
+      var startedAt = 0;
       var stopRequested = false;
       var boundTimeUpdate = null;
       var boundEnded = null;
       var maxWaitSec = Math.max(segmentSec + 12, segmentSec * 1.35);
       var minRecordSec = Math.min(segmentSec * 0.85, Math.max(1.2, segmentSec - 0.35));
+      var settled = false;
+
+      function fail(err) {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        reject(err instanceof Error ? err : new Error(String(err || "Falha ao gravar áudio.")));
+      }
+
+      function succeed(file) {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        resolve(file);
+      }
 
       function finishRecording() {
         if (stopRequested) return;
         stopRequested = true;
         try {
-          if (recorder.state !== "inactive") recorder.stop();
+          if (recorder && recorder.state !== "inactive") recorder.stop();
         } catch (_) {}
       }
 
@@ -837,49 +855,39 @@
           media.removeEventListener("ended", boundEnded);
           boundEnded = null;
         }
-        media.pause();
-        media.muted = prevMuted;
-        media.volume = prevVolume;
+        try {
+          media.pause();
+        } catch (_) {}
+        try {
+          media.removeAttribute("src");
+          media.load();
+        } catch (_) {}
+        if (media.parentNode) media.parentNode.removeChild(media);
+        try {
+          if (elementSource) elementSource.disconnect();
+        } catch (_) {}
+        elementSource = null;
+        if (audioCtx) {
+          audioCtx.close().catch(function () {});
+          audioCtx = null;
+        }
       }
 
       function shouldStopForTimeline() {
         var elapsed = (Date.now() - startedAt) / 1000;
         if (media.ended) return true;
         if (media.currentTime >= endSec - 0.08) {
-          // Evita fechar logo se o seek falhou e o playhead já estava no fim
           return elapsed >= minRecordSec || media.currentTime >= startSec + minRecordSec * 0.5;
         }
         return false;
       }
-
-      recorder.ondataavailable = function (ev) {
-        if (ev.data && ev.data.size) chunks.push(ev.data);
-      };
-      recorder.onerror = function () {
-        cleanup();
-        reject(new Error("Falha ao gravar áudio do trecho."));
-      };
-      recorder.onstop = function () {
-        cleanup();
-        var blob = new Blob(chunks, { type: mime });
-        try {
-          assertUsefulAudioBlob(blob, segmentSec);
-        } catch (err) {
-          reject(err);
-          return;
-        }
-        onProgress("Áudio do trecho pronto (" + formatBlobMbLabel(blob.size) + ").");
-        var base = (state.file.name || "media").replace(/\.[^.]+$/, "");
-        resolve(new File([blob], base + "_trecho." + mimeToAudioExt(mime), { type: mime }));
-      };
 
       function startRecording() {
         chunks = [];
         try {
           recorder.start(400);
         } catch (err) {
-          cleanup();
-          reject(err);
+          fail(err);
           return;
         }
         startedAt = Date.now();
@@ -911,22 +919,19 @@
             finishRecording();
           }
         }, 250);
+
         var playPromise = media.play();
         if (playPromise && playPromise.catch) {
           playPromise.catch(function (err) {
-            cleanup();
-            reject(err);
+            fail(err);
           });
         }
       }
 
-      media.pause();
-      var seekTo = Math.max(0, startSec);
       function afterSeek() {
         var pos = media.currentTime;
         if (!isFinite(pos) || Math.abs(pos - seekTo) > 2.5) {
-          cleanup();
-          reject(
+          fail(
             new Error(
               "Não foi possível posicionar o vídeo no início do trecho (gravações Meet por vezes não permitem salto preciso)."
             )
@@ -934,40 +939,95 @@
           return;
         }
         if (pos >= endSec - 0.2) {
-          cleanup();
-          reject(new Error("O início do trecho está demasiado perto do fim do vídeo."));
+          fail(new Error("O início do trecho está demasiado perto do fim do vídeo."));
           return;
         }
         startRecording();
       }
-      if (Math.abs(media.currentTime - seekTo) < 0.12 && media.readyState >= 2) {
-        afterSeek();
-        return;
-      }
-      var seekDone = false;
-      var seekWatch = setTimeout(function () {
-        if (seekDone) return;
-        seekDone = true;
-        media.removeEventListener("seeked", onSeeked);
-        afterSeek();
-      }, 4000);
-      var onSeeked = function () {
-        if (seekDone) return;
-        seekDone = true;
-        clearTimeout(seekWatch);
-        media.removeEventListener("seeked", onSeeked);
-        afterSeek();
-      };
-      media.addEventListener("seeked", onSeeked);
+
+      var seekTo = Math.max(0, startSec);
+
+      media.addEventListener("error", function () {
+        fail(new Error("Falha ao carregar o vídeo para gravar o áudio."));
+      });
+
+      media.addEventListener(
+        "loadeddata",
+        function onReady() {
+          media.removeEventListener("loadeddata", onReady);
+          try {
+            audioCtx = new AC();
+            var dest = audioCtx.createMediaStreamDestination();
+            elementSource = audioCtx.createMediaElementSource(media);
+            elementSource.connect(dest);
+            // Sem ligar a speakers: o utilizador não ouve, mas o áudio chega ao recorder
+            recorder = new MediaRecorder(dest.stream, {
+              mimeType: mime,
+              audioBitsPerSecond: 96000,
+            });
+          } catch (err) {
+            fail(err);
+            return;
+          }
+
+          recorder.ondataavailable = function (ev) {
+            if (ev.data && ev.data.size) chunks.push(ev.data);
+          };
+          recorder.onerror = function () {
+            fail(new Error("Falha ao gravar áudio do trecho."));
+          };
+          recorder.onstop = function () {
+            var blob = new Blob(chunks, { type: mime });
+            try {
+              assertUsefulAudioBlob(blob, segmentSec);
+            } catch (err) {
+              fail(err);
+              return;
+            }
+            onProgress("Áudio do trecho pronto (" + formatBlobMbLabel(blob.size) + ").");
+            var base = (state.file.name || "media").replace(/\.[^.]+$/, "");
+            succeed(new File([blob], base + "_trecho." + mimeToAudioExt(mime), { type: mime }));
+          };
+
+          audioCtx
+            .resume()
+            .catch(function () {})
+            .then(function () {
+              if (Math.abs(media.currentTime - seekTo) < 0.12 && media.readyState >= 2) {
+                afterSeek();
+                return;
+              }
+              var seekDone = false;
+              var seekWatch = setTimeout(function () {
+                if (seekDone) return;
+                seekDone = true;
+                media.removeEventListener("seeked", onSeeked);
+                afterSeek();
+              }, 5000);
+              var onSeeked = function () {
+                if (seekDone) return;
+                seekDone = true;
+                clearTimeout(seekWatch);
+                media.removeEventListener("seeked", onSeeked);
+                afterSeek();
+              };
+              media.addEventListener("seeked", onSeeked);
+              try {
+                media.currentTime = seekTo;
+              } catch (err) {
+                seekDone = true;
+                clearTimeout(seekWatch);
+                media.removeEventListener("seeked", onSeeked);
+                fail(err);
+              }
+            });
+        },
+        { once: true }
+      );
+
       try {
-        media.currentTime = seekTo;
-      } catch (err) {
-        seekDone = true;
-        clearTimeout(seekWatch);
-        media.removeEventListener("seeked", onSeeked);
-        cleanup();
-        reject(err);
-      }
+        media.load();
+      } catch (_) {}
     });
   }
 
@@ -989,8 +1049,8 @@
     throw new Error(
       "O áudio do trecho ficou quase vazio (" +
         Math.max(1, Math.round(size / 1024)) +
-        " KB). O corte no browser falhou ou o trecho está em silêncio. " +
-        "Escolhe um trecho com fala (ex.: «Primeiros 15 min») e tenta de novo no Chrome/Edge."
+        " KB) — tipicamente silêncio (falha comum em gravações Meet). " +
+        "Clica «Primeiros 15 min», espera a extração FFmpeg terminar, e tenta no Chrome/Edge."
     );
   }
 
@@ -1019,19 +1079,9 @@
 
     if (largeFile && isMp4LikeFile(file)) {
       if (wantAudio) {
+        // Meet/fMP4: FFmpeg AAC costuma ser mais fiável que WebAV para só-áudio
         try {
-          onProgress("A extrair só o áudio do trecho (rápido)…");
-          var webAvAudio = await extractSegmentViaWebAV(file, startSec, endSec, onProgress, {
-            audioOnly: true,
-          });
-          assertUsefulAudioBlob(webAvAudio, segmentSec);
-          return webAvAudio;
-        } catch (err) {
-          lastErr = err;
-          console.warn("OuviescreviMediaTrim: WebAV áudio falhou", err);
-          onProgress("Corte WebAV falhou — a extrair áudio com FFmpeg…");
-        }
-        try {
+          onProgress("A extrair áudio do trecho com FFmpeg…");
           var ffAudio = await extractSegmentViaFfmpegMount(file, startSec, endSec, onProgress, {
             audioOnly: true,
           });
@@ -1040,6 +1090,17 @@
         } catch (err) {
           lastErr = err;
           console.warn("OuviescreviMediaTrim: FFmpeg áudio falhou", err);
+          onProgress("FFmpeg falhou — a tentar corte rápido (WebAV)…");
+        }
+        try {
+          var webAvAudio = await extractSegmentViaWebAV(file, startSec, endSec, onProgress, {
+            audioOnly: true,
+          });
+          assertUsefulAudioBlob(webAvAudio, segmentSec);
+          return webAvAudio;
+        } catch (err) {
+          lastErr = err;
+          console.warn("OuviescreviMediaTrim: WebAV áudio falhou", err);
         }
         if (segmentSec <= MEDIA_RECORDER_MAX_SEC) {
           onProgress(
