@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="stylesheet" href="css/ouviescrevi.css?v=25">
-  <link rel="stylesheet" href="css/index-home.css?v=27">
+  <link rel="stylesheet" href="css/index-home.css?v=28">
   <link rel="stylesheet" href="css/pricing-visibility.css">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <link rel="manifest" href="/manifest.webmanifest">
@@ -94,7 +94,11 @@
           <span>Locutor 2</span>
           <input type="text" id="locutorNome2" maxlength="40" placeholder="ex.: Daniela" value="Daniela" autocomplete="off">
         </label>
-        <button type="button" id="btnAplicarLocutores" class="oe-speaker-names__apply">Aplicar nomes à transcrição</button>
+        <div class="oe-speaker-names__actions">
+          <button type="button" id="btnAplicarLocutores" class="oe-speaker-names__apply">Aplicar nomes à transcrição</button>
+          <button type="button" id="btnTrocarLocutores" class="oe-speaker-names__swap">Trocar locutores ↔</button>
+        </div>
+        <p class="oe-speaker-names__hint">Se a IA trocou as vozes, usa «Trocar locutores» — inverte os nomes em todo o texto.</p>
       </div>
 
       <label class="oe-lang-select" for="transcribeLanguage">
@@ -163,7 +167,7 @@
                   <button type="button" class="oe-copy-btn oe-output__copy" onclick="copiarTranscricao()">📋 Copiar</button>
                 </div>
               </div>
-              <textarea id="transcriptionText" readonly aria-labelledby="outputTitle" placeholder="O texto transcrito aparece aqui…"></textarea>
+              <textarea id="transcriptionText" aria-labelledby="outputTitle" placeholder="O texto transcrito aparece aqui…"></textarea>
             </section>
         
             <aside class="oe-output__sidebar" aria-label="Ações sobre a transcrição">
@@ -2485,6 +2489,22 @@
     return [a, b];
   }
 
+  function escapeRegExpLocutor(s){
+    return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+
+  /** Inverte etiquetas `[00:00] Nome:` entre os dois locutores. */
+  function trocarEtiquetasLocutores(texto, nomeA, nomeB){
+    if (!texto || !nomeA || !nomeB || nomeA === nomeB) return texto;
+    const tokenA = "\0OE_SPK_A\0";
+    const tokenB = "\0OE_SPK_B\0";
+    const reA = new RegExp("(\\[[\\d:]+\\]\\s*)" + escapeRegExpLocutor(nomeA) + "(\\s*:)", "gi");
+    const reB = new RegExp("(\\[[\\d:]+\\]\\s*)" + escapeRegExpLocutor(nomeB) + "(\\s*:)", "gi");
+    let out = texto.replace(reA, "$1" + tokenA + "$2");
+    out = out.replace(reB, "$1" + tokenB + "$2");
+    return out.split(tokenA).join(nomeB).split(tokenB).join(nomeA);
+  }
+
   function syncLocutoresNomesVisibility(){
     const box = document.getElementById("locutoresNomes");
     const on = document.getElementById("identificarLocutores")?.checked;
@@ -2511,6 +2531,28 @@
     } finally {
       if (btn) { btn.disabled = false; btn.textContent = original; }
     }
+  });
+
+  document.getElementById("btnTrocarLocutores")?.addEventListener("click", function () {
+    const texto = transcriptionText.value || "";
+    if (!texto.trim()) return alert("⚠️ Ainda não há transcrição para trocar.");
+    const names = nomesLocutoresEscolhidos();
+    const a = names[0];
+    const b = names[1];
+    if (a === b) return alert("⚠️ Os dois nomes são iguais — altera Locutor 1 e 2.");
+    const hasA = new RegExp("\\[[\\d:]+\\]\\s*" + escapeRegExpLocutor(a) + "\\s*:", "i").test(texto);
+    const hasB = new RegExp("\\[[\\d:]+\\]\\s*" + escapeRegExpLocutor(b) + "\\s*:", "i").test(texto);
+    if (!hasA && !hasB) {
+      return alert("⚠️ Não encontrei «" + a + "» nem «" + b + "» na transcrição. Aplica primeiro os nomes.");
+    }
+    definirTranscricao(trocarEtiquetasLocutores(texto, a, b));
+    const n1 = document.getElementById("locutorNome1");
+    const n2 = document.getElementById("locutorNome2");
+    if (n1 && n2) {
+      n1.value = b;
+      n2.value = a;
+    }
+    setOutputPanelVisible(true);
   });
 
   function abrirModalTraducao(){ document.getElementById("modalTraducao").classList.add("show"); }
