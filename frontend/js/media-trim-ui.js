@@ -926,8 +926,9 @@
   }
 
   /**
-   * Corte no browser sem gravar em tempo real.
-   * Ficheiros grandes: WebAV (c/ fix fMP4) → FFmpeg WORKERFS → MediaRecorder curto.
+   * Corte no browser.
+   * Transcrição (audioOnly): só áudio — nunca enviar 200 MB de vídeo.
+   * Legendagem: pode cortar vídeo.
    */
   async function trimClientSide(file, startSec, endSec, onProgress, opts) {
     onProgress = onProgress || function () {};
@@ -940,15 +941,40 @@
     if (largeFile && isMp4LikeFile(file)) {
       if (wantAudio) {
         try {
+          onProgress("A extrair só o áudio do trecho (rápido)…");
           return await extractSegmentViaWebAV(file, startSec, endSec, onProgress, {
             audioOnly: true,
           });
         } catch (err) {
           lastErr = err;
           console.warn("OuviescreviMediaTrim: WebAV áudio falhou", err);
-          onProgress("Corte de áudio rápido falhou — a tentar corte de vídeo…");
+          onProgress("Corte WebAV falhou — a extrair áudio com FFmpeg…");
         }
+        try {
+          return await extractSegmentViaFfmpegMount(file, startSec, endSec, onProgress, {
+            audioOnly: true,
+          });
+        } catch (err) {
+          lastErr = err;
+          console.warn("OuviescreviMediaTrim: FFmpeg áudio falhou", err);
+        }
+        if (segmentSec <= MEDIA_RECORDER_MAX_SEC) {
+          onProgress(
+            "A gravar só o áudio em tempo real (~" +
+              Math.max(1, Math.ceil(segmentSec / 60)) +
+              " min). Não feches a página…"
+          );
+          return extractAudioSegmentViaMedia(startSec, endSec, onProgress);
+        }
+        var detailAudio = lastErr && lastErr.message ? ": " + lastErr.message : "";
+        throw new Error(
+          "Não foi possível extrair o áudio deste trecho" +
+            detailAudio +
+            ". Tenta um trecho ≤ 15 min ou comprime o vídeo antes."
+        );
       }
+
+      // Legendagem / vídeo: cortar trecho de vídeo
       try {
         var videoSeg = await extractSegmentViaWebAV(file, startSec, endSec, onProgress, {
           audioOnly: false,
@@ -970,21 +996,11 @@
       }
       try {
         return await extractSegmentViaFfmpegMount(file, startSec, endSec, onProgress, {
-          audioOnly: wantAudio,
+          audioOnly: false,
         });
       } catch (err) {
         lastErr = err;
-        console.warn("OuviescreviMediaTrim: FFmpeg mount falhou", err);
-        if (wantAudio) {
-          try {
-            return await extractSegmentViaFfmpegMount(file, startSec, endSec, onProgress, {
-              audioOnly: false,
-            });
-          } catch (err2) {
-            lastErr = err2;
-            console.warn("OuviescreviMediaTrim: FFmpeg vídeo falhou", err2);
-          }
-        }
+        console.warn("OuviescreviMediaTrim: FFmpeg vídeo falhou", err);
       }
     }
 
@@ -1060,7 +1076,7 @@
 
     if (wantAudio && segmentSec <= MEDIA_RECORDER_MAX_SEC) {
       onProgress(
-        "Métodos rápidos falharam — a gravar áudio em tempo real (~" +
+        "A gravar só o áudio em tempo real (~" +
           Math.max(1, Math.ceil(segmentSec / 60)) +
           " min). Não feches a página…"
       );
