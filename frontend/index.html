@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="stylesheet" href="css/ouviescrevi.css?v=25">
-  <link rel="stylesheet" href="css/index-home.css?v=26">
+  <link rel="stylesheet" href="css/index-home.css?v=27">
   <link rel="stylesheet" href="css/pricing-visibility.css">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <link rel="manifest" href="/manifest.webmanifest">
@@ -85,6 +85,17 @@
         <span class="slider"></span>
         <span class="switch-label">Identificar locutores (IA)</span>
       </label>
+      <div id="locutoresNomes" class="oe-speaker-names hidden" aria-live="polite">
+        <label class="oe-speaker-names__field" for="locutorNome1">
+          <span>Locutor 1</span>
+          <input type="text" id="locutorNome1" maxlength="40" placeholder="ex.: João" value="João" autocomplete="off">
+        </label>
+        <label class="oe-speaker-names__field" for="locutorNome2">
+          <span>Locutor 2</span>
+          <input type="text" id="locutorNome2" maxlength="40" placeholder="ex.: Daniela" value="Daniela" autocomplete="off">
+        </label>
+        <button type="button" id="btnAplicarLocutores" class="oe-speaker-names__apply">Aplicar nomes à transcrição</button>
+      </div>
 
       <label class="oe-lang-select" for="transcribeLanguage">
         <span class="switch-label">Idioma do áudio</span>
@@ -448,7 +459,7 @@
 <script src="js/upsell-ui.js?v=27"></script>
 <script src="js/share-ui.js?v=28"></script>
 <script src="/js/suggestion-fab.js?v=25" defer></script>
-<script src="/js/media-trim-ui.js?v=33" defer></script>
+<script src="/js/media-trim-ui.js?v=34" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
   const ADMIN_EMAIL = "admin@ouviescrevi.pt";
@@ -2448,24 +2459,59 @@
   }
 
   async function aplicarLocutores(transcricao){
+    const names = nomesLocutoresEscolhidos();
     if (window.OuviescreviJobs) {
-      return OuviescreviJobs.diarizeSpeakers(transcricao, { names: ["João", "Maria"], lang: "pt" });
+      return OuviescreviJobs.diarizeSpeakers(transcricao, { names: names, lang: "pt" });
     }
     const linhas = transcricao.split('\n');
     let resultado = '';
-    let locutorAtual = 'João';
+    let idx = 0;
     for (let i = 0; i < linhas.length; i++){
       const linha = linhas[i].trim();
       if (!linha) continue;
       const nova = linha.replace(/^\[(\d{2}:\d{2})\]/, (m, ts) => {
-        const nome = locutorAtual;
-        locutorAtual = locutorAtual === 'João' ? 'Maria' : 'João';
+        const nome = names[idx % names.length];
+        idx += 1;
         return `[${ts}] ${nome}:`;
       });
       resultado += nova + '\n';
     }
     return resultado.trim();
   }
+
+  function nomesLocutoresEscolhidos(){
+    const a = (document.getElementById("locutorNome1")?.value || "").trim() || "João";
+    const b = (document.getElementById("locutorNome2")?.value || "").trim() || "Daniela";
+    return [a, b];
+  }
+
+  function syncLocutoresNomesVisibility(){
+    const box = document.getElementById("locutoresNomes");
+    const on = document.getElementById("identificarLocutores")?.checked;
+    if (box) box.classList.toggle("hidden", !on);
+  }
+
+  document.getElementById("identificarLocutores")?.addEventListener("change", syncLocutoresNomesVisibility);
+  syncLocutoresNomesVisibility();
+
+  document.getElementById("btnAplicarLocutores")?.addEventListener("click", async function () {
+    const texto = (transcriptionText.value || "").trim();
+    if (!texto) return alert("⚠️ Ainda não há transcrição para etiquetar.");
+    const btn = document.getElementById("btnAplicarLocutores");
+    const original = btn ? btn.textContent : "";
+    if (btn) { btn.disabled = true; btn.textContent = "A identificar…"; }
+    try {
+      await ensureApi();
+      const comNomes = await aplicarLocutores(texto);
+      definirTranscricao(comNomes);
+      setOutputPanelVisible(true);
+      alert("✅ Locutores aplicados: " + nomesLocutoresEscolhidos().join(" / "));
+    } catch (err) {
+      alert("❌ Não foi possível identificar os locutores. Tenta novamente.");
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = original; }
+    }
+  });
 
   function abrirModalTraducao(){ document.getElementById("modalTraducao").classList.add("show"); }
   function fecharModalTraducao(){ document.getElementById("modalTraducao").classList.remove("show"); }
@@ -2573,6 +2619,7 @@
     ultimaTentativaFalhada = false;
 
     document.getElementById("identificarLocutores").checked = false;
+    if (typeof syncLocutoresNomesVisibility === "function") syncLocutoresNomesVisibility();
     document.getElementById("recordingStatus").textContent = "";
     document.getElementById("timerGravacao").classList.add("hidden");
     document.getElementById("timerGravacao").textContent = "⏱️ 00:00";

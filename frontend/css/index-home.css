@@ -1171,6 +1171,52 @@ body.oe-page--home .oe-lang-select {
   color: var(--oe-text);
 }
 
+body.oe-page--home .oe-speaker-names {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 12px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  box-sizing: border-box;
+}
+body.oe-page--home .oe-speaker-names.hidden {
+  display: none;
+}
+body.oe-page--home .oe-speaker-names__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #475569;
+}
+body.oe-page--home .oe-speaker-names__field input {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font: inherit;
+  font-weight: 500;
+  color: #0f172a;
+  background: #fff;
+}
+body.oe-page--home .oe-speaker-names__apply {
+  grid-column: 1 / -1;
+  border: 1px solid #c4b5fd;
+  background: #f5f3ff;
+  color: #5b21b6;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+body.oe-page--home .oe-speaker-names__apply:hover {
+  background: #ede9fe;
+}
+
 body.oe-page--home .oe-lang-select select {
   width: 100%;
   margin: 0;

@@ -207,16 +207,17 @@
   function updateForceNote() {
     var note = $("oeTrimForceNote");
     if (!note || !state.file) return;
+    var fullRadio = document.querySelector('input[name="oeTrimMode"][value="full"]');
+    if (fullRadio) fullRadio.disabled = false;
     if (isOverUploadLimit(state.file)) {
       note.textContent =
         "Este ficheiro passa o limite de " +
         state.maxFileMb +
-        " MB — escolhe «Só um trecho». Cortamos no teu browser antes de enviar.";
+        " MB para upload de vídeo. Podes escolher «Ficheiro completo» — extraímos só o áudio no browser (rápido) — ou «Só um trecho».";
       note.classList.remove("hidden");
-      if (state.mode === "full") setMode("segment");
-    } else if (isOverUploadLimit(state.file) && state.mode === "segment") {
+    } else if (state.mode === "segment") {
       note.textContent =
-        "Vamos cortar o trecho no teu browser antes de enviar (ficheiro acima do limite).";
+        "Com um trecho escolhido, cortamos no teu dispositivo antes do envio.";
       note.classList.remove("hidden");
     } else {
       note.classList.add("hidden");
@@ -291,8 +292,13 @@
     }
 
     panel.classList.remove("hidden");
+    // Acima do limite: default a trecho (mais rápido), mas «completo» fica disponível
     if (isOverUploadLimit(file)) {
       setMode("segment");
+      if (state.duration > 0) {
+        state.startSec = 0;
+        state.endSec = Math.min(state.duration, 900);
+      }
     } else {
       setMode("full");
     }
@@ -322,12 +328,14 @@
   }
 
   function getSelection() {
+    var over = state.file ? isOverUploadLimit(state.file) : false;
     return {
       mode: state.mode,
       startSec: state.startSec,
       endSec: state.endSec,
       duration: state.duration,
-      requiresSegment: state.file ? isOverUploadLimit(state.file) : false,
+      requiresClientAudio: over,
+      requiresSegment: false,
       isValid:
         state.mode === "full" ||
         (state.endSec > state.startSec + 1 && state.duration > 0),
@@ -346,7 +354,11 @@
     if (!file) return false;
     if (!state.visible || !isSameFile(state.file, file)) return !isOverUploadLimit(file);
     var sel = getSelection();
-    if (isOverUploadLimit(file) && sel.mode !== "segment") return false;
+    // Acima do limite: ok em modo completo (extraímos áudio) ou trecho válido
+    if (isOverUploadLimit(file)) {
+      if (sel.mode === "full") return state.duration > 0;
+      return sel.isValid;
+    }
     if (sel.mode === "segment" && !sel.isValid) return false;
     return true;
   }
@@ -355,7 +367,7 @@
     if (!file) return "Nenhum ficheiro selecionado.";
     if (!canUploadFile(file)) {
       if (isOverUploadLimit(file)) {
-        return "Ficheiro acima de " + state.maxFileMb + " MB — escolhe um trecho mais curto.";
+        return "Ajusta o trecho ou escolhe «Ficheiro completo» (extraímos o áudio no browser).";
       }
       return "Ajusta o início e fim do trecho.";
     }
@@ -472,8 +484,9 @@
   }
 
   function shouldTrimClientSide(file, sel) {
-    if (!file || !sel || sel.mode !== "segment" || !sel.isValid) return false;
+    if (!file || !sel || !sel.isValid) return false;
     if (isOverUploadLimit(file)) return true;
+    if (sel.mode !== "segment") return false;
     var sizeMb = fileSizeMb(file);
     var segmentSec = segmentDurationSec(sel);
     var totalSec = state.duration || segmentSec || 1;
@@ -1242,8 +1255,29 @@
   async function prepareForUpload(file, onProgress, opts) {
     opts = opts || {};
     var sel = getSelection();
-    if (!state.visible || !isSameFile(state.file, file) || sel.mode === "full") {
+    if (!state.visible || !isSameFile(state.file, file)) {
       return { file: file, trimmed: false };
+    }
+    // Acima do limite + «completo»: extrair áudio de 0 → fim
+    if (sel.mode === "full") {
+      if (!isOverUploadLimit(file)) {
+        return { file: file, trimmed: false };
+      }
+      if (!state.duration || state.duration < 1) {
+        throw new Error("Não foi possível ler a duração do vídeo para extrair o áudio completo.");
+      }
+      onProgress("A extrair o áudio do ficheiro completo no browser…");
+      try {
+        var fullAudio = await trimClientSide(file, 0, state.duration, onProgress, {
+          audioOnly: !!opts.audioOnly,
+        });
+        return { file: fullAudio, trimmed: true, fullFileAudio: true };
+      } catch (err) {
+        throw new Error(
+          (err && err.message) ||
+            "Não foi possível extrair o áudio completo. Tenta «Só um trecho» (ex.: primeiros 15 min)."
+        );
+      }
     }
     if (!sel.isValid) {
       throw new Error("Trecho inválido — ajusta início e fim.");
