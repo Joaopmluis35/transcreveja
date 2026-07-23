@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="stylesheet" href="css/ouviescrevi.css?v=25">
-  <link rel="stylesheet" href="css/index-home.css?v=25">
+  <link rel="stylesheet" href="css/index-home.css?v=26">
   <link rel="stylesheet" href="css/pricing-visibility.css">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <link rel="manifest" href="/manifest.webmanifest">
@@ -445,10 +445,10 @@
 <script src="js/ouviescrevi-ui.js?v=25"></script>
 <script src="js/pricing-visibility.js?v=25"></script>
 <script src="js/history-ui.js?v=25"></script>
-<script src="js/upsell-ui.js?v=26"></script>
-<script src="js/share-ui.js?v=26"></script>
+<script src="js/upsell-ui.js?v=27"></script>
+<script src="js/share-ui.js?v=28"></script>
 <script src="/js/suggestion-fab.js?v=25" defer></script>
-<script src="/js/media-trim-ui.js?v=25" defer></script>
+<script src="/js/media-trim-ui.js?v=26" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
   const ADMIN_EMAIL = "admin@ouviescrevi.pt";
@@ -2597,8 +2597,17 @@
       e.preventDefault();
       dropZone.classList.remove("oe-drop-zone--dragover");
       if (e.dataTransfer.files.length > 0){
-        fileInput.files = e.dataTransfer.files;
-        handleFileSelected(fileInput.files[0], fileNameDisplay);
+        var dropped = e.dataTransfer.files[0];
+        try {
+          var dt = new DataTransfer();
+          dt.items.add(dropped);
+          fileInput.files = dt.files;
+        } catch (errAssign) {
+          try {
+            fileInput.files = e.dataTransfer.files;
+          } catch (err2) {}
+        }
+        handleFileSelected(fileInput.files[0] || dropped, fileNameDisplay);
       }
     });
     fileInput.addEventListener("change", () => {
@@ -2613,12 +2622,53 @@
     });
 
     function handleFileSelected(file, labelEl){
-      updateDropZoneState(!!file);
-      ensureApi().then(() => {
-        const mb = formatMb(fileSizeMb(file));
-        labelEl.textContent = `Ficheiro: ${file.name} (${mb} MB)`;
-        const isVid = isVideoFile(file);
+      if (!file) return;
+      updateDropZoneState(true);
+      const mb = formatMb(fileSizeMb(file));
+      labelEl.textContent = `Ficheiro: ${file.name} (${mb} MB)`;
+      const isVid = isVideoFile(file);
 
+      // Preview imediatamente — não esperar pela API
+      if (isVid){
+        setSubtitlePanelVisible(false);
+        if (videoObjectURL){ URL.revokeObjectURL(videoObjectURL); }
+        videoObjectURL = URL.createObjectURL(file);
+        const v = subEls.video;
+        if (v) {
+          v.src = videoObjectURL;
+          loadedVideoMeta = false;
+          v.onloadedmetadata = function () {
+            loadedVideoMeta = true;
+          };
+        }
+        var previewWrap = document.getElementById("videoPreviewWrap");
+        var uploadPreview = document.getElementById("uploadVideoPreview");
+        if (previewWrap && uploadPreview) {
+          uploadPreview.src = videoObjectURL;
+          uploadPreview.load();
+          previewWrap.classList.remove("hidden");
+        }
+        var videoHint = document.getElementById("videoUploadHint");
+        if (videoHint) videoHint.classList.remove("hidden");
+      } else {
+        setSubtitlePanelVisible(false);
+        loadedVideoMeta = false;
+        var previewWrapAudio = document.getElementById("videoPreviewWrap");
+        var uploadPreviewAudio = document.getElementById("uploadVideoPreview");
+        if (uploadPreviewAudio) {
+          uploadPreviewAudio.pause();
+          uploadPreviewAudio.removeAttribute("src");
+          uploadPreviewAudio.load();
+        }
+        if (previewWrapAudio) previewWrapAudio.classList.add("hidden");
+        var videoHintOff = document.getElementById("videoUploadHint");
+        if (videoHintOff) videoHintOff.classList.add("hidden");
+      }
+
+      btnTranscrever.disabled = false;
+      btnLegendarVideo.disabled = !isVid;
+
+      ensureApi().then(() => {
         if (isFileTooLarge(file) && !window.OuviescreviMediaTrim) {
           mostrarAlertaUpload(mensagemFicheiroGrande(file));
           btnTranscrever.disabled = true;
@@ -2628,37 +2678,7 @@
         }
 
         limparAlertaUpload();
-        btnTranscrever.disabled = false;
-        btnLegendarVideo.disabled = !isVid;
-
-        if (isVid){
-          setSubtitlePanelVisible(false);
-          if (videoObjectURL){ URL.revokeObjectURL(videoObjectURL); }
-          videoObjectURL = URL.createObjectURL(file);
-          const v = subEls.video;
-          v.src = videoObjectURL;
-          loadedVideoMeta = false;
-          v.onloadedmetadata = function () {
-            loadedVideoMeta = true;
-          };
-          var previewWrap = document.getElementById("videoPreviewWrap");
-          var uploadPreview = document.getElementById("uploadVideoPreview");
-          if (previewWrap && uploadPreview) {
-            uploadPreview.src = videoObjectURL;
-            previewWrap.classList.remove("hidden");
-          }
-        } else {
-          setSubtitlePanelVisible(false);
-          loadedVideoMeta = false;
-          var previewWrap = document.getElementById("videoPreviewWrap");
-          var uploadPreview = document.getElementById("uploadVideoPreview");
-          if (uploadPreview) {
-            uploadPreview.pause();
-            uploadPreview.removeAttribute("src");
-            uploadPreview.load();
-          }
-          if (previewWrap) previewWrap.classList.add("hidden");
-        }
+        refreshUploadButtons(file);
 
         var trimUrl = isVid ? videoObjectURL : URL.createObjectURL(file);
         if (window.OuviescreviMediaTrim) {
@@ -2669,6 +2689,8 @@
             refreshUploadButtons(file);
           });
         }
+      }).catch(function () {
+        refreshUploadButtons(file);
       });
     }
 

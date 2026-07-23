@@ -59,6 +59,18 @@ body.oe-page--home .oe-home-workspace__col--output > * {
   align-self: stretch;
 }
 
+/* Botão de partilha antigo (irmão do #output) empilhava em cima do loading */
+body.oe-page--home .oe-home-workspace__col--output > #oeSharePublicBtn,
+body.oe-page--home .oe-home-workspace__col--output > .oe-share-public-btn {
+  display: none !important;
+}
+
+body.oe-page--home .oe-home-workspace__col--output #loading.hidden,
+body.oe-page--home .oe-home-workspace__col--output .oe-legendar-done.hidden,
+body.oe-page--home .oe-home-workspace__col--output .oe-legendar-error.hidden {
+  display: none !important;
+}
+
 body.oe-page--home .oe-home-panel--placeholder[hidden] {
   display: none !important;
 }
@@ -101,6 +113,11 @@ body.oe-page--home .oe-home-workspace__col--output #loading {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  gap: 8px;
+  padding: 22px 20px;
+  overflow: auto;
+  position: relative;
+  z-index: 2;
 }
 
 body.oe-page--home .oe-home-workspace__col--output #output.oe-output {
@@ -1219,6 +1236,8 @@ body.oe-page--home #transcricaoStatus {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 body.oe-page--home #progressWrap {
@@ -1226,6 +1245,7 @@ body.oe-page--home #progressWrap {
   border-radius: 8px;
   width: 100%;
   height: 20px;
+  flex-shrink: 0;
 }
 
 body.oe-page--home #progressBar {
@@ -1241,7 +1261,7 @@ body.oe-page--home .status {
   color: #856404;
   border-left: 5px solid #ffc107;
   padding: 12px 18px;
-  margin: 15px 0;
+  margin: 0;
   border-radius: 5px;
   font-weight: bold;
 }
@@ -1251,9 +1271,20 @@ body.oe-page--home #timerTranscricao {
   font-weight: bold;
   background: #e9f7ff;
   border-left: 5px solid #00c3ff;
-  padding: 8px 12px;
+  padding: 10px 14px;
   border-radius: 5px;
-  display: inline-block;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+body.oe-page--home #loading #legendarEta {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 body.oe-page--home #resumoTexto,
@@ -1854,10 +1885,12 @@ body.oe-page--home .oe-trim-segment {
   margin-top: 14px;
 }
 body.oe-page--home .oe-trim-preview {
+  max-height: 280px;
   width: 100%;
-  max-height: 220px;
   border-radius: 10px;
   background: #0f172a;
+  margin: 8px 0 4px;
+  object-fit: contain;
 }
 body.oe-page--home .oe-trim-timeline {
   margin-top: 14px;

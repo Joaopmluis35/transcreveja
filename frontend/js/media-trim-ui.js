@@ -169,6 +169,22 @@
     updateSummary();
   }
 
+  function syncUploadPreviewVisibility() {
+    var uploadPreviewWrap = $("videoPreviewWrap");
+    if (!uploadPreviewWrap) return;
+    // Em modo trecho o player do painel já serve; em modo completo mantém o preview do upload
+    if (state.visible && state.mode === "segment" && state.isVideo) {
+      uploadPreviewWrap.classList.add("hidden");
+    } else if (state.visible && state.isVideo && state.objectUrl) {
+      var uploadPreview = $("uploadVideoPreview");
+      if (uploadPreview && !uploadPreview.getAttribute("src")) {
+        uploadPreview.src = state.objectUrl;
+        uploadPreview.load();
+      }
+      uploadPreviewWrap.classList.remove("hidden");
+    }
+  }
+
   function setMode(mode) {
     stopSegmentPreview();
     state.mode = mode;
@@ -178,6 +194,7 @@
       r.checked = r.value === mode;
     });
     if (segment) segment.classList.toggle("hidden", mode !== "segment");
+    syncUploadPreviewVisibility();
     updateForceNote();
     global.dispatchEvent(new CustomEvent("oe-trim-change", { detail: getSelection() }));
   }
@@ -276,6 +293,7 @@
     }
     updateSummary();
     updateForceNote();
+    syncUploadPreviewVisibility();
   }
 
   function hidePanel() {
