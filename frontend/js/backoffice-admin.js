@@ -229,21 +229,59 @@
       });
   }
 
+  function copyTextFallback(text) {
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.cssText = "position:fixed;left:-9999px;top:0;opacity:0;";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    ta.setSelectionRange(0, ta.value.length);
+    var ok = false;
+    try {
+      ok = document.execCommand("copy");
+    } catch (e) {
+      ok = false;
+    }
+    document.body.removeChild(ta);
+    if (!ok) throw new Error("clipboard_unavailable");
+  }
+
+  function copyTextToClipboard(text) {
+    try {
+      if (global.focus) global.focus();
+    } catch (e) {}
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+      return navigator.clipboard.writeText(text).catch(function () {
+        copyTextFallback(text);
+      });
+    }
+    return Promise.resolve().then(function () {
+      copyTextFallback(text);
+    });
+  }
+
   function deliverVisitReport(data, mode) {
     var text = JSON.stringify(data, null, 2);
     var rng = data.range || {};
     var day = rng.to || rng.hoje || "hoje";
     var nDays = rng.days || selectedVisitReportDays();
     if (mode === "copy") {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        return navigator.clipboard.writeText(text).then(function () {
+      return copyTextToClipboard(text)
+        .then(function () {
           var msg = data.fallback
             ? "JSON (painel) copiado — cola no chat Cursor."
             : "JSON copiado — cola no chat Cursor.";
           safeToast(msg, "success");
+        })
+        .catch(function () {
+          downloadBlob(
+            new Blob([text], { type: "application/json" }),
+            "ouviescrevi-visitas-" + nDays + "d-" + day + ".json"
+          );
+          safeToast("Clipboard indisponível — JSON descarregado em alternativa.", "success");
         });
-      }
-      mode = "download";
     }
     downloadBlob(
       new Blob([text], { type: "application/json" }),
@@ -1367,12 +1405,13 @@
       global.OuviescreviUI.toast("Nada para copiar.", "error");
       return;
     }
-    navigator.clipboard.writeText(lastServerLogText).then(
+    copyTextToClipboard(lastServerLogText).then(
       function () {
         global.OuviescreviUI.toast("Logs copiados.", "success");
       },
       function () {
-        global.OuviescreviUI.toast("Não foi possível copiar.", "error");
+        downloadServerLogs();
+        global.OuviescreviUI.toast("Clipboard indisponível — logs descarregados.", "success");
       }
     );
   }
