@@ -2163,8 +2163,12 @@ def _execute_transcribe_job(
                 job_id,
                 status="failed",
                 progress=100,
-                error="Não foi possível obter a transcrição.",
-                message="Falha na transcrição.",
+                error=(
+                    "Não detetámos fala neste áudio. O trecho pode estar em silêncio, "
+                    "ser demasiado curto, ou o corte no browser ter falhado — "
+                    "escolhe outro trecho com fala e tenta de novo."
+                ),
+                message="Sem fala detetada.",
             )
             return
 
