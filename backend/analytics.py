@@ -502,15 +502,6 @@ def get_top_pages(limit: int = 8) -> list[dict]:
         conn.close()
 
 
-def _scalar_count(conn: Any, sql: str, params: tuple = ()) -> int:
-    row = conn.execute(sql, params).fetchone()
-    d = row_to_dict(row) if row else {}
-    try:
-        return int(d.get("c") or 0)
-    except (TypeError, ValueError):
-        return 0
-
-
 def build_visit_report(
     owner_uids: set[str] | None = None,
     days: int = 2,
@@ -531,68 +522,73 @@ def build_visit_report(
 
     conn = get_connection()
     try:
-        by_day: dict[str, dict[str, int]] = {}
-        for d in day_list:
-            pageviews = _scalar_count(conn, "SELECT COUNT(*) AS c FROM visitas WHERE day=?", (d,))
-            unicos = _scalar_count(
-                conn,
-                """
-                SELECT COUNT(DISTINCT COALESCE(NULLIF(visitor_uid,''), visitor_hash)) AS c
-                FROM visitas WHERE day=?
-                """,
-                (d,),
-            )
-            humans = bots = owner = legacy = 0
-            for row in conn.execute(
-                "SELECT visitor_uid, ip_label, user_agent FROM visitas WHERE day=?",
-                (d,),
-            ).fetchall():
-                item = row_to_dict(row)
-                uid = item.get("visitor_uid") or ""
-                ip = item.get("ip_label")
-                is_owner = uid in owner_uids if uid else False
-                is_bot = (not is_owner) and is_bot_visit(ip, item.get("user_agent"))
-                if is_owner:
-                    owner += 1
-                elif is_bot:
-                    bots += 1
-                else:
-                    humans += 1
-                if is_legacy_ip_label(ip):
-                    legacy += 1
-            by_day[d] = {
-                "pageviews": pageviews,
-                "unicos": unicos,
-                "human_pageviews": humans,
-                "bot_pageviews": bots,
-                "owner_pageviews": owner,
-                "legacy_pageviews": legacy,
+        # Nota de performance: antes isto fazia 3 queries por dia (COUNT,
+        # COUNT DISTINCT e um SELECT completo) + 2 queries agregadas — com N
+        # dias e o Turso remoto (round-trip de rede por query) isto facilmente
+        # passava das 20-25 queries e explicava os timeouts do export. Agora
+        # faz-se UMA única query com todas as linhas do período e o resto é
+        # agregado em Python.
+        by_day: dict[str, dict[str, int]] = {
+            d: {
+                "pageviews": 0,
+                "unicos": 0,
+                "human_pageviews": 0,
+                "bot_pageviews": 0,
+                "owner_pageviews": 0,
+                "legacy_pageviews": 0,
             }
+            for d in day_list
+        }
+        day_unique_ids: dict[str, set[str]] = {d: set() for d in day_list}
+        period_unique_ids: set[str] = set()
+        visitor_seen: dict[str, tuple[str | None, str | None]] = {}
 
-        unicos_period = _scalar_count(
-            conn,
+        period_rows = conn.execute(
             f"""
-            SELECT COUNT(DISTINCT COALESCE(NULLIF(visitor_uid,''), visitor_hash)) AS c
+            SELECT day, visitor_uid, visitor_hash, ip_label, user_agent
             FROM visitas WHERE day IN ({placeholders})
             """,
             day_params,
-        )
-        humans_unicos = 0
-        for row in conn.execute(
-            f"""
-            SELECT COALESCE(NULLIF(visitor_uid,''), visitor_hash,'?') AS vid,
-                   MAX(ip_label) AS ip_label, MAX(user_agent) AS user_agent,
-                   MAX(visitor_uid) AS visitor_uid
-            FROM visitas WHERE day IN ({placeholders})
-            GROUP BY COALESCE(NULLIF(visitor_uid,''), visitor_hash,'?')
-            """,
-            day_params,
-        ).fetchall():
+        ).fetchall()
+        for row in period_rows:
             item = row_to_dict(row)
-            uid = item.get("visitor_uid") or ""
-            if uid in owner_uids:
+            d = str(item.get("day") or "")
+            stats = by_day.get(d)
+            if stats is None:
                 continue
-            if is_bot_visit(item.get("ip_label"), item.get("user_agent")):
+            uid = item.get("visitor_uid") or ""
+            visitor_hash = item.get("visitor_hash") or ""
+            vid = uid or visitor_hash
+            ip = item.get("ip_label")
+            ua = item.get("user_agent")
+
+            stats["pageviews"] += 1
+            if vid:
+                day_unique_ids[d].add(vid)
+                period_unique_ids.add(vid)
+                if vid not in visitor_seen:
+                    visitor_seen[vid] = (ip, ua)
+
+            is_owner = uid in owner_uids if uid else False
+            is_bot = (not is_owner) and is_bot_visit(ip, ua)
+            if is_owner:
+                stats["owner_pageviews"] += 1
+            elif is_bot:
+                stats["bot_pageviews"] += 1
+            else:
+                stats["human_pageviews"] += 1
+            if is_legacy_ip_label(ip):
+                stats["legacy_pageviews"] += 1
+
+        for d in day_list:
+            by_day[d]["unicos"] = len(day_unique_ids[d])
+
+        unicos_period = len(period_unique_ids)
+        humans_unicos = 0
+        for vid, (ip, ua) in visitor_seen.items():
+            if vid in owner_uids:
+                continue
+            if is_bot_visit(ip, ua):
                 continue
             humans_unicos += 1
 
