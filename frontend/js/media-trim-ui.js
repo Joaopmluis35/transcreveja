@@ -556,6 +556,7 @@
 
   /**
    * Corte rápido de MP4/MOV via WebCodecs (sem gravar em tempo real).
+   * Gravações Google Meet / ecrã partilhado costumam ser fMP4 — precisa de fixFMP4Duration.
    */
   async function extractSegmentViaWebAV(file, startSec, endSec, onProgress, opts) {
     onProgress = onProgress || function () {};
@@ -566,16 +567,34 @@
     var MP4Clip = mod.MP4Clip;
     var Combinator = mod.Combinator;
     var OffscreenSprite = mod.OffscreenSprite;
+    var fixFMP4Duration = mod.fixFMP4Duration;
     if (Combinator && Combinator.isSupported) {
       var supported = await Combinator.isSupported();
       if (!supported) throw new Error("WebCodecs indisponível neste browser.");
     }
 
     onProgress("A analisar vídeo…");
-    var sourceClip = new MP4Clip(file.stream());
-    await sourceClip.ready;
-    var startUs = Math.round(startSec * 1e6);
     var durationUs = Math.round(Math.max(0.5, endSec - startSec) * 1e6);
+    var startUs = Math.round(startSec * 1e6);
+
+    async function openSourceClip() {
+      var stream = file.stream();
+      // Meet/Zoom e gravações de ecrã: duração em falta no contentor
+      if (typeof fixFMP4Duration === "function") {
+        try {
+          stream = await fixFMP4Duration(stream);
+        } catch (fixErr) {
+          console.warn("OuviescreviMediaTrim: fixFMP4Duration falhou", fixErr);
+          stream = file.stream();
+        }
+      }
+      var clipOpts = audioOnly ? { audio: true } : undefined;
+      var clip = new MP4Clip(stream, clipOpts);
+      await clip.ready;
+      return clip;
+    }
+
+    var sourceClip = await openSourceClip();
     var splitHead = await sourceClip.split(startUs);
     var afterStart = splitHead[1];
     destroyClipSafe(sourceClip);
@@ -583,6 +602,7 @@
     var segment = splitSegment[0];
     destroyClipSafe(afterStart);
     destroyClipSafe(splitSegment[1]);
+    await segment.ready;
 
     var exportClip = segment;
     if (audioOnly) {
@@ -594,6 +614,7 @@
             if (track !== exportClip) destroyClipSafe(track);
           });
         }
+        await exportClip.ready;
       } catch (_) {}
     }
 
@@ -603,10 +624,12 @@
     onProgress(progressLabel + "0%");
     var sprite = new OffscreenSprite(exportClip);
     var meta = exportClip.meta || {};
+    var clipDuration = Math.max(durationUs, Math.round(meta.duration || 0) || durationUs);
+    sprite.time = { offset: 0, duration: clipDuration };
     var com = new Combinator({
       width: Math.max(2, meta.width || 2),
       height: Math.max(2, meta.height || 2),
-      bitrate: audioOnly ? 500000 : 2500000,
+      bitrate: audioOnly ? 128000 : 1500000,
     });
     var stopProgress = null;
     if (com.on) {
@@ -616,8 +639,8 @@
     }
     try {
       await com.addSprite(sprite, { main: true });
-      var outMime = audioOnly ? "audio/mp4" : "video/mp4";
-      var outBlob = await readReadableStreamToBlob(com.output(), outMime);
+      var outMime = "video/mp4";
+      var outBlob = await readReadableStreamToBlob(com.output({ maxTime: clipDuration }), outMime);
       if (!outBlob.size) throw new Error("Trecho vazio.");
       onProgress(
         (audioOnly ? "Áudio" : "Vídeo") +
@@ -627,7 +650,10 @@
       );
       var base = (file.name || "media").replace(/\.[^.]+$/, "");
       var ext = audioOnly ? "m4a" : (file.name.split(".").pop() || "mp4").toLowerCase();
-      return new File([outBlob], base + "_trecho." + ext, { type: outBlob.type || outMime });
+      // Combinator exporta sempre MP4; para transcrever serve na mesma
+      return new File([outBlob], base + "_trecho." + (audioOnly ? "mp4" : ext), {
+        type: outBlob.type || outMime,
+      });
     } finally {
       if (stopProgress) stopProgress();
       com.destroy();
@@ -641,8 +667,100 @@
     return extractSegmentViaWebAV(file, startSec, endSec, onProgress, { audioOnly: true });
   }
 
+  /** FFmpeg + WORKERFS: lê o ficheiro grande sem o carregar todo para a RAM WASM. */
+  async function extractSegmentViaFfmpegMount(file, startSec, endSec, onProgress, opts) {
+    onProgress = onProgress || function () {};
+    opts = opts || {};
+    var ffmpeg = await loadFfmpeg(onProgress);
+    var mountDir = "/oe_work";
+    var ext = (file.name.split(".").pop() || "mp4").toLowerCase();
+    var safeName = "input." + ext;
+    var outName = opts.audioOnly ? "trecho_a.m4a" : "trecho_v.mp4";
+    var dur = Math.max(0.5, endSec - startSec);
+    var inputPath = mountDir + "/" + safeName;
+    onProgress("A cortar o trecho com FFmpeg…");
+    try {
+      try {
+        await ffmpeg.unmount(mountDir);
+      } catch (_) {}
+      try {
+        await ffmpeg.createDir(mountDir);
+      } catch (_) {}
+      await ffmpeg.mount("WORKERFS", { blobs: [{ name: safeName, data: file }] }, mountDir);
+      var args;
+      if (opts.audioOnly) {
+        args = [
+          "-ss",
+          String(startSec),
+          "-t",
+          String(dur),
+          "-i",
+          inputPath,
+          "-vn",
+          "-sn",
+          "-c:a",
+          "copy",
+          outName,
+        ];
+        try {
+          await ffmpeg.exec(args);
+        } catch (_) {
+          args = [
+            "-ss",
+            String(startSec),
+            "-t",
+            String(dur),
+            "-i",
+            inputPath,
+            "-vn",
+            "-sn",
+            "-ar",
+            "16000",
+            "-ac",
+            "1",
+            "-c:a",
+            "aac",
+            "-b:a",
+            "64k",
+            outName,
+          ];
+          await ffmpeg.exec(args);
+        }
+      } else {
+        args = [
+          "-ss",
+          String(startSec),
+          "-t",
+          String(dur),
+          "-i",
+          inputPath,
+          "-c",
+          "copy",
+          outName,
+        ];
+        await ffmpeg.exec(args);
+      }
+      var data = await ffmpeg.readFile(outName);
+      var mime = opts.audioOnly ? "audio/mp4" : file.type || "video/mp4";
+      var blob = new Blob([data.buffer], { type: mime });
+      if (!blob.size) throw new Error("Trecho FFmpeg vazio.");
+      onProgress(
+        "Trecho pronto (" + Math.max(1, Math.round(blob.size / (1024 * 1024))) + " MB)."
+      );
+      var base = (file.name || "media").replace(/\.[^.]+$/, "");
+      return new File([blob], base + "_trecho." + (opts.audioOnly ? "m4a" : ext), { type: mime });
+    } finally {
+      try {
+        await ffmpeg.deleteFile(outName);
+      } catch (_) {}
+      try {
+        await ffmpeg.unmount(mountDir);
+      } catch (_) {}
+    }
+  }
+
   /**
-   * Fallback: grava em tempo real via <video>/<audio> (mais lento).
+   * Fallback: grava via <video> (tempo real). Só para trechos curtos.
    */
   function extractAudioSegmentViaMedia(startSec, endSec, onProgress) {
     onProgress = onProgress || function () {};
@@ -812,8 +930,7 @@
 
   /**
    * Corte no browser sem gravar em tempo real.
-   * Ficheiros grandes (ex. 689 MB): WebAV áudio → WebAV vídeo do trecho → FFmpeg.
-   * MediaRecorder só como último recurso em trechos ≤ 90 s.
+   * Ficheiros grandes: WebAV (c/ fix fMP4) → FFmpeg WORKERFS → MediaRecorder curto.
    */
   async function trimClientSide(file, startSec, endSec, onProgress, opts) {
     onProgress = onProgress || function () {};
@@ -832,7 +949,7 @@
         } catch (err) {
           lastErr = err;
           console.warn("OuviescreviMediaTrim: WebAV áudio falhou", err);
-          onProgress("Corte de áudio rápido falhou — a cortar só o trecho de vídeo…");
+          onProgress("Corte de áudio rápido falhou — a tentar corte de vídeo…");
         }
       }
       try {
@@ -852,6 +969,25 @@
       } catch (err) {
         lastErr = err;
         console.warn("OuviescreviMediaTrim: WebAV vídeo falhou", err);
+        onProgress("Corte WebAV falhou — a tentar FFmpeg…");
+      }
+      try {
+        return await extractSegmentViaFfmpegMount(file, startSec, endSec, onProgress, {
+          audioOnly: wantAudio,
+        });
+      } catch (err) {
+        lastErr = err;
+        console.warn("OuviescreviMediaTrim: FFmpeg mount falhou", err);
+        if (wantAudio) {
+          try {
+            return await extractSegmentViaFfmpegMount(file, startSec, endSec, onProgress, {
+              audioOnly: false,
+            });
+          } catch (err2) {
+            lastErr = err2;
+            console.warn("OuviescreviMediaTrim: FFmpeg vídeo falhou", err2);
+          }
+        }
       }
     }
 
@@ -925,7 +1061,6 @@
       }
     }
 
-    // Último recurso: só trechos curtos (gravação em tempo real é inviável em 10 min)
     if (wantAudio && segmentSec <= MEDIA_RECORDER_MAX_SEC) {
       onProgress(
         "A gravar áudio do trecho em tempo real (~" +
@@ -936,13 +1071,13 @@
     }
 
     var estMb = Math.round(estimateSegmentBytes(file, startSec, endSec) / (1024 * 1024));
-    var detail = lastErr && lastErr.message ? " (" + lastErr.message + ")" : "";
+    var detail = lastErr && lastErr.message ? ": " + lastErr.message : "";
     throw new Error(
-      "Não foi possível cortar este trecho de forma rápida no browser" +
+      "Não foi possível cortar este trecho no browser" +
         detail +
-        ". Tenta um trecho mais curto (estimativa ~" +
+        ". Tenta Chrome/Edge, um trecho mais curto (estimativa ~" +
         estMb +
-        " MB) ou outro browser (Chrome/Edge)."
+        " MB), ou comprime o vídeo antes de enviar."
     );
   }
 
@@ -965,7 +1100,8 @@
         console.warn("OuviescreviMediaTrim: corte no browser falhou", err);
         if (isOverUploadLimit(file)) {
           throw new Error(
-            "Não foi possível cortar no browser. Tenta um trecho mais curto ou comprime o vídeo antes de enviar."
+            (err && err.message) ||
+              "Não foi possível cortar no browser. Tenta um trecho mais curto ou comprime o vídeo antes de enviar."
           );
         }
         onProgress(
