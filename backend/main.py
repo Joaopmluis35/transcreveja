@@ -1716,12 +1716,18 @@ def api_usage(request: Request):
 
 
 @app.get("/api/auth/history")
-def user_history(request: Request, limit: int = 30, offset: int = 0):
+def user_history(request: Request, limit: int = 30, offset: int = 0, q: str | None = None):
     actor = resolve_site_actor(request)
     if actor["type"] != "user":
         raise HTTPException(status_code=403, detail="Inicia sessão para ver o histórico.")
-    items = admin_store.list_user_transcriptions(actor["email"], limit=limit, offset=offset)
-    return {"items": items}
+    items = admin_store.list_user_transcriptions(
+        actor["email"], limit=limit, offset=offset, q=q
+    )
+    return {"items": items, "q": (q or "").strip() or None}
+
+
+class HistoryRenameRequest(BaseModel):
+    filename: str
 
 
 @app.get("/api/auth/history/{item_id}")
@@ -1733,6 +1739,25 @@ def user_history_item(request: Request, item_id: int):
     if not row:
         raise HTTPException(status_code=404, detail="Transcrição não encontrada.")
     return row
+
+
+@app.patch("/api/auth/history/{item_id}")
+def user_history_rename(request: Request, item_id: int, body: HistoryRenameRequest):
+    actor = resolve_site_actor(request)
+    if actor["type"] != "user":
+        raise HTTPException(status_code=403, detail="Inicia sessão para renomear no histórico.")
+    name = (body.filename or "").strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="Indica um nome para a transcrição.")
+    row = admin_store.rename_user_transcription(actor["email"], item_id, name)
+    if not row:
+        raise HTTPException(status_code=404, detail="Transcrição não encontrada.")
+    return {
+        "ok": True,
+        "id": row.get("id"),
+        "filename": row.get("filename"),
+        "created_at": row.get("created_at"),
+    }
 
 
 @app.delete("/api/auth/history/{item_id}")

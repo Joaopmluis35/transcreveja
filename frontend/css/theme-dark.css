@@ -219,6 +219,20 @@ html.oe-theme-dark body.oe-page--home .oe-history-panel {
   border-color: var(--pro-border);
 }
 
+html.oe-theme-dark body.oe-page--home .oe-history-panel__search-input {
+  background: #0f172a;
+  border-color: var(--pro-border);
+  color: var(--pro-text);
+}
+
+html.oe-theme-dark body.oe-page--home .oe-history-panel__search-clear,
+html.oe-theme-dark body.oe-page--home .oe-history-item__share,
+html.oe-theme-dark body.oe-page--home .oe-history-item__rename {
+  background: #0f172a;
+  border-color: var(--pro-border);
+  color: var(--pro-text);
+}
+
 html.oe-theme-dark body.oe-page--home .oe-history-item {
   background: #0f172a;
   border-color: var(--pro-border);

@@ -571,26 +571,73 @@ def save_user_transcription(
         conn.close()
 
 
-def list_user_transcriptions(user_email: str, *, limit: int = 30, offset: int = 0) -> list[dict]:
+def list_user_transcriptions(
+    user_email: str,
+    *,
+    limit: int = 30,
+    offset: int = 0,
+    q: str | None = None,
+) -> list[dict]:
     limit = max(1, min(limit, 200))
     offset = max(0, offset)
     email = user_email.strip().lower()
+    needle = (q or "").strip()
     conn = get_connection()
     try:
-        rows = conn.execute(
-            """
-            SELECT id, filename, language, size_bytes, duration_sec, created_at,
-                   substr(COALESCE(formatted, transcription, ''), 1, 160) AS preview
-            FROM user_transcriptions
-            WHERE user_email = ?
-            ORDER BY id DESC
-            LIMIT ? OFFSET ?
-            """,
-            (email, limit, offset),
-        ).fetchall()
+        if needle:
+            like = f"%{needle}%"
+            rows = conn.execute(
+                """
+                SELECT id, filename, language, size_bytes, duration_sec, created_at,
+                       substr(COALESCE(formatted, transcription, ''), 1, 160) AS preview
+                FROM user_transcriptions
+                WHERE user_email = ?
+                  AND (
+                    COALESCE(filename, '') LIKE ?
+                    OR COALESCE(formatted, '') LIKE ?
+                    OR COALESCE(transcription, '') LIKE ?
+                  )
+                ORDER BY id DESC
+                LIMIT ? OFFSET ?
+                """,
+                (email, like, like, like, limit, offset),
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                """
+                SELECT id, filename, language, size_bytes, duration_sec, created_at,
+                       substr(COALESCE(formatted, transcription, ''), 1, 160) AS preview
+                FROM user_transcriptions
+                WHERE user_email = ?
+                ORDER BY id DESC
+                LIMIT ? OFFSET ?
+                """,
+                (email, limit, offset),
+            ).fetchall()
         return [row_to_dict(r) for r in rows]
     finally:
         conn.close()
+
+
+def rename_user_transcription(user_email: str, item_id: int, filename: str) -> dict | None:
+    email = user_email.strip().lower()
+    name = (filename or "").strip()[:240] or "Sem nome"
+    conn = get_connection()
+    try:
+        cur = conn.execute(
+            """
+            UPDATE user_transcriptions
+            SET filename = ?
+            WHERE user_email = ? AND id = ?
+            """,
+            (name, email, item_id),
+        )
+        conn.commit()
+        if cur.rowcount <= 0:
+            return None
+    finally:
+        conn.close()
+    return get_user_transcription(email, item_id)
 
 
 def get_user_transcription(user_email: str, item_id: int) -> dict | None:

@@ -1753,6 +1753,58 @@ body.oe-page--home .oe-history-panel__refresh:hover {
   color: #6d28d9;
 }
 
+body.oe-page--home .oe-history-panel__search {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+body.oe-page--home .oe-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+body.oe-page--home .oe-history-panel__search-input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 0.9rem;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+body.oe-page--home .oe-history-panel__search-input:focus {
+  outline: 2px solid #c4b5fd;
+  outline-offset: 1px;
+  border-color: #a78bfa;
+  background: #fff;
+}
+
+body.oe-page--home .oe-history-panel__search-clear {
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #64748b;
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+body.oe-page--home .oe-history-panel__search-clear:hover {
+  border-color: #cbd5e1;
+  color: #334155;
+}
+
 body.oe-page--home .oe-history-list {
   list-style: none;
   margin: 0;
@@ -1804,13 +1856,34 @@ body.oe-page--home .oe-history-item__preview {
   margin-top: 4px;
 }
 
+body.oe-page--home .oe-history-item__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+body.oe-page--home .oe-history-item__share,
+body.oe-page--home .oe-history-item__rename,
 body.oe-page--home .oe-history-item__del {
   width: 36px;
-  border: 1px solid #fecaca;
-  background: #fff;
-  color: #dc2626;
+  min-height: 32px;
   border-radius: 10px;
   cursor: pointer;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #475569;
+}
+
+body.oe-page--home .oe-history-item__share:hover,
+body.oe-page--home .oe-history-item__rename:hover {
+  border-color: #c4b5fd;
+  color: #6d28d9;
+  background: #f5f3ff;
+}
+
+body.oe-page--home .oe-history-item__del {
+  border-color: #fecaca;
+  color: #dc2626;
 }
 
 body.oe-page--home .oe-history-item__del:hover {

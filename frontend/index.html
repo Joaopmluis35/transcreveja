@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="stylesheet" href="css/ouviescrevi.css?v=25">
-  <link rel="stylesheet" href="css/index-home.css?v=28">
+  <link rel="stylesheet" href="css/index-home.css?v=29">
   <link rel="stylesheet" href="css/pricing-visibility.css">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <link rel="manifest" href="/manifest.webmanifest">
@@ -264,6 +264,17 @@
         <h2 id="historyPanelTitle" class="oe-history-panel__title">As tuas transcrições</h2>
         <button type="button" id="btnRefreshHistory" class="oe-history-panel__refresh">Atualizar</button>
       </header>
+      <div class="oe-history-panel__search">
+        <label class="oe-sr-only" for="historySearch">Pesquisar no histórico</label>
+        <input
+          type="search"
+          id="historySearch"
+          class="oe-history-panel__search-input"
+          placeholder="Pesquisar por nome ou texto…"
+          autocomplete="off"
+        >
+        <button type="button" id="btnClearHistorySearch" class="oe-history-panel__search-clear" title="Limpar pesquisa">Limpar</button>
+      </div>
       <ul id="historyList" class="oe-history-list" aria-live="polite"></ul>
       <p id="historyEmpty" class="oe-history-empty hidden">Ainda não tens transcrições guardadas nesta conta.</p>
     </section>
@@ -459,7 +470,7 @@
 <script src="js/docx-export.js?v=25"></script>
 <script src="js/ouviescrevi-ui.js?v=25"></script>
 <script src="js/pricing-visibility.js?v=25"></script>
-<script src="js/history-ui.js?v=25"></script>
+<script src="js/history-ui.js?v=26"></script>
 <script src="js/upsell-ui.js?v=27"></script>
 <script src="js/share-ui.js?v=28"></script>
 <script src="/js/suggestion-fab.js?v=25" defer></script>
