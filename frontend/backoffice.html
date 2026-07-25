@@ -7,7 +7,7 @@
   <title>Backoffice | Ouviescrevi</title>
   <link rel="icon" href="/logos/ouviescreviicon.png" type="image/png">
   <link rel="stylesheet" href="css/ouviescrevi.css?v=25">
-  <link rel="stylesheet" href="css/backoffice.css?v=23">
+  <link rel="stylesheet" href="css/backoffice.css?v=24">
   <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
   <script src="js/ouviescrevi-ui.js?v=25" defer></script>
 </head>
@@ -57,6 +57,9 @@
       <button type="button" data-tab="sugestoes" aria-selected="false">
         <span class="oe-admin-nav-icon">💡</span> Sugestões
         <span id="navBadgeSugestoes" class="oe-admin-nav-badge hidden">0</span>
+      </button>
+      <button type="button" data-tab="ai-insights" data-min-role="admin" aria-selected="false">
+        <span class="oe-admin-nav-icon">✨</span> Sugestões AI
       </button>
       <button type="button" data-tab="emails" data-min-role="admin" aria-selected="false">
         <span class="oe-admin-nav-icon">📧</span> Emails
@@ -473,6 +476,45 @@
         </div>
       </div>
 
+      <!-- Sugestões AI -->
+      <div data-panel="ai-insights" class="hidden" data-admin-only="admin">
+        <div class="oe-admin-panel">
+          <div class="oe-admin-panel__head oe-admin-panel__head--row">
+            <span>Sugestões AI</span>
+            <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+              <label class="oe-admin-check-inline" for="aiInsightDays">
+                Período
+                <select id="aiInsightDays" class="oe-admin-select-inline" aria-label="Dias a analisar">
+                  <option value="3">3 dias</option>
+                  <option value="7" selected>7 dias</option>
+                  <option value="14">14 dias</option>
+                  <option value="30">30 dias</option>
+                </select>
+              </label>
+              <select id="aiInsightStatusFilter" class="oe-admin-select-inline" aria-label="Filtrar estado">
+                <option value="">Todos</option>
+                <option value="new">Novas</option>
+                <option value="saved">Guardadas</option>
+                <option value="done">Feitas</option>
+                <option value="dismissed">Descartadas</option>
+              </select>
+              <button type="button" id="btnRefreshAiInsights" class="oe-admin-btn oe-admin-btn--secondary oe-admin-btn--sm">Atualizar</button>
+              <button type="button" id="btnGenerateAiInsights" class="oe-admin-btn oe-admin-btn--primary oe-admin-btn--sm">✨ Gerar com AI</button>
+            </div>
+          </div>
+          <div class="oe-admin-panel__body">
+            <p class="oe-admin-hint">
+              Analisa visitas e transcrições com a tua API OpenAI e propõe melhorias. Marca as que quiseres
+              implementar e usa <strong>Copiar para Cursor</strong> para pedir a implementação neste chat.
+            </p>
+            <div id="aiInsightsSummary" class="oe-admin-alert oe-admin-alert--ok" hidden style="margin-bottom:14px"></div>
+            <div id="tabelaAiInsights">
+              <p class="oe-admin-empty">A carregar...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Emails -->
       <div data-panel="emails" class="hidden" data-admin-only="admin">
         <div id="emailStatusCards" class="oe-admin-health-grid" aria-live="polite">
@@ -787,8 +829,8 @@
 <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 <script src="js/ouviescrevi-api.js?v=25"></script>
 <script src="js/backoffice-cms-locales.js?v=5"></script>
-<script src="js/backoffice.js?v=30"></script>
-<script src="js/backoffice-admin.js?v=31"></script>
+<script src="js/backoffice.js?v=31"></script>
+<script src="js/backoffice-admin.js?v=32"></script>
 <script src="js/backoffice-nav.js?v=2"></script>
 <script src="js/backoffice-billing.js?v=4"></script>
 </body>

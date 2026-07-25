@@ -1277,6 +1277,120 @@ def delete_suggestion(suggestion_id: int) -> None:
         conn.close()
 
 
+def save_ai_insights(
+    suggestions: list[dict],
+    *,
+    run_id: str,
+    source_days: int,
+) -> list[dict]:
+    now = _now()
+    saved: list[dict] = []
+    conn = get_connection()
+    try:
+        for item in suggestions:
+            cur = conn.execute(
+                """
+                INSERT INTO ai_insights (
+                    run_id, title, detail, priority, category, evidence,
+                    cursor_prompt, status, source_days, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, 'new', ?, ?, ?)
+                """,
+                (
+                    run_id,
+                    item.get("title"),
+                    item.get("detail"),
+                    item.get("priority") or "media",
+                    item.get("category") or "produto",
+                    item.get("evidence") or "",
+                    item.get("cursor_prompt") or "",
+                    int(source_days),
+                    now,
+                    now,
+                ),
+            )
+            saved.append(
+                {
+                    "id": int(cur.lastrowid),
+                    "run_id": run_id,
+                    "title": item.get("title"),
+                    "detail": item.get("detail"),
+                    "priority": item.get("priority") or "media",
+                    "category": item.get("category") or "produto",
+                    "evidence": item.get("evidence") or "",
+                    "cursor_prompt": item.get("cursor_prompt") or "",
+                    "status": "new",
+                    "source_days": int(source_days),
+                    "created_at": now,
+                    "updated_at": now,
+                }
+            )
+        conn.commit()
+        return saved
+    finally:
+        conn.close()
+
+
+def list_ai_insights(
+    *,
+    status: str | None = None,
+    limit: int = 50,
+) -> list[dict]:
+    limit = max(1, min(int(limit or 50), 200))
+    conn = get_connection()
+    try:
+        if status:
+            rows = conn.execute(
+                """
+                SELECT * FROM ai_insights
+                WHERE status = ?
+                ORDER BY id DESC LIMIT ?
+                """,
+                (status, limit),
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                "SELECT * FROM ai_insights ORDER BY id DESC LIMIT ?",
+                (limit,),
+            ).fetchall()
+        return [row_to_dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+def update_ai_insight_status(item_id: int, status: str) -> dict | None:
+    allowed = {"new", "saved", "done", "dismissed"}
+    st = (status or "").strip().lower()
+    if st not in allowed:
+        raise ValueError("status_invalido")
+    now = _now()
+    conn = get_connection()
+    try:
+        cur = conn.execute(
+            """
+            UPDATE ai_insights SET status = ?, updated_at = ?
+            WHERE id = ?
+            """,
+            (st, now, item_id),
+        )
+        conn.commit()
+        if cur.rowcount <= 0:
+            return None
+        row = conn.execute("SELECT * FROM ai_insights WHERE id = ?", (item_id,)).fetchone()
+        return row_to_dict(row) if row else None
+    finally:
+        conn.close()
+
+
+def delete_ai_insight(item_id: int) -> bool:
+    conn = get_connection()
+    try:
+        cur = conn.execute("DELETE FROM ai_insights WHERE id = ?", (item_id,))
+        conn.commit()
+        return cur.rowcount > 0
+    finally:
+        conn.close()
+
+
 def send_test_alert_email(actor: str = "admin") -> dict[str, str]:
     from email_notify import notify_email_to, send_notification_email
 
@@ -1800,6 +1914,7 @@ def system_health(openai_client=None) -> dict:
                 "visitas",
                 "site_content",
                 "sugestoes",
+                "ai_insights",
                 "admin_users",
                 "audit_log",
                 "site_users",

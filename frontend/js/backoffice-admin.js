@@ -1189,6 +1189,168 @@
     }
   }
 
+  function aiInsightStatusLabel(status) {
+    if (status === "saved") return "Guardada";
+    if (status === "done") return "Feita";
+    if (status === "dismissed") return "Descartada";
+    return "Nova";
+  }
+
+  function aiInsightPriorityBadge(priority) {
+    var p = (priority || "media").toLowerCase();
+    var cls = "oe-admin-badge";
+    if (p === "alta") cls += " oe-admin-badge--err";
+    else if (p === "baixa") cls += " oe-admin-badge--ok";
+    else cls += " oe-admin-badge--warn";
+    return '<span class="' + cls + '">' + escapeHtml(p) + "</span>";
+  }
+
+  async function loadAiInsights() {
+    var div = document.getElementById("tabelaAiInsights");
+    if (!div) return;
+    var status = (document.getElementById("aiInsightStatusFilter") || {}).value || "";
+    try {
+      var qs = status ? "?status=" + encodeURIComponent(status) : "";
+      var res = await fetch(apiBase() + "/api/admin/ai-insights" + qs, { headers: authHeaders() });
+      var data = await res.json().catch(function () { return {}; });
+      if (!res.ok) throw new Error(apiErrorMessage(data, "Erro ao carregar."));
+      var items = data.items || [];
+      if (!items.length) {
+        div.innerHTML = '<p class="oe-admin-empty">Sem sugestões AI. Clica em «Gerar com AI».</p>';
+        return;
+      }
+      var html = items.map(function (item) {
+        return (
+          '<article class="oe-admin-ai-card" data-id="' + item.id + '">' +
+          '<div class="oe-admin-ai-card__head">' +
+          "<h4>" + escapeHtml(item.title || "") + "</h4>" +
+          '<div class="oe-admin-ai-card__meta">' +
+          aiInsightPriorityBadge(item.priority) +
+          ' <span class="oe-admin-badge">' + escapeHtml(item.category || "produto") + "</span>" +
+          ' <span class="oe-admin-badge">' + escapeHtml(aiInsightStatusLabel(item.status)) + "</span>" +
+          "</div></div>" +
+          '<p class="oe-admin-ai-card__detail">' + escapeHtml(item.detail || "") + "</p>" +
+          (item.evidence
+            ? '<p class="oe-admin-hint"><strong>Evidência:</strong> ' + escapeHtml(item.evidence) + "</p>"
+            : "") +
+          '<div class="oe-admin-ai-card__actions">' +
+          '<button type="button" class="oe-admin-btn oe-admin-btn--primary oe-admin-btn--sm" data-ai-copy>Copiar para Cursor</button>' +
+          (item.status !== "saved"
+            ? '<button type="button" class="oe-admin-btn oe-admin-btn--secondary oe-admin-btn--sm" data-ai-status="saved">Guardar</button>'
+            : "") +
+          (item.status !== "done"
+            ? '<button type="button" class="oe-admin-btn oe-admin-btn--secondary oe-admin-btn--sm" data-ai-status="done">Feita</button>'
+            : "") +
+          (item.status !== "dismissed"
+            ? '<button type="button" class="oe-admin-btn oe-admin-btn--secondary oe-admin-btn--sm" data-ai-status="dismissed">Descartar</button>'
+            : "") +
+          '<button type="button" class="oe-admin-btn oe-admin-btn--danger oe-admin-btn--sm" data-ai-delete>Apagar</button>' +
+          "</div></article>"
+        );
+      }).join("");
+      div.innerHTML = html;
+      div.querySelectorAll(".oe-admin-ai-card").forEach(function (card) {
+        var id = Number(card.getAttribute("data-id"));
+        var item = items.find(function (x) { return Number(x.id) === id; });
+        var copyBtn = card.querySelector("[data-ai-copy]");
+        if (copyBtn) {
+          copyBtn.addEventListener("click", function () {
+            var prompt =
+              (item && item.cursor_prompt) ||
+              ("Implementa no Ouviescrevi: " + ((item && item.title) || ""));
+            if (item && item.detail) prompt += "\n\nContexto: " + item.detail;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(prompt).then(function () {
+                global.OuviescreviUI.toast("Prompt copiado — cola no Cursor.", "success");
+              }).catch(function () {
+                global.OuviescreviUI.toast("Não foi possível copiar.", "error");
+              });
+            } else {
+              global.OuviescreviUI.toast("Clipboard indisponível.", "error");
+            }
+          });
+        }
+        card.querySelectorAll("[data-ai-status]").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            patchAiInsightStatus(id, btn.getAttribute("data-ai-status"));
+          });
+        });
+        var delBtn = card.querySelector("[data-ai-delete]");
+        if (delBtn) {
+          delBtn.addEventListener("click", function () {
+            if (!window.confirm("Apagar esta sugestão AI?")) return;
+            deleteAiInsight(id);
+          });
+        }
+      });
+    } catch (e) {
+      div.innerHTML = '<p class="oe-admin-empty">' + escapeHtml(e.message || "Erro ao carregar.") + "</p>";
+    }
+  }
+
+  async function generateAiInsights() {
+    var btn = document.getElementById("btnGenerateAiInsights");
+    var summaryEl = document.getElementById("aiInsightsSummary");
+    var days = (document.getElementById("aiInsightDays") || {}).value || "7";
+    if (btn) btn.disabled = true;
+    try {
+      var res = await fetch(
+        apiBase() + "/api/admin/ai-insights/generate?days=" + encodeURIComponent(days) + "&save=true",
+        { method: "POST", headers: authHeaders() }
+      );
+      var data = await res.json().catch(function () { return {}; });
+      if (!res.ok) throw new Error(apiErrorMessage(data, "Falha ao gerar."));
+      if (summaryEl) {
+        if (data.summary) {
+          summaryEl.hidden = false;
+          summaryEl.textContent = data.summary;
+        } else {
+          summaryEl.hidden = true;
+        }
+      }
+      global.OuviescreviUI.toast(
+        "Geradas " + (data.count || 0) + " sugestões AI.",
+        "success"
+      );
+      loadAiInsights();
+    } catch (e) {
+      global.OuviescreviUI.toast(e.message || "Erro ao gerar.", "error");
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  async function patchAiInsightStatus(id, status) {
+    try {
+      var res = await fetch(apiBase() + "/api/admin/ai-insights/" + id, {
+        method: "PATCH",
+        headers: authHeaders(),
+        body: JSON.stringify({ status: status }),
+      });
+      var data = await res.json().catch(function () { return {}; });
+      if (!res.ok) throw new Error(apiErrorMessage(data, "Erro ao atualizar."));
+      global.OuviescreviUI.toast("Estado atualizado.", "success");
+      loadAiInsights();
+    } catch (e) {
+      global.OuviescreviUI.toast(e.message || "Erro.", "error");
+    }
+  }
+
+  async function deleteAiInsight(id) {
+    try {
+      var res = await fetch(apiBase() + "/api/admin/ai-insights/" + id, {
+        method: "DELETE",
+        headers: authHeaders(),
+      });
+      var data = await res.json().catch(function () { return {}; });
+      if (!res.ok) throw new Error(apiErrorMessage(data, "Erro ao apagar."));
+      global.OuviescreviUI.toast("Sugestão apagada.", "success");
+      loadAiInsights();
+    } catch (e) {
+      global.OuviescreviUI.toast(e.message || "Erro.", "error");
+    }
+  }
+
   async function updateUserRole(userId, role, username) {
     try {
       var res = await fetch(apiBase() + "/api/admin/users/" + userId, {
@@ -1339,6 +1501,7 @@
         visitas: "Visitas",
         site_content: "Blocos CMS",
         sugestoes: "Sugestões",
+        ai_insights: "Sugestões AI",
         admin_users: "Utilizadores",
         audit_log: "Auditoria",
       };
@@ -1809,6 +1972,7 @@
       global.OuviescreviAdmin.carregarDashboard();
     }
     if (tab === "sugestoes") loadSugestoes();
+    if (tab === "ai-insights") loadAiInsights();
     if (tab === "emails") loadEmails();
     if (tab === "planos" && global.OuviescreviBillingAdmin) global.OuviescreviBillingAdmin.loadBilling();
     if (tab === "sistema") {
@@ -1844,6 +2008,12 @@
     if (sugUnread) sugUnread.addEventListener("change", loadSugestoes);
     var sugLang = document.getElementById("sugLangFilter");
     if (sugLang) sugLang.addEventListener("change", loadSugestoes);
+    var btnGenAi = document.getElementById("btnGenerateAiInsights");
+    if (btnGenAi) btnGenAi.addEventListener("click", generateAiInsights);
+    var btnRefreshAi = document.getElementById("btnRefreshAiInsights");
+    if (btnRefreshAi) btnRefreshAi.addEventListener("click", loadAiInsights);
+    var aiStatusFilter = document.getElementById("aiInsightStatusFilter");
+    if (aiStatusFilter) aiStatusFilter.addEventListener("change", loadAiInsights);
     var emailForm = document.getElementById("emailConfigForm");
     if (emailForm) emailForm.addEventListener("submit", saveEmailConfig);
     var btnRefreshEmails = document.getElementById("btnRefreshEmails");
@@ -1904,6 +2074,7 @@
     resizeCloudflareChart: resizeCloudflareChart,
     onTab: onTab,
     loadSugestoes: loadSugestoes,
+    loadAiInsights: loadAiInsights,
     loadSystem: loadSystem,
     loadLogs: loadLogs,
     loadEmails: loadEmails,

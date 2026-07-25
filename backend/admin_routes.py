@@ -623,3 +623,96 @@ def admin_billing_config(request: Request, body: BillingConfigUpdate):
             "stripe_webhook_set": bool(cfg.get("stripe_webhook_secret") or ""),
         },
     }
+
+
+class AiInsightStatusRequest(BaseModel):
+    status: str
+
+
+@router.post("/ai-insights/generate")
+def admin_ai_insights_generate(
+    request: Request,
+    days: int = 7,
+    save: bool = True,
+):
+    """Gera sugestões via OpenAI a partir de visitas + transcrições e guarda-as."""
+    store.require_role(getattr(request.state, "admin_session", None), "admin")
+    from ai_insights import generate_ai_insights
+
+    days_n = max(1, min(int(days or 7), 30))
+    try:
+        result = generate_ai_insights(days=days_n)
+    except RuntimeError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    except Exception as e:
+        logger.exception("ai-insights generate failed")
+        raise HTTPException(status_code=502, detail=f"Falha ao gerar insights: {e}")
+
+    suggestions = result.get("suggestions") or []
+    summary = result.get("summary") or ""
+    run_id = result.get("run_id") or ""
+    saved: list = []
+    if save and suggestions:
+        saved = store.save_ai_insights(
+            suggestions,
+            run_id=run_id,
+            source_days=days_n,
+        )
+        store.log_audit(
+            _actor(request),
+            "ai_insights_generate",
+            f"days={days_n} count={len(saved)} run={run_id}",
+        )
+
+    return {
+        "ok": True,
+        "summary": summary,
+        "run_id": run_id,
+        "model": result.get("model"),
+        "days": days_n,
+        "count": len(saved) if saved else len(suggestions),
+        "suggestions": saved if saved else suggestions,
+        "snapshot_totals": result.get("snapshot_totals") or {},
+    }
+
+
+@router.get("/ai-insights")
+def admin_ai_insights_list(
+    request: Request,
+    status: str | None = None,
+    limit: int = 50,
+):
+    store.require_role(getattr(request.state, "admin_session", None), "admin")
+    items = store.list_ai_insights(status=status, limit=limit)
+    return {"ok": True, "items": items, "total": len(items)}
+
+
+@router.patch("/ai-insights/{item_id}")
+def admin_ai_insights_patch(
+    request: Request,
+    item_id: int,
+    body: AiInsightStatusRequest,
+):
+    store.require_role(getattr(request.state, "admin_session", None), "admin")
+    try:
+        row = store.update_ai_insight_status(item_id, body.status)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="status inválido (new|saved|done|dismissed)")
+    if not row:
+        raise HTTPException(status_code=404, detail="Sugestão não encontrada")
+    store.log_audit(
+        _actor(request),
+        "ai_insights_status",
+        f"id={item_id} status={body.status}",
+    )
+    return {"ok": True, "item": row}
+
+
+@router.delete("/ai-insights/{item_id}")
+def admin_ai_insights_delete(request: Request, item_id: int):
+    store.require_role(getattr(request.state, "admin_session", None), "admin")
+    ok = store.delete_ai_insight(item_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Sugestão não encontrada")
+    store.log_audit(_actor(request), "ai_insights_delete", str(item_id))
+    return {"ok": True}

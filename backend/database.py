@@ -494,6 +494,27 @@ def criar_base() -> None:
             )
         """)
 
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS ai_insights (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                run_id TEXT,
+                title TEXT NOT NULL,
+                detail TEXT NOT NULL,
+                priority TEXT DEFAULT 'media',
+                category TEXT DEFAULT 'produto',
+                evidence TEXT,
+                cursor_prompt TEXT,
+                status TEXT NOT NULL DEFAULT 'new',
+                source_days INTEGER,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            )
+        """)
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_ai_insights_status "
+            "ON ai_insights(status, id DESC)"
+        )
+
         if not _column_exists(cur, "site_users", "marketing_opt_in"):
             cur.execute("ALTER TABLE site_users ADD COLUMN marketing_opt_in INTEGER DEFAULT 0")
 

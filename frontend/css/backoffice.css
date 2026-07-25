@@ -1069,6 +1069,48 @@ table.oe-admin-table td code {
   color: var(--bo-danger);
 }
 
+.oe-admin-ai-card {
+  border: 1px solid var(--bo-border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  background: var(--bo-surface, #fff);
+}
+
+.oe-admin-ai-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.oe-admin-ai-card__head h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.oe-admin-ai-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.oe-admin-ai-card__detail {
+  margin: 0 0 8px;
+  line-height: 1.45;
+  color: var(--bo-text, #1f2937);
+}
+
+.oe-admin-ai-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
 .oe-admin-panel__head--row {
   display: flex;
   align-items: center;
