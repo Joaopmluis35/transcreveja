@@ -240,7 +240,7 @@
     });
   }
 
-  var LAYOUT_V = "12";
+  var LAYOUT_V = "13";
   var siteContentCache = null;
 
   function withLayoutVersion(url) {
@@ -283,6 +283,54 @@
     });
   }
 
+  function builtinTopLinksForLocale(locale) {
+    if (locale === "en") {
+      return [
+        { label: "Help", href: "ajuda.html", page: "ajuda" },
+        { label: "Pricing", href: "precos.html", page: "precos", pricingOnly: true },
+        { label: "Suggestions", href: "sugestoes.html", page: "sugestoes" },
+      ];
+    }
+    if (locale === "es") {
+      return [
+        { label: "Ayuda", href: "ajuda.html", page: "ajuda" },
+        { label: "Precios", href: "precos.html", page: "precos", pricingOnly: true },
+        { label: "Sugerencias", href: "sugestoes.html", page: "sugestoes" },
+      ];
+    }
+    if (locale === "fr") {
+      return [
+        { label: "Aide", href: "ajuda.html", page: "ajuda" },
+        { label: "Tarifs", href: "precos.html", page: "precos", pricingOnly: true },
+        { label: "Suggestions", href: "sugestoes.html", page: "sugestoes" },
+      ];
+    }
+    if (locale === "de") {
+      return [
+        { label: "Hilfe", href: "ajuda.html", page: "ajuda" },
+        { label: "Preise", href: "precos.html", page: "precos", pricingOnly: true },
+        { label: "Vorschläge", href: "sugestoes.html", page: "sugestoes" },
+      ];
+    }
+    return [
+      { label: "Ajuda", href: "ajuda.html", page: "ajuda" },
+      { label: "Preços", href: "precos.html", page: "precos", pricingOnly: true },
+      { label: "Sugestões", href: "sugestoes.html", page: "sugestoes" },
+    ];
+  }
+
+  function applyBuiltinTopLinks() {
+    var topLinks = document.querySelector('[data-nav-slot="top-links"]');
+    if (!topLinks) return;
+    renderNavLinkList(
+      topLinks,
+      builtinTopLinksForLocale(detectSiteLocale()),
+      null,
+      "oe-pro-nav__link"
+    );
+    syncPricingVisibility();
+  }
+
   function injectHeaderHtml(html) {
     var el = document.getElementById("header");
     if (!el) return;
@@ -291,7 +339,8 @@
     var temp = document.createElement("div");
     temp.innerHTML = html;
     injectScriptsFromHtml(html, temp);
-    syncPricingVisibility();
+    /* Alinha já com o menu final (sem Blog) — evita flash ao carregar o CMS */
+    applyBuiltinTopLinks();
     if (global.OuviescreviNav && global.OuviescreviNav.init) {
       global.OuviescreviNav.init();
     }
@@ -299,6 +348,7 @@
     markCurrentNav();
     maybeApplyNavFromCache();
     syncPricingVisibility();
+    el.dataset.oeHeaderReady = "true";
     mountNewsTicker();
   }
 

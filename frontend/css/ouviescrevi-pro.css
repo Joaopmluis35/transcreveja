@@ -173,6 +173,7 @@ body.oe-pro {
   gap: 8px;
   flex: 1;
   justify-content: flex-end;
+  min-width: 0;
 }
 @media (max-width: 899px) {
   /* backdrop-filter cria containing block e quebra position:fixed do painel */
@@ -213,6 +214,8 @@ body.oe-pro {
   gap: 2px;
   flex-wrap: nowrap;
   min-width: 0;
+  flex: 1 1 auto;
+  justify-content: flex-end;
 }
 
 .oe-pro-nav__toplinks {
@@ -220,7 +223,13 @@ body.oe-pro {
   align-items: center;
   flex-wrap: nowrap;
   gap: 2px;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+/* Evita flash se um header em cache ainda trouxer Blog */
+.oe-pro-nav__toplinks a[data-nav-page="blog"] {
+  display: none !important;
 }
 
 @media (max-width: 899px) {
