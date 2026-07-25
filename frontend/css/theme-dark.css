@@ -412,15 +412,34 @@ html.oe-theme-dark .oe-btn--ghost:hover {
 /* Homepage — exportar / ações */
 html.oe-theme-dark body.oe-page--home .btn-group button,
 html.oe-theme-dark body.oe-page--home .oe-output__actions.btn-group button {
-  background: var(--oe-btn-bg) !important;
-  color: var(--oe-btn-text) !important;
-  border-color: var(--oe-btn-border) !important;
+  background: var(--pro-surface, #0f172a) !important;
+  color: var(--pro-text, #e2e8f0) !important;
+  border-color: var(--pro-border, #334155) !important;
 }
 
 html.oe-theme-dark body.oe-page--home .btn-group button:hover:not(:disabled),
 html.oe-theme-dark body.oe-page--home .oe-output__actions.btn-group button:hover:not(:disabled) {
-  color: #fff !important;
-  border-color: transparent !important;
+  background: rgba(167, 139, 250, 0.16) !important;
+  color: #ddd6fe !important;
+  border-color: #7c3aed !important;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.2);
+}
+
+html.oe-theme-dark body.oe-page--home .dropdown-export.open > #exportBtn,
+html.oe-theme-dark body.oe-page--home .dropdown-export.open > button:first-child {
+  background: rgba(167, 139, 250, 0.16) !important;
+  border-color: #7c3aed !important;
+  color: #ddd6fe !important;
+}
+
+html.oe-theme-dark body.oe-page--home .dropdown-content {
+  background: var(--pro-surface, #0f172a);
+  border-color: var(--pro-border, #334155);
+}
+
+html.oe-theme-dark body.oe-page--home .dropdown-content::after {
+  background: var(--pro-surface, #0f172a);
+  border-color: var(--pro-border, #334155);
 }
 
 html.oe-theme-dark body.oe-page--home #uploadForm button:not(#btnTranscrever):not(#btnTranscribe):not(#btnStopRecording) {

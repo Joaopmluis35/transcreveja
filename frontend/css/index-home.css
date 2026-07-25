@@ -995,9 +995,9 @@ body.oe-page--home .oe-output__actions .dropdown-export {
 }
 
 body.oe-page--home .oe-output__actions .dropdown-content {
-  left: 50%;
-  right: auto;
-  min-width: max(100%, 13.5rem);
+  left: 0;
+  right: 0;
+  min-width: 100%;
 }
 
 body.oe-page--home .oe-output__retry {
@@ -1076,39 +1076,37 @@ body.oe-page--home .btn-group button {
   padding: 12px 18px;
   font-size: 1em;
   font-weight: bold;
-  border: 2px solid #a550f7;
-  border-radius: 8px;
-  background-color: #e6d7fb;
-  color: #333;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background-color: #fff;
+  color: #0f172a;
   cursor: pointer;
   position: relative;
   overflow: hidden;
   width: auto;
   margin: 0;
-  transition: color 0.3s ease, border-color 0.3s ease;
+  box-shadow: none;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
 
+/* Remove o preenchimento em gradiente (ilegível) */
 body.oe-page--home .btn-group button::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: -100%;
-  width: 100%;
-  height: 100%;
-  background: var(--oe-gradient);
-  transition: all 0.4s ease;
-  z-index: 0;
-}
-
-body.oe-page--home .btn-group button:hover::before {
-  bottom: 0;
+  content: none !important;
+  display: none !important;
 }
 
 body.oe-page--home .btn-group button:hover:not(:disabled) {
-  color: #fff;
-  border-color: transparent;
-  background: transparent;
+  color: #5b21b6;
+  border-color: #c4b5fd;
+  background: #f5f3ff;
   transform: none;
+  box-shadow: 0 4px 14px rgba(109, 40, 217, 0.12);
+}
+
+body.oe-page--home .btn-group button:active:not(:disabled) {
+  background: #ede9fe;
+  border-color: #a78bfa;
+  color: #4c1d95;
   box-shadow: none;
 }
 
@@ -1518,66 +1516,94 @@ body.oe-page--home .dropdown-export {
   max-width: 220px;
 }
 
+body.oe-page--home .dropdown-export.open > #exportBtn,
+body.oe-page--home .dropdown-export.open > button:first-child {
+  background: #f5f3ff !important;
+  border-color: #a78bfa !important;
+  color: #5b21b6 !important;
+  box-shadow: 0 4px 14px rgba(109, 40, 217, 0.12);
+}
+
 body.oe-page--home .dropdown-content {
   display: none;
   flex-direction: column;
   gap: 2px;
   position: absolute;
   background: #fff;
-  min-width: max(100%, 13.5rem);
+  min-width: max(100%, 14rem);
   width: max-content;
   max-width: min(18rem, 92vw);
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14), 0 2px 6px rgba(15, 23, 42, 0.06);
-  z-index: 40;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.16), 0 2px 8px rgba(15, 23, 42, 0.06);
+  z-index: 50;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  top: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
+  /* Abre para cima — o Exportar fica no fundo da grelha */
+  top: auto;
+  bottom: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  transform: none;
   padding: 6px;
+}
+
+body.oe-page--home .dropdown-content::after {
+  content: "";
+  position: absolute;
+  left: 18px;
+  bottom: -6px;
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  border-right: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+  transform: rotate(45deg);
 }
 
 body.oe-page--home .dropdown-export.open .dropdown-content {
   display: flex !important;
 }
 
+/* Só clique — hover automático em cima das outras ações ficava estranho */
 @media (hover: hover) and (pointer: fine) {
   body.oe-page--home .dropdown-export:hover .dropdown-content {
-    display: flex;
+    display: none;
+  }
+  body.oe-page--home .dropdown-export.open:hover .dropdown-content {
+    display: flex !important;
   }
 }
 
-/* Opções do menu: reset do estilo “card” do .btn-group */
-body.oe-page--home .dropdown-content button,
+/* Opções do menu: reset total do estilo dos botões da grelha */
+body.oe-page--home .oe-home-workspace__col--output #output .oe-output__actions.btn-group .dropdown-content button,
+body.oe-page--home .oe-output__actions.btn-group .dropdown-content button,
 body.oe-page--home .btn-group .dropdown-content button,
-body.oe-page--home .oe-output__actions .dropdown-content button {
-  display: flex;
+body.oe-page--home .dropdown-content button {
+  display: flex !important;
   align-items: center;
   gap: 8px;
-  flex: none;
-  width: 100%;
-  min-width: 0;
-  max-width: none;
-  margin: 0;
-  padding: 10px 12px;
-  border: none;
-  border-radius: 8px;
-  background: transparent;
-  color: #1e293b;
-  font-size: 0.88rem;
-  font-weight: 600;
+  flex: none !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 10px 12px !important;
+  border: none !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: #1e293b !important;
+  font-size: 0.88rem !important;
+  font-weight: 600 !important;
   text-align: left;
   line-height: 1.25;
   white-space: nowrap;
   cursor: pointer;
-  box-shadow: none;
+  box-shadow: none !important;
   overflow: visible;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
-body.oe-page--home .dropdown-content button::before,
-body.oe-page--home .btn-group .dropdown-content button::before,
-body.oe-page--home .oe-output__actions .dropdown-content button::before {
+body.oe-page--home .oe-home-workspace__col--output #output .oe-output__actions.btn-group .dropdown-content button::before,
+body.oe-page--home .dropdown-content button::before {
   content: none !important;
   display: none !important;
 }
@@ -1589,22 +1615,24 @@ body.oe-page--home .dropdown-content button span {
   align-items: center;
   gap: 6px;
   white-space: nowrap;
+  color: inherit;
 }
 
+body.oe-page--home .oe-home-workspace__col--output #output .oe-output__actions.btn-group .dropdown-content button:hover,
+body.oe-page--home .oe-home-workspace__col--output #output .oe-output__actions.btn-group .dropdown-content button:focus-visible,
 body.oe-page--home .dropdown-content button:hover,
 body.oe-page--home .dropdown-content button:focus-visible,
-body.oe-page--home .btn-group .dropdown-content button:hover:not(:disabled),
-body.oe-page--home .oe-output__actions .dropdown-content button:hover:not(:disabled) {
-  background: #f3e8ff;
-  color: #5b21b6;
-  border-color: transparent;
-  transform: none;
-  box-shadow: none;
+body.oe-page--home .btn-group .dropdown-content button:hover:not(:disabled) {
+  background: #f5f3ff !important;
+  color: #5b21b6 !important;
+  border: none !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 body.oe-page--home .dropdown-content button:active {
-  background: #ede9fe;
-  color: #4c1d95;
+  background: #ede9fe !important;
+  color: #4c1d95 !important;
 }
 
 body.oe-page--home .dropdown-content button .oe-pro-tag {
