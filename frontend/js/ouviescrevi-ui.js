@@ -240,7 +240,7 @@
     });
   }
 
-  var LAYOUT_V = "11";
+  var LAYOUT_V = "12";
   var siteContentCache = null;
 
   function withLayoutVersion(url) {
@@ -266,6 +266,23 @@
     return withLayoutVersion("footer.html");
   }
 
+  function syncPricingVisibility() {
+    try {
+      if (global.OuviescreviPricingVisibility && global.OuviescreviPricingVisibility.init) {
+        global.OuviescreviPricingVisibility.init();
+      }
+    } catch (e) {}
+    var root = document.documentElement;
+    var hide = root.classList.contains("oe-pricing-hidden");
+    document.querySelectorAll("[data-pricing-only]").forEach(function (el) {
+      el.hidden = hide;
+      el.setAttribute("aria-hidden", hide ? "true" : "false");
+    });
+    document.querySelectorAll("[data-pricing-free-only]").forEach(function (el) {
+      el.hidden = !hide;
+    });
+  }
+
   function injectHeaderHtml(html) {
     var el = document.getElementById("header");
     if (!el) return;
@@ -274,12 +291,14 @@
     var temp = document.createElement("div");
     temp.innerHTML = html;
     injectScriptsFromHtml(html, temp);
+    syncPricingVisibility();
     if (global.OuviescreviNav && global.OuviescreviNav.init) {
       global.OuviescreviNav.init();
     }
     if (global.OuviescreviTheme) global.OuviescreviTheme.init();
     markCurrentNav();
     maybeApplyNavFromCache();
+    syncPricingVisibility();
     mountNewsTicker();
   }
 

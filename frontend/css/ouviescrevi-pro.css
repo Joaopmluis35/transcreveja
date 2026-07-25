@@ -59,8 +59,8 @@ body.oe-pro {
 
 /* Header */
 .oe-pro-header {
-  position: sticky;
-  top: 0;
+  position: relative;
+  top: auto;
   z-index: 100;
   height: var(--pro-header-h);
   padding: 0;
@@ -1574,6 +1574,11 @@ body.oe-pro .oe-maintenance-banner {
 }
 
 #header:has(#oeProHeader) { width: 100%; }
+#header:has(#oeProHeader) .oe-pro-header {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
 #footer:has(#rodapeOuviescrevi.oe-pro-footer) { width: 100%; }
 
 /* Bloco "O que é" — homepage */

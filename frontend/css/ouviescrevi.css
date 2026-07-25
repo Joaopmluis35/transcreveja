@@ -95,6 +95,22 @@ body.oe-page--home {
   max-width: 100%;
 }
 
+/* Reserva espaço enquanto o header carrega por fetch (evita salto) */
+#header:empty {
+  min-height: var(--pro-header-h, 64px);
+}
+
+/*
+  Sticky no wrapper #header — sticky só no .oe-pro-header falhava porque
+  o pai (#header) tem a mesma altura e sai do ecrã ao fazer scroll.
+*/
+#header:has(#oeProHeader) {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  width: 100%;
+}
+
 #topoOuviescrevi {
   background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(12px);
