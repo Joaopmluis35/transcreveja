@@ -11,6 +11,8 @@
   }
 
   var sugestoesCache = [];
+  var aiInsightsCache = [];
+  var aiInsightsSummaryText = "";
 
   function escapeHtml(text) {
     return String(text)
@@ -1205,6 +1207,73 @@
     return '<span class="' + cls + '">' + escapeHtml(p) + "</span>";
   }
 
+  function buildAiInsightPrompt(item) {
+    var prompt =
+      (item && item.cursor_prompt) ||
+      ("Implementa no Ouviescrevi: " + ((item && item.title) || ""));
+    if (item && item.detail) prompt += "\n\nContexto: " + item.detail;
+    if (item && item.evidence) prompt += "\nEvidência: " + item.evidence;
+    return prompt;
+  }
+
+  function buildAllAiInsightsPrompt(items, summary) {
+    var list = (items || []).filter(function (item) {
+      return item && (item.status === "new" || item.status === "saved");
+    });
+    if (!list.length) list = items || [];
+    var lines = [
+      "Quero implementar no Ouviescrevi (site PT de transcrição) estas sugestões AI do backoffice.",
+      "Trata por ordem de prioridade (alta → média → baixa). Se alguma for grande, propõe um plano curto e começa pela mais importante.",
+      "",
+    ];
+    if (summary) {
+      lines.push("Resumo da AI: " + summary);
+      lines.push("");
+    }
+    var order = { alta: 0, media: 1, baixa: 2 };
+    list = list.slice().sort(function (a, b) {
+      return (order[a.priority] != null ? order[a.priority] : 9) -
+        (order[b.priority] != null ? order[b.priority] : 9);
+    });
+    list.forEach(function (item, i) {
+      lines.push(
+        (i + 1) + ". [" + (item.priority || "media").toUpperCase() + "] " +
+        (item.category || "produto") + " — " + (item.title || "Sem título") +
+        " (" + aiInsightStatusLabel(item.status) + ")"
+      );
+      lines.push(buildAiInsightPrompt(item));
+      lines.push("");
+    });
+    return lines.join("\n").trim();
+  }
+
+  function copyTextToClipboard(text, okMsg) {
+    if (!text) {
+      global.OuviescreviUI.toast("Nada para copiar.", "error");
+      return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () {
+        global.OuviescreviUI.toast(okMsg || "Copiado — cola no Cursor.", "success");
+      }).catch(function () {
+        global.OuviescreviUI.toast("Não foi possível copiar.", "error");
+      });
+    } else {
+      global.OuviescreviUI.toast("Clipboard indisponível.", "error");
+    }
+  }
+
+  function copyAllAiInsightsToCursor() {
+    if (!aiInsightsCache.length) {
+      global.OuviescreviUI.toast("Não há sugestões para copiar.", "error");
+      return;
+    }
+    copyTextToClipboard(
+      buildAllAiInsightsPrompt(aiInsightsCache, aiInsightsSummaryText),
+      "Todas copiadas — cola no chat do Cursor."
+    );
+  }
+
   async function loadAiInsights() {
     var div = document.getElementById("tabelaAiInsights");
     if (!div) return;
@@ -1215,6 +1284,7 @@
       var data = await res.json().catch(function () { return {}; });
       if (!res.ok) throw new Error(apiErrorMessage(data, "Erro ao carregar."));
       var items = data.items || [];
+      aiInsightsCache = items;
       if (!items.length) {
         div.innerHTML = '<p class="oe-admin-empty">Sem sugestões AI. Clica em «Gerar com AI».</p>';
         return;
@@ -1255,19 +1325,7 @@
         var copyBtn = card.querySelector("[data-ai-copy]");
         if (copyBtn) {
           copyBtn.addEventListener("click", function () {
-            var prompt =
-              (item && item.cursor_prompt) ||
-              ("Implementa no Ouviescrevi: " + ((item && item.title) || ""));
-            if (item && item.detail) prompt += "\n\nContexto: " + item.detail;
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-              navigator.clipboard.writeText(prompt).then(function () {
-                global.OuviescreviUI.toast("Prompt copiado — cola no Cursor.", "success");
-              }).catch(function () {
-                global.OuviescreviUI.toast("Não foi possível copiar.", "error");
-              });
-            } else {
-              global.OuviescreviUI.toast("Clipboard indisponível.", "error");
-            }
+            copyTextToClipboard(buildAiInsightPrompt(item), "Prompt copiado — cola no Cursor.");
           });
         }
         card.querySelectorAll("[data-ai-status]").forEach(function (btn) {
@@ -1284,6 +1342,7 @@
         }
       });
     } catch (e) {
+      aiInsightsCache = [];
       div.innerHTML = '<p class="oe-admin-empty">' + escapeHtml(e.message || "Erro ao carregar.") + "</p>";
     }
   }
@@ -1304,8 +1363,10 @@
         if (data.summary) {
           summaryEl.hidden = false;
           summaryEl.textContent = data.summary;
+          aiInsightsSummaryText = data.summary;
         } else {
           summaryEl.hidden = true;
+          aiInsightsSummaryText = "";
         }
       }
       global.OuviescreviUI.toast(
@@ -2012,6 +2073,8 @@
     if (btnGenAi) btnGenAi.addEventListener("click", generateAiInsights);
     var btnRefreshAi = document.getElementById("btnRefreshAiInsights");
     if (btnRefreshAi) btnRefreshAi.addEventListener("click", loadAiInsights);
+    var btnCopyAllAi = document.getElementById("btnCopyAllAiInsights");
+    if (btnCopyAllAi) btnCopyAllAi.addEventListener("click", copyAllAiInsightsToCursor);
     var aiStatusFilter = document.getElementById("aiInsightStatusFilter");
     if (aiStatusFilter) aiStatusFilter.addEventListener("change", loadAiInsights);
     var emailForm = document.getElementById("emailConfigForm");
