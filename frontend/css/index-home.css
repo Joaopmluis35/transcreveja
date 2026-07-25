@@ -995,9 +995,9 @@ body.oe-page--home .oe-output__actions .dropdown-export {
 }
 
 body.oe-page--home .oe-output__actions .dropdown-content {
-  left: 0;
-  right: 0;
-  min-width: 100%;
+  left: 50%;
+  right: auto;
+  min-width: max(100%, 13.5rem);
 }
 
 body.oe-page--home .oe-output__retry {
@@ -1521,15 +1521,20 @@ body.oe-page--home .dropdown-export {
 body.oe-page--home .dropdown-content {
   display: none;
   flex-direction: column;
+  gap: 2px;
   position: absolute;
   background: #fff;
-  min-width: 200px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-  z-index: 10;
-  border-radius: 8px;
-  top: 95%;
-  left: 0;
-  padding: 6px 0;
+  min-width: max(100%, 13.5rem);
+  width: max-content;
+  max-width: min(18rem, 92vw);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14), 0 2px 6px rgba(15, 23, 42, 0.06);
+  z-index: 40;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px;
 }
 
 body.oe-page--home .dropdown-export.open .dropdown-content {
@@ -1542,24 +1547,68 @@ body.oe-page--home .dropdown-export.open .dropdown-content {
   }
 }
 
-body.oe-page--home .dropdown-content button {
-  background: none;
-  border: none;
-  padding: 10px 20px;
-  text-align: left;
-  font-size: 0.95em;
-  color: #333;
-  cursor: pointer;
+/* Opções do menu: reset do estilo “card” do .btn-group */
+body.oe-page--home .dropdown-content button,
+body.oe-page--home .btn-group .dropdown-content button,
+body.oe-page--home .oe-output__actions .dropdown-content button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
   width: 100%;
+  min-width: 0;
+  max-width: none;
   margin: 0;
-  border-radius: 0;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #1e293b;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-align: left;
+  line-height: 1.25;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: none;
+  overflow: visible;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
-body.oe-page--home .dropdown-content button:hover {
-  background: #f0f0f0;
-  color: #333;
+body.oe-page--home .dropdown-content button::before,
+body.oe-page--home .btn-group .dropdown-content button::before,
+body.oe-page--home .oe-output__actions .dropdown-content button::before {
+  content: none !important;
+  display: none !important;
+}
+
+body.oe-page--home .dropdown-content button span {
+  position: static;
+  z-index: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+body.oe-page--home .dropdown-content button:hover,
+body.oe-page--home .dropdown-content button:focus-visible,
+body.oe-page--home .btn-group .dropdown-content button:hover:not(:disabled),
+body.oe-page--home .oe-output__actions .dropdown-content button:hover:not(:disabled) {
+  background: #f3e8ff;
+  color: #5b21b6;
+  border-color: transparent;
   transform: none;
   box-shadow: none;
+}
+
+body.oe-page--home .dropdown-content button:active {
+  background: #ede9fe;
+  color: #4c1d95;
+}
+
+body.oe-page--home .dropdown-content button .oe-pro-tag {
+  margin-left: 4px;
 }
 
 /* FAB sugestão */
