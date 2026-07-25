@@ -443,6 +443,42 @@
         html: "<strong>" + unread + " sugestão" + (unread === 1 ? "" : "ões") + " nova" + (unread === 1 ? "" : "s") + "</strong> — revê no separador Sugestões.",
       });
     }
+    var jobsAtivos = data.jobs_ativos || 0;
+    if (jobsAtivos > 0) {
+      alerts.push({
+        type: "info",
+        html:
+          "<strong>" +
+          jobsAtivos +
+          " tarefa" +
+          (jobsAtivos === 1 ? "" : "s") +
+          " em curso</strong> — vê o progresso no separador <a href=\"#\" data-oe-goto-logs>Logs</a>.",
+      });
+    }
+    var apiErr = data.api_errors_24h || 0;
+    if (apiErr > 0) {
+      alerts.push({
+        type: "warn",
+        html:
+          "<strong>" +
+          apiErr +
+          " erro" +
+          (apiErr === 1 ? "" : "s") +
+          " de API (24h)</strong> — detalhe no separador <a href=\"#\" data-oe-goto-logs>Logs</a>.",
+      });
+    }
+    var tErr = data.transcricoes_erros_hoje || 0;
+    if (tErr > 0) {
+      alerts.push({
+        type: "warn",
+        html:
+          "<strong>" +
+          tErr +
+          " transcrição" +
+          (tErr === 1 ? "" : "ões") +
+          " com erro hoje</strong> — revê no separador Transcrições.",
+      });
+    }
     var tLimit = data.alert_transcriptions_daily || 0;
     var tHoje = data.transcricoes_hoje || 0;
     if (tLimit > 0 && tHoje >= tLimit) {
@@ -495,10 +531,27 @@
     box.innerHTML = alerts.map(function (a) {
       return '<div class="oe-admin-alert oe-admin-alert--' + a.type + '">' + a.html + "</div>";
     }).join("");
+    box.querySelectorAll("[data-oe-goto-logs]").forEach(function (link) {
+      link.addEventListener("click", function (e) {
+        e.preventDefault();
+        var nav = document.querySelector('.oe-admin-nav button[data-tab="logs"]');
+        if (nav) nav.click();
+      });
+    });
     var sugEl = document.getElementById("statSugestoesNovas");
     if (sugEl) sugEl.textContent = String(unread);
     var card = document.getElementById("cardSugestoes");
     if (card) card.classList.toggle("oe-admin-card--pulse", unread > 0);
+    var logsBadge = document.getElementById("navBadgeLogs");
+    if (logsBadge) {
+      var badgeN = jobsAtivos || apiErr;
+      if (badgeN > 0) {
+        logsBadge.textContent = String(badgeN);
+        logsBadge.classList.remove("hidden");
+      } else {
+        logsBadge.classList.add("hidden");
+      }
+    }
   }
 
   function parseCloudflareRows(raw) {
@@ -1330,33 +1383,141 @@
 
   function renderProcessingJobs(items) {
     var box = document.getElementById("processingJobsBox");
-    if (!box) return;
-    var active = (items || []).filter(function (j) {
+    var tableHost = document.getElementById("processingJobsTable");
+    var statJobs = document.getElementById("statLogsJobs");
+    var badge = document.getElementById("navBadgeLogs");
+    var list = items || [];
+    var active = list.filter(function (j) {
       return j.status === "processing";
     });
-    if (!active.length) {
-      box.classList.add("hidden");
-      box.innerHTML = "";
+    if (statJobs) statJobs.textContent = String(active.length);
+    if (badge) {
+      if (active.length > 0) {
+        badge.textContent = String(active.length);
+        badge.classList.remove("hidden");
+      } else {
+        badge.classList.add("hidden");
+      }
+    }
+    if (box) {
+      if (!active.length) {
+        box.classList.add("hidden");
+        box.innerHTML = "";
+      } else {
+        box.classList.remove("hidden");
+        box.innerHTML =
+          "<p class='oe-admin-jobs-box__title'>Em curso agora</p>" +
+          active
+            .map(function (j) {
+              var pct = j.progress != null ? j.progress + "%" : "—";
+              var kind = j.kind === "video-subs" ? "Legendas" : "Transcrição";
+              var msg = j.message || j.status || "";
+              var file = j.filename ? " · " + j.filename : "";
+              return (
+                "<div class='oe-admin-jobs-box__item'><strong>" +
+                kind +
+                " " +
+                pct +
+                "</strong> — " +
+                msg +
+                file +
+                "</div>"
+              );
+            })
+            .join("");
+      }
+    }
+    if (tableHost) {
+      if (!list.length) {
+        tableHost.innerHTML = '<p class="oe-admin-empty">Sem tarefas recentes na memória do servidor.</p>';
+      } else {
+        tableHost.innerHTML = "";
+        tableHost.appendChild(
+          buildTable(
+            ["Tipo", "Estado", "Progresso", "Ficheiro", "Mensagem", "Job"],
+            list.slice(0, 40).map(function (j) {
+              return [
+                j.kind === "video-subs" ? "Legendas" : "Transcrição",
+                j.status || "—",
+                j.progress != null ? j.progress + "%" : "—",
+                (j.filename || "—").toString().slice(0, 40),
+                (j.message || "—").toString().slice(0, 80),
+                (j.job_id || "—").toString().slice(0, 10),
+              ];
+            })
+          )
+        );
+      }
+    }
+  }
+
+  async function loadAuditAndErrors() {
+    var role = sessionStorage.getItem("ouviescrevi_admin_role") || "admin";
+    var auditDiv = document.getElementById("auditLog");
+    var errDiv = document.getElementById("errorLog");
+    var statAudit = document.getElementById("statLogsAudit");
+    var statErr = document.getElementById("statLogsApiErrors");
+    if (role !== "admin") {
+      if (auditDiv) auditDiv.innerHTML = '<p class="oe-admin-empty">Apenas administradores.</p>';
+      if (errDiv) errDiv.innerHTML = '<p class="oe-admin-empty">Apenas administradores.</p>';
       return;
     }
-    box.classList.remove("hidden");
-    box.innerHTML =
-      "<p class='oe-admin-jobs-box__title'>Tarefas em curso</p>" +
-      active
-        .map(function (j) {
-          var pct = j.progress != null ? j.progress + "%" : "—";
-          var msg = j.message || j.status || "";
-          var file = j.filename ? " · " + j.filename : "";
-          return (
-            "<div class='oe-admin-jobs-box__item'><strong>" +
-            pct +
-            "</strong> " +
-            msg +
-            file +
-            "</div>"
+    try {
+      var ares = await fetch(apiBase() + "/api/admin/audit?limit=40", { headers: authHeaders() });
+      var adata = await ares.json();
+      var logs = adata.items || [];
+      if (statAudit) statAudit.textContent = String(logs.length);
+      if (auditDiv) {
+        auditDiv.innerHTML = "";
+        if (!logs.length) {
+          auditDiv.innerHTML = '<p class="oe-admin-empty">Sem eventos de auditoria.</p>';
+        } else {
+          auditDiv.appendChild(
+            buildTable(
+              ["Quem", "Ação", "Detalhe", "Quando"],
+              logs.map(function (l) {
+                return [
+                  l.actor || "—",
+                  l.action || "—",
+                  (l.detail || "—").toString().slice(0, 60),
+                  (l.created_at || "").replace("T", " ").slice(0, 19),
+                ];
+              })
+            )
           );
-        })
-        .join("");
+        }
+      }
+    } catch (e) {
+      if (auditDiv) auditDiv.innerHTML = '<p class="oe-admin-empty">Erro ao carregar auditoria.</p>';
+    }
+    try {
+      var eres = await fetch(apiBase() + "/api/admin/errors?limit=40", { headers: authHeaders() });
+      var edata = await eres.json();
+      var errors = edata.items || [];
+      if (statErr) statErr.textContent = String(errors.length);
+      if (errDiv) {
+        errDiv.innerHTML = "";
+        if (!errors.length) {
+          errDiv.innerHTML = '<p class="oe-admin-empty">Sem erros recentes.</p>';
+        } else {
+          errDiv.appendChild(
+            buildTable(
+              ["Path", "Status", "Mensagem", "Quando"],
+              errors.map(function (e) {
+                return [
+                  (e.path || "—").toString().slice(0, 40),
+                  String(e.status_code || "—"),
+                  (e.message || e.detail || "—").toString().slice(0, 80),
+                  (e.created_at || "").replace("T", " ").slice(0, 19),
+                ];
+              })
+            )
+          );
+        }
+      }
+    } catch (e2) {
+      if (errDiv) errDiv.innerHTML = '<p class="oe-admin-empty">Erro ao carregar erros API.</p>';
+    }
   }
 
   async function loadServerLogs() {
@@ -1387,6 +1548,22 @@
     } catch (e2) {
       /* opcional */
     }
+    var updated = document.getElementById("statLogsUpdated");
+    if (updated) {
+      var now = new Date();
+      updated.textContent =
+        String(now.getHours()).padStart(2, "0") +
+        ":" +
+        String(now.getMinutes()).padStart(2, "0") +
+        ":" +
+        String(now.getSeconds()).padStart(2, "0");
+    }
+  }
+
+  async function loadLogs() {
+    await loadServerLogs();
+    await loadAuditAndErrors();
+    scheduleServerLogRefresh();
   }
 
   function scheduleServerLogRefresh() {
@@ -1547,45 +1724,9 @@
           ul.innerHTML = "<p class='oe-admin-empty'>Sem permissão.</p>";
         }
       }
-      if ((sessionStorage.getItem("ouviescrevi_admin_role") || "admin") === "admin") {
-        var ares = await fetch(apiBase() + "/api/admin/audit?limit=15", { headers: authHeaders() });
-        var adata = await ares.json();
-        var auditDiv = document.getElementById("auditLog");
-        if (auditDiv) {
-          auditDiv.innerHTML = "";
-          var logs = adata.items || [];
-          auditDiv.appendChild(
-            buildTable(
-              ["Quem", "Ação", "Quando"],
-              logs.map(function (l) {
-                return [l.actor, l.action, (l.created_at || "").replace("T", " ")];
-              })
-            )
-          );
-        }
-      } else {
-        var auditDivOnly = document.getElementById("auditLog");
-        if (auditDivOnly) auditDivOnly.innerHTML = '<p class="oe-admin-empty">Apenas administradores.</p>';
-      }
-      var eres = await fetch(apiBase() + "/api/admin/errors?limit=15", { headers: authHeaders() });
-      var edata = await eres.json();
-      var errDiv = document.getElementById("errorLog");
-      if (errDiv) {
-        errDiv.innerHTML = "";
-        errDiv.appendChild(
-          buildTable(
-            ["Path", "Status", "Quando"],
-            (edata.items || []).map(function (e) {
-              return [e.path, String(e.status_code), (e.created_at || "").replace("T", " ")];
-            })
-          )
-        );
-      }
     } catch (e) {
-      /* Config/utilizadores/auditoria são opcionais — o painel de saúde já foi renderizado. */
+      /* Config/utilizadores são opcionais — o painel de saúde já foi renderizado. */
     }
-    loadServerLogs();
-    scheduleServerLogRefresh();
   }
 
   async function saveConfig(e) {
@@ -1672,7 +1813,12 @@
     if (tab === "planos" && global.OuviescreviBillingAdmin) global.OuviescreviBillingAdmin.loadBilling();
     if (tab === "sistema") {
       loadSystem();
-      scheduleServerLogRefresh();
+      if (serverLogTimer) {
+        clearInterval(serverLogTimer);
+        serverLogTimer = null;
+      }
+    } else if (tab === "logs") {
+      loadLogs();
     } else if (serverLogTimer) {
       clearInterval(serverLogTimer);
       serverLogTimer = null;
@@ -1724,6 +1870,19 @@
     if (logAuto) {
       logAuto.addEventListener("change", scheduleServerLogRefresh);
     }
+    var btnJobs = document.getElementById("btnRefreshLogsJobs");
+    if (btnJobs) btnJobs.addEventListener("click", loadServerLogs);
+    var btnErr = document.getElementById("btnRefreshErrorLog");
+    if (btnErr) btnErr.addEventListener("click", loadAuditAndErrors);
+    var btnAud = document.getElementById("btnRefreshAuditLog");
+    if (btnAud) btnAud.addEventListener("click", loadAuditAndErrors);
+    var btnOpenLogs = document.getElementById("btnOpenLogsFromSystem");
+    if (btnOpenLogs) {
+      btnOpenLogs.addEventListener("click", function () {
+        var nav = document.querySelector('.oe-admin-nav button[data-tab="logs"]');
+        if (nav) nav.click();
+      });
+    }
   }
 
   if (document.readyState === "loading") {
@@ -1746,6 +1905,7 @@
     onTab: onTab,
     loadSugestoes: loadSugestoes,
     loadSystem: loadSystem,
+    loadLogs: loadLogs,
     loadEmails: loadEmails,
     initVisitReportExport: initVisitReportExport,
     exportVisitReport: runVisitReportExport,

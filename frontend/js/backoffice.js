@@ -163,7 +163,7 @@
     document.querySelectorAll("[data-panel]").forEach(function (panel) {
       panel.classList.toggle("hidden", panel.dataset.panel !== tab);
     });
-    var titles = { dashboard: "Painel", conteudo: "Conteúdo do site", nav: "Menu & Rodapé", seo: "SEO", transcricoes: "Transcrições", sugestoes: "Sugestões", emails: "Emails", planos: "Planos Pro", sistema: "Sistema" };
+    var titles = { dashboard: "Painel", conteudo: "Conteúdo do site", nav: "Menu & Rodapé", seo: "SEO", transcricoes: "Transcrições", logs: "Logs", sugestoes: "Sugestões", emails: "Emails", planos: "Planos Pro", sistema: "Sistema" };
     if (tab !== "conteudo") {
       setPageTitle(titles[tab] || "Backoffice");
     } else if (cmsCurrentPage) {
@@ -1338,6 +1338,9 @@
       if (active && active.dataset.tab === "transcricoes") carregarLogs();
       if (active && active.dataset.tab === "sistema" && global.OuviescreviAdminExt) {
         global.OuviescreviAdminExt.loadSystem();
+      }
+      if (active && active.dataset.tab === "logs" && global.OuviescreviAdminExt && global.OuviescreviAdminExt.loadLogs) {
+        global.OuviescreviAdminExt.loadLogs();
       }
     });
     document.getElementById("btnLogoutSide").addEventListener("click", logout);

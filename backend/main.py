@@ -1148,8 +1148,29 @@ def export_video_sub_jobs() -> list[dict]:
         for jid, job in _video_sub_jobs.items():
             row = {k: v for k, v in job.items() if k != "updated_at"}
             row["job_id"] = jid
+            row["kind"] = "video-subs"
             rows.append(row)
         return sorted(rows, key=lambda r: r.get("created_at", 0), reverse=True)
+
+
+def export_transcribe_jobs() -> list[dict]:
+    with _transcribe_jobs_lock:
+        rows = []
+        for jid, job in _transcribe_jobs.items():
+            row = {
+                k: v
+                for k, v in job.items()
+                if k not in ("updated_at", "job_log", "stage_started_at")
+            }
+            row["job_id"] = jid
+            row["kind"] = "transcribe"
+            rows.append(row)
+        return sorted(rows, key=lambda r: r.get("created_at", 0), reverse=True)
+
+
+def export_processing_jobs() -> list[dict]:
+    rows = export_video_sub_jobs() + export_transcribe_jobs()
+    return sorted(rows, key=lambda r: r.get("created_at", 0), reverse=True)
 
 
 def _prune_video_jobs() -> None:

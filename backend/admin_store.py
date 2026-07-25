@@ -1459,6 +1459,21 @@ def get_api_errors(limit: int = 50) -> list[dict]:
         conn.close()
 
 
+def count_api_errors_since(since_iso: str) -> int:
+    since = (since_iso or "").strip()
+    if not since:
+        return 0
+    conn = get_connection()
+    try:
+        row = conn.execute(
+            "SELECT COUNT(*) AS c FROM api_errors WHERE created_at >= ?",
+            (since,),
+        ).fetchone()
+        return int(scalar_int(row, "c", index=0))
+    finally:
+        conn.close()
+
+
 def estimate_costs(config: dict | None = None) -> dict:
     config = config or get_config()
     raw_rate = config.get("whisper_cost_per_minute_usd")

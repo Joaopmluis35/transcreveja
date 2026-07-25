@@ -61,12 +61,40 @@ def admin_dashboard(request: Request):
         0,
     )
     since_24h = (datetime.utcnow() - timedelta(hours=24)).isoformat(timespec="seconds") + "Z"
+    trans_erros_hoje = _safe(
+        "trans_erros_hoje",
+        lambda: store.count_transcriptions(
+            day_from=today_s, day_to=today_s, status="error"
+        ),
+        0,
+    )
+    api_errors_24h = _safe(
+        "api_errors_24h",
+        lambda: store.count_api_errors_since(since_24h),
+        0,
+    )
+    jobs_ativos = 0
+    try:
+        import main as app_main
+
+        jobs_ativos = len(
+            [
+                j
+                for j in app_main.export_processing_jobs()
+                if (j.get("status") or "") == "processing"
+            ]
+        )
+    except Exception:
+        jobs_ativos = 0
     return {
         "manutencao": maint.get("manutencao", False),
         "maintenance_message": maint.get("maintenance_message", ""),
         "block_transcribe_only": maint.get("block_transcribe_only", True),
         "transcricoes_hoje": trans_hoje,
         "transcricoes_total": trans_total,
+        "transcricoes_erros_hoje": trans_erros_hoje,
+        "api_errors_24h": api_errors_24h,
+        "jobs_ativos": jobs_ativos,
         "utilizadores_total": _safe("utilizadores_total", store.count_site_users, 0),
         "utilizadores_hoje": _safe("utilizadores_hoje", store.count_site_users_today, 0),
         "emails_falhados_24h": _safe(
@@ -372,7 +400,13 @@ def admin_processing_jobs(request: Request):
     store.require_role(getattr(request.state, "admin_session", None), "admin")
     import main as app_main
 
-    return {"items": app_main.export_video_sub_jobs()}
+    items = app_main.export_processing_jobs()
+    active = [j for j in items if (j.get("status") or "") == "processing"]
+    return {
+        "items": items,
+        "active_count": len(active),
+        "total_count": len(items),
+    }
 
 
 @router.get("/users")

@@ -404,6 +404,23 @@ body.oe-admin.oe-admin--dark table.oe-admin-table tbody tr:hover td {
 
 .oe-admin-charts--compact {
   margin-bottom: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 1100px) {
+  .oe-admin-charts--compact {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .oe-admin-charts--compact {
+    grid-template-columns: 1fr;
+  }
+}
+
+.oe-admin-cards--logs {
+  margin-bottom: 16px;
 }
 
 .oe-admin-panel--compact {
