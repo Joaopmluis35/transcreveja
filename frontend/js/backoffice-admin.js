@@ -1042,8 +1042,9 @@
         items.map(function (s) {
           var preview = (s.mensagem || "").replace(/\s+/g, " ").trim();
           if (preview.length > 80) preview = preview.slice(0, 80) + "…";
+          var isCsat = /^\[CSAT/i.test(s.mensagem || "") || String(s.nome || "").toUpperCase() === "CSAT";
           return [
-            s.nome || "—",
+            isCsat ? "CSAT" : (s.nome || "—"),
             preview || "—",
             (s.lang || "pt").toUpperCase(),
             formatSugestaoDate(s.created_at),
@@ -1057,6 +1058,10 @@
         if (!s) return;
         tr.classList.add("oe-admin-row--clickable");
         tr.title = "Clique para ver detalhe";
+        var isCsat = /^\[CSAT/i.test(s.mensagem || "") || String(s.nome || "").toUpperCase() === "CSAT";
+        if (isCsat && tr.cells[0]) {
+          tr.cells[0].innerHTML = '<span class="oe-admin-badge oe-admin-badge--ok">CSAT</span>';
+        }
         if (!s.lida) {
           tr.cells[4].innerHTML = '<span class="oe-admin-badge oe-admin-badge--warn">Nova</span>';
         }
@@ -1088,10 +1093,15 @@
     var actions = document.getElementById("sugDetailActions");
     if (!modal || !body || !s) return;
     if (title) {
-      title.textContent = "Sugestão #" + (s.id || "") + (s.nome ? " — " + s.nome : "");
+      var isCsat = /^\[CSAT/i.test(s.mensagem || "") || String(s.nome || "").toUpperCase() === "CSAT";
+      title.textContent = isCsat
+        ? "Feedback CSAT #" + (s.id || "")
+        : "Sugestão #" + (s.id || "") + (s.nome ? " — " + s.nome : "");
     }
+    var isCsatRow = /^\[CSAT/i.test(s.mensagem || "") || String(s.nome || "").toUpperCase() === "CSAT";
     var lines = [
       ["ID", s.id != null ? String(s.id) : "—"],
+      ["Tipo", isCsatRow ? "CSAT (pós-transcrição)" : "Sugestão"],
       ["Nome", s.nome || "Anónimo"],
       ["Idioma", (s.lang || "pt").toUpperCase()],
       ["Data", formatSugestaoDate(s.created_at)],

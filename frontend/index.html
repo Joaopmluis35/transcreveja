@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <script>document.documentElement.classList.add("oe-pricing-hidden");</script>
-  <link rel="stylesheet" href="css/ouviescrevi.css?v=27">
-  <link rel="stylesheet" href="css/index-home.css?v=31">
+  <link rel="stylesheet" href="css/ouviescrevi.css?v=28">
+  <link rel="stylesheet" href="css/index-home.css?v=32">
   <link rel="stylesheet" href="css/pricing-visibility.css?v=2">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <link rel="manifest" href="/manifest.webmanifest">
@@ -202,6 +202,25 @@
               <button id="btnRetry" type="button" class="oe-output__retry hidden" onclick="tentarNovamente()"><span>🔁 Tentar novamente</span></button>
             </aside>
           </div>
+
+          <aside id="oeCsatPulse" class="oe-csat hidden" aria-live="polite" hidden>
+            <div class="oe-csat__inner">
+              <p class="oe-csat__title" id="oeCsatTitle">Como correu a transcrição?</p>
+              <div class="oe-csat__stars" role="group" aria-labelledby="oeCsatTitle">
+                <button type="button" class="oe-csat__star" data-rating="1" aria-label="1 de 5">★</button>
+                <button type="button" class="oe-csat__star" data-rating="2" aria-label="2 de 5">★</button>
+                <button type="button" class="oe-csat__star" data-rating="3" aria-label="3 de 5">★</button>
+                <button type="button" class="oe-csat__star" data-rating="4" aria-label="4 de 5">★</button>
+                <button type="button" class="oe-csat__star" data-rating="5" aria-label="5 de 5">★</button>
+              </div>
+              <label class="oe-csat__label" for="oeCsatComment">Comentário (opcional)</label>
+              <textarea id="oeCsatComment" class="oe-csat__comment" rows="2" maxlength="500" placeholder="O que podemos melhorar?"></textarea>
+              <div class="oe-csat__actions">
+                <button type="button" id="oeCsatSend" class="oe-csat__btn oe-csat__btn--primary" disabled>Enviar</button>
+                <button type="button" id="oeCsatDismiss" class="oe-csat__btn oe-csat__btn--ghost">Agora não</button>
+              </div>
+            </div>
+          </aside>
         
           <p id="traducaoStatus" class="status hidden">🌍 A traduzir... por favor aguarde</p>
           <div id="traducaoProgressWrapper" class="hidden">
@@ -475,6 +494,7 @@
 <script src="js/upsell-ui.js?v=27"></script>
 <script src="js/share-ui.js?v=28"></script>
 <script src="/js/suggestion-fab.js?v=25" defer></script>
+<script src="/js/feedback-pulse.js?v=1" defer></script>
 <script src="/js/media-trim-ui.js?v=34" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
@@ -759,6 +779,9 @@
       setTimeout(function () {
         output.classList.remove("oe-output--fresh");
       }, 2800);
+    }
+    if (window.OuviescreviFeedback && window.OuviescreviFeedback.maybeAskAfterTranscription) {
+      window.OuviescreviFeedback.maybeAskAfterTranscription();
     }
   }
   window.focusTranscriptionResult = focusTranscriptionResult;

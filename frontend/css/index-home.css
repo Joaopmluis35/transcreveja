@@ -2222,3 +2222,109 @@ body.oe-page--home .oe-trim-summary {
     width: 100%;
   }
 }
+
+/* CSAT pós-transcrição */
+body.oe-page--home .oe-csat {
+  margin-top: 14px;
+  border: 1px solid rgba(109, 40, 217, 0.22);
+  border-radius: 12px;
+  background: linear-gradient(180deg, #faf5ff 0%, #f5f3ff 100%);
+  padding: 14px 16px;
+}
+
+body.oe-page--home .oe-csat.hidden,
+body.oe-page--home .oe-csat[hidden] {
+  display: none !important;
+}
+
+body.oe-page--home .oe-csat__title {
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1e1b4b;
+}
+
+body.oe-page--home .oe-csat__stars {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+body.oe-page--home .oe-csat__star {
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 10px !important;
+  border: 1px solid #ddd6fe !important;
+  background: #fff !important;
+  color: #c4b5fd !important;
+  font-size: 1.25rem !important;
+  line-height: 1 !important;
+  cursor: pointer;
+  box-shadow: none !important;
+}
+
+body.oe-page--home .oe-csat__star:hover,
+body.oe-page--home .oe-csat__star.is-active {
+  background: #ede9fe !important;
+  color: #7c3aed !important;
+  border-color: #a78bfa !important;
+}
+
+body.oe-page--home .oe-csat__label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #5b5675;
+  margin-bottom: 4px;
+}
+
+body.oe-page--home .oe-csat__comment {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #ddd6fe;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font: inherit;
+  resize: vertical;
+  min-height: 56px;
+  background: #fff;
+  color: #1e1b4b;
+}
+
+body.oe-page--home .oe-csat__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+body.oe-page--home .oe-csat__btn {
+  min-width: 0 !important;
+  width: auto !important;
+  padding: 8px 14px !important;
+  border-radius: 8px !important;
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+  box-shadow: none !important;
+}
+
+body.oe-page--home .oe-csat__btn--primary {
+  background: #6d28d9 !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+body.oe-page--home .oe-csat__btn--primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+body.oe-page--home .oe-csat__btn--ghost {
+  background: transparent !important;
+  color: #5b5675 !important;
+  border: 1px solid #ddd6fe !important;
+}

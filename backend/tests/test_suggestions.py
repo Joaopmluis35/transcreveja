@@ -56,3 +56,51 @@ def test_suggestion_rejects_bad_origin(client):
         json={"mensagem": "spam"},
     )
     assert res.status_code == 403
+
+
+def test_csat_suggestion_prefixes_rating(client, origin_headers, monkeypatch):
+    monkeypatch.setenv("TEST_SYNC_NOTIFICATIONS", "1")
+    monkeypatch.setattr(
+        "email_notify.send_suggestion_notification",
+        lambda *a, **k: (True, None),
+    )
+    res = client.post(
+        "/api/suggestions",
+        headers=origin_headers,
+        json={
+            "mensagem": "Áudio curto ficou ótimo",
+            "source": "csat",
+            "rating": 5,
+            "lang": "pt",
+        },
+    )
+    assert res.status_code == 200, res.text
+    body = res.json()
+    assert body["ok"] is True
+    assert body.get("source") == "csat"
+    rows = admin_store.list_suggestions(limit=10)
+    row = next(r for r in rows if r["id"] == body["id"])
+    assert row["nome"] == "CSAT"
+    assert row["mensagem"].startswith("[CSAT 5/5]")
+    assert "Áudio curto ficou ótimo" in row["mensagem"]
+
+
+def test_csat_rejects_invalid_rating(client, origin_headers):
+    res = client.post(
+        "/api/suggestions",
+        headers=origin_headers,
+        json={"mensagem": "x", "source": "csat", "rating": 9},
+    )
+    assert res.status_code == 400
+
+
+def test_suggestion_honeypot_silently_ok(client, origin_headers):
+    before = len(admin_store.list_suggestions(limit=200))
+    res = client.post(
+        "/api/suggestions",
+        headers=origin_headers,
+        json={"mensagem": "spam bot", "honeypot": "http://evil.test"},
+    )
+    assert res.status_code == 200
+    assert res.json().get("source") == "honeypot"
+    assert len(admin_store.list_suggestions(limit=200)) == before

@@ -511,3 +511,40 @@ html.oe-theme-dark #sugestaoPanel .sug-card button {
   color: var(--oe-btn-text) !important;
   border-color: var(--oe-btn-border) !important;
 }
+
+html.oe-theme-dark body.oe-page--home .oe-csat {
+  background: #1e1b2e;
+  border-color: #4c1d95;
+}
+
+html.oe-theme-dark body.oe-page--home .oe-csat__title {
+  color: #f3f4f6;
+}
+
+html.oe-theme-dark body.oe-page--home .oe-csat__label {
+  color: #c4b5fd;
+}
+
+html.oe-theme-dark body.oe-page--home .oe-csat__star {
+  background: #111827 !important;
+  border-color: #4b5563 !important;
+  color: #6b7280 !important;
+}
+
+html.oe-theme-dark body.oe-page--home .oe-csat__star:hover,
+html.oe-theme-dark body.oe-page--home .oe-csat__star.is-active {
+  background: #312e81 !important;
+  color: #c4b5fd !important;
+  border-color: #7c3aed !important;
+}
+
+html.oe-theme-dark body.oe-page--home .oe-csat__comment {
+  background: #111827;
+  border-color: #4b5563;
+  color: #f3f4f6;
+}
+
+html.oe-theme-dark body.oe-page--home .oe-csat__btn--ghost {
+  color: #d1d5db !important;
+  border-color: #4b5563 !important;
+}

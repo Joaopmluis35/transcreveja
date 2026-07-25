@@ -2,68 +2,83 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="description" content="Partagez vos idées pour améliorer Ouviescrevi. Vos retours nous aident à créer de meilleurs outils IA.">
+  <meta name="description" content="Partagez vos idées pour améliorer Ouviescrevi. Votre avis nous aide à faire évoluer la plateforme.">
   <meta name="twitter:card" content="summary_large_image">
   <meta property="og:type" content="website">
   <meta property="og:image" content="https://www.ouviescrevi.pt/og/index.png">
-  <meta name="twitter:description" content="Partagez vos idées pour améliorer Ouviescrevi. Vos retours nous aident à créer de meilleurs outils IA.">
-  <meta property="og:description" content="Partagez vos idées pour améliorer Ouviescrevi. Vos retours nous aident à créer de meilleurs outils IA.">
+  <meta name="twitter:description" content="Partagez vos idées pour améliorer Ouviescrevi. Votre avis nous aide à faire évoluer la plateforme.">
+  <meta property="og:description" content="Partagez vos idées pour améliorer Ouviescrevi. Votre avis nous aide à faire évoluer la plateforme.">
   <meta name="twitter:title" content="Envoyer des suggestions — Ouviescrevi">
   <meta property="og:title" content="Envoyer des suggestions — Ouviescrevi">
   <meta property="og:url" content="https://www.ouviescrevi.pt/fr/sugestoes.html">
-  <meta name="keywords" content="Ouviescrevi suggestions, give feedback, AI ideas, improve platform, contribute suggestions">
   <meta name="robots" content="index, follow">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Envoyer des suggestions — Ouviescrevi</title>
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="canonical" href="https://www.ouviescrevi.pt/fr/sugestoes.html">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
-  <link rel="stylesheet" href="../css/ouviescrevi.css?v=25">
+  <link rel="stylesheet" href="../css/ouviescrevi.css?v=28">
+  <link rel="stylesheet" href="../css/sugestoes.css?v=1">
   <script src="/js/ouviescrevi-seo.js" defer></script>
-  <script src="../js/ouviescrevi-ui.js?v=25" defer></script>
+  <script src="../js/ouviescrevi-api.js?v=25" defer></script>
+  <script src="../js/ouviescrevi-ui.js?v=28" defer></script>
+  <script src="../js/suggestions-page.js?v=1" defer></script>
 </head>
-<body class="oe-page oe-pro">
+<body class="oe-page oe-pro oe-page--suggestions">
 <a class="oe-skip" href="#conteudo">Aller au contenu</a>
 <div id="header"></div>
 
-<div class="oe-hero" id="conteudo">
-  <h1 data-cms-key="fr_sugestoes_title" data-cms-mode="text">💡 Suggestions</h1>
-  <p class="oe-lead" data-cms-key="fr_sugestoes_lead" data-cms-mode="text">Your feedback helps us improve Ouviescrevi.</p>
-</div>
+<main class="oe-suggestions" id="conteudo">
+  <header class="oe-suggestions__hero">
+    <p class="oe-suggestions__eyebrow">Ouviescrevi</p>
+    <h1 data-cms-key="fr_sugestoes_title" data-cms-mode="text">Suggestions</h1>
+    <p class="oe-suggestions__lead" data-cms-key="fr_sugestoes_lead" data-cms-mode="text">Votre idée nous aide à améliorer le produit — fonctions, bugs ou ergonomie.</p>
+  </header>
 
-<section class="suggestions">
-  <form id="formSuggestion">
-    <input type="hidden" name="_captcha" value="false">
-    <label for="name" style="font-weight:600;">Name (optional)</label>
-    <input type="text" id="name" name="name" placeholder="Your name">
-    <label for="message" style="font-weight:600;margin-top:12px;display:block;">Suggestion</label>
-    <textarea id="message" name="message" placeholder="Your suggestion..." required rows="6"></textarea>
-    <button type="submit" class="btn-main oe-btn--block" id="btnSuggest">Send suggestion</button>
-  </form>
-</section>
+  <section class="oe-suggestions__card" aria-label="Formulaire de suggestion">
+    <form id="formSugestao" novalidate>
+      <div class="oe-suggestions__hp" aria-hidden="true">
+        <label for="sugWebsite">Website</label>
+        <input type="text" id="sugWebsite" name="website" tabindex="-1" autocomplete="off">
+      </div>
+      <div class="oe-suggestions__field">
+        <p class="oe-suggestions__cat-label" id="sugCatLabel">Type</p>
+        <div class="oe-suggestions__cats" role="radiogroup" aria-labelledby="sugCatLabel">
+          <label class="oe-suggestions__cat"><input type="radio" name="categoria" value="ideia" checked><span>Idée</span></label>
+          <label class="oe-suggestions__cat"><input type="radio" name="categoria" value="bug"><span>Problème</span></label>
+          <label class="oe-suggestions__cat"><input type="radio" name="categoria" value="ux"><span>Ergonomie</span></label>
+          <label class="oe-suggestions__cat"><input type="radio" name="categoria" value="outro"><span>Autre</span></label>
+        </div>
+      </div>
+      <div class="oe-suggestions__field">
+        <label for="nome">Nom <span style="font-weight:500;color:var(--pro-muted,#64748b)">(optionnel)</span></label>
+        <input type="text" id="nome" name="nome" placeholder="Votre nom" maxlength="80" autocomplete="name">
+      </div>
+      <div class="oe-suggestions__field">
+        <label for="mensagem">Suggestion</label>
+        <textarea id="mensagem" name="mensagem" placeholder="Ex. : J’aimerais exporter les sous-titres en VTT…" required rows="6" maxlength="2000"></textarea>
+        <div class="oe-suggestions__meta" id="sugCharCount">0 / 2000</div>
+        <span class="oe-suggestions__hint">Nous lisons tous les messages. Plus c’est précis, mieux c’est.</span>
+      </div>
+      <div class="oe-suggestions__actions">
+        <button type="submit" class="oe-pro-btn oe-pro-btn--primary" id="btnSugestao">Envoyer</button>
+      </div>
+    </form>
+    <div id="sugSuccess" class="oe-suggestions__success hidden" hidden>
+      <h2>Nous avons reçu votre idée</h2>
+      <p>Merci — nous allons l’examiner. Vous pouvez en envoyer une autre.</p>
+      <button type="button" class="oe-pro-btn oe-pro-btn--primary" id="sugAgain">Envoyer une autre</button>
+    </div>
+  </section>
+  <p class="oe-suggestions__footer">
+    Vous préférez d’abord essayer ?
+    <a href="index.html">Transcrire gratuitement</a>
+  </p>
+</main>
 
 <div id="footer"></div>
-
 <script>
-document.getElementById("formSuggestion").addEventListener("submit", function(e) {
-  e.preventDefault();
-  const btn = document.getElementById("btnSuggest");
-  OuviescreviUI.setButtonLoading(btn, true, "Sending...");
-  const formData = new FormData(e.target);
-  fetch("https://formsubmit.co/ouviescrevi@gmail.com", { method: "POST", body: formData })
-    .then(function(r) {
-      if (r.ok) {
-        OuviescreviUI.toast("Thank you for your suggestion!", "success");
-        e.target.reset();
-      } else {
-        OuviescreviUI.toast("Error sending message. Please try again.", "error");
-      }
-    })
-    .catch(function() { OuviescreviUI.toast("Connection error.", "error"); })
-    .finally(function() { OuviescreviUI.setButtonLoading(btn, false); });
-});
-OuviescreviUI.loadHeader();
-OuviescreviUI.loadFooter();
+  if (window.OuviescreviUI) { OuviescreviUI.loadHeader(); OuviescreviUI.loadFooter(); }
 </script>
 </body>
 </html>

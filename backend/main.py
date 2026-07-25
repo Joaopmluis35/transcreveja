@@ -1872,19 +1872,40 @@ class SuggestionRequest(BaseModel):
     nome: str | None = None
     mensagem: str
     lang: str = "pt"
+    source: str | None = None
+    rating: int | None = None
+    honeypot: str | None = None
 
 
 @app.post("/api/suggestions")
 def public_suggestion(request: Request, body: SuggestionRequest):
     if not origin_is_allowed(request, ALLOWED_ORIGINS):
         raise HTTPException(status_code=403, detail="Origem não autorizada.")
+    # Honeypot: bots que preenchem o campo oculto recebem sucesso falso.
+    if (body.honeypot or "").strip():
+        return {"ok": True, "id": 0, "source": "honeypot"}
     if not (body.mensagem or "").strip():
         raise HTTPException(status_code=400, detail="Mensagem vazia.")
-    sid = admin_store.add_suggestion(body.nome, body.mensagem.strip(), body.lang or "pt")
-    referer = request.headers.get("referer") or request.headers.get("Referer")
     msg = body.mensagem.strip()
     lang = body.lang or "pt"
-    nome = body.nome
+    nome = (body.nome or "").strip() or None
+    source = (body.source or "").strip().lower()[:40] or None
+    rating = body.rating
+    if rating is not None:
+        try:
+            rating = int(rating)
+        except (TypeError, ValueError):
+            rating = None
+        if rating is not None and (rating < 1 or rating > 5):
+            raise HTTPException(status_code=400, detail="rating inválido (1-5).")
+    if source == "csat" or rating is not None:
+        nome = nome or "CSAT"
+        if rating is not None and not msg.startswith("[CSAT"):
+            msg = f"[CSAT {rating}/5] {msg}"
+        elif rating is None and not msg.startswith("[CSAT"):
+            msg = f"[CSAT] {msg}"
+    sid = admin_store.add_suggestion(nome, msg, lang)
+    referer = request.headers.get("referer") or request.headers.get("Referer")
 
     def _notify() -> None:
         from email_notify import send_suggestion_notification
@@ -1894,7 +1915,8 @@ def public_suggestion(request: Request, body: SuggestionRequest):
             logger.warning("Falha email sugestão #%s: %s", sid, err)
 
     _run_in_background(_notify)
-    return {"ok": True, "id": sid}
+    return {"ok": True, "id": sid, "source": source or "suggestion"}
+
 
 
 @app.get("/api/site-content")

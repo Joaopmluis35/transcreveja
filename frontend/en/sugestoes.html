@@ -18,52 +18,78 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="canonical" href="https://www.ouviescrevi.pt/en/sugestoes.html">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
-  <link rel="stylesheet" href="../css/ouviescrevi.css?v=25">
+  <link rel="stylesheet" href="../css/ouviescrevi.css?v=28">
+  <link rel="stylesheet" href="../css/sugestoes.css?v=1">
   <script src="/js/ouviescrevi-seo.js" defer></script>
-  <script src="../js/ouviescrevi-ui.js?v=25" defer></script>
+  <script src="../js/ouviescrevi-api.js?v=25" defer></script>
+  <script src="../js/ouviescrevi-ui.js?v=28" defer></script>
+  <script src="../js/suggestions-page.js?v=1" defer></script>
 </head>
-<body class="oe-page oe-pro">
+<body class="oe-page oe-pro oe-page--suggestions">
 <a class="oe-skip" href="#conteudo">Skip to content</a>
 <div id="header"></div>
 
-<div class="oe-hero" id="conteudo">
-  <h1 data-cms-key="en_sugestoes_title" data-cms-mode="text">💡 Suggestions</h1>
-  <p class="oe-lead" data-cms-key="en_sugestoes_lead" data-cms-mode="text">Your feedback helps us improve Ouviescrevi.</p>
-</div>
+<main class="oe-suggestions" id="conteudo">
+  <header class="oe-suggestions__hero">
+    <p class="oe-suggestions__eyebrow">Ouviescrevi</p>
+    <h1 data-cms-key="en_sugestoes_title" data-cms-mode="text">Suggestions</h1>
+    <p class="oe-suggestions__lead" data-cms-key="en_sugestoes_lead" data-cms-mode="text">Your ideas help us improve the product — features, bugs, or usability.</p>
+  </header>
 
-<section class="suggestions">
-  <form id="formSuggestion">
-    <input type="hidden" name="_captcha" value="false">
-    <label for="name" style="font-weight:600;">Name (optional)</label>
-    <input type="text" id="name" name="name" placeholder="Your name">
-    <label for="message" style="font-weight:600;margin-top:12px;display:block;">Suggestion</label>
-    <textarea id="message" name="message" placeholder="Your suggestion..." required rows="6"></textarea>
-    <button type="submit" class="btn-main oe-btn--block" id="btnSuggest">Send suggestion</button>
-  </form>
-</section>
+  <section class="oe-suggestions__card" aria-label="Suggestion form">
+    <form id="formSugestao" novalidate>
+      <div class="oe-suggestions__hp" aria-hidden="true">
+        <label for="sugWebsite">Website</label>
+        <input type="text" id="sugWebsite" name="website" tabindex="-1" autocomplete="off">
+      </div>
+
+      <div class="oe-suggestions__field">
+        <p class="oe-suggestions__cat-label" id="sugCatLabel">Type</p>
+        <div class="oe-suggestions__cats" role="radiogroup" aria-labelledby="sugCatLabel">
+          <label class="oe-suggestions__cat"><input type="radio" name="categoria" value="ideia" checked><span>Idea</span></label>
+          <label class="oe-suggestions__cat"><input type="radio" name="categoria" value="bug"><span>Issue</span></label>
+          <label class="oe-suggestions__cat"><input type="radio" name="categoria" value="ux"><span>Usability</span></label>
+          <label class="oe-suggestions__cat"><input type="radio" name="categoria" value="outro"><span>Other</span></label>
+        </div>
+      </div>
+
+      <div class="oe-suggestions__field">
+        <label for="nome">Name <span style="font-weight:500;color:var(--pro-muted,#64748b)">(optional)</span></label>
+        <input type="text" id="nome" name="nome" placeholder="Your name" maxlength="80" autocomplete="name">
+      </div>
+
+      <div class="oe-suggestions__field">
+        <label for="mensagem">Suggestion</label>
+        <textarea id="mensagem" name="mensagem" placeholder="e.g. I’d like VTT subtitle export, or button X failed on mobile…" required rows="6" maxlength="2000"></textarea>
+        <div class="oe-suggestions__meta" id="sugCharCount">0 / 2000</div>
+        <span class="oe-suggestions__hint">We read every message. The more specific, the better.</span>
+      </div>
+
+      <div class="oe-suggestions__actions">
+        <button type="submit" class="oe-pro-btn oe-pro-btn--primary" id="btnSugestao">Send suggestion</button>
+      </div>
+    </form>
+
+    <div id="sugSuccess" class="oe-suggestions__success hidden" hidden>
+      <h2>We got your idea</h2>
+      <p>Thanks — we’ll review it. You can send another if you want.</p>
+      <button type="button" class="oe-pro-btn oe-pro-btn--primary" id="sugAgain">Send another</button>
+    </div>
+  </section>
+
+  <p class="oe-suggestions__footer">
+    Prefer to try the product first?
+    <a href="index.html">Transcribe for free</a>
+  </p>
+</main>
 
 <div id="footer"></div>
 
 <script>
-document.getElementById("formSuggestion").addEventListener("submit", function(e) {
-  e.preventDefault();
-  const btn = document.getElementById("btnSuggest");
-  OuviescreviUI.setButtonLoading(btn, true, "Sending...");
-  const formData = new FormData(e.target);
-  fetch("https://formsubmit.co/ouviescrevi@gmail.com", { method: "POST", body: formData })
-    .then(function(r) {
-      if (r.ok) {
-        OuviescreviUI.toast("Thank you for your suggestion!", "success");
-        e.target.reset();
-      } else {
-        OuviescreviUI.toast("Error sending message. Please try again.", "error");
-      }
-    })
-    .catch(function() { OuviescreviUI.toast("Connection error.", "error"); })
-    .finally(function() { OuviescreviUI.setButtonLoading(btn, false); });
-});
-OuviescreviUI.loadHeader();
-OuviescreviUI.loadFooter();
+  if (window.OuviescreviUI) {
+    OuviescreviUI.loadHeader();
+    OuviescreviUI.loadFooter();
+  }
 </script>
 </body>
 </html>
