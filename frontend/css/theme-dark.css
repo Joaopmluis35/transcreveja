@@ -51,6 +51,10 @@ html.oe-theme-dark .oe-pro-header {
   border-bottom-color: var(--pro-border);
 }
 
+html.oe-theme-dark #header:has(#oeProHeader) .oe-pro-header {
+  background: rgba(11, 17, 32, 0.92);
+}
+
 html.oe-theme-dark .oe-pro-brand,
 html.oe-theme-dark .oe-pro-nav__link,
 html.oe-theme-dark .oe-pro-nav__trigger {
