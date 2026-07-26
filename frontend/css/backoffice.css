@@ -1125,6 +1125,58 @@ table.oe-admin-table td code {
   margin-top: 10px;
 }
 
+.oe-admin-ai-loading {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid #c4b5fd;
+  background: #f5f3ff;
+  color: #312e81;
+}
+
+.oe-admin-ai-loading.hidden,
+.oe-admin-ai-loading[hidden] {
+  display: none !important;
+}
+
+.oe-admin-ai-loading .oe-spinner {
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 2px;
+  color: #7c3aed;
+}
+
+.oe-admin-ai-loading strong {
+  display: block;
+  margin-bottom: 2px;
+}
+
+.oe-admin-ai-loading p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #5b5675;
+}
+
+.oe-admin-ai-list--dim {
+  opacity: 0.45;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+body.oe-admin.oe-admin--dark .oe-admin-ai-loading {
+  background: #1e1b2e;
+  border-color: #5b21b6;
+  color: #ede9fe;
+}
+
+body.oe-admin.oe-admin--dark .oe-admin-ai-loading p {
+  color: #c4b5fd;
+}
+
 .oe-admin-panel__head--row {
   display: flex;
   align-items: center;

@@ -1359,9 +1359,39 @@
 
   async function generateAiInsights() {
     var btn = document.getElementById("btnGenerateAiInsights");
+    var btnRefresh = document.getElementById("btnRefreshAiInsights");
+    var btnCopy = document.getElementById("btnCopyAllAiInsights");
     var summaryEl = document.getElementById("aiInsightsSummary");
+    var loadingEl = document.getElementById("aiInsightsLoading");
+    var listEl = document.getElementById("tabelaAiInsights");
     var days = (document.getElementById("aiInsightDays") || {}).value || "7";
-    if (btn) btn.disabled = true;
+    var daysSelect = document.getElementById("aiInsightDays");
+    var statusFilter = document.getElementById("aiInsightStatusFilter");
+
+    function setGenerating(on) {
+      if (global.OuviescreviUI && global.OuviescreviUI.setButtonLoading) {
+        global.OuviescreviUI.setButtonLoading(btn, on, "A gerar…");
+      } else if (btn) {
+        btn.disabled = on;
+      }
+      if (btnRefresh) btnRefresh.disabled = on;
+      if (btnCopy) btnCopy.disabled = on;
+      if (daysSelect) daysSelect.disabled = on;
+      if (statusFilter) statusFilter.disabled = on;
+      if (loadingEl) {
+        loadingEl.hidden = !on;
+        loadingEl.classList.toggle("hidden", !on);
+      }
+      if (on && listEl) {
+        listEl.setAttribute("aria-busy", "true");
+        listEl.classList.add("oe-admin-ai-list--dim");
+      } else if (listEl) {
+        listEl.removeAttribute("aria-busy");
+        listEl.classList.remove("oe-admin-ai-list--dim");
+      }
+    }
+
+    setGenerating(true);
     try {
       var res = await fetch(
         apiBase() + "/api/admin/ai-insights/generate?days=" + encodeURIComponent(days) + "&save=true",
@@ -1383,11 +1413,11 @@
         "Geradas " + (data.count || 0) + " sugestões AI.",
         "success"
       );
-      loadAiInsights();
+      await loadAiInsights();
     } catch (e) {
       global.OuviescreviUI.toast(e.message || "Erro ao gerar.", "error");
     } finally {
-      if (btn) btn.disabled = false;
+      setGenerating(false);
     }
   }
 
