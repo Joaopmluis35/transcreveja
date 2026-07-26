@@ -565,6 +565,11 @@ def _locale_cms_pages(lang: str, lang_label: str) -> list[dict[str, Any]]:
             "path": f"{base}/index.html",
             "fields": [
                 {"key": f"{p}_home_intro_html", "label": "Texto de boas-vindas (topo)", "type": "rich"},
+                {"key": f"{p}_seo_title", "label": "SEO — título", "type": "text"},
+                {"key": f"{p}_seo_p1", "label": "SEO — parágrafo 1", "type": "rich"},
+                {"key": f"{p}_seo_p2", "label": "SEO — parágrafo 2", "type": "rich"},
+                {"key": f"{p}_seo_features", "label": "SEO — funcionalidades", "type": "lines"},
+                {"key": f"{p}_seo_closing", "label": "SEO — fecho", "type": "text"},
             ],
         },
         {
@@ -815,6 +820,148 @@ def default_nav_config(lang: str) -> dict[str, Any]:
                 },
             ],
         }
+    if lang == "es":
+        return {
+            "menuToolsLabel": "Herramientas",
+            "menuAudienceLabel": "Para quién",
+            "tools": [
+                _nav_link("Resumen PDF / Word", "resumo.html", "resumo", category="Resumir y analizar"),
+                _nav_link("Resumen por URL", "url-resumo.html", "url-resumo", category="Resumir y analizar"),
+                _nav_link("Capítulos y marcas de tiempo", "capitulos.html", "capitulos", category="Resumir y analizar"),
+                _nav_link("Podcast y YouTube", "podcast-youtube.html", "podcast-youtube", category="Resumir y analizar"),
+                _nav_link("Descripción YouTube", "descricao-youtube.html", "descricao-youtube", category="Resumir y analizar"),
+                _nav_link("Preguntas con IA", "perguntas.html", "perguntas", category="Estudio y enseñanza"),
+                _nav_link("Clase lista", "aula-pronta.html", "aula-pronta", category="Estudio y enseñanza"),
+                _nav_link("Clase completa", "aula-completa.html", "aula-completa", category="Estudio y enseñanza"),
+                _nav_link("Flashcards", "flashcards.html", "flashcards", category="Estudio y enseñanza"),
+                _nav_link("Conversor de archivos", "conversor.html", "conversor", category="Convertir y editar"),
+                _nav_link("Conversor de imágenes", "conversor-imagens.html", "conversor-imagens", category="Convertir y editar"),
+                _nav_link("Corrector de texto", "corretor.html", "corretor", category="Convertir y editar"),
+            ],
+            "audience": [
+                _nav_link("Clases", "aulas.html", "aulas"),
+                _nav_link("Profesores", "professores.html", "professores"),
+                _nav_link("Periodistas", "jornalistas.html", "jornalistas"),
+                _nav_link("Podcasts", "podcasts.html", "podcasts"),
+                _nav_link("Reuniones", "reunioes.html", "reunioes"),
+                _nav_link("Testimonios", "testemunhos.html", "testemunhos"),
+            ],
+            "topLinks": [
+                _nav_link("Ayuda", "ajuda.html", "ajuda"),
+                _nav_link("Precios", "precos.html", "precos", pricing_only=True),
+                _nav_link("Sugerencias", "sugestoes.html", "sugestoes"),
+            ],
+            "ctaLabel": "Transcribir gratis",
+            "ctaHref": "index.html",
+            "footerTagline": "Transcribe, resume y traduce con IA — gratis y hecho en Portugal.",
+            "footerEmail": "ouviescrevi@gmail.com",
+            "footerCopyright": "© 2026 Ouviescrevi · Hecho en Portugal",
+            "footerColumns": [
+                {
+                    "title": "Herramientas",
+                    "links": [
+                        _nav_link("Resumen", "resumo.html"),
+                        _nav_link("Resumen URL", "url-resumo.html"),
+                        _nav_link("Preguntas", "perguntas.html"),
+                        _nav_link("Clase lista", "aula-pronta.html"),
+                        _nav_link("Capítulos", "capitulos.html"),
+                        _nav_link("Conversor", "conversor.html"),
+                        _nav_link("Imágenes", "conversor-imagens.html"),
+                        _nav_link("Corrector", "corretor.html"),
+                    ],
+                },
+                {
+                    "title": "Para quién",
+                    "links": [
+                        _nav_link("Profesores", "professores.html"),
+                        _nav_link("Periodistas", "jornalistas.html"),
+                        _nav_link("Podcasts", "podcasts.html"),
+                        _nav_link("Clases", "aulas.html"),
+                    ],
+                },
+                {
+                    "title": "Legal",
+                    "links": [
+                        _nav_link("Privacidad", "privacy.html"),
+                        _nav_link("Términos", "terms.html"),
+                        _nav_link("Cookies", "cookies.html"),
+                        _nav_link("Ayuda", "ajuda.html"),
+                        _nav_link("Sugerencias", "sugestoes.html"),
+                    ],
+                },
+            ],
+        }
+    if lang == "fr":
+        return {
+            "menuToolsLabel": "Outils",
+            "menuAudienceLabel": "Pour qui",
+            "tools": [
+                _nav_link("Résumé PDF / Word", "resumo.html", "resumo", category="Résumer et analyser"),
+                _nav_link("Résumé par URL", "url-resumo.html", "url-resumo", category="Résumer et analyser"),
+                _nav_link("Chapitres et horodatages", "capitulos.html", "capitulos", category="Résumer et analyser"),
+                _nav_link("Podcast et YouTube", "podcast-youtube.html", "podcast-youtube", category="Résumer et analyser"),
+                _nav_link("Description YouTube", "descricao-youtube.html", "descricao-youtube", category="Résumer et analyser"),
+                _nav_link("Questions IA", "perguntas.html", "perguntas", category="Études et enseignement"),
+                _nav_link("Cours prêt", "aula-pronta.html", "aula-pronta", category="Études et enseignement"),
+                _nav_link("Cours complet", "aula-completa.html", "aula-completa", category="Études et enseignement"),
+                _nav_link("Flashcards", "flashcards.html", "flashcards", category="Études et enseignement"),
+                _nav_link("Convertisseur de fichiers", "conversor.html", "conversor", category="Convertir et éditer"),
+                _nav_link("Convertisseur d'images", "conversor-imagens.html", "conversor-imagens", category="Convertir et éditer"),
+                _nav_link("Correcteur de texte", "corretor.html", "corretor", category="Convertir et éditer"),
+            ],
+            "audience": [
+                _nav_link("Cours", "aulas.html", "aulas"),
+                _nav_link("Enseignants", "professores.html", "professores"),
+                _nav_link("Journalistes", "jornalistas.html", "jornalistas"),
+                _nav_link("Podcasts", "podcasts.html", "podcasts"),
+                _nav_link("Réunions", "reunioes.html", "reunioes"),
+                _nav_link("Témoignages", "testemunhos.html", "testemunhos"),
+            ],
+            "topLinks": [
+                _nav_link("Aide", "ajuda.html", "ajuda"),
+                _nav_link("Tarifs", "precos.html", "precos", pricing_only=True),
+                _nav_link("Suggestions", "sugestoes.html", "sugestoes"),
+            ],
+            "ctaLabel": "Transcrire gratuitement",
+            "ctaHref": "index.html",
+            "footerTagline": "Transcris, résume et traduis avec l'IA — gratuit et fait au Portugal.",
+            "footerEmail": "ouviescrevi@gmail.com",
+            "footerCopyright": "© 2026 Ouviescrevi · Fait au Portugal",
+            "footerColumns": [
+                {
+                    "title": "Outils",
+                    "links": [
+                        _nav_link("Résumé", "resumo.html"),
+                        _nav_link("Résumé URL", "url-resumo.html"),
+                        _nav_link("Questions", "perguntas.html"),
+                        _nav_link("Cours prêt", "aula-pronta.html"),
+                        _nav_link("Chapitres", "capitulos.html"),
+                        _nav_link("Convertisseur", "conversor.html"),
+                        _nav_link("Images", "conversor-imagens.html"),
+                        _nav_link("Correcteur", "corretor.html"),
+                    ],
+                },
+                {
+                    "title": "Pour qui",
+                    "links": [
+                        _nav_link("Enseignants", "professores.html"),
+                        _nav_link("Journalistes", "jornalistas.html"),
+                        _nav_link("Podcasts", "podcasts.html"),
+                        _nav_link("Cours", "aulas.html"),
+                    ],
+                },
+                {
+                    "title": "Légal",
+                    "links": [
+                        _nav_link("Confidentialité", "privacy.html"),
+                        _nav_link("Conditions", "terms.html"),
+                        _nav_link("Cookies", "cookies.html"),
+                        _nav_link("Aide", "ajuda.html"),
+                        _nav_link("Suggestions", "sugestoes.html"),
+                    ],
+                },
+            ],
+        }
     return {
         "menuToolsLabel": "Ferramentas",
         "menuAudienceLabel": "Para quem",
@@ -892,7 +1039,9 @@ def nav_config_key(lang: str) -> str:
 
 
 def _nav_base_lang(lang: str) -> str:
-    return "pt" if lang == "pt" else "en"
+    if lang in ("pt", "en", "es", "fr", "de"):
+        return lang if lang != "de" else "en"
+    return "en"
 
 
 def _enrich_tools(tools: list[dict[str, Any]], base_tools: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -951,6 +1100,9 @@ def parse_nav_config(raw: str | None, lang: str = "pt") -> dict[str, Any]:
     try:
         data = json.loads(raw) if isinstance(raw, str) else raw
         if isinstance(data, dict):
+            # Conteúdo antigo no CMS caiu para inglês — preferir defaults nativos.
+            if lang in ("es", "fr") and (data.get("menuToolsLabel") or "") == "Tools":
+                return default_nav_config(lang)
             return merge_nav_config(data, lang)
     except (json.JSONDecodeError, TypeError):
         pass
@@ -1050,6 +1202,60 @@ DEFAULT_SITE_CONTENT: dict[str, str] = {
         "Transcrire 🎙️ · Traduire 🌍 · Résumer 📌 · Convertir des fichiers 📄 "
         "— simple, rapide et gratuit.</p>"
     ),
+    "es_seo_title": "🧠 ¿Qué es Ouviescrevi?",
+    "es_seo_p1": (
+        "Ouviescrevi es una herramienta online con inteligencia artificial (IA) para "
+        "<strong>transcribir, resumir, traducir y corregir</strong>, además de "
+        "<strong>clasificar contenidos</strong>, <strong>generar emails</strong>, "
+        "<strong>crear preguntas de estudio</strong> y <strong>vídeos con subtítulos automáticos</strong>."
+    ),
+    "es_seo_p2": (
+        "Ideal para profesores, periodistas, estudiantes, empresas y cualquiera que necesite "
+        "convertir audio, vídeo o texto en conocimiento útil. 🚀"
+    ),
+    "es_seo_features": (
+        "Funciones principales:\n"
+        "🎙️ Transcripción de audio/vídeo\n"
+        "🧠 Resúmenes automáticos\n"
+        "🌍 Traducción de textos\n"
+        "✍️ Corrección y emails con IA\n"
+        "📚 Preguntas de estudio\n"
+        "💬 Vídeos con subtítulos automáticos\n"
+        "📁 Conversión de archivos"
+    ),
+    "es_seo_closing": "Empieza gratis. Simple, rápido y hecho en Portugal 🇵🇹",
+    "fr_seo_title": "🧠 Qu'est-ce qu'Ouviescrevi ?",
+    "fr_seo_p1": (
+        "Ouviescrevi est un outil en ligne avec intelligence artificielle (IA) pour "
+        "<strong>transcrire, résumer, traduire et corriger</strong>, ainsi que "
+        "<strong>classer des contenus</strong>, <strong>générer des e-mails</strong>, "
+        "<strong>créer des questions d’étude</strong> et <strong>des vidéos avec sous-titres automatiques</strong>."
+    ),
+    "fr_seo_p2": (
+        "Idéal pour les enseignants, journalistes, étudiants, entreprises et toute personne "
+        "qui doit transformer audio, vidéo ou texte en connaissances utiles. 🚀"
+    ),
+    "fr_seo_features": (
+        "Fonctionnalités principales :\n"
+        "🎙️ Transcription audio/vidéo\n"
+        "🧠 Résumés automatiques\n"
+        "🌍 Traduction de textes\n"
+        "✍️ Correction et e-mails avec IA\n"
+        "📚 Questions d’étude\n"
+        "💬 Vidéos avec sous-titres automatiques\n"
+        "📁 Conversion de fichiers"
+    ),
+    "fr_seo_closing": "Commence gratuitement. Simple, rapide et fait au Portugal 🇵🇹",
+    "es_resumo_title": "📌 Resumen inteligente",
+    "es_resumo_lead": "Pega tu texto o sube un PDF o Word (.docx) y elige el estilo de resumen.",
+    "fr_resumo_title": "📌 Résumé intelligent",
+    "fr_resumo_lead": "Colle ton texte ou dépose un PDF ou Word (.docx), puis choisis le style de résumé.",
+    "es_conversor_title": "📁 Conversor de archivos",
+    "es_conversor_lead": "Convierte Word, PDF e imágenes — gratis en el navegador.",
+    "es_conversor_notice": "💡 Usa esta herramienta gratuita mientras evoluciona la versión con IA.",
+    "fr_conversor_title": "📁 Convertisseur de fichiers",
+    "fr_conversor_lead": "Convertis Word, PDF et images — gratuit dans le navigateur.",
+    "fr_conversor_notice": "💡 Profite de cet outil gratuit pendant que la version IA évolue.",
     "de_home_intro_html": (
         "<p><strong>Lade Audio oder Video hoch und erhalte den Text in wenigen Minuten.</strong><br>"
         "Transkribieren 🎙️ · Übersetzen 🌍 · Zusammenfassen 📌 · Dateien konvertieren 📄 "
@@ -1321,10 +1527,9 @@ for _lc_lang in ("es", "fr", "de"):
         )
 
 for _nav_lang in ("pt", "en", "es", "fr", "de"):
-    _nav_base = "pt" if _nav_lang == "pt" else "en"
     DEFAULT_SITE_CONTENT.setdefault(
         nav_config_key(_nav_lang),
-        json.dumps(default_nav_config(_nav_base), ensure_ascii=False),
+        json.dumps(default_nav_config(_nav_base_lang(_nav_lang)), ensure_ascii=False),
     )
 
 CONTENT_KEYS = frozenset(DEFAULT_SITE_CONTENT.keys())

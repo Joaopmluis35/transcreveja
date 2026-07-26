@@ -31,54 +31,54 @@
 
   <div class="oe-hero" id="conteudo">
     <h1 data-cms-key="es_conversor_title" data-cms-mode="text">📁 Conversor de archivos</h1>
-    <p class="oe-lead" data-cms-key="es_conversor_lead" data-cms-mode="text">Convert Word, PDF and images — free in your browser.</p>
+    <p class="oe-lead" data-cms-key="es_conversor_lead" data-cms-mode="text">Convierte Word, PDF e imágenes — gratis en el navegador.</p>
   </div>
 
   <section class="converter">
-    <p class="oe-notice" data-cms-key="es_conversor_notice" data-cms-mode="html">💡 Use this free tool while our AI-based version evolves.</p>
-    <p>Select the type of conversion:</p>
+    <p class="oe-notice" data-cms-key="es_conversor_notice" data-cms-mode="html">💡 Usa esta herramienta gratuita mientras evoluciona la versión con IA.</p>
+    <p>Tipo de conversión:</p>
 
     <select id="conversionType" onchange="updateInput()">
       <option value="word2pdf">Word (.docx) → PDF</option>
-      <option value="pdf2text">PDF → Text (.txt)</option>
-      <option value="img2pdf">Image (.jpg/.png) → PDF</option>
+      <option value="pdf2text">PDF → Texto (.txt)</option>
+      <option value="img2pdf">Imagen (.jpg/.png) → PDF</option>
       <option value="pdf2word">PDF → Word (.docx)</option>
-      <option value="img2text" disabled>Image → Text (coming soon)</option>
+      <option value="img2text" disabled>Imagen → Texto (próximamente)</option>
     </select>
 
     <div id="uploadArea">
       <input type="file" id="wordInput" accept=".doc,.docx">
       <br>
-      <button onclick="convertWord()" class="btn-main">Convert & Download</button>
+      <button onclick="convertWord()" class="btn-main">Convertir y descargar</button>
       <p id="wordStatus"></p>
     </div>
   </section>
 
   <section id="apresentacaoConversorSEO" class="oe-seo-block" data-cms-key="es_conversor_seo" data-cms-mode="html">
-    <h2 style="color: #A550F7;">🔄 Smart Conversor de archivos</h2>
+    <h2 style="color: #A550F7;">🔄 Conversor inteligente de archivos</h2>
     <p>
-      <strong>Ouviescrevi</strong> also offers a <strong>free online file converter</strong> that is quick and easy to use. Convert between <strong>Word (.docx)</strong>, <strong>PDF</strong>, <strong>TXT</strong>, <strong>JSON</strong>, <strong>SRT</strong>, and even images to text with the help of AI.
+      <strong>Ouviescrevi</strong> también ofrece un <strong>conversor de archivos online gratuito</strong>, rápido y fácil. Convierte entre <strong>Word (.docx)</strong>, <strong>PDF</strong>, <strong>TXT</strong>, <strong>JSON</strong>, <strong>SRT</strong> e incluso imágenes a texto con ayuda de IA.
     </p>
     <p>
-      Ideal for anyone needing to adapt file formats for email, printing, editing or sharing — directly in your browser, no installation required.
+      Ideal para adaptar formatos para email, impresión, edición o compartir — directamente en el navegador, sin instalar nada.
     </p>
     <p>
-      Simply paste or upload your content, choose the output format, and download with one click.
+      Solo sube o pega el contenido, elige el formato de salida y descarga con un clic.
     </p>
 
     <div style="margin-top: 15px; text-align: left; display: inline-block;">
-      <p><strong>Supported formats:</strong></p>
+      <p><strong>Formatos admitidos:</strong></p>
       <div style="line-height: 1.8;">
-        <p>📄 Word (.docx) to PDF</p>
-        <p>📃 PDF to editable text (.txt)</p>
-        <p>🖼️ Images to text with OCR</p>
-        <p>📑 Text to subtitles (.srt)</p>
-        <p>🔢 Text to structured JSON</p>
+        <p>📄 Word (.docx) a PDF</p>
+        <p>📃 PDF a texto editable (.txt)</p>
+        <p>🖼️ Imágenes a texto con OCR</p>
+        <p>📑 Texto a subtítulos (.srt)</p>
+        <p>🔢 Texto a JSON estructurado</p>
       </div>
     </div>
 
     <p>
-      One of the most complete and accessible converters in Portugal. 100% online, free and hassle-free 🇵🇹
+      Uno de los conversores más completos y accesibles. 100 % online, gratis y sin complicaciones 🇵🇹
     </p>
   </section>
 
@@ -94,25 +94,25 @@
         area.innerHTML = `
           <input type="file" id="wordInput" accept=".doc,.docx">
           <br>
-          <button onclick="convertWord()" class="btn-main">Conversor e Descarregar</button>
+          <button onclick="convertWord()" class="btn-main">Convertir y descargar</button>
           <p id="wordStatus"></p>`;
       } else if (type === "pdf2text") {
         area.innerHTML = `
           <input type="file" id="pdfInput" accept=".pdf">
           <br>
-          <button onclick="convertPDFtoText()" class="btn-main">Extrair Texto</button>
+          <button onclick="convertPDFtoText()" class="btn-main">Extraer texto</button>
           <p id="wordStatus"></p>`;
       } else if (type === "img2pdf") {
         area.innerHTML = `
           <input type="file" id="imgInput" accept="image/png, image/jpeg">
           <br>
-          <button onclick="convertImageToPDF()" class="btn-main">Conversor Imagem</button>
+          <button onclick="convertImageToPDF()" class="btn-main">Convertir imagen</button>
           <p id="wordStatus"></p>`;
       } else if (type === "pdf2word") {
         area.innerHTML = `
           <input type="file" id="pdf2wordInput" accept=".pdf">
           <br>
-          <button onclick="convertPDFtoWord()" class="btn-main">Conversor para Word</button>
+          <button onclick="convertPDFtoWord()" class="btn-main">Convertir a Word</button>
           <p id="wordStatus"></p>`;
       }
     }
@@ -121,11 +121,11 @@
       const input = document.getElementById("wordInput");
       const status = document.getElementById("wordStatus");
       if (!input.files.length) {
-        status.textContent = "Por favor, seleciona um ficheiro .docx.";
+        status.textContent = "Selecciona un archivo .docx.";
         return;
       }
 
-      status.textContent = "📥 A processar ficheiro...";
+      status.textContent = "📥 Procesando archivo...";
       const reader = new FileReader();
       reader.onload = async function (event) {
         try {
@@ -145,11 +145,11 @@
             y += 8;
           }
 
-          doc.save("ficheiro_convertido.pdf");
-          status.textContent = "✅ Conversão concluída!";
+          doc.save("archivo_convertido.pdf");
+          status.textContent = "✅ ¡Conversión completada!";
         } catch (e) {
           console.error(e);
-          status.textContent = "⚠️ Erro ao converter o ficheiro.";
+          status.textContent = "⚠️ Error al convertir el archivo.";
         }
       };
       reader.readAsArrayBuffer(input.files[0]);
@@ -159,11 +159,11 @@
       const input = document.getElementById("pdfInput");
       const status = document.getElementById("wordStatus");
       if (!input.files.length) {
-        status.textContent = "Por favor, seleciona um ficheiro .pdf.";
+        status.textContent = "Selecciona un archivo .pdf.";
         return;
       }
 
-      status.textContent = "📥 A processar ficheiro...";
+      status.textContent = "📥 Procesando archivo...";
       const reader = new FileReader();
       reader.onload = function () {
         const typedarray = new Uint8Array(reader.result);
@@ -200,7 +200,7 @@
       const input = document.getElementById("imgInput");
       const status = document.getElementById("wordStatus");
       if (!input.files.length) {
-        status.textContent = "Por favor, seleciona uma imagem.";
+        status.textContent = "Selecciona una imagen.";
         return;
       }
 
@@ -216,7 +216,7 @@
             format: [img.width, img.height]
           });
           doc.addImage(img, 'JPEG', 0, 0, img.width, img.height);
-          doc.save("imagem_convertida.pdf");
+          doc.save("imagen_convertida.pdf");
           status.textContent = "✅ PDF criado!";
         };
       };
@@ -227,11 +227,11 @@
       const input = document.getElementById("pdf2wordInput");
       const status = document.getElementById("wordStatus");
       if (!input.files.length) {
-        status.textContent = "Por favor, seleciona um ficheiro .pdf.";
+        status.textContent = "Selecciona un archivo .pdf.";
         return;
       }
 
-      status.textContent = "📥 A processar ficheiro...";
+      status.textContent = "📥 Procesando archivo...";
       const reader = new FileReader();
       reader.onload = function () {
         const typedarray = new Uint8Array(reader.result);
@@ -251,7 +251,7 @@
           a.download = "ficheiro_convertido.doc";
           a.click();
           URL.revokeObjectURL(url);
-          status.textContent = "✅ Conversão concluída!";
+          status.textContent = "✅ ¡Conversión completada!";
         });
       };
       reader.readAsArrayBuffer(input.files[0]);

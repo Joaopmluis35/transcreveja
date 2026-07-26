@@ -32,7 +32,7 @@
 </div>
 
 <main id="mainContent">
-  <h1 class="oe-visually-hidden">Ouviescrevi — Transcrição de Áudio y Vídeo com IA Grátis</h1>
+  <h1 class="oe-visually-hidden">Ouviescrevi — Transcripción de audio y vídeo con IA gratis</h1>
   <div id="adminContent">
     <p id="cmsHomeIntro" data-cms-key="es_home_intro_html" data-cms-mode="html">
       <strong>Sube audio o vídeo y obtén el texto en minutos.</strong><br>
@@ -142,7 +142,7 @@
       <div id="legendasBox" class="hidden">
         <h3>🎞️ Legendas / Vídeo Legendado</h3>
         <div id="legendasInfo">
-          <p id="legendasMsg">Pronto! Escolhe o que queres descarregar:</p>
+          <p id="legendasMsg">¡Listo! Elige qué quieres descargar:</p>
           <div>
             <a id="srtDownload" href="#" download>⬇️ Download SRT</a>
             <a id="mp4Download" class="hidden" href="#" download>⬇️ Download Vídeo (MP4)</a>
@@ -180,7 +180,7 @@
 
     <!-- Painel de estilos + pré-visualização -->
     <section id="subtitlePanel" class="hidden" aria-live="polite">
-      <h3>🎨 Estilo das legendas & pré-visualização</h3>
+      <h3>🎨 Estilo de subtítulos y vista previa</h3>
       <div class="sub-grid">
         <label>Texto de amostra
           <input id="subSampleText" type="text" value="Isto é uma linha de legenda de amostra." />
@@ -290,24 +290,25 @@
   </div>
 
 <section id="apresentacaoSEO" class="oe-seo-block">
-  <h2 id="cmsSeoTitle" data-cms-key="seo_title" data-cms-mode="text">🧠 ¿Qué es Ouviescrevi?</h2>
-  <p id="cmsSeoP1" data-cms-key="seo_p1" data-cms-mode="html">
-    Ouviescrevi é uma ferramenta online que usa Inteligência Artificial (IA) para 
-    <strong>transcribir, resumir, traducir, corrigir</strong> y <strong>classificar conteúdos</strong>, 
-    além de <strong>gerar emails</strong>, <strong>criar perguntas de estudo</strong> y até <strong>produzir vídeos com legendas automáticas</strong>.
+  <h2 id="cmsSeoTitle" data-cms-key="es_seo_title" data-cms-mode="text">🧠 ¿Qué es Ouviescrevi?</h2>
+  <p id="cmsSeoP1" data-cms-key="es_seo_p1" data-cms-mode="html">
+    Ouviescrevi es una herramienta online con inteligencia artificial (IA) para
+    <strong>transcribir, resumir, traducir y corregir</strong>, además de
+    <strong>clasificar contenidos</strong>, <strong>generar emails</strong>,
+    <strong>crear preguntas de estudio</strong> y <strong>vídeos con subtítulos automáticos</strong>.
   </p>
-  <p id="cmsSeoP2" data-cms-key="seo_p2" data-cms-mode="html">Ideal para professores, jornalistas, estudantes, empresas y qualquer pessoa que precise transformar áudio, vídeo ou texto em conhecimento útil. 🚀</p>
-  <div class="oe-seo-features" id="cmsSeoFeatures" data-cms-key="seo_features" data-cms-mode="lines">
-    <p><strong>Funcionalidades principais:</strong></p>
-    <p>🎙️ Transcrição de áudio/vídeo</p>
-    <p>🧠 Resumos automáticos</p>
-    <p>🌍 Tradução de textos</p>
-    <p>✍️ Correção y emails com IA</p>
-    <p>📚 Perguntas de estudo</p>
-    <p>💬 Vídeos com legendas automáticas</p>
-    <p>📁 Conversão de ficheiros</p>
+  <p id="cmsSeoP2" data-cms-key="es_seo_p2" data-cms-mode="html">Ideal para profesores, periodistas, estudiantes, empresas y cualquiera que necesite convertir audio, vídeo o texto en conocimiento útil. 🚀</p>
+  <div class="oe-seo-features" id="cmsSeoFeatures" data-cms-key="es_seo_features" data-cms-mode="lines">
+    <p><strong>Funciones principales:</strong></p>
+    <p>🎙️ Transcripción de audio/vídeo</p>
+    <p>🧠 Resúmenes automáticos</p>
+    <p>🌍 Traducción de textos</p>
+    <p>✍️ Corrección y emails con IA</p>
+    <p>📚 Preguntas de estudio</p>
+    <p>💬 Vídeos con subtítulos automáticos</p>
+    <p>📁 Conversión de archivos</p>
   </div>
-  <p id="cmsSeoClosing" data-cms-key="seo_closing" data-cms-mode="text">Começa já gratuitamente. Simples, rápido y feito em Portugal 🇵🇹</p>
+  <p id="cmsSeoClosing" data-cms-key="es_seo_closing" data-cms-mode="text">Empieza gratis. Simple, rápido y hecho en Portugal 🇵🇹</p>
 </section>
 
 
@@ -320,7 +321,7 @@
 <div id="sugestaoPanel">
   <div class="sug-card">
     <h3>💡 Tu sugerencia</h3>
-    <p>Queremos evoluir todos os dias. Deixa aqui a tua ideia 👇</p>
+    <p>Queremos mejorar cada día. Deja aquí tu idea 👇</p>
     <textarea id="sugestaoTexto" placeholder="Escribe tu sugerencia..." rows="4"></textarea>
     <button id="enviarSugestao">📩 Enviar</button>
     <button id="fecharSugestao">❌ Cerrar</button>
@@ -379,8 +380,8 @@
   let videoObjectURL = null;
 
   const statusFrases = [
-    "🧩 A montar o quebra-cabeças da tua gravação...",
-    "🧠 A preparar os neurónios para ouvir o ficheiro...",
+    "🧩 Montando el puzzle de tu grabación...",
+    "🧠 Preparando la IA para escuchar el archivo...",
     "📡 A sintonizar as ondas do áudio...",
     "🎧 A escutar com atenção... já começámos a transcribir!",
     "💬 A traducir som em texto com alma...",
@@ -450,7 +451,7 @@
       return mensagemFicheiroGrande(file, hint);
     }
     if (data.warning) return "⚠️ " + data.warning;
-    return "❌ Não foi possível obter a transcrição. Tenta novamente mais tarde.";
+    return "❌ No se pudo obtener la transcripción. Inténtalo más tarde.";
   }
 
   function fileSizeMb(file){
@@ -628,7 +629,7 @@
       if (identificar) textoFinal = await aplicarLocutores(textoFinal);
       transcriptionText.value = textoFinal;
       output.classList.remove("hidden");
-      statusEl.textContent = "✅ Transcrição concluída com sucesso!";
+      statusEl.textContent = "✅ ¡Transcripción completada!";
     } else {
       const msg = mensagemErroTranscricao(data, file);
       if (erroDeTamanho(msg)) {
@@ -639,7 +640,7 @@
         transcriptionText.value = msg;
         output.classList.remove("hidden");
       }
-      statusEl.textContent = "⚠️ Não conseguimos transcribir desta vez.";
+      statusEl.textContent = "⚠️ No pudimos transcribir esta vez.";
       document.getElementById("btnRetry").classList.remove("hidden");
       ultimaTentativaFalhada = true;
     }
@@ -900,7 +901,7 @@
     await ensureApi();
     const file = document.getElementById("fileInput").files[0];
     if (!file){ return alert("⚠️ Ningún archivo seleccionado."); }
-    if (!isVideoFile(file)){ return alert("⚠️ Esta opção é apenas para ficheiros de vídeo."); }
+    if (!isVideoFile(file)){ return alert("⚠️ Esta opción es solo para archivos de vídeo."); }
 
     // reset UI
     output.classList.add("hidden");
@@ -988,7 +989,7 @@
       pararTimerTranscricao();
 
       output.classList.remove("hidden");
-      statusEl.textContent = "❌ Não foi possível gerar as legendas.";
+      statusEl.textContent = "❌ No se pudieron generar los subtítulos.";
       const warn = document.getElementById("legendasWarn");
       warn.textContent = "❌ " + (err.message || "Erro inesperado ao comunicar com a API.");
       warn.classList.remove("hidden");
@@ -1124,12 +1125,12 @@
 
     let stream;
     try{ stream = await navigator.mediaDevices.getUserMedia({ audio:true }); }
-    catch{ alert("Não foi possível aceder ao microfone. Verifica permissões."); return; }
+    catch{ alert("No se pudo acceder al micrófono. Revisa los permisos."); return; }
 
     const preferidos = ["audio/webm;codecs=opus", "audio/ogg;codecs=opus", "audio/mp4"];
     const mimeType = (MediaRecorder.isTypeSupported && preferidos.find(t => MediaRecorder.isTypeSupported(t))) || "";
     try{ mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined); }
-    catch{ alert("Não foi possível iniciar a gravação neste navegador."); stream.getTracks().forEach(t => t.stop()); return; }
+    catch{ alert("No se pudo iniciar la grabación en este navegador."); stream.getTracks().forEach(t => t.stop()); return; }
 
     audioChunks = [];
 
@@ -1172,7 +1173,7 @@
       const formData = new FormData();
       formData.append("file", blob, `gravacao.${ext}`);
 
-      status.textContent = "🕐 A processar o áudio...";
+      status.textContent = "🕐 Procesando el audio...";
       loading.classList.remove("hidden");
       progressBar.style.width = "0%";
       iniciarFrasesAnimadas(statusEl);
@@ -1198,7 +1199,7 @@
 
         transcriptionText.value = data.formatted || data.transcription || "⚠️ Erro ao transcribir.";
         output.classList.remove("hidden");
-        status.textContent = "✅ Transcrição concluída!";
+        status.textContent = "✅ ¡Transcripción completada!";
       }catch(err){
         status.textContent = err.name === "AbortError" ? "⏰ Tempo limite atingido. Tenta novamente." : "❌ Erro ao processar áudio.";
       }finally{
@@ -1225,7 +1226,7 @@
   async function classificarConteudo(){
     await ensureApi();
     const text = transcriptionText.value.trim();
-    if (!text) return alert("⚠️ Transcrição vazia.");
+    if (!text) return alert("⚠️ Transcripción vacía.");
     const btn = event.target.closest("button");
     const original = btn.innerHTML; btn.innerHTML = "<span>📚 A classificar...</span>"; btn.disabled = true;
     try{
@@ -1251,7 +1252,7 @@
   async function corrigirTextoIA(){
     await ensureApi();
     const text = transcriptionText.value.trim();
-    if (!text) return alert("⚠️ Transcrição vazia.");
+    if (!text) return alert("⚠️ Transcripción vacía.");
 
     const win = window.open("", "textoCorrigido", "width=560,height=500");
     if (win) {
@@ -1331,7 +1332,7 @@
   async function gerarMinuta(){
     await ensureApi();
     const text = transcriptionText.value.trim();
-    if (!text) return alert("⚠️ Transcrição vazia.");
+    if (!text) return alert("⚠️ Transcripción vacía.");
     const btn = event.target.closest("button");
     const original = btn.innerHTML; btn.innerHTML = "<span>📩 A gerar minuta...</span>"; btn.disabled = true;
     try{
@@ -1357,7 +1358,7 @@
   async function gerarResumo(e){
     await ensureApi();
     const text = transcriptionText.value.trim();
-    if (!text) return alert("⚠️ Transcrição vazia.");
+    if (!text) return alert("⚠️ Transcripción vacía.");
     const btn = e?.target?.closest("button") || document.querySelector("#btnGerarResumo");
     const original = btn.innerHTML; btn.innerHTML = "<span>🧠 A gerar resumo...</span>"; btn.disabled = true;
     try{
@@ -1379,7 +1380,7 @@
   async function gerarEmailIA(){
     await ensureApi();
     const text = transcriptionText.value.trim();
-    if (!text) return alert("⚠️ Transcrição/Resumo vazio.");
+    if (!text) return alert("⚠️ Transcripción/resumen vacío.");
     const tone = "formal";
     const btn = event.target.closest("button");
     const original = btn.innerHTML; btn.innerHTML = "<span>📧 A gerar email...</span>"; btn.disabled = true;
@@ -1465,7 +1466,7 @@
     await ensureApi();
     fecharModalTraducao();
     const texto = transcriptionText.value.trim();
-    if (!texto) return alert("⚠️ Transcrição vazia.");
+    if (!texto) return alert("⚠️ Transcripción vacía.");
     const status = document.getElementById("traducaoStatus");
     const progressBar = document.getElementById("traducaoProgressBar");
     const progressWrapper = document.getElementById("traducaoProgressWrapper");
@@ -1608,7 +1609,7 @@
     ensureApi().then(() => {
       const hint = document.querySelector(".oe-file-hint");
       if (hint) {
-        hint.textContent = `Limite: ${getMaxFileMb()} MB — para ficheiros maiores, extrai só o áudio.`;
+        hint.textContent = `Límite: ${getMaxFileMb()} MB — para archivos más grandes, extrae solo el audio.`;
       }
     });
 

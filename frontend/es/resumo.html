@@ -31,58 +31,58 @@
 <div id="header"></div>
 
 <div class="oe-hero" id="conteudo">
-<h1 data-cms-key="es_resumo_title" data-cms-mode="text">📌 Smart Summary</h1>
-<p class="oe-lead" data-cms-key="es_resumo_lead" data-cms-mode="text">Paste your text or upload a PDF or Word file, then choose a summary style.</p>
+<h1 data-cms-key="es_resumo_title" data-cms-mode="text">📌 Resumen inteligente</h1>
+<p class="oe-lead" data-cms-key="es_resumo_lead" data-cms-mode="text">Pega tu texto o sube un PDF o Word (.docx) y elige el estilo de resumen.</p>
 </div>
 
 <div class="container">
   <div id="dropZone" onclick="document.getElementById('pdfInput').click()">
-    📂 Drag a PDF or Word file here or click to upload
+    📂 Arrastra un PDF o Word aquí o haz clic para subir
     <input type="file" id="pdfInput" accept=".pdf,.docx" style="display: none">
 
   </div>
 
-  <textarea id="texto"></textarea>
+  <textarea id="texto" placeholder="O pega aquí el texto a resumir…"></textarea>
 
-  <p>Select summary style:</p>
+  <p>Estilo de resumen:</p>
   <select id="modo">
-    <option value="normal">Classic and direct</option>
-    <option value="minuta">Meeting minutes (bullet points)</option>
+    <option value="normal">Clásico y directo</option>
+    <option value="minuta">Acta de reunión (viñetas)</option>
     <option value="informal">Simple / informal</option>
-    <option value="email">Email format</option>
+    <option value="email">Formato email</option>
   </select>
 
   <br>
-  <button type="button" class="oe-btn oe-btn--block" id="btnResumo" onclick="gerarResumo()">🔍 Generate Summary</button>
+  <button type="button" class="oe-btn oe-btn--block" id="btnResumo" onclick="gerarResumo()">🔍 Generar resumen</button>
 
   <div id="resultado"></div>
 </div>
 
 <section id="apresentacaoResumoSEO" class="oe-seo-block">
-  <h2>📌 Smart Summary Generator</h2>
+  <h2>📌 Generador de resúmenes con IA</h2>
   <p>
-    The <strong>automatic summary</strong> tool from <strong>Ouviescrevi</strong> allows you to turn long texts or PDFs into clear and fast summaries. Just paste the content or upload a file — our AI does the rest.
+    El <strong>resumen automático</strong> de <strong>Ouviescrevi</strong> convierte textos largos, PDFs o Word en resúmenes claros y rápidos. Pega el contenido o sube un archivo: la IA hace el resto.
   </p>
   <p>
-    Ideal for <strong>students</strong> studying efficiently, <strong>teachers</strong> preparing content, and <strong>professionals</strong> extracting key points from documents quickly.
+    Ideal para <strong>estudiantes</strong>, <strong>profesores</strong> y <strong>profesionales</strong> que necesitan extraer lo esencial de un documento.
   </p>
   <p>
-    The AI identifies the main ideas and generates shorter versions of your content, with options like simple, formal, bullet point style or even an email format.
+    La IA identifica las ideas clave y genera versiones más cortas, con estilos simple, formal, por viñetas o email.
   </p>
 
   <div style="margin-top: 15px; text-align: left; display: inline-block;">
-    <p><strong>Available features:</strong></p>
+    <p><strong>Funciones disponibles:</strong></p>
     <div style="line-height: 1.8;">
-      <p>📄 Resumir pasted or uploaded text (Word, PDF, etc.)</p>
-      <p>🧠 Summary styles: simple, formal, bullet points, email</p>
-      <p>🌍 Translate content before or after summarizing</p>
-      <p>🔁 Automatic correction before summarizing</p>
-      <p>📥 Export to multiple formats: PDF, DOCX, TXT</p>
+      <p>📄 Resumen de texto pegado o subido (Word, PDF…)</p>
+      <p>🧠 Estilos: simple, formal, viñetas o email</p>
+      <p>🌍 Traducción antes o después del resumen</p>
+      <p>🔁 Corrección automática antes de resumir</p>
+      <p>📥 Exportación a PDF, DOCX, TXT</p>
     </div>
   </div>
 
   <p>
-    All online, free and made with ❤️ in Portugal 🇵🇹
+    Todo online, gratis y hecho con ❤️ en Portugal 🇵🇹
   </p>
 </section>
 
@@ -118,7 +118,7 @@
     } else if (file.name.endsWith(".docx")) {
       extrairTextoDOCX(file);
     } else {
-      alert("Unsupported format. Please use PDF or DOCX.");
+      alert("Formato no admitido. Usa PDF o DOCX.");
     }
   }
 });
@@ -158,7 +158,7 @@ function extrairTextoDOCX(file) {
         document.getElementById("texto").value = result.value.trim();
       })
       .catch(function(err) {
-        alert("Error reading Word file");
+        alert("Error al leer el archivo Word");
         console.error(err);
       });
   };
@@ -169,17 +169,17 @@ function extrairTextoDOCX(file) {
     const text = textarea.value.trim();
     const btn = document.getElementById("btnResumo");
     if (!text) {
-      OuviescreviUI.toast("Enter text or upload a file.", "error");
+      OuviescreviUI.toast("Escribe un texto o sube un archivo.", "error");
       return;
     }
     const modo = document.getElementById("modo").value;
-    OuviescreviUI.setButtonLoading(btn, true, "Generating...");
+    OuviescreviUI.setButtonLoading(btn, true, "Generando...");
     try {
       await OuviescreviAPI.init();
       const res = await fetch(`${OuviescreviAPI.getBase()}/summarize`, {
         method: "POST",
         headers: OuviescreviAPI.authHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify(OuviescreviAPI.authJson({ text: text, mode: modo, lang: "en" }))
+        body: JSON.stringify(OuviescreviAPI.authJson({ text: text, mode: modo, lang: "es" }))
       });
       const data = await res.json();
       const out = document.getElementById("resultado");
@@ -187,11 +187,11 @@ function extrairTextoDOCX(file) {
         out.textContent = data.summary;
         out.classList.remove("oe-result--error");
       } else {
-        out.textContent = data.error || data.detail || "Unexpected error";
+        out.textContent = data.error || data.detail || "Error inesperado";
         out.classList.add("oe-result--error");
       }
     } catch (err) {
-      OuviescreviUI.toast("Error generating summary.", "error");
+      OuviescreviUI.toast("Error al generar el resumen.", "error");
       console.error(err);
     } finally {
       OuviescreviUI.setButtonLoading(btn, false);
