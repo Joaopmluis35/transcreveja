@@ -1400,6 +1400,54 @@ DEFAULT_SITE_CONTENT: dict[str, str] = {
         "<p>This policy explains what we use on <strong>ouviescrevi.pt</strong> and how you can manage "
         "your preferences.</p>"
     ),
+    "es_privacidade_meta": (
+        'Última actualización: 22 de junio de 2026 · <a href="../privacidade.html">Português</a>'
+    ),
+    "es_privacidade_disclaimer": (
+        "<p>Esta política describe cómo <strong>Ouviescrevi</strong> (ouviescrevi.pt) trata los datos personales. "
+        "Recomendamos una revisión jurídica antes de un uso comercial a gran escala.</p>"
+    ),
+    "es_termos_meta": (
+        'Última actualización: 22 de junio de 2026 · <a href="../termos.html">Português</a>'
+    ),
+    "es_termos_intro": (
+        "<p>Al usar <strong>Ouviescrevi</strong>, aceptas estos términos. "
+        "Si no estás de acuerdo, no utilices el servicio.</p>"
+    ),
+    "es_cookies_meta": (
+        'Última actualización: 22 de junio de 2026 · <a href="../cookies.html">Português</a>'
+    ),
+    "es_cookies_intro": (
+        "<h2>1. ¿Qué son las cookies?</h2>"
+        "<p>Las cookies son pequeños archivos guardados en tu dispositivo. También usamos tecnologías "
+        "similares como <strong>localStorage</strong> y <strong>sessionStorage</strong>.</p>"
+        "<p>Esta política explica qué usamos en <strong>ouviescrevi.pt</strong> y cómo puedes gestionar "
+        "tus preferencias.</p>"
+    ),
+    "fr_privacidade_meta": (
+        "Dernière mise à jour : 22 juin 2026 · <a href=\"../privacidade.html\">Português</a>"
+    ),
+    "fr_privacidade_disclaimer": (
+        "<p>Cette politique décrit comment <strong>Ouviescrevi</strong> (ouviescrevi.pt) traite les données personnelles. "
+        "Nous recommandons une relecture juridique avant un usage commercial à grande échelle.</p>"
+    ),
+    "fr_termos_meta": (
+        "Dernière mise à jour : 22 juin 2026 · <a href=\"../termos.html\">Português</a>"
+    ),
+    "fr_termos_intro": (
+        "<p>En utilisant <strong>Ouviescrevi</strong>, vous acceptez ces conditions. "
+        "Sinon, n’utilisez pas le service.</p>"
+    ),
+    "fr_cookies_meta": (
+        "Dernière mise à jour : 22 juin 2026 · <a href=\"../cookies.html\">Português</a>"
+    ),
+    "fr_cookies_intro": (
+        "<h2>1. Qu’est-ce qu’un cookie ?</h2>"
+        "<p>Les cookies sont de petits fichiers stockés sur votre appareil. Nous utilisons aussi des "
+        "technologies similaires comme <strong>localStorage</strong> et <strong>sessionStorage</strong>.</p>"
+        "<p>Cette politique explique ce que nous utilisons sur <strong>ouviescrevi.pt</strong> et comment "
+        "gérer vos préférences.</p>"
+    ),
     "maintenance_message": (
         "<p>🛑 O serviço está temporariamente em manutenção. Novas transcrições estão indisponíveis.</p>"
     ),
