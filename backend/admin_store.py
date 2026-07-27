@@ -1391,6 +1391,193 @@ def delete_ai_insight(item_id: int) -> bool:
         conn.close()
 
 
+def save_ai_estudo_run(
+    *,
+    run_id: str,
+    source_days: int,
+    horizon_days: int,
+    model: str,
+    summary: str,
+    trend_label: str,
+    risk_level: str,
+    metrics: dict,
+    series: dict,
+    suggestions: list[dict],
+) -> dict:
+    """Guarda um estudo (série + métricas) e as sugestões associadas."""
+    now = _now()
+    saved_suggestions: list[dict] = []
+    conn = get_connection()
+    try:
+        conn.execute(
+            """
+            INSERT INTO ai_estudo_runs (
+                run_id, source_days, horizon_days, model, summary,
+                trend_label, risk_level, metrics_json, series_json, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                run_id,
+                int(source_days),
+                int(horizon_days),
+                model or "",
+                summary or "",
+                trend_label or "estavel",
+                risk_level or "medio",
+                json.dumps(metrics or {}, ensure_ascii=False),
+                json.dumps(series or {}, ensure_ascii=False),
+                now,
+            ),
+        )
+        for item in suggestions:
+            cur = conn.execute(
+                """
+                INSERT INTO ai_estudo_suggestions (
+                    run_id, title, detail, priority, category, evidence,
+                    cursor_prompt, status, source_days, horizon_days,
+                    created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, 'new', ?, ?, ?, ?)
+                """,
+                (
+                    run_id,
+                    item.get("title"),
+                    item.get("detail"),
+                    item.get("priority") or "media",
+                    item.get("category") or "crescimento",
+                    item.get("evidence") or "",
+                    item.get("cursor_prompt") or "",
+                    int(source_days),
+                    int(horizon_days),
+                    now,
+                    now,
+                ),
+            )
+            saved_suggestions.append(
+                {
+                    "id": int(cur.lastrowid),
+                    "run_id": run_id,
+                    "title": item.get("title"),
+                    "detail": item.get("detail"),
+                    "priority": item.get("priority") or "media",
+                    "category": item.get("category") or "crescimento",
+                    "evidence": item.get("evidence") or "",
+                    "cursor_prompt": item.get("cursor_prompt") or "",
+                    "status": "new",
+                    "source_days": int(source_days),
+                    "horizon_days": int(horizon_days),
+                    "created_at": now,
+                    "updated_at": now,
+                }
+            )
+        conn.commit()
+        return {
+            "run_id": run_id,
+            "source_days": int(source_days),
+            "horizon_days": int(horizon_days),
+            "model": model or "",
+            "summary": summary or "",
+            "trend_label": trend_label or "estavel",
+            "risk_level": risk_level or "medio",
+            "metrics": metrics or {},
+            "series": series or {},
+            "created_at": now,
+            "suggestions": saved_suggestions,
+        }
+    finally:
+        conn.close()
+
+
+def get_latest_ai_estudo_run() -> dict | None:
+    conn = get_connection()
+    try:
+        row = conn.execute(
+            "SELECT * FROM ai_estudo_runs ORDER BY id DESC LIMIT 1"
+        ).fetchone()
+        if not row:
+            return None
+        item = row_to_dict(row)
+        try:
+            item["metrics"] = json.loads(item.get("metrics_json") or "{}")
+        except json.JSONDecodeError:
+            item["metrics"] = {}
+        try:
+            item["series"] = json.loads(item.get("series_json") or "{}")
+        except json.JSONDecodeError:
+            item["series"] = {}
+        item.pop("metrics_json", None)
+        item.pop("series_json", None)
+        return item
+    finally:
+        conn.close()
+
+
+def list_ai_estudo_suggestions(
+    *,
+    status: str | None = None,
+    limit: int = 50,
+) -> list[dict]:
+    limit = max(1, min(int(limit or 50), 200))
+    conn = get_connection()
+    try:
+        if status:
+            rows = conn.execute(
+                """
+                SELECT * FROM ai_estudo_suggestions
+                WHERE status = ?
+                ORDER BY id DESC LIMIT ?
+                """,
+                (status, limit),
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                "SELECT * FROM ai_estudo_suggestions ORDER BY id DESC LIMIT ?",
+                (limit,),
+            ).fetchall()
+        return [row_to_dict(r) for r in rows]
+    finally:
+        conn.close()
+
+
+def update_ai_estudo_suggestion_status(item_id: int, status: str) -> dict | None:
+    allowed = {"new", "saved", "done", "dismissed"}
+    st = (status or "").strip().lower()
+    if st not in allowed:
+        raise ValueError("status_invalido")
+    now = _now()
+    conn = get_connection()
+    try:
+        cur = conn.execute(
+            """
+            UPDATE ai_estudo_suggestions SET status = ?, updated_at = ?
+            WHERE id = ?
+            """,
+            (st, now, item_id),
+        )
+        conn.commit()
+        if cur.rowcount <= 0:
+            return None
+        row = conn.execute(
+            "SELECT * FROM ai_estudo_suggestions WHERE id = ?",
+            (item_id,),
+        ).fetchone()
+        return row_to_dict(row) if row else None
+    finally:
+        conn.close()
+
+
+def delete_ai_estudo_suggestion(item_id: int) -> bool:
+    conn = get_connection()
+    try:
+        cur = conn.execute(
+            "DELETE FROM ai_estudo_suggestions WHERE id = ?",
+            (item_id,),
+        )
+        conn.commit()
+        return cur.rowcount > 0
+    finally:
+        conn.close()
+
+
 def send_test_alert_email(actor: str = "admin") -> dict[str, str]:
     from email_notify import notify_email_to, send_notification_email
 
@@ -1915,6 +2102,8 @@ def system_health(openai_client=None) -> dict:
                 "site_content",
                 "sugestoes",
                 "ai_insights",
+                "ai_estudo_runs",
+                "ai_estudo_suggestions",
                 "admin_users",
                 "audit_log",
                 "site_users",

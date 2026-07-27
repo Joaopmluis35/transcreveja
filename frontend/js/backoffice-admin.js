@@ -13,6 +13,11 @@
   var sugestoesCache = [];
   var aiInsightsCache = [];
   var aiInsightsSummaryText = "";
+  var estudoCache = [];
+  var estudoSummaryText = "";
+  var estudoSeriesCache = null;
+  var chartEstudoVisitas = null;
+  var chartEstudoTrans = null;
 
   function escapeHtml(text) {
     return String(text)
@@ -1421,6 +1426,409 @@
     }
   }
 
+  function formatEstudoDay(day) {
+    if (!day || day.length < 10) return day || "";
+    return day.slice(5, 10);
+  }
+
+  function renderEstudoCharts(series) {
+    if (!global.Chart) return;
+    series = series || {};
+    var visitas = series.visitas || [];
+    var trans = series.transcricoes || [];
+
+    function buildForecastChart(canvasId, points, label, color) {
+      var canvas = document.getElementById(canvasId);
+      if (!canvas) return null;
+      var labels = points.map(function (p) { return formatEstudoDay(p.day); });
+      var actual = points.map(function (p) {
+        return p.actual != null ? p.actual : null;
+      });
+      var forecast = points.map(function (p) {
+        return p.forecast != null ? p.forecast : null;
+      });
+      var lastActualIdx = -1;
+      for (var i = 0; i < points.length; i++) {
+        if (points[i].actual != null) lastActualIdx = i;
+      }
+      if (lastActualIdx >= 0 && lastActualIdx + 1 < points.length) {
+        forecast[lastActualIdx] = points[lastActualIdx].actual;
+      }
+      var low = points.map(function (p) { return p.low != null ? p.low : null; });
+      var high = points.map(function (p) { return p.high != null ? p.high : null; });
+      if (lastActualIdx >= 0 && lastActualIdx + 1 < points.length) {
+        low[lastActualIdx] = points[lastActualIdx].actual;
+        high[lastActualIdx] = points[lastActualIdx].actual;
+      }
+
+      var fillColor = color.indexOf("rgb(") === 0
+        ? color.replace("rgb(", "rgba(").replace(")", ", 0.1)")
+        : "rgba(37, 99, 235, 0.1)";
+
+      return new Chart(canvas, {
+        type: "line",
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: label + " (real)",
+              data: actual,
+              borderColor: color,
+              backgroundColor: fillColor,
+              fill: false,
+              tension: 0.35,
+              pointRadius: 2,
+              spanGaps: false,
+            },
+            {
+              label: "Previsão",
+              data: forecast,
+              borderColor: color,
+              borderDash: [6, 4],
+              backgroundColor: "transparent",
+              fill: false,
+              tension: 0.35,
+              pointRadius: 2,
+              spanGaps: false,
+            },
+            {
+              label: "Banda baixa",
+              data: low,
+              borderColor: "transparent",
+              backgroundColor: fillColor,
+              fill: "+1",
+              pointRadius: 0,
+              tension: 0.35,
+              spanGaps: false,
+            },
+            {
+              label: "Banda alta",
+              data: high,
+              borderColor: "transparent",
+              backgroundColor: "transparent",
+              fill: false,
+              pointRadius: 0,
+              tension: 0.35,
+              spanGaps: false,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: "bottom",
+              labels: {
+                filter: function (item) {
+                  return item.text === label + " (real)" || item.text === "Previsão";
+                },
+              },
+            },
+          },
+          scales: {
+            y: { beginAtZero: true, ticks: { precision: 0 } },
+          },
+        },
+      });
+    }
+
+    if (chartEstudoVisitas) {
+      chartEstudoVisitas.destroy();
+      chartEstudoVisitas = null;
+    }
+    if (chartEstudoTrans) {
+      chartEstudoTrans.destroy();
+      chartEstudoTrans = null;
+    }
+    if (visitas.length) {
+      chartEstudoVisitas = buildForecastChart(
+        "chartEstudoVisitas",
+        visitas,
+        "Visitas",
+        "rgb(37, 99, 235)"
+      );
+    }
+    if (trans.length) {
+      chartEstudoTrans = buildForecastChart(
+        "chartEstudoTrans",
+        trans,
+        "Transcrições",
+        "rgb(5, 150, 105)"
+      );
+    }
+  }
+
+  function estudoTrendLabel(trend) {
+    if (trend === "crescimento") return "Crescimento";
+    if (trend === "queda") return "Queda";
+    if (trend === "volatil") return "Volátil";
+    return "Estável";
+  }
+
+  function estudoRiskLabel(risk) {
+    if (risk === "alto") return "Risco alto";
+    if (risk === "baixo") return "Risco baixo";
+    return "Risco médio";
+  }
+
+  function renderEstudoMeta(run) {
+    var el = document.getElementById("estudoMeta");
+    if (!el) return;
+    if (!run) {
+      el.hidden = true;
+      el.innerHTML = "";
+      return;
+    }
+    var m = run.metrics || {};
+    var bits = [];
+    bits.push('<span class="oe-admin-badge">' + escapeHtml(estudoTrendLabel(run.trend_label)) + "</span>");
+    bits.push('<span class="oe-admin-badge oe-admin-badge--warn">' + escapeHtml(estudoRiskLabel(run.risk_level)) + "</span>");
+    if (m.crescimento_visitas_pct != null) {
+      bits.push(
+        '<span class="oe-admin-badge oe-admin-badge--ok">Δ visitas 7d: ' +
+          escapeHtml(String(m.crescimento_visitas_pct)) + "%</span>"
+      );
+    }
+    if (m.visitas_humanas_media_7d != null) {
+      bits.push(
+        '<span class="oe-admin-badge">Média visitas/dia: ' +
+          escapeHtml(String(m.visitas_humanas_media_7d)) + "</span>"
+      );
+    }
+    if (m.transcricoes_media_7d != null) {
+      bits.push(
+        '<span class="oe-admin-badge">Média transc./dia: ' +
+          escapeHtml(String(m.transcricoes_media_7d)) + "</span>"
+      );
+    }
+    if (run.source_days != null && run.horizon_days != null) {
+      bits.push(
+        '<span class="oe-admin-badge">' +
+          escapeHtml(String(run.source_days)) + "d hist. · " +
+          escapeHtml(String(run.horizon_days)) + "d prev.</span>"
+      );
+    }
+    el.innerHTML = bits.join("");
+    el.hidden = false;
+  }
+
+  function renderEstudoSuggestions(items) {
+    var div = document.getElementById("tabelaEstudo");
+    if (!div) return;
+    if (!items.length) {
+      div.innerHTML = '<p class="oe-admin-empty">Sem sugestões neste filtro. Gera um novo estudo ou limpa o filtro.</p>';
+      return;
+    }
+    div.innerHTML = items.map(function (item) {
+      return (
+        '<article class="oe-admin-ai-card" data-id="' + item.id + '">' +
+        '<div class="oe-admin-ai-card__head">' +
+          "<h4>" + escapeHtml(item.title || "") + "</h4>" +
+          '<div class="oe-admin-ai-card__meta">' +
+            aiInsightPriorityBadge(item.priority) +
+            ' <span class="oe-admin-badge">' + escapeHtml(item.category || "") + "</span>" +
+            ' <span class="oe-admin-badge">' + escapeHtml(aiInsightStatusLabel(item.status)) + "</span>" +
+          "</div>" +
+        "</div>" +
+        '<p class="oe-admin-ai-card__detail">' + escapeHtml(item.detail || "") + "</p>" +
+        (item.evidence
+          ? '<p class="oe-admin-hint"><strong>Evidência:</strong> ' + escapeHtml(item.evidence) + "</p>"
+          : "") +
+        '<div class="oe-admin-ai-card__actions">' +
+          '<button type="button" class="oe-admin-btn oe-admin-btn--secondary oe-admin-btn--sm" data-estudo-copy="' + item.id + '">Copiar para Cursor</button>' +
+          '<button type="button" class="oe-admin-btn oe-admin-btn--secondary oe-admin-btn--sm" data-estudo-status="saved" data-id="' + item.id + '">Guardar</button>' +
+          '<button type="button" class="oe-admin-btn oe-admin-btn--secondary oe-admin-btn--sm" data-estudo-status="done" data-id="' + item.id + '">Feita</button>' +
+          '<button type="button" class="oe-admin-btn oe-admin-btn--secondary oe-admin-btn--sm" data-estudo-status="dismissed" data-id="' + item.id + '">Descartar</button>' +
+          '<button type="button" class="oe-admin-btn oe-admin-btn--danger oe-admin-btn--sm" data-estudo-delete="' + item.id + '">Apagar</button>' +
+        "</div>" +
+        "</article>"
+      );
+    }).join("");
+
+    div.querySelectorAll("[data-estudo-copy]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var id = parseInt(btn.getAttribute("data-estudo-copy"), 10);
+        var item = estudoCache.find(function (x) { return Number(x.id) === id; });
+        if (!item) return;
+        copyTextToClipboard(buildAiInsightPrompt(item), "Copiado — cola no Cursor.");
+      });
+    });
+    div.querySelectorAll("[data-estudo-status]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        patchEstudoStatus(
+          parseInt(btn.getAttribute("data-id"), 10),
+          btn.getAttribute("data-estudo-status")
+        );
+      });
+    });
+    div.querySelectorAll("[data-estudo-delete]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        deleteEstudoSuggestion(parseInt(btn.getAttribute("data-estudo-delete"), 10));
+      });
+    });
+  }
+
+  async function loadEstudoAi() {
+    var status = (document.getElementById("estudoStatusFilter") || {}).value || "";
+    var div = document.getElementById("tabelaEstudo");
+    try {
+      var latestRes = await fetch(apiBase() + "/api/admin/ai-estudo/latest", { headers: authHeaders() });
+      var latestData = await latestRes.json().catch(function () { return {}; });
+      if (!latestRes.ok) throw new Error(apiErrorMessage(latestData, "Falha ao carregar estudo."));
+
+      var run = latestData.run || null;
+      var summaryEl = document.getElementById("estudoSummary");
+      if (run && run.summary) {
+        estudoSummaryText = run.summary;
+        if (summaryEl) {
+          summaryEl.hidden = false;
+          summaryEl.textContent = run.summary;
+        }
+      } else if (summaryEl && !estudoSummaryText) {
+        summaryEl.hidden = true;
+      }
+      renderEstudoMeta(run);
+      estudoSeriesCache = (run && run.series) || null;
+      renderEstudoCharts(estudoSeriesCache);
+
+      var qs = status ? "?status=" + encodeURIComponent(status) : "";
+      var res = await fetch(apiBase() + "/api/admin/ai-estudo/suggestions" + qs, { headers: authHeaders() });
+      var data = await res.json().catch(function () { return {}; });
+      if (!res.ok) throw new Error(apiErrorMessage(data, "Falha ao carregar sugestões."));
+      var items = data.items || [];
+      estudoCache = items;
+      renderEstudoSuggestions(items);
+    } catch (e) {
+      estudoCache = [];
+      if (div) {
+        div.innerHTML = '<p class="oe-admin-empty">' + escapeHtml(e.message || "Erro ao carregar.") + "</p>";
+      }
+    }
+  }
+
+  async function generateEstudoAi() {
+    var btn = document.getElementById("btnGenerateEstudo");
+    var btnRefresh = document.getElementById("btnRefreshEstudo");
+    var btnCopy = document.getElementById("btnCopyAllEstudo");
+    var summaryEl = document.getElementById("estudoSummary");
+    var loadingEl = document.getElementById("estudoLoading");
+    var listEl = document.getElementById("tabelaEstudo");
+    var days = (document.getElementById("estudoDays") || {}).value || "30";
+    var horizon = (document.getElementById("estudoHorizon") || {}).value || "14";
+    var daysSelect = document.getElementById("estudoDays");
+    var horizonSelect = document.getElementById("estudoHorizon");
+    var statusFilter = document.getElementById("estudoStatusFilter");
+
+    function setGenerating(on) {
+      if (global.OuviescreviUI && global.OuviescreviUI.setButtonLoading) {
+        global.OuviescreviUI.setButtonLoading(btn, on, "A gerar…");
+      } else if (btn) {
+        btn.disabled = on;
+      }
+      if (btnRefresh) btnRefresh.disabled = on;
+      if (btnCopy) btnCopy.disabled = on;
+      if (daysSelect) daysSelect.disabled = on;
+      if (horizonSelect) horizonSelect.disabled = on;
+      if (statusFilter) statusFilter.disabled = on;
+      if (loadingEl) {
+        loadingEl.hidden = !on;
+        loadingEl.classList.toggle("hidden", !on);
+      }
+      if (on && listEl) {
+        listEl.setAttribute("aria-busy", "true");
+        listEl.classList.add("oe-admin-ai-list--dim");
+      } else if (listEl) {
+        listEl.removeAttribute("aria-busy");
+        listEl.classList.remove("oe-admin-ai-list--dim");
+      }
+    }
+
+    setGenerating(true);
+    try {
+      var res = await fetch(
+        apiBase() +
+          "/api/admin/ai-estudo/generate?days=" + encodeURIComponent(days) +
+          "&horizon=" + encodeURIComponent(horizon) +
+          "&save=true",
+        { method: "POST", headers: authHeaders() }
+      );
+      var data = await res.json().catch(function () { return {}; });
+      if (!res.ok) throw new Error(apiErrorMessage(data, "Falha ao gerar estudo."));
+      if (summaryEl) {
+        if (data.summary) {
+          summaryEl.hidden = false;
+          summaryEl.textContent = data.summary;
+          estudoSummaryText = data.summary;
+        } else {
+          summaryEl.hidden = true;
+          estudoSummaryText = "";
+        }
+      }
+      renderEstudoMeta({
+        trend_label: data.trend_label,
+        risk_level: data.risk_level,
+        metrics: data.metrics || {},
+        source_days: data.days,
+        horizon_days: data.horizon,
+      });
+      estudoSeriesCache = data.series || null;
+      renderEstudoCharts(estudoSeriesCache);
+      global.OuviescreviUI.toast(
+        "Estudo gerado com " + (data.count || 0) + " sugestões.",
+        "success"
+      );
+      await loadEstudoAi();
+    } catch (e) {
+      global.OuviescreviUI.toast(e.message || "Erro ao gerar estudo.", "error");
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  async function patchEstudoStatus(id, status) {
+    try {
+      var res = await fetch(apiBase() + "/api/admin/ai-estudo/suggestions/" + id, {
+        method: "PATCH",
+        headers: authHeaders(),
+        body: JSON.stringify({ status: status }),
+      });
+      var data = await res.json().catch(function () { return {}; });
+      if (!res.ok) throw new Error(apiErrorMessage(data, "Falha ao atualizar."));
+      await loadEstudoAi();
+    } catch (e) {
+      global.OuviescreviUI.toast(e.message || "Erro ao atualizar.", "error");
+    }
+  }
+
+  async function deleteEstudoSuggestion(id) {
+    if (!confirm("Apagar esta sugestão do estudo?")) return;
+    try {
+      var res = await fetch(apiBase() + "/api/admin/ai-estudo/suggestions/" + id, {
+        method: "DELETE",
+        headers: authHeaders(),
+      });
+      var data = await res.json().catch(function () { return {}; });
+      if (!res.ok) throw new Error(apiErrorMessage(data, "Falha ao apagar."));
+      await loadEstudoAi();
+    } catch (e) {
+      global.OuviescreviUI.toast(e.message || "Erro ao apagar.", "error");
+    }
+  }
+
+  function copyAllEstudoToCursor() {
+    if (!estudoCache.length) {
+      global.OuviescreviUI.toast("Não há sugestões para copiar.", "error");
+      return;
+    }
+    var prompt = buildAllAiInsightsPrompt(estudoCache, estudoSummaryText);
+    prompt = prompt.replace(
+      "estas sugestões AI do backoffice",
+      "estas ações do Estudo AI (previsão + crescimento) do backoffice"
+    );
+    copyTextToClipboard(prompt, "Todas copiadas — cola no chat do Cursor.");
+  }
+
   async function patchAiInsightStatus(id, status) {
     try {
       var res = await fetch(apiBase() + "/api/admin/ai-insights/" + id, {
@@ -1603,6 +2011,8 @@
         site_content: "Blocos CMS",
         sugestoes: "Sugestões",
         ai_insights: "Sugestões AI",
+        ai_estudo_runs: "Estudos AI",
+        ai_estudo_suggestions: "Sugestões Estudo AI",
         admin_users: "Utilizadores",
         audit_log: "Auditoria",
       };
@@ -2074,6 +2484,7 @@
     }
     if (tab === "sugestoes") loadSugestoes();
     if (tab === "ai-insights") loadAiInsights();
+    if (tab === "estudo-ai") loadEstudoAi();
     if (tab === "emails") loadEmails();
     if (tab === "planos" && global.OuviescreviBillingAdmin) global.OuviescreviBillingAdmin.loadBilling();
     if (tab === "sistema") {
@@ -2117,6 +2528,14 @@
     if (btnCopyAllAi) btnCopyAllAi.addEventListener("click", copyAllAiInsightsToCursor);
     var aiStatusFilter = document.getElementById("aiInsightStatusFilter");
     if (aiStatusFilter) aiStatusFilter.addEventListener("change", loadAiInsights);
+    var btnGenEstudo = document.getElementById("btnGenerateEstudo");
+    if (btnGenEstudo) btnGenEstudo.addEventListener("click", generateEstudoAi);
+    var btnRefreshEstudo = document.getElementById("btnRefreshEstudo");
+    if (btnRefreshEstudo) btnRefreshEstudo.addEventListener("click", loadEstudoAi);
+    var btnCopyAllEstudo = document.getElementById("btnCopyAllEstudo");
+    if (btnCopyAllEstudo) btnCopyAllEstudo.addEventListener("click", copyAllEstudoToCursor);
+    var estudoStatusFilter = document.getElementById("estudoStatusFilter");
+    if (estudoStatusFilter) estudoStatusFilter.addEventListener("change", loadEstudoAi);
     var emailForm = document.getElementById("emailConfigForm");
     if (emailForm) emailForm.addEventListener("submit", saveEmailConfig);
     var btnRefreshEmails = document.getElementById("btnRefreshEmails");

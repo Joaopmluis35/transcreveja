@@ -515,6 +515,47 @@ def criar_base() -> None:
             "ON ai_insights(status, id DESC)"
         )
 
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS ai_estudo_runs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                run_id TEXT NOT NULL UNIQUE,
+                source_days INTEGER,
+                horizon_days INTEGER,
+                model TEXT,
+                summary TEXT,
+                trend_label TEXT,
+                risk_level TEXT,
+                metrics_json TEXT,
+                series_json TEXT,
+                created_at TEXT NOT NULL
+            )
+        """)
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_ai_estudo_runs_created "
+            "ON ai_estudo_runs(id DESC)"
+        )
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS ai_estudo_suggestions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                run_id TEXT,
+                title TEXT NOT NULL,
+                detail TEXT NOT NULL,
+                priority TEXT DEFAULT 'media',
+                category TEXT DEFAULT 'crescimento',
+                evidence TEXT,
+                cursor_prompt TEXT,
+                status TEXT NOT NULL DEFAULT 'new',
+                source_days INTEGER,
+                horizon_days INTEGER,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            )
+        """)
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_ai_estudo_suggestions_status "
+            "ON ai_estudo_suggestions(status, id DESC)"
+        )
+
         if not _column_exists(cur, "site_users", "marketing_opt_in"):
             cur.execute("ALTER TABLE site_users ADD COLUMN marketing_opt_in INTEGER DEFAULT 0")
 

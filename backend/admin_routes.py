@@ -716,3 +716,125 @@ def admin_ai_insights_delete(request: Request, item_id: int):
         raise HTTPException(status_code=404, detail="Sugestão não encontrada")
     store.log_audit(_actor(request), "ai_insights_delete", str(item_id))
     return {"ok": True}
+
+
+class AiEstudoStatusRequest(BaseModel):
+    status: str
+
+
+@router.post("/ai-estudo/generate")
+def admin_ai_estudo_generate(
+    request: Request,
+    days: int = 30,
+    horizon: int = 14,
+    save: bool = True,
+):
+    """Gera estudo com previsão + sugestões AI e guarda o run."""
+    store.require_role(getattr(request.state, "admin_session", None), "admin")
+    from ai_estudo import generate_ai_estudo
+
+    days_n = max(7, min(int(days or 30), 90))
+    horizon_n = max(3, min(int(horizon or 14), 30))
+    try:
+        result = generate_ai_estudo(days=days_n, horizon=horizon_n)
+    except RuntimeError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    except Exception as e:
+        logger.exception("ai-estudo generate failed")
+        raise HTTPException(status_code=502, detail=f"Falha ao gerar estudo: {e}")
+
+    suggestions = result.get("suggestions") or []
+    run_id = result.get("run_id") or ""
+    saved_run: dict | None = None
+    if save:
+        saved_run = store.save_ai_estudo_run(
+            run_id=run_id,
+            source_days=days_n,
+            horizon_days=horizon_n,
+            model=result.get("model") or "",
+            summary=result.get("summary") or "",
+            trend_label=result.get("trend_label") or "estavel",
+            risk_level=result.get("risk_level") or "medio",
+            metrics=result.get("metrics") or {},
+            series=result.get("series") or {},
+            suggestions=suggestions,
+        )
+        store.log_audit(
+            _actor(request),
+            "ai_estudo_generate",
+            f"days={days_n} horizon={horizon_n} count={len(suggestions)} run={run_id}",
+        )
+
+    return {
+        "ok": True,
+        "summary": result.get("summary") or "",
+        "run_id": run_id,
+        "model": result.get("model"),
+        "days": days_n,
+        "horizon": horizon_n,
+        "trend_label": result.get("trend_label"),
+        "risk_level": result.get("risk_level"),
+        "metrics": result.get("metrics") or {},
+        "series": result.get("series") or {},
+        "count": len((saved_run or {}).get("suggestions") or suggestions),
+        "suggestions": (saved_run or {}).get("suggestions") if saved_run else suggestions,
+    }
+
+
+@router.get("/ai-estudo/latest")
+def admin_ai_estudo_latest(request: Request):
+    store.require_role(getattr(request.state, "admin_session", None), "admin")
+    run = store.get_latest_ai_estudo_run()
+    if not run:
+        return {"ok": True, "run": None, "suggestions": []}
+    suggestions = store.list_ai_estudo_suggestions(limit=50)
+    # Prefer suggestions from latest run; fall back to recent overall
+    run_id = run.get("run_id")
+    same_run = [s for s in suggestions if s.get("run_id") == run_id]
+    return {
+        "ok": True,
+        "run": run,
+        "suggestions": same_run or suggestions,
+    }
+
+
+@router.get("/ai-estudo/suggestions")
+def admin_ai_estudo_suggestions_list(
+    request: Request,
+    status: str | None = None,
+    limit: int = 50,
+):
+    store.require_role(getattr(request.state, "admin_session", None), "admin")
+    items = store.list_ai_estudo_suggestions(status=status, limit=limit)
+    return {"ok": True, "items": items, "total": len(items)}
+
+
+@router.patch("/ai-estudo/suggestions/{item_id}")
+def admin_ai_estudo_suggestions_patch(
+    request: Request,
+    item_id: int,
+    body: AiEstudoStatusRequest,
+):
+    store.require_role(getattr(request.state, "admin_session", None), "admin")
+    try:
+        row = store.update_ai_estudo_suggestion_status(item_id, body.status)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="status inválido (new|saved|done|dismissed)")
+    if not row:
+        raise HTTPException(status_code=404, detail="Sugestão não encontrada")
+    store.log_audit(
+        _actor(request),
+        "ai_estudo_status",
+        f"id={item_id} status={body.status}",
+    )
+    return {"ok": True, "item": row}
+
+
+@router.delete("/ai-estudo/suggestions/{item_id}")
+def admin_ai_estudo_suggestions_delete(request: Request, item_id: int):
+    store.require_role(getattr(request.state, "admin_session", None), "admin")
+    ok = store.delete_ai_estudo_suggestion(item_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Sugestão não encontrada")
+    store.log_audit(_actor(request), "ai_estudo_delete", str(item_id))
+    return {"ok": True}

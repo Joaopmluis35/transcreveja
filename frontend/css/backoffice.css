@@ -1167,6 +1167,28 @@ table.oe-admin-table td code {
   transition: opacity 0.2s ease;
 }
 
+.oe-admin-estudo-charts {
+  grid-template-columns: 1fr 1fr;
+  margin-top: 8px;
+}
+
+.oe-admin-estudo-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.oe-admin-estudo-meta .oe-admin-badge {
+  font-size: 0.85rem;
+}
+
+@media (max-width: 720px) {
+  .oe-admin-estudo-charts {
+    grid-template-columns: 1fr;
+  }
+}
+
 body.oe-admin.oe-admin--dark .oe-admin-ai-loading {
   background: #1e1b2e;
   border-color: #5b21b6;
