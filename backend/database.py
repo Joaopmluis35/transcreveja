@@ -556,6 +556,21 @@ def criar_base() -> None:
             "ON ai_estudo_suggestions(status, id DESC)"
         )
 
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS async_jobs (
+                job_id TEXT PRIMARY KEY,
+                kind TEXT NOT NULL,
+                status TEXT NOT NULL,
+                payload_json TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            )
+        """)
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_async_jobs_status "
+            "ON async_jobs(status, updated_at)"
+        )
+
         if not _column_exists(cur, "site_users", "marketing_opt_in"):
             cur.execute("ALTER TABLE site_users ADD COLUMN marketing_opt_in INTEGER DEFAULT 0")
 

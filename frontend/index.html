@@ -658,7 +658,17 @@
     if (/não detetámos fala|sem fala|silêncio|quase vazio|corte no browser/i.test(hint)) {
       return "🔇 " + (data.error || data.detail || hint);
     }
+    if (
+      httpStatus === 404 ||
+      /reinici|não encontrado|nao encontrado|volta a clicar|trabalho não encontrado/i.test(hint)
+    ) {
+      return (
+        "🔄 O servidor reiniciou durante a transcrição. " +
+        "O ficheiro ainda está selecionado — clica outra vez em «Transcrever agora»."
+      );
+    }
     if (data.warning) return "⚠️ " + data.warning;
+    if (hint) return "❌ " + hint;
     return "❌ Não foi possível obter a transcrição. Tenta novamente mais tarde.";
   }
 
@@ -1181,7 +1191,8 @@
             data = await pollTranscribeJob(data.job_id);
             sucesso = transcricaoRecebidaComSucesso(data);
           } catch (pollErr) {
-            data = { error: pollErr.message };
+            data = { error: pollErr.message, detail: pollErr.message };
+            lastHttpStatus = pollErr.httpStatus || lastHttpStatus || 0;
             sucesso = false;
           }
           break;
@@ -1618,7 +1629,10 @@
       let st = {};
       try { st = await stRes.json(); } catch { st = {}; }
       if (!stRes.ok) {
-        throw new Error(st.detail || st.error || `Erro ${stRes.status}`);
+        var detail = st.detail || st.error || ("Erro " + stRes.status);
+        var pollHttpErr = new Error(detail);
+        pollHttpErr.httpStatus = stRes.status;
+        throw pollHttpErr;
       }
       if (st.duration_sec != null || st.estimate_transcribe_sec != null) {
         updateTranscribeEta(st.duration_sec || 0, st);
@@ -1708,7 +1722,10 @@
       let st = {};
       try { st = await stRes.json(); } catch { st = {}; }
       if (!stRes.ok) {
-        throw new Error(st.detail || st.error || `Erro ${stRes.status}`);
+        var vDetail = st.detail || st.error || ("Erro " + stRes.status);
+        var vErr = new Error(vDetail);
+        vErr.httpStatus = stRes.status;
+        throw vErr;
       }
       if (st.duration_sec != null || st.estimate_total_sec != null) {
         updateLegendarEta(st.duration_sec, st.burn_mp4 != null ? st.burn_mp4 : burnMp4, st);

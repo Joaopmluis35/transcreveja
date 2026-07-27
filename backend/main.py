@@ -1080,6 +1080,13 @@ def _cleanup_temp_uploads() -> int:
 def _run_startup_cleanup() -> None:
     _cleanup_old_video_files()
     _cleanup_temp_uploads()
+    try:
+        from async_jobs import fail_orphaned_processing_jobs, prune_async_jobs
+
+        fail_orphaned_processing_jobs()
+        prune_async_jobs(24)
+    except Exception:
+        logger.exception("Startup async_jobs cleanup falhou")
 
 
 def _build_burn_subtitles_cmd(
@@ -1126,18 +1133,42 @@ def _video_job_set(job_id: str, **kwargs) -> None:
             job["job_log"] = job["job_log"][-40:]
         job.update(kwargs)
         job["updated_at"] = time.monotonic()
+        snapshot = dict(job)
+    try:
+        from async_jobs import upsert_async_job
+
+        upsert_async_job(job_id, "video-subs", snapshot)
+    except Exception:
+        logger.exception("Persist video-subs job falhou %s", job_id)
 
 
 def _video_job_get(job_id: str) -> dict | None:
     with _video_sub_jobs_lock:
         job = _video_sub_jobs.get(job_id)
-        if not job:
-            return None
-        out = dict(job)
+        if job:
+            out = dict(job)
+        else:
+            out = None
+    if out is None:
+        try:
+            from async_jobs import load_async_job
+
+            persisted = load_async_job(job_id)
+            if persisted and persisted.get("kind") in (None, "video-subs"):
+                with _video_sub_jobs_lock:
+                    _video_sub_jobs[job_id] = dict(persisted)
+                    _video_sub_jobs[job_id]["updated_at"] = time.monotonic()
+                    _video_sub_jobs[job_id]["created_at"] = time.monotonic()
+                    out = dict(_video_sub_jobs[job_id])
+        except Exception:
+            logger.exception("Load video-subs job falhou %s", job_id)
+            out = None
+    if not out:
+        return None
     now = time.monotonic()
     if out.get("stage_started_at"):
         out["stage_elapsed_sec"] = int(now - out["stage_started_at"])
-    if out.get("created_at"):
+    if out.get("created_at") and isinstance(out.get("created_at"), (int, float)):
         out["total_elapsed_sec"] = int(now - out["created_at"])
     return out
 
@@ -1197,18 +1228,42 @@ def _transcribe_job_set(job_id: str, **kwargs) -> None:
             job["job_log"] = job["job_log"][-40:]
         job.update(kwargs)
         job["updated_at"] = time.monotonic()
+        snapshot = dict(job)
+    try:
+        from async_jobs import upsert_async_job
+
+        upsert_async_job(job_id, "transcribe", snapshot)
+    except Exception:
+        logger.exception("Persist transcribe job falhou %s", job_id)
 
 
 def _transcribe_job_get(job_id: str) -> dict | None:
     with _transcribe_jobs_lock:
         job = _transcribe_jobs.get(job_id)
-        if not job:
-            return None
-        out = dict(job)
+        if job:
+            out = dict(job)
+        else:
+            out = None
+    if out is None:
+        try:
+            from async_jobs import load_async_job
+
+            persisted = load_async_job(job_id)
+            if persisted and persisted.get("kind") in (None, "transcribe"):
+                with _transcribe_jobs_lock:
+                    _transcribe_jobs[job_id] = dict(persisted)
+                    _transcribe_jobs[job_id]["updated_at"] = time.monotonic()
+                    _transcribe_jobs[job_id]["created_at"] = time.monotonic()
+                    out = dict(_transcribe_jobs[job_id])
+        except Exception:
+            logger.exception("Load transcribe job falhou %s", job_id)
+            out = None
+    if not out:
+        return None
     now = time.monotonic()
     if out.get("stage_started_at"):
         out["stage_elapsed_sec"] = int(now - out["stage_started_at"])
-    if out.get("created_at"):
+    if out.get("created_at") and isinstance(out.get("created_at"), (int, float)):
         out["total_elapsed_sec"] = int(now - out["created_at"])
     return out
 
@@ -2071,7 +2126,13 @@ def transcribe_job_status(job_id: str, request: Request):
     require_api_token(request)
     job = _transcribe_job_get(job_id)
     if not job:
-        raise HTTPException(status_code=404, detail="Trabalho não encontrado ou expirado.")
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                "Trabalho não encontrado — o servidor pode ter reiniciado durante a transcrição. "
+                "Volta a clicar em Transcrever com o mesmo ficheiro."
+            ),
+        )
     return job
 
 
@@ -2630,7 +2691,13 @@ def video_subs_job_status(job_id: str, request: Request):
     require_api_token(request)
     job = _video_job_get(job_id)
     if not job:
-        raise HTTPException(status_code=404, detail="Tarefa não encontrada ou expirada.")
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                "Tarefa não encontrada — o servidor pode ter reiniciado. "
+                "Volta a clicar em Legendar com o mesmo ficheiro."
+            ),
+        )
     return {k: v for k, v in job.items() if k != "updated_at"}
 
 # ── IA payloads ───────────────────────────────────────────────────────────────
