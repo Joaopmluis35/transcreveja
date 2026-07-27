@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <script>document.documentElement.classList.add("oe-pricing-hidden");</script>
-  <link rel="stylesheet" href="css/ouviescrevi.css?v=28">
-  <link rel="stylesheet" href="css/index-home.css?v=32">
+  <link rel="stylesheet" href="css/ouviescrevi.css?v=29">
+  <link rel="stylesheet" href="css/index-home.css?v=33">
   <link rel="stylesheet" href="css/pricing-visibility.css?v=2">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <link rel="manifest" href="/manifest.webmanifest">
@@ -47,7 +47,10 @@
 
     <form id="uploadForm">
       <div id="dropZone" class="oe-drop-zone--empty">
-        <p class="oe-drop-zone__lead">📁 <strong>Arrasta aqui o áudio ou vídeo</strong> ou clica para escolher</p>
+        <p class="oe-drop-zone__lead">
+          <span class="oe-drop-zone__copy oe-drop-zone__copy--desktop">📁 <strong>Arrasta aqui o áudio ou vídeo</strong> ou clica para escolher</span>
+          <span class="oe-drop-zone__copy oe-drop-zone__copy--touch">📁 <strong>Toca para escolher áudio ou vídeo</strong></span>
+        </p>
         <p class="oe-drop-zone__hint">MP3, WAV, MP4 e outros formatos comuns</p>
         <input type="file" id="fileInput" accept="audio/*,video/*" required>
         <span id="fileName">Nenhum ficheiro selecionado</span>
@@ -71,8 +74,9 @@
 
       <p id="videoUploadHint" class="oe-video-hint hidden" role="status">
         <strong>Vídeo carregado.</strong> Escolhe uma ação acima:<br>
-        <strong>Transcrever</strong> — áudio/vídeo para texto editável &nbsp;|&nbsp;
-        <strong>Legendar vídeo</strong> — ficheiros SRT/MP4 para descarregar.
+        <span class="oe-video-hint__line"><strong>Transcrever</strong> — áudio/vídeo para texto editável</span>
+        <span class="oe-video-hint__sep"> &nbsp;|&nbsp; </span>
+        <span class="oe-video-hint__line"><strong>Legendar vídeo</strong> — ficheiros SRT/MP4 para descarregar.</span>
       </p>
       <button type="button" id="btnOpenSubtitleStyle" class="oe-subtitle-open hidden">
         🎨 Personalizar estilo das legendas (opcional, antes de legendar)

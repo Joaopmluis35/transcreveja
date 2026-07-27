@@ -205,12 +205,34 @@ body.oe-page--home .oe-home-workspace__col--output .oe-legendar-error {
     grid-template-columns: 1fr;
   }
 
-  body.oe-page--home .oe-home-workspace__col--output {
-    min-height: 280px;
+  /* Evitar painel vazio a ocupar o ecrã antes de haver resultado */
+  body.oe-page--home .oe-home-workspace__col--output:has(#homeOutputPlaceholder:not([hidden])) {
+    min-height: 0;
+  }
+
+  body.oe-page--home .oe-home-workspace__col--output:has(#output:not(.hidden)) {
+    min-height: 240px;
   }
 
   body.oe-page--home .oe-home-panel--placeholder {
-    min-height: 160px;
+    display: none !important;
+  }
+
+  body.oe-page--home main {
+    padding: 24px 16px;
+  }
+
+  body.oe-page--home main form,
+  body.oe-page--home .oe-home-workspace__col--input #uploadForm {
+    padding: 16px;
+  }
+
+  body.oe-page--home .oe-drop-zone__copy--desktop {
+    display: none;
+  }
+
+  body.oe-page--home .oe-drop-zone__copy--touch {
+    display: inline;
   }
 }
 
@@ -258,6 +280,10 @@ body.oe-page--home .oe-drop-zone__lead {
   margin: 0;
 }
 
+body.oe-page--home .oe-drop-zone__copy--touch {
+  display: none;
+}
+
 /* Resultado — scroll + destaque exportar */
 @keyframes oe-export-glow {
   0% {
@@ -296,10 +322,27 @@ body.oe-page--home .oe-output--fresh {
   }
 }
 
-/* Mobile — botões secundários em coluna */
+/* Mobile — botões secundários em coluna + campos mais fáceis de tocar */
 @media (max-width: 640px) {
   body.oe-page--home #uploadForm .oe-upload-actions {
     grid-template-columns: 1fr;
+  }
+
+  body.oe-page--home .oe-speaker-names {
+    grid-template-columns: 1fr;
+  }
+
+  body.oe-page--home #uploadForm .oe-video-hint {
+    font-size: 0.84rem;
+  }
+
+  body.oe-page--home #uploadForm .oe-video-hint .oe-video-hint__sep {
+    display: none;
+  }
+
+  body.oe-page--home #uploadForm .oe-video-hint .oe-video-hint__line {
+    display: block;
+    margin-top: 6px;
   }
 }
 
@@ -1037,6 +1080,16 @@ body.oe-page--home #output #classificacaoBox {
   body.oe-page--home #output textarea#transcriptionText {
     min-height: clamp(240px, 42vh, 400px);
     max-height: 55vh;
+  }
+}
+
+@media (max-width: 480px) {
+  body.oe-page--home .oe-output__actions.btn-group {
+    grid-template-columns: 1fr;
+  }
+
+  body.oe-page--home .oe-output__actions.btn-group button {
+    min-height: 44px;
   }
 }
 

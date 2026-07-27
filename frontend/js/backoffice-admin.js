@@ -1222,6 +1222,36 @@
     return '<span class="' + cls + '">' + escapeHtml(p) + "</span>";
   }
 
+  function sortAiItemsByPriority(items, mode) {
+    var list = (items || []).slice();
+    var order = { alta: 0, media: 1, baixa: 2 };
+    var sortMode = mode || "alta-baixa";
+    if (sortMode === "recentes") {
+      list.sort(function (a, b) {
+        return Number(b.id || 0) - Number(a.id || 0);
+      });
+      return list;
+    }
+    var dir = sortMode === "baixa-alta" ? -1 : 1;
+    list.sort(function (a, b) {
+      var pa = order[String(a.priority || "media").toLowerCase()];
+      var pb = order[String(b.priority || "media").toLowerCase()];
+      if (pa == null) pa = 9;
+      if (pb == null) pb = 9;
+      if (pa !== pb) return (pa - pb) * dir;
+      return Number(b.id || 0) - Number(a.id || 0);
+    });
+    return list;
+  }
+
+  function currentAiInsightSortMode() {
+    return (document.getElementById("aiInsightPrioritySort") || {}).value || "alta-baixa";
+  }
+
+  function currentEstudoSortMode() {
+    return (document.getElementById("estudoPrioritySort") || {}).value || "alta-baixa";
+  }
+
   function buildAiInsightPrompt(item) {
     var prompt =
       (item && item.cursor_prompt) ||
@@ -1304,6 +1334,7 @@
         div.innerHTML = '<p class="oe-admin-empty">Sem sugestões AI. Clica em «Gerar com AI».</p>';
         return;
       }
+      items = sortAiItemsByPriority(items, currentAiInsightSortMode());
       var html = items.map(function (item) {
         return (
           '<article class="oe-admin-ai-card" data-id="' + item.id + '">' +
@@ -1616,6 +1647,7 @@
   function renderEstudoSuggestions(items) {
     var div = document.getElementById("tabelaEstudo");
     if (!div) return;
+    items = sortAiItemsByPriority(items || [], currentEstudoSortMode());
     if (!items.length) {
       div.innerHTML = '<p class="oe-admin-empty">Sem sugestões neste filtro. Gera um novo estudo ou limpa o filtro.</p>';
       return;
@@ -2528,6 +2560,8 @@
     if (btnCopyAllAi) btnCopyAllAi.addEventListener("click", copyAllAiInsightsToCursor);
     var aiStatusFilter = document.getElementById("aiInsightStatusFilter");
     if (aiStatusFilter) aiStatusFilter.addEventListener("change", loadAiInsights);
+    var aiPrioritySort = document.getElementById("aiInsightPrioritySort");
+    if (aiPrioritySort) aiPrioritySort.addEventListener("change", loadAiInsights);
     var btnGenEstudo = document.getElementById("btnGenerateEstudo");
     if (btnGenEstudo) btnGenEstudo.addEventListener("click", generateEstudoAi);
     var btnRefreshEstudo = document.getElementById("btnRefreshEstudo");
@@ -2536,6 +2570,8 @@
     if (btnCopyAllEstudo) btnCopyAllEstudo.addEventListener("click", copyAllEstudoToCursor);
     var estudoStatusFilter = document.getElementById("estudoStatusFilter");
     if (estudoStatusFilter) estudoStatusFilter.addEventListener("change", loadEstudoAi);
+    var estudoPrioritySort = document.getElementById("estudoPrioritySort");
+    if (estudoPrioritySort) estudoPrioritySort.addEventListener("change", loadEstudoAi);
     var emailForm = document.getElementById("emailConfigForm");
     if (emailForm) emailForm.addEventListener("submit", saveEmailConfig);
     var btnRefreshEmails = document.getElementById("btnRefreshEmails");

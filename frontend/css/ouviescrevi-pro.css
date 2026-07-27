@@ -529,8 +529,8 @@ body.oe-nav-open { overflow: hidden; }
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   border: 1px solid var(--pro-border);
   border-radius: 10px;
@@ -543,8 +543,8 @@ body.oe-nav-open { overflow: hidden; }
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   border: 1px solid var(--pro-border);
   border-radius: 10px;
@@ -1561,6 +1561,21 @@ body.oe-pro .oe-cookie-banner__btn {
   color: #fff;
   border-radius: 8px;
   font-weight: 600;
+  min-height: 44px;
+  padding: 10px 18px;
+}
+
+/* Drop-zone: copy touch-first em ecrãs estreitos (todas as locales) */
+.oe-drop-zone__copy--touch {
+  display: none;
+}
+@media (max-width: 900px) {
+  .oe-drop-zone__copy--desktop {
+    display: none;
+  }
+  .oe-drop-zone__copy--touch {
+    display: inline;
+  }
 }
 
 body.oe-pro .oe-site-banner {
@@ -1822,8 +1837,8 @@ body.oe-auth-modal-open {
   font-size: 1.1rem;
   cursor: pointer;
   color: var(--pro-text-secondary);
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   border-radius: 8px;
   line-height: 1;
   margin: 0;

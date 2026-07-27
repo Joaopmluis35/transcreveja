@@ -1,4 +1,4 @@
-/* Landings comerciais — professores, podcasts, jornalistas, etc. */
+/* Landings comerciais â€” professores, podcasts, jornalistas, etc. */
 
 body.oe-page--landing .oe-lp-page,
 body.oe-page--landing-pro .oe-lp-page,
@@ -242,4 +242,34 @@ body.oe-page--landing-pro .oe-lp-tool span:last-child {
   font-size: 0.88rem;
   line-height: 1.45;
   color: var(--pro-text-secondary, #64748b);
+}
+
+@media (max-width: 640px) {
+  body.oe-page--landing .oe-lp-hero,
+  body.oe-page--landing-pro .oe-lp-hero {
+    padding: 28px 16px 20px;
+  }
+
+  body.oe-page--landing .oe-lp-hero--compact,
+  body.oe-page--landing-pro .oe-lp-hero--compact {
+    padding: 24px 16px 12px;
+  }
+
+  body.oe-page--landing .oe-lp-cta-row,
+  body.oe-page--landing-pro .oe-lp-cta-row {
+    flex-direction: column;
+    align-items: stretch;
+    margin-bottom: 28px;
+  }
+
+  body.oe-page--landing .oe-lp-cta-row .oe-lp-btn,
+  body.oe-page--landing-pro .oe-lp-cta-row .oe-lp-btn {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  body.oe-page--landing .oe-lp-grid,
+  body.oe-page--landing-pro .oe-lp-grid {
+    grid-template-columns: 1fr;
+  }
 }

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <link rel="stylesheet" href="../css/ouviescrevi.css?v=26">
-  <link rel="stylesheet" href="../css/index-home.css?v=25">
+  <link rel="stylesheet" href="../css/ouviescrevi.css?v=29">
+  <link rel="stylesheet" href="../css/index-home.css?v=33">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <title>Ouviescrevi — Transcription audio et vidéo IA gratuite</title>
   <link rel="canonical" href="https://www.ouviescrevi.pt/fr/index.html">
@@ -41,7 +41,10 @@
 
     <form id="uploadForm">
       <div id="dropZone">
-        <p class="oe-drop-zone__lead">📁 <strong>Déposez l'audio ou la vidéo ici</strong> ou cliquez pour choisir</p>
+        <p class="oe-drop-zone__lead">
+          <span class="oe-drop-zone__copy oe-drop-zone__copy--desktop">📁 <strong>Déposez l'audio ou la vidéo ici</strong> ou cliquez pour choisir</span>
+          <span class="oe-drop-zone__copy oe-drop-zone__copy--touch">📁 <strong>Touchez pour choisir l'audio ou la vidéo</strong></span>
+        </p>
         <p class="oe-drop-zone__hint">MP3, WAV, MP4 et autres formats courants</p>
         <input type="file" id="fileInput" accept="audio/*,video/*" required>
         <span id="fileName">Aucun fichier sélectionné</span>
