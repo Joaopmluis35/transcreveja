@@ -2,18 +2,53 @@
 
 /* Intro + confiança */
 body.oe-page--home .oe-home-intro {
-  margin: 0 0 4px;
-  max-width: none;
+  margin: 0 0 12px;
+  max-width: 40rem;
   width: 100%;
   text-align: center;
-  font-size: 1.05rem;
-  line-height: 1.55;
+  font-size: 1.15rem;
+  line-height: 1.5;
   color: var(--pro-text-secondary, #475569);
+}
+
+body.oe-page--home .oe-home-intro p {
+  margin: 0;
+}
+
+body.oe-page--home .oe-home-intro__sub {
+  margin-top: 6px !important;
+  font-size: 0.98rem;
+  color: var(--pro-text-muted, #64748b);
 }
 
 body.oe-page--home .oe-home-intro strong {
   color: var(--pro-text, #0f172a);
   font-weight: 700;
+  font-size: 1.28rem;
+  line-height: 1.3;
+}
+
+body.oe-page--home .oe-home-trust-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  list-style: none;
+  margin: 0 auto 18px;
+  padding: 0;
+  max-width: 44rem;
+}
+
+body.oe-page--home .oe-home-trust-chips li {
+  margin: 0;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--pro-border, #e2e8f0);
+  background: var(--pro-surface, #fff);
+  color: var(--pro-text-secondary, #475569);
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.2;
 }
 
 body.oe-page--home .oe-home-trust {
@@ -23,6 +58,141 @@ body.oe-page--home .oe-home-trust {
   text-align: center;
   font-size: 0.88rem;
   color: var(--pro-text-muted, #64748b);
+}
+
+body.oe-page--home .oe-home-trust--footer {
+  margin: 16px auto 8px;
+}
+
+body.oe-page--home .oe-home-panel__steps {
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+  width: 100%;
+  max-width: 18rem;
+  text-align: left;
+}
+
+body.oe-page--home .oe-home-panel__steps li {
+  position: relative;
+  margin: 0 0 10px;
+  padding: 10px 12px 10px 40px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: var(--pro-text, #0f172a);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  counter-increment: oe-home-step;
+}
+
+body.oe-page--home .oe-home-panel__steps {
+  counter-reset: oe-home-step;
+}
+
+body.oe-page--home .oe-home-panel__steps li::before {
+  content: counter(oe-home-step);
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #7c3aed;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body.oe-page--home .oe-home-usecases {
+  width: 100%;
+  max-width: 920px;
+  margin: 28px auto 8px;
+  padding: 0 4px;
+}
+
+body.oe-page--home .oe-home-usecases__title {
+  margin: 0 0 12px;
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--pro-text, #0f172a);
+}
+
+body.oe-page--home .oe-home-usecases__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+body.oe-page--home .oe-home-usecases__card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid var(--pro-border, #e2e8f0);
+  background: var(--pro-surface, #fff);
+  text-decoration: none !important;
+  color: inherit;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+body.oe-page--home .oe-home-usecases__card:hover {
+  border-color: #c4b5fd;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(124, 58, 237, 0.1);
+}
+
+body.oe-page--home .oe-home-usecases__card strong {
+  color: var(--pro-text, #0f172a);
+  font-size: 0.98rem;
+}
+
+body.oe-page--home .oe-home-usecases__card span {
+  color: var(--pro-text-muted, #64748b);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+body.oe-page--home .oe-home-testimonials:empty {
+  display: none !important;
+}
+
+body.oe-page--home .oe-home-testimonials:not(:empty) {
+  width: 100%;
+  max-width: 920px;
+  margin: 20px auto;
+  padding: 16px 18px;
+  border-radius: 14px;
+  border: 1px solid var(--pro-border, #e2e8f0);
+  background: var(--pro-surface, #fff);
+}
+
+body.oe-page--home #uploadForm:not(.oe-upload-form--ready) .oe-upload-options {
+  display: none;
+}
+
+body.oe-page--home #uploadForm:not(.oe-upload-form--ready) .oe-upload-actions__clear {
+  display: none !important;
+}
+
+body.oe-page--home .oe-upload-actions__secondary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 720px) {
+  body.oe-page--home .oe-home-usecases__grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Workspace — upload | resultado lado a lado */
@@ -233,6 +403,19 @@ body.oe-page--home .oe-home-workspace__col--output .oe-legendar-error {
 
   body.oe-page--home .oe-drop-zone__copy--touch {
     display: inline;
+  }
+
+  body.oe-page--home .oe-home-intro strong {
+    font-size: 1.15rem;
+  }
+
+  body.oe-page--home .oe-home-trust-chips {
+    margin-bottom: 14px;
+  }
+
+  body.oe-page--home .oe-home-trust-chips li {
+    font-size: 0.75rem;
+    padding: 6px 10px;
   }
 }
 

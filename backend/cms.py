@@ -1124,9 +1124,8 @@ PAGE_SCHEMA.sort(
 
 DEFAULT_SITE_CONTENT: dict[str, str] = {
     "home_intro_html": (
-        "<p><strong>Cola áudio ou vídeo e obtém o texto em minutos.</strong><br>"
-        "Transcrever 🎙️ · Traduzir 🌍 · Resumir 📌 · Converter ficheiros 📄 "
-        "— grátis, em português.</p>"
+        "<p><strong>Áudio ou vídeo → texto em minutos.</strong></p>"
+        '<p class="oe-home-intro__sub">Grátis, sem registo. Escolhe o ficheiro e clica em Transcrever.</p>'
     ),
     "seo_title": "🧠 O que é o Ouviescrevi?",
     "seo_p1": (

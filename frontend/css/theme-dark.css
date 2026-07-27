@@ -199,7 +199,40 @@ html.oe-theme-dark body.oe-page--home .oe-home-intro strong {
   color: var(--pro-text);
 }
 
+html.oe-theme-dark body.oe-page--home .oe-home-intro__sub {
+  color: var(--pro-text-muted);
+}
+
 html.oe-theme-dark body.oe-page--home .oe-home-trust {
+  color: var(--pro-text-muted);
+}
+
+html.oe-theme-dark body.oe-page--home .oe-home-trust-chips li {
+  background: var(--pro-surface);
+  border-color: var(--pro-border);
+  color: var(--pro-text-secondary);
+}
+
+html.oe-theme-dark body.oe-page--home .oe-home-panel__steps li {
+  background: rgba(148, 163, 184, 0.08);
+  border-color: var(--pro-border);
+  color: var(--pro-text);
+}
+
+html.oe-theme-dark body.oe-page--home .oe-home-usecases__title {
+  color: var(--pro-text);
+}
+
+html.oe-theme-dark body.oe-page--home .oe-home-usecases__card {
+  background: var(--pro-surface);
+  border-color: var(--pro-border);
+}
+
+html.oe-theme-dark body.oe-page--home .oe-home-usecases__card strong {
+  color: var(--pro-text);
+}
+
+html.oe-theme-dark body.oe-page--home .oe-home-usecases__card span {
   color: var(--pro-text-muted);
 }
 

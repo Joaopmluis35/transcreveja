@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <script>document.documentElement.classList.add("oe-pricing-hidden");</script>
-  <link rel="stylesheet" href="css/ouviescrevi.css?v=29">
-  <link rel="stylesheet" href="css/index-home.css?v=33">
+  <link rel="stylesheet" href="css/ouviescrevi.css?v=30">
+  <link rel="stylesheet" href="css/index-home.css?v=34">
   <link rel="stylesheet" href="css/pricing-visibility.css?v=2">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <link rel="manifest" href="/manifest.webmanifest">
@@ -37,10 +37,17 @@
 <main id="mainContent">
   <h1 class="oe-visually-hidden">Ouviescrevi — Transcrição de Áudio e Vídeo com IA Grátis</h1>
   <div id="adminContent">
-    <p id="cmsHomeIntro" class="oe-home-intro" data-cms-key="home_intro_html" data-cms-mode="html">
-      <strong>Cola áudio ou vídeo e obtém o texto em minutos.</strong><br>
-      Transcrever 🎙️ · Traduzir 🌍 · Resumir 📌 · Converter ficheiros 📄 — grátis, em português.
-    </p>
+    <div id="cmsHomeIntro" class="oe-home-intro" data-cms-key="home_intro_html" data-cms-mode="html">
+      <p><strong>Áudio ou vídeo → texto em minutos.</strong></p>
+      <p class="oe-home-intro__sub">Grátis, sem registo. Escolhe o ficheiro e clica em Transcrever.</p>
+    </div>
+
+    <ul class="oe-home-trust-chips" aria-label="Vantagens">
+      <li>Sem registo obrigatório</li>
+      <li>Até 500&nbsp;MB</li>
+      <li>Ficheiros temporários apagados</li>
+      <li>Feito em Portugal 🇵🇹</li>
+    </ul>
 
     <div class="oe-home-workspace">
       <div class="oe-home-workspace__col oe-home-workspace__col--input">
@@ -63,13 +70,15 @@
 
       <div class="oe-upload-actions">
       <button type="submit" id="btnTranscrever" class="oe-btn-transcribe">
-        <span class="oe-btn-transcribe__label">🎙️ Transcrever</span>
-        <span class="oe-btn-transcribe__hint">Áudio e vídeo → texto editável</span>
+        <span class="oe-btn-transcribe__label">🎙️ Transcrever agora</span>
+        <span class="oe-btn-transcribe__hint">Grátis · sem registo · texto editável</span>
       </button>
-      <button type="button" id="btnLegendarVideo" disabled>🎬 Legendar Vídeo (SRT + MP4)</button>
-      <button type="button" id="btnStartRec">🎤 Gravar Áudio</button>
-      <button type="button" id="btnStopRecording" class="hidden">🛑 Parar Gravação</button>
-      <button type="button" id="btnLimparTudo" onclick="limparTudo()">🧹 Limpar Tudo</button>
+      <div class="oe-upload-actions__secondary">
+        <button type="button" id="btnLegendarVideo" disabled>🎬 Legendar vídeo</button>
+        <button type="button" id="btnStartRec">🎤 Gravar áudio</button>
+        <button type="button" id="btnStopRecording" class="hidden">🛑 Parar gravação</button>
+        <button type="button" id="btnLimparTudo" class="oe-upload-actions__clear" onclick="limparTudo()">🧹 Limpar</button>
+      </div>
       </div>
 
       <p id="videoUploadHint" class="oe-video-hint hidden" role="status">
@@ -132,8 +141,13 @@
 
       <div class="oe-home-workspace__col oe-home-workspace__col--output" aria-live="polite">
         <div id="homeOutputPlaceholder" class="oe-home-panel oe-home-panel--placeholder">
-          <h2 class="oe-home-panel__title">Transcrição</h2>
-          <p class="oe-home-panel__hint">O texto e as ações com IA aparecem aqui, ao lado do upload.</p>
+          <h2 class="oe-home-panel__title">Como funciona</h2>
+          <ol class="oe-home-panel__steps">
+            <li><strong>Escolhe</strong> o áudio ou vídeo</li>
+            <li><strong>Clica</strong> em Transcrever agora</li>
+            <li><strong>Copia</strong> ou exporta o texto</li>
+          </ol>
+          <p class="oe-home-panel__hint">O resultado aparece aqui — editável, pronto a usar.</p>
         </div>
 
         <div id="loading" class="oe-loading hidden" aria-live="polite" aria-busy="false">
@@ -278,7 +292,27 @@
       </div>
     </div>
 
-    <p class="oe-home-trust">🇵🇹 Feito em Portugal · sem registo obrigatório</p>
+    <p class="oe-home-trust oe-home-trust--footer">Depois podes resumir, traduzir ou exportar — mas o primeiro passo é transcrever.</p>
+
+    <section class="oe-home-usecases" aria-labelledby="homeUsecasesTitle">
+      <h2 id="homeUsecasesTitle" class="oe-home-usecases__title">Exemplos de uso</h2>
+      <div class="oe-home-usecases__grid">
+        <a class="oe-home-usecases__card" href="professores.html">
+          <strong>Professores</strong>
+          <span>Aulas gravadas → apontamentos e materiais</span>
+        </a>
+        <a class="oe-home-usecases__card" href="reunioes.html">
+          <strong>Reuniões</strong>
+          <span>Áudio da call → ata e pontos de ação</span>
+        </a>
+        <a class="oe-home-usecases__card" href="podcasts.html">
+          <strong>Podcasts</strong>
+          <span>Episódio → texto para SEO e legendas</span>
+        </a>
+      </div>
+    </section>
+
+    <div id="cmsHomeTestimonials" class="oe-home-testimonials" data-cms-key="home_testimonials" data-cms-mode="html"></div>
 
     <div id="uploadAlert" class="oe-upload-alert hidden" role="alert"></div>
     <p id="quotaBadge" class="oe-quota-badge hidden" aria-live="polite"></p>
@@ -792,10 +826,15 @@
 
   function updateDropZoneState(hasFile) {
     var zone = document.getElementById("dropZone");
-    if (!zone) return;
-    zone.classList.toggle("oe-drop-zone--empty", !hasFile);
-    zone.classList.toggle("oe-drop-zone--has-file", !!hasFile);
-    zone.classList.remove("oe-drop-zone--dragover");
+    var form = document.getElementById("uploadForm");
+    if (zone) {
+      zone.classList.toggle("oe-drop-zone--empty", !hasFile);
+      zone.classList.toggle("oe-drop-zone--has-file", !!hasFile);
+      zone.classList.remove("oe-drop-zone--dragover");
+    }
+    if (form) {
+      form.classList.toggle("oe-upload-form--ready", !!hasFile);
+    }
   }
   window.updateDropZoneState = updateDropZoneState;
   const statusEl = document.getElementById("transcricaoStatus");

@@ -1303,12 +1303,12 @@ body.oe-pro.oe-page--home main {
 body.oe-pro.oe-page--home #cmsHomeIntro,
 body.oe-pro.oe-page--home .oe-home-intro {
   color: var(--pro-text-secondary);
-  font-size: 1.05rem;
-  line-height: 1.55;
-  max-width: none;
+  font-size: 1.12rem;
+  line-height: 1.5;
+  max-width: 40rem;
   width: 100%;
   text-align: center;
-  margin: 0 auto 4px;
+  margin: 0 auto 12px;
 }
 body.oe-pro.oe-page--home #cmsHomeIntro strong,
 body.oe-pro.oe-page--home .oe-home-intro strong {
@@ -1321,6 +1321,34 @@ body.oe-pro.oe-page--home .oe-home-trust {
   text-align: center;
   font-size: 0.88rem;
   color: var(--pro-text-muted);
+}
+body.oe-pro.oe-page--home #uploadForm .oe-upload-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+body.oe-pro.oe-page--home #uploadForm .oe-upload-actions__secondary {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+body.oe-pro.oe-page--home #uploadForm .oe-upload-actions__secondary button {
+  min-height: 42px !important;
+  font-size: 0.84rem !important;
+  font-weight: 600 !important;
+  background: transparent !important;
+  border: 1px solid var(--pro-border) !important;
+  color: var(--pro-text-secondary) !important;
+  box-shadow: none !important;
+}
+body.oe-pro.oe-page--home #uploadForm .oe-upload-actions__secondary button:hover:not(:disabled) {
+  background: var(--pro-accent-muted, #f5f3ff) !important;
+  border-color: #c4b5fd !important;
+  color: var(--pro-text) !important;
+}
+body.oe-pro.oe-page--home #uploadForm .oe-upload-actions__secondary button:disabled {
+  opacity: 0.55;
 }
 body.oe-pro.oe-page--home .oe-home-workspace {
   width: 100%;
@@ -1412,11 +1440,6 @@ body.oe-pro.oe-page--home #uploadForm .oe-file-hint {
   font-size: 0.75rem;
   color: var(--pro-text-muted);
   font-style: normal;
-}
-body.oe-pro.oe-page--home #uploadForm .oe-upload-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
 }
 body.oe-pro.oe-page--home #uploadForm button {
   margin: 0 !important;
@@ -1542,6 +1565,9 @@ body.oe-pro.oe-page--home #uploadForm #recordingStatus {
 }
 @media (max-width: 640px) {
   body.oe-pro.oe-page--home #uploadForm .oe-upload-actions {
+    grid-template-columns: 1fr;
+  }
+  body.oe-pro.oe-page--home #uploadForm .oe-upload-actions__secondary {
     grid-template-columns: 1fr;
   }
   body.oe-pro.oe-page--home #uploadForm .oe-upload-options {
