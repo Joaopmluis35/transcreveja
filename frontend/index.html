@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <script>document.documentElement.classList.add("oe-pricing-hidden");</script>
   <link rel="stylesheet" href="css/ouviescrevi.css?v=30">
-  <link rel="stylesheet" href="css/index-home.css?v=34">
+  <link rel="stylesheet" href="css/index-home.css?v=37">
   <link rel="stylesheet" href="css/pricing-visibility.css?v=2">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <link rel="manifest" href="/manifest.webmanifest">
@@ -159,6 +159,7 @@
             <div id="progressBar"></div>
           </div>
           <p class="oe-loading__hint">Não feches esta página — o progresso aparece aqui.</p>
+          <button type="button" id="btnCancelJob" class="oe-loading__cancel hidden">Cancelar</button>
         </div>
 
         <div id="legendarDoneBanner" class="oe-legendar-done hidden" role="status" aria-live="polite">
@@ -533,7 +534,7 @@
 <script src="js/share-ui.js?v=28"></script>
 <script src="/js/suggestion-fab.js?v=25" defer></script>
 <script src="/js/feedback-pulse.js?v=1" defer></script>
-<script src="/js/media-trim-ui.js?v=34" defer></script>
+<script src="/js/media-trim-ui.js?v=36" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
   const ADMIN_EMAIL = "admin@ouviescrevi.pt";
@@ -576,6 +577,92 @@
   let trxTimerInterval;   // transcrição
   let statusInterval;     // frases animadas
   let ultimaTentativaFalhada = false;
+  let transcribeInFlight = false;
+  let legendarInFlight = false;
+  let lastTranscribeFingerprint = "";
+  let lastTranscribeSuccessAt = 0;
+  let lastUploadProgressPct = 0;
+  let activeAbortController = null;
+  let jobCancelled = false;
+
+  function fileFingerprint(file) {
+    if (!file) return "";
+    return [file.name || "", file.size || 0, file.lastModified || 0].join("|");
+  }
+
+  function setFormControlsBusy(busy) {
+    var fileInput = document.getElementById("fileInput");
+    var langSel = document.getElementById("transcribeLanguage");
+    var locutores = document.getElementById("identificarLocutores");
+    if (fileInput) fileInput.disabled = !!busy;
+    if (langSel) langSel.disabled = !!busy;
+    if (locutores) locutores.disabled = !!busy;
+  }
+
+  function toastBusy(msg) {
+    if (window.OuviescreviUI && OuviescreviUI.toast) {
+      OuviescreviUI.toast(msg, "info");
+    } else if (statusEl) {
+      statusEl.textContent = msg;
+    }
+  }
+
+  function beginCancellableJob() {
+    jobCancelled = false;
+    if (activeAbortController) {
+      try { activeAbortController.abort(); } catch (e) {}
+    }
+    activeAbortController = new AbortController();
+    var btn = document.getElementById("btnCancelJob");
+    if (btn) {
+      btn.classList.remove("hidden");
+      btn.disabled = false;
+      btn.textContent = "Cancelar";
+    }
+    return activeAbortController;
+  }
+
+  function endCancellableJob() {
+    activeAbortController = null;
+    var btn = document.getElementById("btnCancelJob");
+    if (btn) {
+      btn.classList.add("hidden");
+      btn.disabled = false;
+      btn.textContent = "Cancelar";
+    }
+  }
+
+  function throwIfCancelled() {
+    if (!jobCancelled) return;
+    var err = new Error("Cancelado pelo utilizador.");
+    err.name = "AbortError";
+    err.cancelled = true;
+    throw err;
+  }
+
+  function cancelActiveJob() {
+    if (jobCancelled) return;
+    jobCancelled = true;
+    var btn = document.getElementById("btnCancelJob");
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = "A cancelar…";
+    }
+    if (statusEl) statusEl.textContent = "⏹️ A cancelar…";
+    if (activeAbortController) {
+      try { activeAbortController.abort(); } catch (e) {}
+    }
+  }
+
+  function confirmRepeatTranscribe(file) {
+    var fp = fileFingerprint(file);
+    if (!fp || fp !== lastTranscribeFingerprint) return true;
+    if (!lastTranscribeSuccessAt) return true;
+    if (Date.now() - lastTranscribeSuccessAt > 120000) return true;
+    return window.confirm(
+      "Acabaste de transcrever este ficheiro com sucesso. Queres enviar outra vez?"
+    );
+  }
 
   // ► estado do vídeo/preview de legendas
   let loadedVideoMeta = false;
@@ -852,6 +939,12 @@
   const btnStartRec = document.getElementById("btnStartRec");
   const btnLegendarVideo = document.getElementById("btnLegendarVideo");
   var legendarReady = false;
+  var btnCancelJob = document.getElementById("btnCancelJob");
+  if (btnCancelJob) {
+    btnCancelJob.addEventListener("click", function () {
+      cancelActiveJob();
+    });
+  }
 
   function hideLegendarBanners() {
     legendarReady = false;
@@ -962,6 +1055,7 @@
     loading.classList.remove("hidden");
     loading.classList.add("oe-loading--active");
     loading.setAttribute("aria-busy", "true");
+    beginCancellableJob();
     if (eyebrow) {
       eyebrow.textContent =
         mode === "legendar"
@@ -980,6 +1074,7 @@
   }
 
   function endJobLoading() {
+    endCancellableJob();
     loading.classList.add("hidden");
     loading.classList.remove("oe-loading--active");
     loading.setAttribute("aria-busy", "false");
@@ -1012,9 +1107,22 @@
     btnLegendarVideo.disabled = !isVideoFile(file);
   }
 
+  function setTranscribePrepStatus(msg) {
+    if (statusEl) statusEl.textContent = msg;
+    var leftStatus = document.getElementById("recordingStatus");
+    if (leftStatus) leftStatus.textContent = msg;
+    var eyebrow = document.getElementById("loadingEyebrow");
+    if (eyebrow && /prepar|cort|extra|carreg/i.test(msg || "")) {
+      eyebrow.textContent = "A preparar no teu dispositivo";
+    }
+  }
+
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    await ensureApi();
+    if (transcribeInFlight || legendarInFlight) {
+      toastBusy("Já estás a transcrever — espera que termine. Não cliques outra vez.");
+      return;
+    }
     const file = document.getElementById("fileInput").files[0];
     if (!file) return;
 
@@ -1026,244 +1134,333 @@
       mostrarAlertaUpload(mensagemFicheiroGrande(file));
       return;
     }
+    if (!confirmRepeatTranscribe(file)) return;
     limparAlertaUpload();
 
-    // reset UI
+    transcribeInFlight = true;
+    lastUploadProgressPct = 0;
+    setFormControlsBusy(true);
+
+    // Feedback imediato — antes de ensureApi / corte local (pode demorar minutos em ficheiros grandes)
     setOutputPanelVisible(false);
     definirTranscricao("");
     document.getElementById("legendasBox").classList.add("hidden");
     document.getElementById("legendasWarn").classList.add("hidden");
     startJobLoading("transcribe");
     updateTranscribeEta(estimateTranscribeDurationSec(), null);
-
-    btnTranscrever.disabled = true;
-    btnStartRec.disabled = true;
-    btnLegendarVideo.disabled = !isVideoFile(file);
-    btnTranscrever.style.opacity = 0.6;
-    btnStartRec.style.opacity = 0.6;
-
-    iniciarFrasesAnimadas(statusEl);
-    iniciarTimerTranscricao();
-
-    // progresso "fake" até 90%
-    let progress = 0;
-    let interval = setInterval(() => {
-      if (progress < 90) {
-        progress += Math.random() * 5;
-        progressBar.style.width = `${progress.toFixed(1)}%`;
-      }
-    }, 200);
-
-    // pedido com retries
-    const formData = new FormData();
-    let uploadFile = file;
-    try {
-      if (window.OuviescreviMediaTrim) {
-        statusEl.textContent = "✂️ A preparar ficheiro…";
-        var prepared = await OuviescreviMediaTrim.prepareForUpload(file, function (msg) {
-          statusEl.textContent = msg;
-        }, { audioOnly: true });
-        uploadFile = prepared.file;
-        // Transcrição não deve enviar trechos de vídeo enormes (ex. 200 MB)
-        if (
-          prepared.trimmed &&
-          fileSizeMb(uploadFile) > 60 &&
-          isVideoFile(uploadFile)
-        ) {
-          throw new Error(
-            "O trecho ficou demasiado grande (" +
-              formatMb(fileSizeMb(uploadFile)) +
-              " MB de vídeo). Cancela e tenta outra vez — vamos extrair só o áudio."
-          );
-        }
-        formData.append("file", uploadFile);
-        if (!prepared.trimmed) OuviescreviMediaTrim.appendToFormData(formData);
-      } else {
-        formData.append("file", file);
-      }
-    } catch (prepErr) {
-      pararFrasesAnimadas(statusEl);
-      endJobLoading();
-      btnTranscrever.disabled = false;
-      btnStartRec.disabled = false;
-      mostrarAlertaUpload(prepErr.message || "Não foi possível preparar o trecho.");
-      return;
-    }
-    if (window.OuviescreviJobs) OuviescreviJobs.appendAnalyticsFields(formData);
-    pararFrasesAnimadas(statusEl);
-    if (uploadFile !== file && fileSizeMb(uploadFile) < fileSizeMb(file) * 0.5) {
-      statusEl.textContent =
-        "✅ Trecho preparado (" + formatMb(fileSizeMb(uploadFile)) + " MB) — a enviar…";
-      await new Promise(function (r) { setTimeout(r, 900); });
-    } else if (window.OuviescreviMediaTrim) {
-      var trimSel = OuviescreviMediaTrim.getSelection();
-      if (trimSel.mode === "segment" && fileSizeMb(uploadFile) > 80) {
-        statusEl.textContent =
-          "⚠️ A enviar ficheiro completo (" +
-          formatMb(fileSizeMb(uploadFile)) +
-          " MB). O servidor corta ao trecho — mais lento.";
-        await new Promise(function (r) { setTimeout(r, 2200); });
-      }
-    }
-    iniciarFrasesAnimadas(statusEl);
-    const lang = document.getElementById("transcribeLanguage").value;
-    if (lang && lang !== "auto") formData.append("language", lang);
-
-    let sucesso = false;
-    let data = {};
-    let lastHttpStatus = 0;
-    const MAX_TRIES = 3;
-
-    for (let tentativa = 1; tentativa <= MAX_TRIES && !sucesso; tentativa++){
-      try{
-        if (tentativa === 2){
-          pararFrasesAnimadas(statusEl);
-          statusEl.textContent = "😓 Está difícil... mas estamos a tentar novamente com toda a força!";
-        } else if (tentativa === 3){
-          statusEl.textContent = "🛠️ Última tentativa — estamos a ajustar os parâmetros...";
-        }
-
-        const controller = new AbortController();
-        const to = setTimeout(() => controller.abort(), 600000);
-        const uploadMb = fileSizeMb(uploadFile);
-        const useUploadProgress = uploadMb > 5;
-        let res;
-        if (useUploadProgress) {
-          clearInterval(interval);
-          pararFrasesAnimadas(statusEl);
-          res = await postFormWithUploadProgress(
-            `${API_BASE}/transcribe`,
-            formData,
-            OuviescreviAPI.authHeaders(),
-            function (pct, loaded, total) {
-              var pctLabel = Math.round(pct * 100);
-              if (total > 0) {
-                statusEl.textContent =
-                  `📤 A enviar (${formatMb(uploadMb)} MB)… ${pctLabel}%` +
-                  ` · ${formatMb(loaded / (1024 * 1024))} MB enviados`;
-              } else {
-                statusEl.textContent =
-                  `📤 A enviar… ${formatMb((loaded || 0) / (1024 * 1024))} MB já enviados`;
-              }
-              progressBar.style.width = `${Math.min(42, Math.round(pct * 42))}%`;
-            },
-            controller.signal
-          );
-          progress = 42;
-          iniciarFrasesAnimadas(statusEl);
-          interval = setInterval(() => {
-            if (progress < 90) {
-              progress += Math.random() * 4;
-              progressBar.style.width = `${progress.toFixed(1)}%`;
-            }
-          }, 200);
-        } else {
-          res = await fetch(`${API_BASE}/transcribe`, {
-            method:"POST",
-            body: formData,
-            headers: OuviescreviAPI.authHeaders(),
-            signal: controller.signal
-          });
-        }
-        clearTimeout(to);
-
-        let jsonText = await res.text();
-        lastHttpStatus = res.status;
-        try{ data = JSON.parse(jsonText); } catch{ data = { error: `Resposta inválida do servidor (${res.status})` }; }
-        if (!res.ok) {
-          if (res.status === 413) {
-            data = { detail: data.detail || data.error || `Ficheiro > ${getMaxFileMb()}MB.` };
-            break;
-          }
-          if (res.status === 429) {
-            data = { detail: data.detail || data.error || "Limite diário atingido." };
-            break;
-          }
-          throw new Error(data.error || data.detail || `Erro ${res.status}`);
-        }
-        if (data.job_id) {
-          clearInterval(interval);
-          pararFrasesAnimadas(statusEl);
-          updateTranscribeEta(data.duration_sec || estimateTranscribeDurationSec(), data);
-          statusEl.textContent = "✅ Ficheiro enviado — a transcrever no servidor…";
-          progressBar.style.width = "45%";
-          try {
-            data = await pollTranscribeJob(data.job_id);
-            sucesso = transcricaoRecebidaComSucesso(data);
-          } catch (pollErr) {
-            data = { error: pollErr.message, detail: pollErr.message };
-            lastHttpStatus = pollErr.httpStatus || lastHttpStatus || 0;
-            sucesso = false;
-          }
-          break;
-        }
-        sucesso = transcricaoRecebidaComSucesso(data);
-      }catch(err){
-        if (err.name === "AbortError"){
-          data = { error: "Tempo limite atingido. Tentaremos novamente…" };
-        }
-        await new Promise(r => setTimeout(r, 700));
-      }
-    }
-
-    clearInterval(interval);
-    progressBar.style.width = "100%";
-    pararFrasesAnimadas(statusEl);
-    pararTimerTranscricao();
-
-    const identificar = document.getElementById("identificarLocutores").checked;
-    const textoRecebido = data.formatted || data.transcription || data.text || "";
-    if (sucesso && textoRecebido.trim()){
-      let textoFinal = textoRecebido;
-      if (identificar) textoFinal = await aplicarLocutores(textoFinal);
-      definirTranscricao(textoFinal);
-      setOutputPanelVisible(true);
-      focusTranscriptionResult();
-      statusEl.textContent = "✅ Transcrição concluída com sucesso!";
-      if (data.warning) statusEl.textContent = "⚠️ " + data.warning;
-      if (window.OuviescreviHistory) {
-        window.OuviescreviHistory.refreshQuota().then(function (q) {
-          if (window.OuviescreviUpsell) OuviescreviUpsell.afterTranscriptionSuccess(q);
-        });
-      } else if (window.OuviescreviUpsell) {
-        OuviescreviUpsell.afterTranscriptionSuccess();
-      }
+    setTranscribePrepStatus("A iniciar — o progresso aparece à direita.");
+    if (window.OuviescreviUI && OuviescreviUI.setButtonLoading) {
+      OuviescreviUI.setButtonLoading(btnTranscrever, true, "A preparar…");
     } else {
-      const msg = mensagemErroTranscricao(data, file, lastHttpStatus);
-      if (lastHttpStatus === 429 && window.OuviescreviUpsell) {
+      btnTranscrever.disabled = true;
+      btnTranscrever.style.opacity = 0.6;
+    }
+    btnStartRec.disabled = true;
+    btnLegendarVideo.disabled = true;
+    btnStartRec.style.opacity = 0.6;
+    iniciarTimerTranscricao();
+    // Barra lenta na fase de preparação (sem frases animadas a tapar o progresso real)
+    let progress = 4;
+    progressBar.style.width = "4%";
+    let interval = setInterval(() => {
+      if (progress < 28) {
+        progress += 0.35;
+        progressBar.style.width = progress.toFixed(1) + "%";
+      }
+    }, 400);
+    requestAnimationFrame(function () {
+      if (loading) loading.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+
+    try {
+      try {
+        await ensureApi();
+      } catch (apiErr) {
+        clearInterval(interval);
+        pararTimerTranscricao();
+        endJobLoading();
+        mostrarAlertaUpload((apiErr && apiErr.message) || "Não foi possível ligar à API.");
+        return;
+      }
+
+      const formData = new FormData();
+      let uploadFile = file;
+      try {
+        if (window.OuviescreviMediaTrim) {
+          setTranscribePrepStatus(
+            fileSizeMb(file) > 80
+              ? "✂️ A preparar o trecho neste dispositivo (ficheiros grandes: 1–3 min)…"
+              : "✂️ A preparar ficheiro…"
+          );
+          var prepared = await OuviescreviMediaTrim.prepareForUpload(file, function (msg) {
+            throwIfCancelled();
+            setTranscribePrepStatus(msg);
+          }, { audioOnly: true });
+          throwIfCancelled();
+          uploadFile = prepared.file;
+          if (
+            prepared.trimmed &&
+            fileSizeMb(uploadFile) > 60 &&
+            isVideoFile(uploadFile)
+          ) {
+            throw new Error(
+              "O trecho ficou demasiado grande (" +
+                formatMb(fileSizeMb(uploadFile)) +
+                " MB de vídeo). Cancela e tenta outra vez — vamos extrair só o áudio."
+            );
+          }
+          formData.append("file", uploadFile);
+          if (!prepared.trimmed) OuviescreviMediaTrim.appendToFormData(formData);
+        } else {
+          formData.append("file", file);
+        }
+      } catch (prepErr) {
+        clearInterval(interval);
+        pararTimerTranscricao();
+        endJobLoading();
+        var leftStatus = document.getElementById("recordingStatus");
+        if (leftStatus) leftStatus.textContent = "";
+        if (prepErr && (prepErr.cancelled || (prepErr.name === "AbortError" && jobCancelled))) {
+          if (statusEl) statusEl.textContent = "⏹️ Cancelado.";
+          toastBusy("Cancelado. Podes tentar outra vez.");
+        } else {
+          mostrarAlertaUpload(prepErr.message || "Não foi possível preparar o trecho.");
+        }
+        return;
+      }
+      if (window.OuviescreviJobs) OuviescreviJobs.appendAnalyticsFields(formData);
+      if (window.OuviescreviUI && OuviescreviUI.setButtonLoading) {
+        OuviescreviUI.setButtonLoading(btnTranscrever, true, "A transcrever…");
+      }
+      if (uploadFile !== file && fileSizeMb(uploadFile) < fileSizeMb(file) * 0.5) {
+        setTranscribePrepStatus(
+          "✅ Trecho preparado (" + formatMb(fileSizeMb(uploadFile)) + " MB) — a enviar…"
+        );
+        progress = Math.max(progress, 32);
+        progressBar.style.width = progress + "%";
+        await new Promise(function (r) { setTimeout(r, 900); });
+      } else if (window.OuviescreviMediaTrim) {
+        var trimSel = OuviescreviMediaTrim.getSelection();
+        if (trimSel.mode === "segment" && fileSizeMb(uploadFile) > 80) {
+          setTranscribePrepStatus(
+            "⚠️ A enviar ficheiro completo (" +
+            formatMb(fileSizeMb(uploadFile)) +
+            " MB). O servidor corta ao trecho — mais lento."
+          );
+          await new Promise(function (r) { setTimeout(r, 2200); });
+        }
+      }
+      var eyebrowReady = document.getElementById("loadingEyebrow");
+      if (eyebrowReady) eyebrowReady.textContent = "A transcrever o ficheiro";
+      iniciarFrasesAnimadas(statusEl);
+      const lang = document.getElementById("transcribeLanguage").value;
+      if (lang && lang !== "auto") formData.append("language", lang);
+
+      let sucesso = false;
+      let data = {};
+      let lastHttpStatus = 0;
+      // No máximo 2 POSTs: 1 tentativa + 1 retry só se o servidor ainda não aceitou.
+      const MAX_TRIES = 2;
+      let acceptedJobId = null;
+
+      for (let tentativa = 1; tentativa <= MAX_TRIES && !sucesso; tentativa++){
+        if (acceptedJobId) break;
+        try{
+          if (tentativa === 2){
+            if (lastUploadProgressPct >= 0.9) {
+              data = {
+                error:
+                  "O envio pode já ter chegado ao servidor. Espera um pouco antes de repetir — evita transcricões em duplicado.",
+              };
+              break;
+            }
+            pararFrasesAnimadas(statusEl);
+            statusEl.textContent = "😓 Está difícil... a tentar novamente (só se o servidor ainda não recebeu)…";
+          }
+
+          const controller = activeAbortController || beginCancellableJob();
+          const to = setTimeout(function () {
+            if (!jobCancelled && controller) controller.abort();
+          }, 600000);
+          const uploadMb = fileSizeMb(uploadFile);
+          const useUploadProgress = uploadMb > 5;
+          let res;
+          lastUploadProgressPct = 0;
+          throwIfCancelled();
+          if (useUploadProgress) {
+            clearInterval(interval);
+            pararFrasesAnimadas(statusEl);
+            res = await postFormWithUploadProgress(
+              `${API_BASE}/transcribe`,
+              formData,
+              OuviescreviAPI.authHeaders(),
+              function (pct, loaded, total) {
+                if (jobCancelled) return;
+                lastUploadProgressPct = pct || 0;
+                var pctLabel = Math.round(pct * 100);
+                if (total > 0) {
+                  statusEl.textContent =
+                    `📤 A enviar (${formatMb(uploadMb)} MB)… ${pctLabel}%` +
+                    ` · ${formatMb(loaded / (1024 * 1024))} MB enviados`;
+                } else {
+                  statusEl.textContent =
+                    `📤 A enviar… ${formatMb((loaded || 0) / (1024 * 1024))} MB já enviados`;
+                }
+                progressBar.style.width = `${Math.min(42, Math.round(pct * 42))}%`;
+              },
+              controller.signal
+            );
+            progress = 42;
+            iniciarFrasesAnimadas(statusEl);
+            interval = setInterval(() => {
+              if (progress < 90) {
+                progress += Math.random() * 4;
+                progressBar.style.width = `${progress.toFixed(1)}%`;
+              }
+            }, 200);
+          } else {
+            res = await fetch(`${API_BASE}/transcribe`, {
+              method:"POST",
+              body: formData,
+              headers: OuviescreviAPI.authHeaders(),
+              signal: controller.signal
+            });
+          }
+          clearTimeout(to);
+          throwIfCancelled();
+
+          let jsonText = await res.text();
+          lastHttpStatus = res.status;
+          try{ data = JSON.parse(jsonText); } catch{ data = { error: `Resposta inválida do servidor (${res.status})` }; }
+          if (data && data.job_id) {
+            acceptedJobId = data.job_id;
+          }
+          if (!res.ok) {
+            if (res.status === 413) {
+              data = { detail: data.detail || data.error || `Ficheiro > ${getMaxFileMb()}MB.` };
+              break;
+            }
+            if (res.status === 429) {
+              data = { detail: data.detail || data.error || "Limite diário atingido." };
+              break;
+            }
+            if (acceptedJobId) break;
+            throw new Error(data.error || data.detail || `Erro ${res.status}`);
+          }
+          if (data.job_id) {
+            clearInterval(interval);
+            pararFrasesAnimadas(statusEl);
+            updateTranscribeEta(data.duration_sec || estimateTranscribeDurationSec(), data);
+            if (data.reused) {
+              statusEl.textContent =
+                "✅ Já havia uma transcrição em curso deste ficheiro — a acompanhar essa…";
+            } else {
+              statusEl.textContent = "✅ Ficheiro enviado — a transcrever no servidor…";
+            }
+            maybeWarnLongAudio(data.duration_sec || estimateTranscribeDurationSec());
+            progressBar.style.width = "45%";
+            try {
+              data = await pollTranscribeJob(data.job_id);
+              sucesso = transcricaoRecebidaComSucesso(data);
+            } catch (pollErr) {
+              data = { error: pollErr.message, detail: pollErr.message };
+              lastHttpStatus = pollErr.httpStatus || lastHttpStatus || 0;
+              sucesso = false;
+            }
+            break;
+          }
+          sucesso = transcricaoRecebidaComSucesso(data);
+        }catch(err){
+          if (acceptedJobId && !jobCancelled) break;
+          if (err && (err.cancelled || (err.name === "AbortError" && jobCancelled))) {
+            data = { error: "Cancelado. Podes tentar outra vez ou escolher outro ficheiro." };
+            sucesso = false;
+            break;
+          }
+          if (err.name === "AbortError"){
+            data = { error: "Tempo limite atingido. Tentaremos novamente…" };
+          } else if (lastUploadProgressPct >= 0.9) {
+            data = {
+              error:
+                "Ligação interrompida no fim do envio. O servidor pode já estar a processar — espera 1–2 minutos antes de repetir.",
+            };
+            break;
+          } else {
+            data = { error: err.message || "Erro de rede ao enviar ficheiro." };
+          }
+          await new Promise(r => setTimeout(r, 700));
+        }
+      }
+
+      clearInterval(interval);
+      progressBar.style.width = "100%";
+      pararFrasesAnimadas(statusEl);
+      pararTimerTranscricao();
+
+      const identificar = document.getElementById("identificarLocutores").checked;
+      const textoRecebido = data.formatted || data.transcription || data.text || "";
+      if (sucesso && textoRecebido.trim()){
+        let textoFinal = textoRecebido;
+        if (identificar) textoFinal = await aplicarLocutores(textoFinal);
+        definirTranscricao(textoFinal);
+        setOutputPanelVisible(true);
+        focusTranscriptionResult();
+        statusEl.textContent = "✅ Transcrição concluída com sucesso!";
+        if (data.warning) statusEl.textContent = "⚠️ " + data.warning;
+        lastTranscribeFingerprint = fileFingerprint(file);
+        lastTranscribeSuccessAt = Date.now();
         if (window.OuviescreviHistory) {
           window.OuviescreviHistory.refreshQuota().then(function (q) {
-            OuviescreviUpsell.showLimit(q);
+            if (window.OuviescreviUpsell) OuviescreviUpsell.afterTranscriptionSuccess(q);
           });
-        } else {
-          OuviescreviUpsell.showLimit({});
+        } else if (window.OuviescreviUpsell) {
+          OuviescreviUpsell.afterTranscriptionSuccess();
         }
-      }
-      if (erroDeTamanho(msg)) {
-        mostrarAlertaUpload(msg);
-        setOutputPanelVisible(false);
       } else {
-        limparAlertaUpload();
-        definirTranscricao(msg);
-        setOutputPanelVisible(true);
+        const msg = mensagemErroTranscricao(data, file, lastHttpStatus);
+        if (lastHttpStatus === 429 && window.OuviescreviUpsell) {
+          if (window.OuviescreviHistory) {
+            window.OuviescreviHistory.refreshQuota().then(function (q) {
+              OuviescreviUpsell.showLimit(q);
+            });
+          } else {
+            OuviescreviUpsell.showLimit({});
+          }
+        }
+        if (erroDeTamanho(msg)) {
+          mostrarAlertaUpload(msg);
+          setOutputPanelVisible(false);
+        } else {
+          limparAlertaUpload();
+          definirTranscricao(msg);
+          setOutputPanelVisible(true);
+        }
+        statusEl.textContent = "⚠️ Não conseguimos transcrever desta vez.";
+        document.getElementById("btnRetry").classList.remove("hidden");
+        ultimaTentativaFalhada = true;
       }
-      statusEl.textContent = "⚠️ Não conseguimos transcrever desta vez.";
-      document.getElementById("btnRetry").classList.remove("hidden");
-      ultimaTentativaFalhada = true;
+    } finally {
+      setTimeout(() => {
+        var etaHide = document.getElementById("legendarEta");
+        if (etaHide) etaHide.classList.add("hidden");
+        endJobLoading();
+        progressBar.style.width = "0%";
+        document.getElementById("btnRetry").classList.toggle("hidden", !ultimaTentativaFalhada);
+        if (window.OuviescreviUI && OuviescreviUI.setButtonLoading) {
+          OuviescreviUI.setButtonLoading(btnTranscrever, false);
+        } else {
+          btnTranscrever.disabled = false;
+          btnTranscrever.style.opacity = 1;
+        }
+        btnStartRec.disabled = false;
+        btnLegendarVideo.disabled = !isVideoFile(file);
+        btnStartRec.style.opacity = 1;
+        setFormControlsBusy(false);
+        transcribeInFlight = false;
+        var leftStatusDone = document.getElementById("recordingStatus");
+        if (leftStatusDone) leftStatusDone.textContent = "";
+      }, 800);
     }
-
-    setTimeout(() => {
-      var etaHide = document.getElementById("legendarEta");
-      if (etaHide) etaHide.classList.add("hidden");
-      endJobLoading();
-      progressBar.style.width = "0%";
-      document.getElementById("btnRetry").classList.toggle("hidden", !ultimaTentativaFalhada);
-      btnTranscrever.disabled = false;
-      btnStartRec.disabled = false;
-      btnLegendarVideo.disabled = !isVideoFile(file);
-      btnTranscrever.style.opacity = 1;
-      btnStartRec.style.opacity = 1;
-    }, 800);
   });
 
   // =========================
@@ -1604,8 +1801,20 @@
       parts.push("Áudio: " + dm + ":" + String(ds).padStart(2, "0"));
     }
     parts.push("Estimativa transcrição: " + formatEtaSeconds(estSec));
+    if (durationSec > 600) {
+      parts.push("não feches nem cliques outra vez");
+    }
     etaEl.textContent = parts.join(" · ");
     etaEl.classList.remove("hidden");
+  }
+
+  function maybeWarnLongAudio(durationSec) {
+    if (!(durationSec > 600) || !statusEl) return;
+    var dm = Math.floor(durationSec / 60);
+    statusEl.textContent =
+      "⏳ Áudio ~" +
+      dm +
+      " min — costuma demorar vários minutos. Não feches a página nem cliques em Transcrever outra vez.";
   }
 
   async function pollTranscribeJob(jobId) {
@@ -1614,13 +1823,17 @@
     let lastProgress = -1;
     let lastProgressAt = Date.now();
     while (Date.now() - started < maxWait) {
+      throwIfCancelled();
       await new Promise(function (r) { setTimeout(r, 2500); });
+      throwIfCancelled();
       let stRes;
       try {
         stRes = await fetch(`${API_BASE}/transcribe/jobs/${jobId}`, {
           headers: OuviescreviAPI.authHeaders(),
+          signal: activeAbortController ? activeAbortController.signal : undefined,
         });
       } catch (netErr) {
+        throwIfCancelled();
         if (statusEl && netErr.message === "Failed to fetch") {
           statusEl.textContent = "🔄 Ligação interrompida — a verificar se o servidor ainda transcreve…";
         }
@@ -1642,6 +1855,9 @@
       let msg = st.message || "A transcrever no servidor…";
       if (st.stage_elapsed_sec != null && st.stage_elapsed_sec > 20) {
         msg += " (esta fase: " + Math.floor(st.stage_elapsed_sec / 60) + ":" + String(st.stage_elapsed_sec % 60).padStart(2, "0") + ")";
+      }
+      if (st.duration_sec > 600) {
+        msg += " — ficheiro longo, mantém esta página aberta";
       }
       if (statusEl) {
         statusEl.textContent = "🔄 " + msg + " · tempo total " + localFmt;
@@ -1707,13 +1923,17 @@
     let srtHandled = false;
     const burnMp4 = document.getElementById("burnMp4") && document.getElementById("burnMp4").checked;
     while (Date.now() - started < maxWait) {
+      throwIfCancelled();
       await new Promise(function (r) { setTimeout(r, 2500); });
+      throwIfCancelled();
       let stRes;
       try {
         stRes = await fetch(`${API_BASE}/video-subs/jobs/${jobId}`, {
           headers: OuviescreviAPI.authHeaders(),
+          signal: activeAbortController ? activeAbortController.signal : undefined,
         });
       } catch (netErr) {
+        throwIfCancelled();
         if (statusEl && netErr.message === "Failed to fetch") {
           statusEl.textContent = "🔄 Ligação interrompida — a verificar se o servidor ainda processa…";
         }
@@ -1772,10 +1992,24 @@
   }
 
   async function legendarVideo(){
-    await ensureApi();
+    if (transcribeInFlight || legendarInFlight) {
+      toastBusy("Já há um processamento em curso — espera que termine.");
+      return;
+    }
     const file = document.getElementById("fileInput").files[0];
     if (!file){ return alert("⚠️ Nenhum ficheiro selecionado."); }
     if (!isVideoFile(file)){ return alert("⚠️ Esta opção é apenas para ficheiros de vídeo."); }
+
+    legendarInFlight = true;
+    setFormControlsBusy(true);
+    try {
+      await ensureApi();
+    } catch (apiErr) {
+      setFormControlsBusy(false);
+      legendarInFlight = false;
+      alert((apiErr && apiErr.message) || "Não foi possível ligar à API.");
+      return;
+    }
 
     const burnMp4El = document.getElementById("burnMp4");
     const wantBurnMp4 = !burnMp4El || burnMp4El.checked;
@@ -1821,6 +2055,8 @@
       endJobLoading();
       showLegendarError(prepErr.message || "Não foi possível preparar o trecho.");
       btnLegendarVideo.disabled = !isVideoFile(file);
+      setFormControlsBusy(false);
+      legendarInFlight = false;
       return;
     }
     const lang = document.getElementById("transcribeLanguage").value;
@@ -1846,11 +2082,14 @@
     }
 
     try{
-      const controller = new AbortController();
-      const to = setTimeout(() => controller.abort(), 900000);
+      const controller = activeAbortController || beginCancellableJob();
+      const to = setTimeout(function () {
+        if (!jobCancelled && controller) controller.abort();
+      }, 900000);
       const uploadMb = fileSizeMb(uploadFile);
       const useUploadProgress = uploadMb > 5;
       let res;
+      throwIfCancelled();
       if (useUploadProgress) {
         clearInterval(interval);
         pararFrasesAnimadas(statusEl);
@@ -1859,6 +2098,7 @@
           formData,
           OuviescreviAPI.authHeaders(),
           function (pct) {
+            if (jobCancelled) return;
             statusEl.textContent = `📤 A enviar vídeo (${formatMb(uploadMb)} MB)… ${Math.round(pct * 100)}%`;
             progressBar.style.width = `${Math.min(42, Math.round(pct * 42))}%`;
           },
@@ -1926,7 +2166,9 @@
       pararFrasesAnimadas(statusEl);
       pararTimerTranscricao();
 
-      var errMsg = err.name === "AbortError"
+      var errMsg = (err && err.cancelled) || (err && err.name === "AbortError" && jobCancelled)
+        ? "Cancelado. Podes tentar outra vez."
+        : err.name === "AbortError"
         ? "Tempo limite excedido (15 min). O vídeo pode ser longo — tenta um clip mais curto ou só transcrever."
         : (err.message === "Failed to fetch"
           ? "Ligação ao servidor interrompida. Verifica a rede e tenta novamente — se o processamento já começou, aguarda um minuto antes de repetir."
@@ -1945,6 +2187,8 @@
       btnTranscrever.disabled = false;
       btnStartRec.disabled = false;
       btnLegendarVideo.disabled = !isVideoFile(file);
+      setFormControlsBusy(false);
+      legendarInFlight = false;
     }
   }
 
@@ -2273,6 +2517,10 @@
   // Ações extra
   // =========================
   function tentarNovamente(){
+    if (transcribeInFlight || legendarInFlight) {
+      toastBusy("Já há uma transcrição em curso — espera que termine.");
+      return;
+    }
     const file = document.getElementById("fileInput").files[0];
     if (!file){ alert("⚠️ Nenhum ficheiro selecionado."); return; }
     form.dispatchEvent(new Event("submit", { bubbles:true, cancelable:true }));

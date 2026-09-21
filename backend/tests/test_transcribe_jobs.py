@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import time
 
+import main as app_main
+
 
 def test_transcribe_returns_job_id(client):
     res = client.post(
@@ -40,3 +42,41 @@ def test_transcribe_job_not_found(client):
         headers={"Authorization": "Bearer test-api-token"},
     )
     assert res.status_code == 404
+
+
+def test_find_active_transcribe_duplicate_matches_same_file():
+    with app_main._transcribe_jobs_lock:
+        app_main._transcribe_jobs.clear()
+    job_id = "dup-job-1"
+    app_main._transcribe_job_set(
+        job_id,
+        status="processing",
+        usage_key="ip:1.2.3.4",
+        filename="long.mp4",
+        size_bytes=63741938,
+        created_at=time.monotonic(),
+        message="A processar",
+    )
+    found = app_main._find_active_transcribe_duplicate(
+        "ip:1.2.3.4", "long.mp4", 63741938
+    )
+    assert found is not None
+    assert found[0] == job_id
+
+    # ficheiro diferente → sem dedupe
+    assert (
+        app_main._find_active_transcribe_duplicate(
+            "ip:1.2.3.4", "other.mp4", 63741938
+        )
+        is None
+    )
+    # utilizador diferente → sem dedupe
+    assert (
+        app_main._find_active_transcribe_duplicate(
+            "ip:9.9.9.9", "long.mp4", 63741938
+        )
+        is None
+    )
+
+    with app_main._transcribe_jobs_lock:
+        app_main._transcribe_jobs.clear()

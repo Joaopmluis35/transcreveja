@@ -1020,7 +1020,8 @@ body.oe-page--home #timerGravacao {
   margin-top: 10px;
 }
 
-body.oe-page--home #uploadForm .oe-loading {
+body.oe-page--home #uploadForm .oe-loading,
+body.oe-page--home .oe-home-workspace__col--output #loading.oe-loading {
   width: 100%;
   margin: 14px 0 4px;
   padding: 16px 18px;
@@ -1028,9 +1029,11 @@ body.oe-page--home #uploadForm .oe-loading {
   border: 2px solid #a550f7;
   background: linear-gradient(180deg, #faf5ff 0%, #fff 100%);
   box-shadow: 0 8px 24px rgba(124, 58, 237, 0.12);
+  box-sizing: border-box;
 }
 
-body.oe-page--home #uploadForm .oe-loading--active {
+body.oe-page--home #uploadForm .oe-loading--active,
+body.oe-page--home .oe-home-workspace__col--output #loading.oe-loading--active {
   animation: oe-loading-pulse 2s ease-in-out infinite;
 }
 
@@ -1065,6 +1068,33 @@ body.oe-page--home .oe-loading__hint {
   font-size: 0.8rem;
   color: #6b7280;
   text-align: center;
+}
+
+body.oe-page--home .oe-loading__cancel {
+  display: block;
+  margin: 14px auto 0;
+  padding: 0.55rem 1.1rem;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #334155;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+body.oe-page--home .oe-loading__cancel:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+body.oe-page--home .oe-loading__cancel:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+body.oe-page--home .oe-loading__cancel.hidden {
+  display: none;
 }
 
 body.oe-page--home .oe-loading__eta {

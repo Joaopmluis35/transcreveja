@@ -4,6 +4,9 @@ from __future__ import annotations
 import json
 import logging
 import re
+import threading
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date, datetime, timedelta
 
 from fastapi import APIRouter, HTTPException, Request
@@ -32,6 +35,14 @@ from security import client_ip
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 logger = logging.getLogger(__name__)
 
+# Cache curto do dashboard (cold start + Turso remoto = muitas queries).
+_DASH_CACHE: dict[str, object] = {"at": 0.0, "payload": None}
+_DASH_CACHE_TTL_SEC = 20.0
+_CF_CACHE: dict[str, object] = {"at": 0.0, "payload": None}
+_CF_CACHE_TTL_SEC = 300.0
+_CF_REFRESH_LOCK = threading.Lock()
+_CF_REFRESHING = False
+
 
 def _safe(label: str, fn, default):
     try:
@@ -45,39 +56,40 @@ def _actor(request: Request) -> str:
     return getattr(request.state, "admin_user", "admin")
 
 
-@router.get("/dashboard")
-def admin_dashboard(request: Request):
-    today_s = date.today().isoformat()
-    stats = _safe("visitas", get_visit_stats, {})
-    costs = _safe("custos", store.estimate_costs, {})
-    conv = _safe("conversao", store.conversion_stats, {})
-    maint = _safe("manutencao", store.get_maintenance, {})
-    cfg = _safe("config", store.get_config, {})
-    owner_uids = parse_owner_visitor_uids(cfg.get("owner_visitor_uids"))
-    trans_total = _safe("trans_total", store.count_transcriptions, 0)
-    trans_hoje = _safe(
-        "trans_hoje",
-        lambda: store.count_transcriptions(day_from=today_s, day_to=today_s),
-        0,
-    )
-    since_24h = (datetime.utcnow() - timedelta(hours=24)).isoformat(timespec="seconds") + "Z"
-    trans_erros_hoje = _safe(
-        "trans_erros_hoje",
-        lambda: store.count_transcriptions(
-            day_from=today_s, day_to=today_s, status="error"
-        ),
-        0,
-    )
-    api_errors_24h = _safe(
-        "api_errors_24h",
-        lambda: store.count_api_errors_since(since_24h),
-        0,
-    )
-    jobs_ativos = 0
+def _refresh_cloudflare_cache() -> None:
+    global _CF_REFRESHING
+    try:
+        data = _safe("cloudflare", store.fetch_cloudflare_analytics, None)
+        _CF_CACHE["at"] = time.monotonic()
+        _CF_CACHE["payload"] = data
+    finally:
+        with _CF_REFRESH_LOCK:
+            _CF_REFRESHING = False
+
+
+def _cached_cloudflare(*, force: bool = False):
+    """Devolve CF em cache; nunca bloqueia no GraphQL (refresh em background)."""
+    global _CF_REFRESHING
+    now = time.monotonic()
+    age = now - float(_CF_CACHE["at"] or 0.0)
+    fresh = _CF_CACHE["payload"] is not None and age < _CF_CACHE_TTL_SEC
+    if fresh and not force:
+        return _CF_CACHE["payload"]
+
+    with _CF_REFRESH_LOCK:
+        if not _CF_REFRESHING:
+            _CF_REFRESHING = True
+            threading.Thread(target=_refresh_cloudflare_cache, daemon=True).start()
+
+    # Stale-while-revalidate: devolve o último payload (ou None no 1.º pedido).
+    return _CF_CACHE["payload"]
+
+
+def _active_jobs_count() -> int:
     try:
         import main as app_main
 
-        jobs_ativos = len(
+        return len(
             [
                 j
                 for j in app_main.export_processing_jobs()
@@ -85,65 +97,141 @@ def admin_dashboard(request: Request):
             ]
         )
     except Exception:
-        jobs_ativos = 0
-    return {
-        "manutencao": maint.get("manutencao", False),
-        "maintenance_message": maint.get("maintenance_message", ""),
-        "block_transcribe_only": maint.get("block_transcribe_only", True),
-        "transcricoes_hoje": trans_hoje,
-        "transcricoes_total": trans_total,
-        "transcricoes_erros_hoje": trans_erros_hoje,
-        "api_errors_24h": api_errors_24h,
-        "jobs_ativos": jobs_ativos,
-        "utilizadores_total": _safe("utilizadores_total", store.count_site_users, 0),
-        "utilizadores_hoje": _safe("utilizadores_hoje", store.count_site_users_today, 0),
-        "emails_falhados_24h": _safe(
-            "emails_falhados",
-            lambda: store.count_email_failures_since(since_24h),
+        return 0
+
+
+@router.get("/dashboard")
+def admin_dashboard(request: Request, refresh: int = 0):
+    """
+    Agrega métricas do backoffice.
+    Queries independentes correm em paralelo; Cloudflare é stale-while-revalidate
+    (nunca bloqueia o path crítico); resposta completa em cache ~20 s
+    (bypass com ?refresh=1).
+    """
+    now = time.monotonic()
+    if (
+        not refresh
+        and _DASH_CACHE["payload"] is not None
+        and (now - float(_DASH_CACHE["at"])) < _DASH_CACHE_TTL_SEC
+    ):
+        payload = dict(_DASH_CACHE["payload"])  # type: ignore[arg-type]
+        payload["cached"] = True
+        payload["jobs_ativos"] = _active_jobs_count()
+        return payload
+
+    t0 = time.monotonic()
+    today_s = date.today().isoformat()
+    since_24h = (datetime.utcnow() - timedelta(hours=24)).isoformat(timespec="seconds") + "Z"
+
+    # Config primeiro (owner_uids necessários noutros blocos)
+    cfg = _safe("config", store.get_config, {})
+    owner_uids = parse_owner_visitor_uids(cfg.get("owner_visitor_uids"))
+
+    jobs: dict[str, tuple] = {
+        "stats": (get_visit_stats, {}),
+        "costs": (store.estimate_costs, {}),
+        "conv": (store.conversion_stats, {}),
+        "maint": (store.get_maintenance, {}),
+        "trans_total": (store.count_transcriptions, 0),
+        "trans_hoje": (
+            lambda: store.count_transcriptions(day_from=today_s, day_to=today_s),
             0,
         ),
-        "visitas": stats,
-        "visitas_total": stats.get("visitas_total", 0),
-        "visitas_trafego": _safe("visitas_trafego", lambda: get_owner_traffic_today(owner_uids), {}),
-        "visitas_recentes": _safe("visitas_recentes", lambda: get_recent_visits(10, owner_uids), []),
-        "visitantes_distintos": _safe(
-            "visitantes_distintos", lambda: get_visitor_breakdown(14, 25, owner_uids), []
-        ),
-        "owner_visitor_uids": sorted(owner_uids),
-        "owner_ip_labels": _safe(
-            "owner_ip_labels", lambda: store.get_owner_ip_labels_list(cfg), []
-        ),
-        "charts": {
-            "visitas_diarias": _safe(
-                "visitas_diarias", lambda: get_daily_visit_series(14, owner_uids), []
+        "trans_erros_hoje": (
+            lambda: store.count_transcriptions(
+                day_from=today_s, day_to=today_s, status="error"
             ),
-            "transcricoes_diarias": _safe("transcricoes_diarias", lambda: get_daily_transcription_series(14), []),
-            "transcricoes_resultados": _safe(
-                "transcricoes_resultados", lambda: get_daily_transcription_outcomes(14), []
-            ),
-            "horas_pico": _safe("horas_pico", lambda: store.peak_hours(7), []),
-        },
-        "top_paginas": _safe("top_paginas", lambda: get_top_pages(8), []),
-        "top_referrers": _safe("top_referrers", lambda: store.top_referrers(8), []),
-        "top_utm": _safe("top_utm", lambda: store.top_utm_campaigns(8), []),
-        "devices": _safe("devices", store.device_breakdown, []),
-        "conversao": conv,
-        "conversao_por_idioma": _safe(
-            "conversao_por_idioma", lambda: store.conversion_by_locale(14), []
+            0,
         ),
-        "custos_openai": costs,
-        "cloudflare": _safe("cloudflare", store.fetch_cloudflare_analytics, None),
-        "banner": _safe("banner", store.get_active_banner, None),
-        "sugestoes_nao_lidas": _safe(
-            "sugestoes",
+        "api_errors_24h": (lambda: store.count_api_errors_since(since_24h), 0),
+        "utilizadores_total": (store.count_site_users, 0),
+        "utilizadores_hoje": (store.count_site_users_today, 0),
+        "emails_falhados_24h": (lambda: store.count_email_failures_since(since_24h), 0),
+        "visitas_trafego": (lambda: get_owner_traffic_today(owner_uids), {}),
+        "visitas_recentes": (lambda: get_recent_visits(10, owner_uids), []),
+        "visitantes_distintos": (lambda: get_visitor_breakdown(14, 25, owner_uids), []),
+        "owner_ip_labels": (lambda: store.get_owner_ip_labels_list(cfg), []),
+        "visitas_diarias": (lambda: get_daily_visit_series(14, owner_uids), []),
+        "transcricoes_diarias": (lambda: get_daily_transcription_series(14), []),
+        "transcricoes_resultados": (lambda: get_daily_transcription_outcomes(14), []),
+        "horas_pico": (lambda: store.peak_hours(7), []),
+        "top_paginas": (lambda: get_top_pages(8), []),
+        "top_referrers": (lambda: store.top_referrers(8), []),
+        "top_utm": (lambda: store.top_utm_campaigns(8), []),
+        "devices": (store.device_breakdown, []),
+        "conversao_por_idioma": (lambda: store.conversion_by_locale(14), []),
+        "banner": (store.get_active_banner, None),
+        "sugestoes_nao_lidas": (
             lambda: len(store.list_suggestions(unread_only=True, limit=200)),
             0,
         ),
+        "jobs_ativos": (_active_jobs_count, 0),
+    }
+
+    results: dict[str, object] = {}
+    # Turso remoto: paralelismo ajuda; SQLite local: poucos workers evitam contenção
+    workers = 8 if use_turso() else 4
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = {
+            pool.submit(_safe, label, fn, default): label
+            for label, (fn, default) in jobs.items()
+        }
+        for fut in as_completed(futures):
+            label = futures[fut]
+            results[label] = fut.result()
+
+    stats = results.get("stats") or {}
+    maint = results.get("maint") or {}
+    payload = {
+        "manutencao": maint.get("manutencao", False) if isinstance(maint, dict) else False,
+        "maintenance_message": (
+            maint.get("maintenance_message", "") if isinstance(maint, dict) else ""
+        ),
+        "block_transcribe_only": (
+            maint.get("block_transcribe_only", True) if isinstance(maint, dict) else True
+        ),
+        "transcricoes_hoje": results.get("trans_hoje", 0),
+        "transcricoes_total": results.get("trans_total", 0),
+        "transcricoes_erros_hoje": results.get("trans_erros_hoje", 0),
+        "api_errors_24h": results.get("api_errors_24h", 0),
+        "jobs_ativos": results.get("jobs_ativos", 0),
+        "utilizadores_total": results.get("utilizadores_total", 0),
+        "utilizadores_hoje": results.get("utilizadores_hoje", 0),
+        "emails_falhados_24h": results.get("emails_falhados_24h", 0),
+        "visitas": stats,
+        "visitas_total": stats.get("visitas_total", 0) if isinstance(stats, dict) else 0,
+        "visitas_trafego": results.get("visitas_trafego", {}),
+        "visitas_recentes": results.get("visitas_recentes", []),
+        "visitantes_distintos": results.get("visitantes_distintos", []),
+        "owner_visitor_uids": sorted(owner_uids),
+        "owner_ip_labels": results.get("owner_ip_labels", []),
+        "charts": {
+            "visitas_diarias": results.get("visitas_diarias", []),
+            "transcricoes_diarias": results.get("transcricoes_diarias", []),
+            "transcricoes_resultados": results.get("transcricoes_resultados", []),
+            "horas_pico": results.get("horas_pico", []),
+        },
+        "top_paginas": results.get("top_paginas", []),
+        "top_referrers": results.get("top_referrers", []),
+        "top_utm": results.get("top_utm", []),
+        "devices": results.get("devices", []),
+        "conversao": results.get("conv", {}),
+        "conversao_por_idioma": results.get("conversao_por_idioma", []),
+        "custos_openai": results.get("costs", {}),
+        # Fora do path crítico: stale/None + refresh async (TTL 5 min).
+        "cloudflare": _cached_cloudflare(force=bool(refresh)),
+        "banner": results.get("banner"),
+        "sugestoes_nao_lidas": results.get("sugestoes_nao_lidas", 0),
         "alert_transcriptions_daily": int(cfg.get("alert_transcriptions_daily") or 0),
         "alert_visits_daily": int(cfg.get("alert_visits_daily") or 0),
         "database_backend": database_backend(),
         "database_persistent": use_turso(),
+        "cached": False,
+        "elapsed_ms": round((time.monotonic() - t0) * 1000, 1),
     }
+    _DASH_CACHE["at"] = time.monotonic()
+    _DASH_CACHE["payload"] = payload
+    return payload
 
 
 @router.get("/me")

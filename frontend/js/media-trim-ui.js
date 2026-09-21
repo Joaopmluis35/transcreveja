@@ -7,6 +7,8 @@
   var CLIENT_TRIM_MIN_MB = 50;
   var CLIENT_TRIM_MAX_SEGMENT_RATIO = 0.85;
   var CLIENT_TRIM_LARGE_MB = 120;
+  /** Em «Ficheiro completo» + transcrição: extrair áudio se o vídeo for ≥ isto (evita enviar 100+ MB). */
+  var FULL_FILE_AUDIO_EXTRACT_MIN_MB = 20;
   /** Acima disto o FFmpeg.wasm tende a falhar — usar WebAV (corte rápido). */
   var WASM_TRIM_MAX_BYTES = 150 * 1024 * 1024;
   /** MediaRecorder grava em tempo real — último recurso se WebAV/FFmpeg falharem. */
@@ -100,7 +102,7 @@
       '<button type="button" class="oe-trim-preset" data-sec="3600">Primeira hora</button>' +
       "</div>" +
       '<p class="oe-trim-summary" id="oeTrimSummary"></p>' +
-      '<p class="oe-trim-panel__note">Com um trecho escolhido, cortamos no teu dispositivo antes do envio (método rápido). Em ficheiros muito grandes pode demorar 1–3 minutos — não grava o vídeo inteiro em tempo real.</p>' +
+      '<p class="oe-trim-panel__note">Com um trecho escolhido, cortamos no teu dispositivo antes do envio. Em ficheiros muito grandes (500+ MB) pode demorar 1–3 minutos — vês o progresso ao clicar em Transcrever.</p>' +
       '<button type="button" class="oe-trim-play" id="oeTrimPlay">▶ Ouvir / ver trecho</button>' +
       "</div>";
     var anchor = $("videoPreviewWrap") || $("dropZone");
@@ -299,8 +301,11 @@
         state.startSec = 0;
         state.endSec = Math.min(state.duration, 900);
       }
+      // Aquecer motores enquanto o utilizador escolhe o trecho
+      preloadTrimEngines();
     } else {
       setMode("full");
+      if (fileSizeMb(file) >= CLIENT_TRIM_MIN_MB) preloadTrimEngines();
     }
     updateSummary();
     updateForceNote();
@@ -440,34 +445,63 @@
     });
   }
 
+  function startProgressHeartbeat(onProgress, baseMsg) {
+    onProgress = onProgress || function () {};
+    var started = Date.now();
+    var tick = 0;
+    onProgress(baseMsg);
+    var id = setInterval(function () {
+      tick += 1;
+      var sec = Math.floor((Date.now() - started) / 1000);
+      var mm = Math.floor(sec / 60);
+      var ss = String(sec % 60).padStart(2, "0");
+      var dots = "…";
+      if (tick % 3 === 1) dots = ".";
+      else if (tick % 3 === 2) dots = "..";
+      onProgress(baseMsg + " (" + mm + ":" + ss + ")" + dots);
+    }, 1000);
+    return function stop() {
+      clearInterval(id);
+    };
+  }
+
   async function loadFfmpeg(onProgress) {
     if (ffmpegCache) return ffmpegCache;
     if (ffmpegLoadPromise) return ffmpegLoadPromise;
 
     ffmpegLoadPromise = (async function () {
       onProgress = onProgress || function () {};
-      onProgress("A carregar ferramenta de corte…");
-      // Pacote FFmpeg na mesma origem — Workers cross-origin (jsDelivr) são bloqueados pelo browser
-      var ffmpegMod = await import("/js/ffmpeg/index.js");
-      var utilMod = await import(
-        "https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/esm/index.js"
+      var stopHb = startProgressHeartbeat(
+        onProgress,
+        "A carregar ferramenta de corte (pode demorar em ficheiros grandes)"
       );
-      var FFmpeg = ffmpegMod.FFmpeg;
-      var fetchFile = utilMod.fetchFile;
-      var toBlobURL = utilMod.toBlobURL;
-      var ffmpeg = new FFmpeg();
-      ffmpeg.on("progress", function (ev) {
-        var pct = ev && ev.progress != null ? Math.round(ev.progress * 100) : 0;
-        onProgress("A cortar no browser… " + pct + "%");
-      });
-      var coreBase = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm";
-      await ffmpeg.load({
-        coreURL: await toBlobURL(coreBase + "/ffmpeg-core.js", "text/javascript"),
-        wasmURL: await toBlobURL(coreBase + "/ffmpeg-core.wasm", "application/wasm"),
-      });
-      ffmpegCache = ffmpeg;
-      ffmpeg._fetchFile = fetchFile;
-      return ffmpeg;
+      try {
+        // Pacote FFmpeg na mesma origem — Workers cross-origin (jsDelivr) são bloqueados pelo browser
+        var ffmpegMod = await import("/js/ffmpeg/index.js");
+        onProgress("A descarregar motor FFmpeg…");
+        var utilMod = await import(
+          "https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/esm/index.js"
+        );
+        var FFmpeg = ffmpegMod.FFmpeg;
+        var fetchFile = utilMod.fetchFile;
+        var toBlobURL = utilMod.toBlobURL;
+        var ffmpeg = new FFmpeg();
+        ffmpeg.on("progress", function (ev) {
+          var pct = ev && ev.progress != null ? Math.round(ev.progress * 100) : 0;
+          onProgress("A cortar no browser… " + pct + "%");
+        });
+        var coreBase = "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm";
+        onProgress("A preparar FFmpeg WASM…");
+        await ffmpeg.load({
+          coreURL: await toBlobURL(coreBase + "/ffmpeg-core.js", "text/javascript"),
+          wasmURL: await toBlobURL(coreBase + "/ffmpeg-core.wasm", "application/wasm"),
+        });
+        ffmpegCache = ffmpeg;
+        ffmpeg._fetchFile = fetchFile;
+        return ffmpeg;
+      } finally {
+        stopHb();
+      }
     })();
 
     try {
@@ -476,6 +510,12 @@
       ffmpegLoadPromise = null;
       throw err;
     }
+  }
+
+  function preloadTrimEngines() {
+    // Aquecer FFmpeg/WebAV em background quando o painel de trecho aparece
+    loadFfmpeg(function () {}).catch(function () {});
+    loadAvCliper().catch(function () {});
   }
 
   function segmentDurationSec(sel) {
@@ -575,8 +615,13 @@
     onProgress = onProgress || function () {};
     opts = opts || {};
     var audioOnly = !!opts.audioOnly;
-    onProgress("A carregar motor de corte rápido…");
-    var mod = await loadAvCliper();
+    var stopLoadHb = startProgressHeartbeat(onProgress, "A carregar motor de corte rápido");
+    var mod;
+    try {
+      mod = await loadAvCliper();
+    } finally {
+      stopLoadHb();
+    }
     var MP4Clip = mod.MP4Clip;
     var Combinator = mod.Combinator;
     var OffscreenSprite = mod.OffscreenSprite;
@@ -586,7 +631,6 @@
       if (!supported) throw new Error("WebCodecs indisponível neste browser.");
     }
 
-    onProgress("A analisar vídeo…");
     var durationUs = Math.round(Math.max(0.5, endSec - startSec) * 1e6);
     var startUs = Math.round(startSec * 1e6);
 
@@ -594,17 +638,28 @@
       var stream = file.stream();
       // Meet/Zoom e gravações de ecrã: duração em falta no contentor
       if (typeof fixFMP4Duration === "function") {
+        var stopFixHb = startProgressHeartbeat(
+          onProgress,
+          "A analisar vídeo Meet/ecrã (ficheiros grandes demoram)"
+        );
         try {
           stream = await fixFMP4Duration(stream);
         } catch (fixErr) {
           console.warn("OuviescreviMediaTrim: fixFMP4Duration falhou", fixErr);
           stream = file.stream();
+        } finally {
+          stopFixHb();
         }
       }
       var clipOpts = audioOnly ? { audio: true } : undefined;
-      var clip = new MP4Clip(stream, clipOpts);
-      await clip.ready;
-      return clip;
+      var stopReadyHb = startProgressHeartbeat(onProgress, "A abrir o vídeo para cortar");
+      try {
+        var clip = new MP4Clip(stream, clipOpts);
+        await clip.ready;
+        return clip;
+      } finally {
+        stopReadyHb();
+      }
     }
 
     var sourceClip = await openSourceClip();
@@ -692,7 +747,11 @@
     var outName = opts.audioOnly ? "trecho_a.m4a" : "trecho_v.mp4";
     var dur = Math.max(0.5, endSec - startSec);
     var inputPath = mountDir + "/" + safeName;
-    onProgress("A cortar o trecho com FFmpeg…");
+    var stopMountHb = startProgressHeartbeat(
+      onProgress,
+      "A montar o ficheiro para cortar (~" + Math.round(fileSizeMb(file)) + " MB)"
+    );
+    // Mensagem genérica — o tamanho real vai no heartbeat via onProgress nas fases seguintes
     try {
       try {
         await ffmpeg.unmount(mountDir);
@@ -701,6 +760,15 @@
         await ffmpeg.createDir(mountDir);
       } catch (_) {}
       await ffmpeg.mount("WORKERFS", { blobs: [{ name: safeName, data: file }] }, mountDir);
+    } finally {
+      stopMountHb();
+    }
+    onProgress(
+      "A cortar o trecho com FFmpeg (~" +
+        Math.max(1, Math.ceil(dur / 60)) +
+        " min de áudio)…"
+    );
+    try {
       var args;
       if (opts.audioOnly) {
         // Meet/fMP4: -c:a copy costuma dar ficheiros minúsculos — re-codificar AAC direto
@@ -1252,21 +1320,82 @@
     );
   }
 
+  function isLikelyVideoFile(file) {
+    if (!file) return false;
+    var type = (file.type || "").toLowerCase();
+    if (type.indexOf("video/") === 0) return true;
+    var ext = (file.name.split(".").pop() || "").toLowerCase();
+    return (
+      ["mp4", "mov", "m4v", "mkv", "avi", "webm", "ts", "m2ts", "flv"].indexOf(ext) >= 0
+    );
+  }
+
+  function probeFileDuration(file) {
+    return new Promise(function (resolve) {
+      if (!file) {
+        resolve(0);
+        return;
+      }
+      var isVideo = isLikelyVideoFile(file);
+      var el = document.createElement(isVideo ? "video" : "audio");
+      el.preload = "metadata";
+      el.muted = true;
+      if (isVideo) el.playsInline = true;
+      var url = URL.createObjectURL(file);
+      el.src = url;
+      el.onloadedmetadata = function () {
+        var d = el.duration;
+        URL.revokeObjectURL(url);
+        resolve(isFinite(d) ? d : 0);
+      };
+      el.onerror = function () {
+        URL.revokeObjectURL(url);
+        resolve(0);
+      };
+    });
+  }
+
+  function shouldExtractFullAudioForTranscribe(file, opts) {
+    if (!opts || !opts.audioOnly) return false;
+    if (!isLikelyVideoFile(file)) return false;
+    return isOverUploadLimit(file) || fileSizeMb(file) >= FULL_FILE_AUDIO_EXTRACT_MIN_MB;
+  }
+
   async function prepareForUpload(file, onProgress, opts) {
     opts = opts || {};
     var sel = getSelection();
     if (!state.visible || !isSameFile(state.file, file)) {
+      // Painel não visível: mesmo assim extrair áudio em vídeos grandes (transcrição).
+      if (shouldExtractFullAudioForTranscribe(file, opts)) {
+        onProgress("A extrair o áudio no browser (mais rápido que enviar o vídeo inteiro)…");
+        var durHint = state.duration > 0 && isSameFile(state.file, file) ? state.duration : 0;
+        if (!(durHint > 0)) {
+          // Sem duração no state — trimClientSide precisa de start/end; ler metadata
+          durHint = await probeFileDuration(file);
+        }
+        if (!(durHint > 0)) {
+          throw new Error("Não foi possível ler a duração do vídeo para extrair o áudio.");
+        }
+        var extracted = await trimClientSide(file, 0, durHint, onProgress, { audioOnly: true });
+        return { file: extracted, trimmed: true, fullFileAudio: true };
+      }
       return { file: file, trimmed: false };
     }
-    // Acima do limite + «completo»: extrair áudio de 0 → fim
+    // «Ficheiro completo»: extrair áudio se for vídeo grande (transcrição) ou acima do limite
     if (sel.mode === "full") {
-      if (!isOverUploadLimit(file)) {
+      if (!isOverUploadLimit(file) && !shouldExtractFullAudioForTranscribe(file, opts)) {
         return { file: file, trimmed: false };
       }
       if (!state.duration || state.duration < 1) {
         throw new Error("Não foi possível ler a duração do vídeo para extrair o áudio completo.");
       }
-      onProgress("A extrair o áudio do ficheiro completo no browser…");
+      onProgress(
+        opts.audioOnly
+          ? "A extrair o áudio no browser (mais rápido que enviar " +
+            Math.round(fileSizeMb(file)) +
+            " MB de vídeo)…"
+          : "A extrair o áudio do ficheiro completo no browser…"
+      );
       try {
         var fullAudio = await trimClientSide(file, 0, state.duration, onProgress, {
           audioOnly: !!opts.audioOnly,
@@ -1367,5 +1496,6 @@
     uploadBlockReason: uploadBlockReason,
     setMaxFileMb: setMaxFileMb,
     shouldTrimClientSide: shouldTrimClientSide,
+    preloadTrimEngines: preloadTrimEngines,
   };
 })(window);

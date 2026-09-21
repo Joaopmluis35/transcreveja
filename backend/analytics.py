@@ -507,6 +507,8 @@ def build_visit_report(
     days: int = 2,
 ) -> dict[str, Any]:
     """Relatório compacto dos últimos N dias para análise (export JSON no backoffice)."""
+    from concurrent.futures import ThreadPoolExecutor
+
     import admin_store as store
     from database import database_backend, use_turso
 
@@ -693,8 +695,31 @@ def build_visit_report(
         conn.close()
 
     series_days = max(14, n_days)
-    series = get_daily_visit_series(series_days, owner_uids)
-    breakdown_raw = get_visitor_breakdown(n_days, 60, owner_uids)
+    locale_days = max(14, n_days)
+
+    # Queries extra em paralelo (cada uma abre a sua conexão Turso).
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        fut_series = pool.submit(get_daily_visit_series, series_days, owner_uids)
+        fut_breakdown = pool.submit(get_visitor_breakdown, n_days, 60, owner_uids)
+        fut_conv_locale = pool.submit(store.conversion_by_locale, locale_days)
+        fut_stats = pool.submit(get_visit_stats)
+        fut_trafego = pool.submit(get_owner_traffic_today, owner_uids)
+        fut_conv = pool.submit(store.conversion_stats)
+        fut_top = pool.submit(get_top_pages, 10)
+        fut_owner_ips = pool.submit(store.get_owner_ip_labels_list)
+
+        series = fut_series.result()
+        breakdown_raw = fut_breakdown.result()
+        try:
+            conv_locale = fut_conv_locale.result()
+        except Exception:
+            conv_locale = []
+        visitas_stats = fut_stats.result()
+        trafego_hoje = fut_trafego.result()
+        conversao_hoje = fut_conv.result()
+        top_pages_30d = fut_top.result()
+        owner_ip_labels = fut_owner_ips.result()
+
     breakdown = [
         {
             "tipo": b.get("tipo"),
@@ -709,10 +734,6 @@ def build_visit_report(
         }
         for b in breakdown_raw
     ]
-    try:
-        conv_locale = store.conversion_by_locale(max(14, n_days))
-    except Exception:
-        conv_locale = []
 
     totals = {
         "pageviews": sum(v["pageviews"] for v in by_day.values()),
@@ -743,9 +764,9 @@ def build_visit_report(
         "by_day": by_day,
         "totals": totals,
         "totals_2d": totals,  # compat
-        "visitas": get_visit_stats(),
-        "trafego_hoje": get_owner_traffic_today(owner_uids),
-        "conversao_hoje": store.conversion_stats(),
+        "visitas": visitas_stats,
+        "trafego_hoje": trafego_hoje,
+        "conversao_hoje": conversao_hoje,
         "conversao_por_idioma_14d": conv_locale,
         "pages": pages,
         "devices": devices,
@@ -757,7 +778,7 @@ def build_visit_report(
         "series_14d": series,
         "breakdown": breakdown,
         "breakdown_2d": breakdown,  # compat
-        "top_pages_30d": get_top_pages(10),
+        "top_pages_30d": top_pages_30d,
         "owner_uids_count": len(owner_uids),
-        "owner_ip_labels": store.get_owner_ip_labels_list(),
+        "owner_ip_labels": owner_ip_labels,
     }

@@ -1276,6 +1276,37 @@ def _prune_transcribe_jobs() -> None:
             _transcribe_jobs.pop(jid, None)
 
 
+def _find_active_transcribe_duplicate(
+    usage_key: str,
+    filename: str,
+    size_bytes: int,
+    *,
+    max_age_sec: float = 1800.0,
+) -> tuple[str, dict] | None:
+    """
+    Se já houver um job processing do mesmo utilizador + ficheiro + tamanho,
+    devolve (job_id, snapshot) para reutilizar em vez de arrancar Whisper outra vez.
+    """
+    if not usage_key or not filename or size_bytes <= 0:
+        return None
+    now = time.monotonic()
+    with _transcribe_jobs_lock:
+        for jid, job in _transcribe_jobs.items():
+            if (job.get("status") or "") != "processing":
+                continue
+            if job.get("usage_key") != usage_key:
+                continue
+            if (job.get("filename") or "") != filename:
+                continue
+            if int(job.get("size_bytes") or 0) != int(size_bytes):
+                continue
+            created = job.get("created_at")
+            if isinstance(created, (int, float)) and (now - float(created)) > max_age_sec:
+                continue
+            return jid, dict(job)
+    return None
+
+
 def split_audio(input_path, output_dir, segment_duration=SEGMENT_DURATION):
     os.makedirs(output_dir, exist_ok=True)
     cmd = [
@@ -2080,9 +2111,35 @@ async def transcribe(
     estimate_sec = _estimate_transcribe_seconds(duration_sec, written)
     locale_norm = _normalize_ui_locale(ui_locale)
     path_norm = (page_path or "").strip()[:500] or None
+    filename = file.filename or "sem_nome"
+
+    _prune_transcribe_jobs()
+    dup = _find_active_transcribe_duplicate(usage_key, filename, written)
+    if dup:
+        existing_id, existing = dup
+        try:
+            os.remove(tmp_path)
+        except OSError:
+            pass
+        logger.info(
+            "[%s] Upload duplicado — a reutilizar job %s (ficheiro=%s size=%s)",
+            rid,
+            existing_id,
+            filename,
+            written,
+        )
+        return {
+            "job_id": existing_id,
+            "status": "processing",
+            "rid": existing.get("rid") or rid,
+            "estimate_transcribe_sec": existing.get("estimate_transcribe_sec") or estimate_sec,
+            "duration_sec": existing.get("duration_sec")
+            if existing.get("duration_sec") is not None
+            else duration_sec,
+            "reused": True,
+        }
 
     job_id = str(uuid.uuid4())
-    _prune_transcribe_jobs()
     _transcribe_job_set(
         job_id,
         status="processing",
@@ -2090,7 +2147,9 @@ async def transcribe(
         progress=8,
         rid=rid,
         created_at=time.monotonic(),
-        filename=file.filename or "sem_nome",
+        filename=filename,
+        size_bytes=written,
+        usage_key=usage_key,
         duration_sec=duration_sec,
         estimate_transcribe_sec=estimate_sec,
     )
@@ -2100,7 +2159,7 @@ async def transcribe(
             job_id,
             rid,
             tmp_path,
-            file.filename or "sem_nome",
+            filename,
             written,
             whisper_lang,
             actor,
@@ -2118,6 +2177,7 @@ async def transcribe(
         "rid": rid,
         "estimate_transcribe_sec": estimate_sec,
         "duration_sec": duration_sec,
+        "reused": False,
     }
 
 

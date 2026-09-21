@@ -2255,7 +2255,7 @@ def fetch_cloudflare_analytics() -> dict | None:
             "https://api.cloudflare.com/client/v4/graphql",
             headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
             json=query,
-            timeout=12,
+            timeout=4,
         )
         res.raise_for_status()
         return res.json()
