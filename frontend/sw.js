@@ -1,5 +1,5 @@
 /* Service worker leve — cache de shell estático para visitas repetidas. */
-const CACHE = "oe-shell-v1";
+const CACHE = "oe-shell-v2";
 const PRECACHE = [
   "/",
   "/index.html",
@@ -30,11 +30,35 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith("/api/")) return;
+
+  // HTML always network-first so ?v= cache-bust on scripts takes effect.
+  const isHtml = url.pathname === "/" || url.pathname.endsWith(".html");
+  if (isHtml) {
+    event.respondWith(
+      fetch(req)
+        .then((res) => {
+          if (res && res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE).then((cache) => cache.put(req, copy));
+          }
+          return res;
+        })
+        .catch(() => caches.match(req))
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(req).then((cached) => {
       const network = fetch(req)
         .then((res) => {
-          if (res && res.ok && (url.pathname.endsWith(".css") || url.pathname.endsWith(".js") || url.pathname.endsWith(".png") || url.pathname.endsWith(".html") || url.pathname === "/")) {
+          if (
+            res &&
+            res.ok &&
+            (url.pathname.endsWith(".css") ||
+              url.pathname.endsWith(".js") ||
+              url.pathname.endsWith(".png"))
+          ) {
             const copy = res.clone();
             caches.open(CACHE).then((cache) => cache.put(req, copy));
           }

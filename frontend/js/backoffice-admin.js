@@ -255,27 +255,58 @@
     if (!ok) throw new Error("clipboard_unavailable");
   }
 
-  function copyTextToClipboard(text) {
+  function copyTextToClipboard(text, okMsg) {
+    if (!text) {
+      global.OuviescreviUI.toast("Nada para copiar.", "error");
+      return Promise.reject(new Error("empty"));
+    }
     try {
       if (global.focus) global.focus();
     } catch (e) {}
+
+    var write;
     if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
-      return navigator.clipboard.writeText(text).catch(function () {
+      write = navigator.clipboard.writeText(text).catch(function () {
+        copyTextFallback(text);
+      });
+    } else {
+      write = Promise.resolve().then(function () {
         copyTextFallback(text);
       });
     }
-    return Promise.resolve().then(function () {
-      copyTextFallback(text);
-    });
+
+    return write
+      .then(function () {
+        if (okMsg) global.OuviescreviUI.toast(okMsg, "success");
+      })
+      .catch(function (err) {
+        if (okMsg) global.OuviescreviUI.toast("Não foi possível copiar.", "error");
+        throw err;
+      });
   }
 
   function deliverVisitReport(data, mode) {
     var text = JSON.stringify(data, null, 2);
-    var rng = data.range || {};
+    var rng = (data && data.range) || {};
     var day = rng.to || rng.hoje || "hoje";
     var nDays = rng.days || selectedVisitReportDays();
     if (mode === "copy") {
-      return copyTextToClipboard(text)
+      var copied = copyTextToClipboard(text);
+      if (!copied || typeof copied.then !== "function") {
+        try {
+          copyTextFallback(text);
+          safeToast("JSON copiado — cola no chat Cursor.", "success");
+          return Promise.resolve();
+        } catch (e) {
+          downloadBlob(
+            new Blob([text], { type: "application/json" }),
+            "ouviescrevi-visitas-" + nDays + "d-" + day + ".json"
+          );
+          safeToast("Clipboard indisponível — JSON descarregado em alternativa.", "success");
+          return Promise.resolve();
+        }
+      }
+      return copied
         .then(function () {
           var msg = data.fallback
             ? "JSON (painel) copiado — cola no chat Cursor."
@@ -303,7 +334,12 @@
 
   function runVisitReportExport(mode) {
     safeToast("A preparar exportação…", "success");
-    return fetchVisitReport()
+    var req = fetchVisitReport();
+    if (!req || typeof req.then !== "function") {
+      safeToast("Erro ao exportar: pedido inválido.", "error");
+      return Promise.resolve();
+    }
+    return req
       .then(function (data) {
         return deliverVisitReport(data, mode);
       })
@@ -1290,22 +1326,6 @@
       lines.push("");
     });
     return lines.join("\n").trim();
-  }
-
-  function copyTextToClipboard(text, okMsg) {
-    if (!text) {
-      global.OuviescreviUI.toast("Nada para copiar.", "error");
-      return;
-    }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(function () {
-        global.OuviescreviUI.toast(okMsg || "Copiado — cola no Cursor.", "success");
-      }).catch(function () {
-        global.OuviescreviUI.toast("Não foi possível copiar.", "error");
-      });
-    } else {
-      global.OuviescreviUI.toast("Clipboard indisponível.", "error");
-    }
   }
 
   function copyAllAiInsightsToCursor() {
