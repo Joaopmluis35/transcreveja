@@ -974,7 +974,7 @@ body.oe-page--home main form {
 }
 
 body.oe-page--home #uploadForm input[type="file"],
-body.oe-page--home #uploadForm input:not([type="checkbox"]):not([type="color"]):not([type="range"]),
+body.oe-page--home #uploadForm input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]),
 body.oe-page--home #uploadForm button {
   margin: 10px 0;
   padding: 10px;
@@ -2364,10 +2364,12 @@ body.oe-page--home .oe-trim-mode__opt {
 }
 body.oe-page--home .oe-trim-mode__opt input[type="radio"] {
   flex: 0 0 auto;
-  width: 18px;
+  width: 18px !important;
   height: 18px;
-  margin: 0;
+  margin: 0 !important;
+  padding: 0 !important;
   accent-color: #7c3aed;
+  align-self: center;
 }
 body.oe-page--home .oe-trim-mode__opt:has(input:checked) {
   border-color: #7c3aed;
