@@ -77,24 +77,13 @@
         !/Só um trecho/i.test(mode.textContent || "") ||
         !panel.querySelector("#oeTrimForceNote");
       if (needsRemount) {
-        var oldPreview = $("videoPreviewWrap");
-        if (oldPreview && panel.contains(oldPreview)) {
-          var formEl = $("uploadForm");
-          if (formEl) formEl.insertBefore(oldPreview, panel);
-        }
+        restorePreviewAfterDrop(panel);
         panel.parentNode && panel.parentNode.removeChild(panel);
         panel = null;
       } else {
-        // Garante o vídeo entre a nota e os controlos de trecho (não salta ao mudar de modo)
-        var previewFix = $("videoPreviewWrap");
-        var segmentFix = panel.querySelector("#oeTrimSegment");
-        if (
-          previewFix &&
-          segmentFix &&
-          !(previewFix.parentNode === panel && previewFix.nextElementSibling === segmentFix)
-        ) {
-          panel.insertBefore(previewFix, segmentFix);
-        }
+        // Vídeo sempre após a drop zone (topo); painel por baixo
+        restorePreviewAfterDrop(panel);
+        placePanelAfterPreview(panel);
         return panel;
       }
     }
@@ -138,22 +127,39 @@
       '<p class="oe-trim-panel__note">Em ficheiros muito grandes (500+ MB) o corte pode demorar 1–3 minutos — vês o progresso ao clicar em Transcrever.</p>' +
       '<button type="button" class="oe-trim-play" id="oeTrimPlay">▶ Ouvir / ver trecho</button>' +
       "</div>";
-    var drop = $("dropZone");
-    var preview = $("videoPreviewWrap");
-    var segment = panel.querySelector("#oeTrimSegment");
-    // Painel após a zona de drop; o vídeo fica DENTRO do painel, acima dos controlos de trecho
-    // assim o player não salta quando o bloco de trecho aparece/desaparece
-    if (drop && drop.parentNode) {
-      drop.parentNode.insertBefore(panel, drop.nextSibling);
-    } else {
-      var form = $("uploadForm");
-      if (form) form.insertBefore(panel, form.firstChild);
-    }
-    if (preview && segment) {
-      panel.insertBefore(preview, segment);
-    }
+    // Ordem: drop zone → vídeo (topo) → painel de opções (por baixo)
+    restorePreviewAfterDrop(null);
+    placePanelAfterPreview(panel);
     bindPanelEvents(panel);
     return panel;
+  }
+
+  function restorePreviewAfterDrop(panel) {
+    var preview = $("videoPreviewWrap");
+    var drop = $("dropZone");
+    if (!preview || !drop || !drop.parentNode) return;
+    if (panel && panel.contains(preview)) {
+      drop.parentNode.insertBefore(preview, drop.nextSibling);
+      return;
+    }
+    if (preview.previousElementSibling !== drop) {
+      drop.parentNode.insertBefore(preview, drop.nextSibling);
+    }
+  }
+
+  function placePanelAfterPreview(panel) {
+    if (!panel) return;
+    var preview = $("videoPreviewWrap");
+    var drop = $("dropZone");
+    var anchor = preview || drop;
+    if (anchor && anchor.parentNode) {
+      if (panel.parentNode !== anchor.parentNode || panel.previousElementSibling !== anchor) {
+        anchor.parentNode.insertBefore(panel, anchor.nextSibling);
+      }
+    } else {
+      var form = $("uploadForm");
+      if (form && !panel.parentNode) form.appendChild(panel);
+    }
   }
 
   function getMediaEl() {
@@ -361,12 +367,6 @@
   function hidePanel() {
     stopSegmentPreview();
     var panel = $("oeTrimPanel");
-    var preview = $("videoPreviewWrap");
-    var drop = $("dropZone");
-    // Devolve o preview ao sítio original (fora do painel) para uploads sem trim
-    if (preview && panel && panel.contains(preview) && drop && drop.parentNode) {
-      drop.parentNode.insertBefore(preview, panel.nextSibling);
-    }
     if (panel) panel.classList.add("hidden");
     state.file = null;
     state.visible = false;

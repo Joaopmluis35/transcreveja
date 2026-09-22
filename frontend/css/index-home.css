@@ -545,8 +545,12 @@ body.oe-page--home #uploadForm .oe-video-hint strong {
   color: #1d4ed8;
 }
 
-body.oe-page--home #uploadForm .oe-trim-panel > .oe-video-preview {
-  margin: 12px 0 0;
+body.oe-page--home #uploadForm .oe-video-preview {
+  margin: 14px 0 4px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #0f172a;
+  border: 1px solid #e5e7eb;
 }
 
 body.oe-page--home #uploadForm .oe-video-preview video {
