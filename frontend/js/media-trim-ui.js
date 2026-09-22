@@ -69,8 +69,13 @@
   function ensurePanel() {
     var panel = $("oeTrimPanel");
     if (panel) {
-      // Atualizar markup antigo (labels partidos) sem exigir hard refresh total
-      if (!panel.querySelector(".oe-trim-mode__title")) {
+      // Remount se o markup antigo (só radios / spans partidos) ainda estiver no DOM
+      var mode = panel.querySelector(".oe-trim-mode");
+      var needsRemount =
+        !mode ||
+        !/Ficheiro completo/i.test(mode.textContent || "") ||
+        !/Só um trecho/i.test(mode.textContent || "");
+      if (needsRemount) {
         panel.parentNode && panel.parentNode.removeChild(panel);
         panel = null;
       } else {
@@ -87,18 +92,12 @@
       '<p class="oe-trim-panel__meta" id="oeTrimMeta"></p>' +
       "</div>" +
       '<div class="oe-trim-mode" role="radiogroup" aria-label="Modo de transcrição">' +
-      '<label class="oe-trim-mode__opt">' +
-      '<input type="radio" name="oeTrimMode" value="full" checked>' +
-      '<span class="oe-trim-mode__text">' +
-      '<span class="oe-trim-mode__title">Ficheiro completo</span>' +
-      '<span class="oe-trim-mode__sub">Todo o áudio · extrai só o som</span>' +
-      "</span></label>" +
-      '<label class="oe-trim-mode__opt">' +
-      '<input type="radio" name="oeTrimMode" value="segment">' +
-      '<span class="oe-trim-mode__text">' +
-      '<span class="oe-trim-mode__title">Só um trecho</span>' +
-      '<span class="oe-trim-mode__sub">Escolhe início e fim</span>' +
-      "</span></label>" +
+      '<label class="oe-trim-mode__opt" for="oeTrimModeFull">' +
+      '<input id="oeTrimModeFull" type="radio" name="oeTrimMode" value="full" checked>' +
+      " Ficheiro completo — todo o áudio</label>" +
+      '<label class="oe-trim-mode__opt" for="oeTrimModeSegment">' +
+      '<input id="oeTrimModeSegment" type="radio" name="oeTrimMode" value="segment">' +
+      " Só um trecho — escolhe início e fim</label>" +
       "</div>" +
       '<p class="oe-trim-panel__note hidden" id="oeTrimForceNote"></p>' +
       '<div class="oe-trim-segment hidden" id="oeTrimSegment">' +
