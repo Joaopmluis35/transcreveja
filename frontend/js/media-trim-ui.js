@@ -74,11 +74,27 @@
       var needsRemount =
         !mode ||
         !/Ficheiro completo/i.test(mode.textContent || "") ||
-        !/Só um trecho/i.test(mode.textContent || "");
+        !/Só um trecho/i.test(mode.textContent || "") ||
+        !panel.querySelector("#oeTrimForceNote");
       if (needsRemount) {
+        var oldPreview = $("videoPreviewWrap");
+        if (oldPreview && panel.contains(oldPreview)) {
+          var formEl = $("uploadForm");
+          if (formEl) formEl.insertBefore(oldPreview, panel);
+        }
         panel.parentNode && panel.parentNode.removeChild(panel);
         panel = null;
       } else {
+        // Garante o vídeo entre a nota e os controlos de trecho (não salta ao mudar de modo)
+        var previewFix = $("videoPreviewWrap");
+        var segmentFix = panel.querySelector("#oeTrimSegment");
+        if (
+          previewFix &&
+          segmentFix &&
+          !(previewFix.parentNode === panel && previewFix.nextElementSibling === segmentFix)
+        ) {
+          panel.insertBefore(previewFix, segmentFix);
+        }
         return panel;
       }
     }
@@ -99,7 +115,7 @@
       '<input id="oeTrimModeSegment" type="radio" name="oeTrimMode" value="segment">' +
       " Só um trecho — escolhe início e fim</label>" +
       "</div>" +
-      '<p class="oe-trim-panel__note hidden" id="oeTrimForceNote"></p>' +
+      '<p class="oe-trim-panel__note" id="oeTrimForceNote"></p>' +
       '<div class="oe-trim-segment hidden" id="oeTrimSegment">' +
       '<div class="oe-trim-preview-wrap">' +
       '<video id="oeTrimVideo" class="oe-trim-preview hidden" controls playsinline preload="metadata"></video>' +
@@ -119,22 +135,33 @@
       '<button type="button" class="oe-trim-preset" data-sec="3600">Primeira hora</button>' +
       "</div>" +
       '<p class="oe-trim-summary" id="oeTrimSummary"></p>' +
-      '<p class="oe-trim-panel__note">Com um trecho escolhido, cortamos no teu dispositivo antes do envio. Em ficheiros muito grandes (500+ MB) pode demorar 1–3 minutos — vês o progresso ao clicar em Transcrever.</p>' +
+      '<p class="oe-trim-panel__note">Em ficheiros muito grandes (500+ MB) o corte pode demorar 1–3 minutos — vês o progresso ao clicar em Transcrever.</p>' +
       '<button type="button" class="oe-trim-play" id="oeTrimPlay">▶ Ouvir / ver trecho</button>' +
       "</div>";
-    var anchor = $("videoPreviewWrap") || $("dropZone");
-    if (anchor && anchor.parentNode) {
-      anchor.parentNode.insertBefore(panel, anchor.nextSibling);
+    var drop = $("dropZone");
+    var preview = $("videoPreviewWrap");
+    var segment = panel.querySelector("#oeTrimSegment");
+    // Painel após a zona de drop; o vídeo fica DENTRO do painel, acima dos controlos de trecho
+    // assim o player não salta quando o bloco de trecho aparece/desaparece
+    if (drop && drop.parentNode) {
+      drop.parentNode.insertBefore(panel, drop.nextSibling);
     } else {
       var form = $("uploadForm");
       if (form) form.insertBefore(panel, form.firstChild);
+    }
+    if (preview && segment) {
+      panel.insertBefore(preview, segment);
     }
     bindPanelEvents(panel);
     return panel;
   }
 
   function getMediaEl() {
-    return state.isVideo ? $("oeTrimVideo") : $("oeTrimAudio");
+    // Vídeo: preview fixo do upload (não saltar de posição ao mudar de modo)
+    if (state.isVideo) {
+      return $("uploadVideoPreview") || $("oeTrimVideo");
+    }
+    return $("oeTrimAudio");
   }
 
   function updateFill() {
@@ -196,17 +223,14 @@
   function syncUploadPreviewVisibility() {
     var uploadPreviewWrap = $("videoPreviewWrap");
     if (!uploadPreviewWrap) return;
-    // Em modo trecho o player do painel já serve; em modo completo mantém o preview do upload
-    if (state.visible && state.mode === "segment" && state.isVideo) {
-      uploadPreviewWrap.classList.add("hidden");
-    } else if (state.visible && state.isVideo && state.objectUrl) {
-      var uploadPreview = $("uploadVideoPreview");
-      if (uploadPreview && !uploadPreview.getAttribute("src")) {
-        uploadPreview.src = state.objectUrl;
-        uploadPreview.load();
-      }
-      uploadPreviewWrap.classList.remove("hidden");
+    if (!(state.visible && state.isVideo && state.objectUrl)) return;
+    var uploadPreview = $("uploadVideoPreview");
+    if (uploadPreview && !uploadPreview.getAttribute("src")) {
+      uploadPreview.src = state.objectUrl;
+      uploadPreview.load();
     }
+    // Sempre visível — o vídeo mantém a posição em ambos os modos
+    uploadPreviewWrap.classList.remove("hidden");
   }
 
   function setMode(mode) {
@@ -228,18 +252,19 @@
     if (!note || !state.file) return;
     var fullRadio = document.querySelector('input[name="oeTrimMode"][value="full"]');
     if (fullRadio) fullRadio.disabled = false;
+    // Sempre visível para o layout não saltar ao mudar de modo
+    note.classList.remove("hidden");
     if (isOverUploadLimit(state.file)) {
       note.textContent =
         "Este ficheiro passa o limite de " +
         state.maxFileMb +
         " MB para upload de vídeo. Podes escolher «Ficheiro completo» — extraímos só o áudio no browser (rápido) — ou «Só um trecho».";
-      note.classList.remove("hidden");
     } else if (state.mode === "segment") {
       note.textContent =
         "Com um trecho escolhido, cortamos no teu dispositivo antes do envio.";
-      note.classList.remove("hidden");
     } else {
-      note.classList.add("hidden");
+      note.textContent =
+        "Ficheiro completo: extraímos o áudio no browser e enviamos só o som (mais rápido).";
     }
   }
 
@@ -301,12 +326,16 @@
 
     var video = $("oeTrimVideo");
     var audio = $("oeTrimAudio");
+    var previewWrap = panel.querySelector(".oe-trim-preview-wrap");
     if (video && audio) {
-      video.classList.toggle("hidden", !isVideo);
+      // Em vídeo usamos o player fixo (#uploadVideoPreview); escondemos o duplicado
+      video.classList.add("hidden");
       audio.classList.toggle("hidden", isVideo);
-      var media = isVideo ? video : audio;
-      media.src = objectUrl || "";
-      media.load();
+      if (previewWrap) previewWrap.classList.toggle("hidden", !!isVideo);
+      if (!isVideo) {
+        audio.src = objectUrl || "";
+        audio.load();
+      }
       bindPreviewMediaEvents();
     }
 
@@ -332,6 +361,12 @@
   function hidePanel() {
     stopSegmentPreview();
     var panel = $("oeTrimPanel");
+    var preview = $("videoPreviewWrap");
+    var drop = $("dropZone");
+    // Devolve o preview ao sítio original (fora do painel) para uploads sem trim
+    if (preview && panel && panel.contains(preview) && drop && drop.parentNode) {
+      drop.parentNode.insertBefore(preview, panel.nextSibling);
+    }
     if (panel) panel.classList.add("hidden");
     state.file = null;
     state.visible = false;
