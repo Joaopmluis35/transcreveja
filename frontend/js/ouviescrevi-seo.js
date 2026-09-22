@@ -227,7 +227,7 @@
     "/index.html": {
       title: "Ouviescrevi — Transcrição de Áudio e Vídeo com IA Grátis",
       description:
-        "Transcreve áudio e vídeo online com IA, grátis e sem registo. Resumos, tradução, legendas SRT, perguntas de estudo e conversão de ficheiros. Feito em Portugal.",
+        "Transcreve áudio e vídeo online com IA, grátis para começar. Resumos, tradução, legendas SRT, perguntas de estudo e conversão de ficheiros. Feito em Portugal.",
       type: "home",
     },
     "/en/index.html": {

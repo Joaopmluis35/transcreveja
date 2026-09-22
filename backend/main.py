@@ -20,6 +20,7 @@ import time
 import math
 import re
 import threading
+import hashlib
 
 import requests
 from bs4 import BeautifulSoup
@@ -1276,35 +1277,137 @@ def _prune_transcribe_jobs() -> None:
             _transcribe_jobs.pop(jid, None)
 
 
+def _quick_content_fingerprint(path: str, size_bytes: int, filename: str) -> str:
+    """Hash leve (nome + tamanho + início/fim do ficheiro) para dedupe sem ler tudo."""
+    h = hashlib.sha256()
+    h.update((filename or "").encode("utf-8", errors="replace"))
+    h.update(b"|")
+    h.update(str(int(size_bytes or 0)).encode("ascii"))
+    try:
+        with open(path, "rb") as f:
+            head = f.read(65536)
+            h.update(head)
+            if size_bytes > 131072:
+                f.seek(max(0, int(size_bytes) - 65536))
+                h.update(f.read(65536))
+    except OSError:
+        pass
+    return h.hexdigest()[:32]
+
+
+def _job_matches_file(
+    job: dict,
+    *,
+    usage_key: str,
+    filename: str,
+    size_bytes: int,
+    content_fp: str | None = None,
+    client_fp: str | None = None,
+) -> bool:
+    if job.get("usage_key") != usage_key:
+        return False
+    if content_fp and job.get("content_fingerprint") and job.get("content_fingerprint") == content_fp:
+        return True
+    if client_fp and job.get("client_fingerprint") and job.get("client_fingerprint") == client_fp:
+        return True
+    if (job.get("filename") or "") != filename:
+        return False
+    if int(job.get("size_bytes") or 0) != int(size_bytes):
+        return False
+    return True
+
+
 def _find_active_transcribe_duplicate(
     usage_key: str,
     filename: str,
     size_bytes: int,
     *,
+    content_fp: str | None = None,
+    client_fp: str | None = None,
     max_age_sec: float = 1800.0,
 ) -> tuple[str, dict] | None:
     """
-    Se já houver um job processing do mesmo utilizador + ficheiro + tamanho,
+    Se já houver um job processing do mesmo utilizador + ficheiro,
     devolve (job_id, snapshot) para reutilizar em vez de arrancar Whisper outra vez.
+    Preferência: content_fingerprint / client_fingerprint; fallback nome+tamanho.
     """
-    if not usage_key or not filename or size_bytes <= 0:
+    if not usage_key or size_bytes <= 0:
+        return None
+    if not filename and not content_fp and not client_fp:
         return None
     now = time.monotonic()
     with _transcribe_jobs_lock:
         for jid, job in _transcribe_jobs.items():
             if (job.get("status") or "") != "processing":
                 continue
-            if job.get("usage_key") != usage_key:
+            if job.get("cancel_requested"):
                 continue
-            if (job.get("filename") or "") != filename:
-                continue
-            if int(job.get("size_bytes") or 0) != int(size_bytes):
+            if not _job_matches_file(
+                job,
+                usage_key=usage_key,
+                filename=filename,
+                size_bytes=size_bytes,
+                content_fp=content_fp,
+                client_fp=client_fp,
+            ):
                 continue
             created = job.get("created_at")
             if isinstance(created, (int, float)) and (now - float(created)) > max_age_sec:
                 continue
             return jid, dict(job)
     return None
+
+
+def _find_recent_completed_transcribe_duplicate(
+    usage_key: str,
+    filename: str,
+    size_bytes: int,
+    *,
+    content_fp: str | None = None,
+    client_fp: str | None = None,
+    max_age_sec: float = 600.0,
+) -> tuple[str, dict] | None:
+    """Reutiliza resultado completed recente do mesmo ficheiro (evita Whisper em retry)."""
+    if not usage_key or size_bytes <= 0:
+        return None
+    now = time.monotonic()
+    with _transcribe_jobs_lock:
+        for jid, job in _transcribe_jobs.items():
+            if (job.get("status") or "") != "completed":
+                continue
+            if not job.get("transcription") and not job.get("formatted"):
+                continue
+            if not _job_matches_file(
+                job,
+                usage_key=usage_key,
+                filename=filename,
+                size_bytes=size_bytes,
+                content_fp=content_fp,
+                client_fp=client_fp,
+            ):
+                continue
+            updated = job.get("updated_at")
+            if isinstance(updated, (int, float)) and (now - float(updated)) > max_age_sec:
+                continue
+            return jid, dict(job)
+    return None
+
+
+def _transcribe_job_cancel_requested(job_id: str) -> bool:
+    with _transcribe_jobs_lock:
+        job = _transcribe_jobs.get(job_id) or {}
+        return bool(job.get("cancel_requested"))
+
+
+def _finish_transcribe_cancelled(job_id: str, rid: str) -> None:
+    logger.info("[%s] Job transcribe %s cancelado pelo utilizador", rid, job_id)
+    _transcribe_job_set(
+        job_id,
+        status="cancelled",
+        progress=100,
+        message="Cancelado pelo utilizador.",
+        error="Cancelado pelo utilizador.",
+    )
 
 
 def split_audio(input_path, output_dir, segment_duration=SEGMENT_DURATION):
@@ -2043,6 +2146,7 @@ async def transcribe(
     trim_end_sec: str | None = Form(None),
     ui_locale: str | None = Form(None),
     page_path: str | None = Form(None),
+    client_file_fingerprint: str | None = Form(None),
 ):
     """
     Upload → job_id imediato → processamento em segundo plano.
@@ -2112,13 +2216,15 @@ async def transcribe(
     locale_norm = _normalize_ui_locale(ui_locale)
     path_norm = (page_path or "").strip()[:500] or None
     filename = file.filename or "sem_nome"
+    client_fp = (client_file_fingerprint or "").strip()[:128] or None
+    content_fp = _quick_content_fingerprint(tmp_path, written, filename)
 
     _prune_transcribe_jobs()
     recent_same = admin_store.count_recent_same_transcription(filename, written, minutes=60)
     if recent_same.get("count", 0) > 0:
         logger.warning(
             "[%s] Possível repetição do mesmo ficheiro: name=%s size=%s "
-            "últimos_60min=%s (ok=%s error=%s last=%s) usage=%s",
+            "últimos_60min=%s (ok=%s error=%s last=%s) usage=%s fp=%s",
             rid,
             filename,
             written,
@@ -2127,13 +2233,15 @@ async def transcribe(
             recent_same.get("error"),
             recent_same.get("last_at"),
             usage_key,
+            content_fp,
         )
         try:
             admin_store.log_audit(
                 actor_label or usage_key or "anon",
                 "transcribe_repeat_suspect",
                 (
-                    f"{filename}|size={written}|recent60m={recent_same.get('count')}"
+                    f"{filename}|size={written}|fp={content_fp}"
+                    f"|recent60m={recent_same.get('count')}"
                     f"|ok={recent_same.get('ok')}|err={recent_same.get('error')}"
                     f"|last={recent_same.get('last_at')}"
                 ),
@@ -2141,7 +2249,57 @@ async def transcribe(
         except Exception:
             pass
 
-    dup = _find_active_transcribe_duplicate(usage_key, filename, written)
+    dup = _find_active_transcribe_duplicate(
+        usage_key,
+        filename,
+        written,
+        content_fp=content_fp,
+        client_fp=client_fp,
+    )
+    if not dup:
+        # Retry após sucesso recente — reutilizar resultado completed em memória
+        dup_done = _find_recent_completed_transcribe_duplicate(
+            usage_key,
+            filename,
+            written,
+            content_fp=content_fp,
+            client_fp=client_fp,
+        )
+        if dup_done:
+            existing_id, existing = dup_done
+            try:
+                os.remove(tmp_path)
+            except OSError:
+                pass
+            logger.info(
+                "[%s] Retry do mesmo ficheiro — a reutilizar resultado completed %s",
+                rid,
+                existing_id,
+            )
+            try:
+                admin_store.log_audit(
+                    actor_label or usage_key or "anon",
+                    "transcribe_job_reused",
+                    f"{filename}|size={written}|job={existing_id}|rid={rid}|completed=1|fp={content_fp}",
+                )
+            except Exception:
+                pass
+            return {
+                "job_id": existing_id,
+                "status": "completed",
+                "rid": existing.get("rid") or rid,
+                "estimate_transcribe_sec": existing.get("estimate_transcribe_sec") or estimate_sec,
+                "duration_sec": existing.get("duration_sec")
+                if existing.get("duration_sec") is not None
+                else duration_sec,
+                "reused": True,
+                "reused_completed": True,
+                "transcription": existing.get("transcription"),
+                "formatted": existing.get("formatted"),
+                "warning": existing.get("warning"),
+                "repeat_hint": recent_same,
+            }
+
     if dup:
         existing_id, existing = dup
         try:
@@ -2150,18 +2308,19 @@ async def transcribe(
             pass
         logger.info(
             "[%s] Upload duplicado — a reutilizar job %s (ficheiro=%s size=%s) "
-            "recent60m=%s",
+            "recent60m=%s fp=%s",
             rid,
             existing_id,
             filename,
             written,
             recent_same.get("count"),
+            content_fp,
         )
         try:
             admin_store.log_audit(
                 actor_label or usage_key or "anon",
                 "transcribe_job_reused",
-                f"{filename}|size={written}|job={existing_id}|rid={rid}",
+                f"{filename}|size={written}|job={existing_id}|rid={rid}|fp={content_fp}",
             )
         except Exception:
             pass
@@ -2191,6 +2350,9 @@ async def transcribe(
         duration_sec=duration_sec,
         estimate_transcribe_sec=estimate_sec,
         recent_same_file=recent_same,
+        content_fingerprint=content_fp,
+        client_fingerprint=client_fp,
+        cancel_requested=False,
     )
     threading.Thread(
         target=_execute_transcribe_job,
@@ -2235,6 +2397,34 @@ def transcribe_job_status(job_id: str, request: Request):
     return job
 
 
+@app.post("/transcribe/jobs/{job_id}/cancel")
+def cancel_transcribe_job(job_id: str, request: Request):
+    """Pede cancelamento; o worker para entre segmentos e não chama mais Whisper."""
+    require_api_token(request)
+    job = _transcribe_job_get(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Trabalho não encontrado.")
+    status = job.get("status") or ""
+    if status in ("completed", "failed", "cancelled"):
+        return {
+            "job_id": job_id,
+            "status": status,
+            "already_finished": True,
+            "cancel_requested": bool(job.get("cancel_requested")),
+        }
+    _transcribe_job_set(
+        job_id,
+        cancel_requested=True,
+        message="A cancelar…",
+    )
+    logger.info("Cancel pedido para job transcribe %s", job_id)
+    return {
+        "job_id": job_id,
+        "status": "processing",
+        "cancel_requested": True,
+    }
+
+
 def _execute_transcribe_job(
     job_id: str,
     rid: str,
@@ -2254,6 +2444,10 @@ def _execute_transcribe_job(
     split_dir = tempfile.mkdtemp(prefix="split_")
     converted_ok = False
     try:
+        if _transcribe_job_cancel_requested(job_id):
+            _finish_transcribe_cancelled(job_id, rid)
+            return
+
         _transcribe_job_set(job_id, message="A converter áudio…", progress=15)
         try:
             conv = [
@@ -2265,6 +2459,10 @@ def _execute_transcribe_job(
         except Exception:
             converted_ok = False
             logger.warning("[%s] Conversão WAV falhou; seguir com original.", rid)
+
+        if _transcribe_job_cancel_requested(job_id):
+            _finish_transcribe_cancelled(job_id, rid)
+            return
 
         parts: list[str] = []
         used_source = None
@@ -2279,6 +2477,10 @@ def _execute_transcribe_job(
             logger.warning("[%s] Falha ao partir áudio (%s). Vai sem split. Erro: %s", rid, filename, str(e)[:300])
             parts = []
 
+        if _transcribe_job_cancel_requested(job_id):
+            _finish_transcribe_cancelled(job_id, rid)
+            return
+
         if not parts:
             used_source = audio_wav_path if converted_ok else tmp_path
             parts = [used_source]
@@ -2290,8 +2492,12 @@ def _execute_transcribe_job(
         quota_exceeded = False
         duration_sec = None
         total_parts = len(parts)
+        cancelled_midway = False
 
         for idx, part in enumerate(parts):
+            if _transcribe_job_cancel_requested(job_id):
+                cancelled_midway = True
+                break
             if (time.monotonic() - t_start) > TOTAL_TRANSCRIBE_TIMEOUT:
                 watchdog_hit = True
                 logger.error("[%s] Watchdog TOTAL_TRANSCRIBE_TIMEOUT atingido.", rid)
@@ -2326,6 +2532,24 @@ def _execute_transcribe_job(
                 processed_segments += 1
                 if total_parts > 1:
                     offset_seconds += SEGMENT_DURATION
+
+        if cancelled_midway or _transcribe_job_cancel_requested(job_id):
+            try:
+                registar_transcricao(
+                    filename,
+                    language=whisper_lang,
+                    size_bytes=written,
+                    duration_sec=None,
+                    processing_sec=round(time.monotonic() - t_start, 2),
+                    status="error",
+                    error_message="cancelled_by_user",
+                    ui_locale=ui_locale,
+                    page_path=page_path,
+                )
+            except Exception:
+                pass
+            _finish_transcribe_cancelled(job_id, rid)
+            return
 
         try:
             dur_src = used_source or (audio_wav_path if converted_ok else tmp_path)
@@ -2416,6 +2640,9 @@ def _execute_transcribe_job(
             rid, job_id, time.monotonic() - t_start, processed_segments, failed_segments,
         )
     except Exception as e:
+        if _transcribe_job_cancel_requested(job_id):
+            _finish_transcribe_cancelled(job_id, rid)
+            return
         logger.exception("[%s] Erro inesperado no job transcribe %s", rid, job_id)
         _transcribe_job_set(
             job_id,

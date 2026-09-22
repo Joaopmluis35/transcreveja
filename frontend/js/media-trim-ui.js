@@ -1471,16 +1471,21 @@
         return { file: trimmed, trimmed: true };
       } catch (err) {
         console.warn("OuviescreviMediaTrim: corte no browser falhou", err);
-        if (isOverUploadLimit(file)) {
+        // Fail-closed: não enviar vídeo grande completo (timeouts + custo)
+        if (
+          isOverUploadLimit(file) ||
+          file.size > WASM_TRIM_MAX_BYTES ||
+          fileSizeMb(file) >= CLIENT_TRIM_MIN_MB
+        ) {
           throw new Error(
             (err && err.message) ||
-              "Não foi possível cortar no browser. Tenta um trecho mais curto ou comprime o vídeo antes de enviar."
+              "Não foi possível cortar no browser. Escolhe um trecho mais curto (ex.: primeiros 15 min) ou comprime o vídeo antes de enviar — não enviamos o ficheiro completo."
           );
         }
         onProgress(
-          "Corte local falhou — a enviar ficheiro completo (" +
+          "Corte local falhou — a enviar ficheiro (" +
             Math.round(fileSizeMb(file)) +
-            " MB). O servidor usa só o trecho (mais lento)."
+            " MB). O servidor usa só o trecho."
         );
         return { file: file, trimmed: false, trimStart: sel.startSec, trimEnd: sel.endSec, fallbackServerTrim: true };
       }

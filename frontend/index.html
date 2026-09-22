@@ -12,12 +12,12 @@
   <meta name="theme-color" content="#0f172a">
   <title>Ouviescrevi — Transcrição de Áudio e Vídeo com IA Grátis</title>
   <link rel="canonical" href="https://www.ouviescrevi.pt/index.html">
-  <meta name="description" content="Transcreve áudio e vídeo online com IA, grátis e sem registo. Resumos, tradução, legendas SRT, perguntas de estudo e conversão de ficheiros. Feito em Portugal.">
+  <meta name="description" content="Transcreve áudio e vídeo online com IA, grátis para começar. Resumos, tradução, legendas SRT, perguntas de estudo e conversão de ficheiros. Feito em Portugal.">
   <meta name="twitter:card" content="summary_large_image">
   <meta property="og:type" content="website">
   <meta property="og:image" content="https://www.ouviescrevi.pt/og/index.png">
-  <meta name="twitter:description" content="Transcreve áudio e vídeo online com IA, grátis e sem registo. Resumos, tradução, legendas SRT, perguntas de estudo e conversão de ficheiros. Feito em Portugal.">
-  <meta property="og:description" content="Transcreve áudio e vídeo online com IA, grátis e sem registo. Resumos, tradução, legendas SRT, perguntas de estudo e conversão de ficheiros. Feito em Portugal.">
+  <meta name="twitter:description" content="Transcreve áudio e vídeo online com IA, grátis para começar. Resumos, tradução, legendas SRT, perguntas de estudo e conversão de ficheiros. Feito em Portugal.">
+  <meta property="og:description" content="Transcreve áudio e vídeo online com IA, grátis para começar. Resumos, tradução, legendas SRT, perguntas de estudo e conversão de ficheiros. Feito em Portugal.">
   <meta name="twitter:title" content="Ouviescrevi — Transcrição de Áudio e Vídeo com IA Grátis">
   <meta property="og:title" content="Ouviescrevi — Transcrição de Áudio e Vídeo com IA Grátis">
   <meta property="og:url" content="https://www.ouviescrevi.pt/index.html">
@@ -39,7 +39,7 @@
   <div id="adminContent">
     <div id="cmsHomeIntro" class="oe-home-intro" data-cms-key="home_intro_html" data-cms-mode="html">
       <p><strong>Áudio ou vídeo → texto em minutos.</strong></p>
-      <p class="oe-home-intro__sub">Grátis, sem registo. Escolhe o ficheiro e clica em Transcrever.</p>
+      <p class="oe-home-intro__sub">Grátis para começar. Escolhe o ficheiro e clica em Transcrever.</p>
     </div>
 
     <ul class="oe-home-trust-chips" aria-label="Vantagens">
@@ -71,7 +71,7 @@
       <div class="oe-upload-actions">
       <button type="submit" id="btnTranscrever" class="oe-btn-transcribe">
         <span class="oe-btn-transcribe__label">🎙️ Transcrever agora</span>
-        <span class="oe-btn-transcribe__hint">Grátis · sem registo · texto editável</span>
+        <span class="oe-btn-transcribe__hint">Grátis para começar · texto editável</span>
       </button>
       <div class="oe-upload-actions__secondary">
         <button type="button" id="btnLegendarVideo" disabled>🎬 Legendar vídeo</button>
@@ -534,7 +534,7 @@
 <script src="js/share-ui.js?v=28"></script>
 <script src="/js/suggestion-fab.js?v=25" defer></script>
 <script src="/js/feedback-pulse.js?v=1" defer></script>
-<script src="/js/media-trim-ui.js?v=42" defer></script>
+<script src="/js/media-trim-ui.js?v=43" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
   const ADMIN_EMAIL = "admin@ouviescrevi.pt";
@@ -584,6 +584,7 @@
   let lastUploadProgressPct = 0;
   let activeAbortController = null;
   let jobCancelled = false;
+  let activeTranscribeJobId = null;
 
   function fileFingerprint(file) {
     if (!file) return "";
@@ -609,6 +610,7 @@
 
   function beginCancellableJob() {
     jobCancelled = false;
+    activeTranscribeJobId = null;
     if (activeAbortController) {
       try { activeAbortController.abort(); } catch (e) {}
     }
@@ -624,6 +626,7 @@
 
   function endCancellableJob() {
     activeAbortController = null;
+    activeTranscribeJobId = null;
     var btn = document.getElementById("btnCancelJob");
     if (btn) {
       btn.classList.add("hidden");
@@ -649,6 +652,17 @@
       btn.textContent = "A cancelar…";
     }
     if (statusEl) statusEl.textContent = "⏹️ A cancelar…";
+    var jobId = activeTranscribeJobId;
+    if (jobId && API_BASE) {
+      try {
+        fetch(API_BASE + "/transcribe/jobs/" + encodeURIComponent(jobId) + "/cancel", {
+          method: "POST",
+          headers: (window.OuviescreviAPI && OuviescreviAPI.authHeaders)
+            ? OuviescreviAPI.authHeaders()
+            : {},
+        }).catch(function () {});
+      } catch (e) {}
+    }
     if (activeAbortController) {
       try { activeAbortController.abort(); } catch (e) {}
     }
@@ -1229,6 +1243,8 @@
         return;
       }
       if (window.OuviescreviJobs) OuviescreviJobs.appendAnalyticsFields(formData);
+      var fp = fileFingerprint(file);
+      if (fp) formData.append("client_file_fingerprint", fp);
       if (window.OuviescreviUI && OuviescreviUI.setButtonLoading) {
         OuviescreviUI.setButtonLoading(btnTranscrever, true, "A transcrever…");
       }
@@ -1239,16 +1255,6 @@
         progress = Math.max(progress, 32);
         progressBar.style.width = progress + "%";
         await new Promise(function (r) { setTimeout(r, 900); });
-      } else if (window.OuviescreviMediaTrim) {
-        var trimSel = OuviescreviMediaTrim.getSelection();
-        if (trimSel.mode === "segment" && fileSizeMb(uploadFile) > 80) {
-          setTranscribePrepStatus(
-            "⚠️ A enviar ficheiro completo (" +
-            formatMb(fileSizeMb(uploadFile)) +
-            " MB). O servidor corta ao trecho — mais lento."
-          );
-          await new Promise(function (r) { setTimeout(r, 2200); });
-        }
       }
       var eyebrowReady = document.getElementById("loadingEyebrow");
       if (eyebrowReady) eyebrowReady.textContent = "A transcrever o ficheiro";
@@ -1334,6 +1340,7 @@
           try{ data = JSON.parse(jsonText); } catch{ data = { error: `Resposta inválida do servidor (${res.status})` }; }
           if (data && data.job_id) {
             acceptedJobId = data.job_id;
+            activeTranscribeJobId = data.job_id;
           }
           if (!res.ok) {
             if (res.status === 413) {
@@ -1351,6 +1358,11 @@
             clearInterval(interval);
             pararFrasesAnimadas(statusEl);
             updateTranscribeEta(data.duration_sec || estimateTranscribeDurationSec(), data);
+            if (data.reused_completed && transcricaoRecebidaComSucesso(data)) {
+              statusEl.textContent = "✅ Já tinhas este ficheiro transcrito há pouco — a reutilizar o resultado.";
+              sucesso = true;
+              break;
+            }
             if (data.reused) {
               statusEl.textContent =
                 "✅ Já havia uma transcrição em curso deste ficheiro — a acompanhar essa…";
@@ -1363,9 +1375,10 @@
               data = await pollTranscribeJob(data.job_id);
               sucesso = transcricaoRecebidaComSucesso(data);
             } catch (pollErr) {
-              data = { error: pollErr.message, detail: pollErr.message };
+              data = { error: pollErr.message, detail: pollErr.message, cancelled: !!(pollErr && pollErr.cancelled) };
               lastHttpStatus = pollErr.httpStatus || lastHttpStatus || 0;
               sucesso = false;
+              if (pollErr && pollErr.cancelled) jobCancelled = true;
             }
             break;
           }
@@ -1818,6 +1831,7 @@
   }
 
   async function pollTranscribeJob(jobId) {
+    activeTranscribeJobId = jobId;
     const maxWait = 900000;
     const started = Date.now();
     let lastProgress = -1;
@@ -1873,6 +1887,12 @@
         }
       }
       if (st.status === "completed") return st;
+      if (st.status === "cancelled") {
+        var cancelErr = new Error(st.error || st.message || "Cancelado pelo utilizador.");
+        cancelErr.name = "AbortError";
+        cancelErr.cancelled = true;
+        throw cancelErr;
+      }
       if (st.status === "failed") {
         throw new Error(st.error || st.warning || "Falha na transcrição.");
       }
