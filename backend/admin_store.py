@@ -1016,6 +1016,50 @@ def record_transcription(
         conn.close()
 
 
+def count_recent_same_transcription(
+    filename: str,
+    size_bytes: int | None = None,
+    *,
+    minutes: int = 60,
+) -> dict:
+    """Conta jobs recentes do mesmo ficheiro (para detetar retries / cliques repetidos)."""
+    name = (filename or "").strip()
+    if not name:
+        return {"count": 0, "ok": 0, "error": 0, "last_at": None}
+    since = (datetime.now() - timedelta(minutes=max(1, minutes))).isoformat()
+    conn = get_connection()
+    try:
+        if size_bytes is not None and int(size_bytes) > 0:
+            rows = conn.execute(
+                """
+                SELECT status, data FROM transcricoes
+                WHERE ficheiro = ? AND size_bytes = ? AND data >= ?
+                ORDER BY id DESC
+                """,
+                (name, int(size_bytes), since),
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                """
+                SELECT status, data FROM transcricoes
+                WHERE ficheiro = ? AND data >= ?
+                ORDER BY id DESC
+                """,
+                (name, since),
+            ).fetchall()
+        items = [row_to_dict(r) for r in rows]
+        ok_n = sum(1 for i in items if (i.get("status") or "ok") == "ok")
+        err_n = sum(1 for i in items if (i.get("status") or "") == "error")
+        return {
+            "count": len(items),
+            "ok": ok_n,
+            "error": err_n,
+            "last_at": items[0].get("data") if items else None,
+        }
+    finally:
+        conn.close()
+
+
 def list_transcriptions(
     *,
     q: str | None = None,

@@ -2114,6 +2114,33 @@ async def transcribe(
     filename = file.filename or "sem_nome"
 
     _prune_transcribe_jobs()
+    recent_same = admin_store.count_recent_same_transcription(filename, written, minutes=60)
+    if recent_same.get("count", 0) > 0:
+        logger.warning(
+            "[%s] Possível repetição do mesmo ficheiro: name=%s size=%s "
+            "últimos_60min=%s (ok=%s error=%s last=%s) usage=%s",
+            rid,
+            filename,
+            written,
+            recent_same.get("count"),
+            recent_same.get("ok"),
+            recent_same.get("error"),
+            recent_same.get("last_at"),
+            usage_key,
+        )
+        try:
+            admin_store.log_audit(
+                actor_label or usage_key or "anon",
+                "transcribe_repeat_suspect",
+                (
+                    f"{filename}|size={written}|recent60m={recent_same.get('count')}"
+                    f"|ok={recent_same.get('ok')}|err={recent_same.get('error')}"
+                    f"|last={recent_same.get('last_at')}"
+                ),
+            )
+        except Exception:
+            pass
+
     dup = _find_active_transcribe_duplicate(usage_key, filename, written)
     if dup:
         existing_id, existing = dup
@@ -2122,12 +2149,22 @@ async def transcribe(
         except OSError:
             pass
         logger.info(
-            "[%s] Upload duplicado — a reutilizar job %s (ficheiro=%s size=%s)",
+            "[%s] Upload duplicado — a reutilizar job %s (ficheiro=%s size=%s) "
+            "recent60m=%s",
             rid,
             existing_id,
             filename,
             written,
+            recent_same.get("count"),
         )
+        try:
+            admin_store.log_audit(
+                actor_label or usage_key or "anon",
+                "transcribe_job_reused",
+                f"{filename}|size={written}|job={existing_id}|rid={rid}",
+            )
+        except Exception:
+            pass
         return {
             "job_id": existing_id,
             "status": "processing",
@@ -2137,6 +2174,7 @@ async def transcribe(
             if existing.get("duration_sec") is not None
             else duration_sec,
             "reused": True,
+            "repeat_hint": recent_same,
         }
 
     job_id = str(uuid.uuid4())
@@ -2152,6 +2190,7 @@ async def transcribe(
         usage_key=usage_key,
         duration_sec=duration_sec,
         estimate_transcribe_sec=estimate_sec,
+        recent_same_file=recent_same,
     )
     threading.Thread(
         target=_execute_transcribe_job,

@@ -68,7 +68,15 @@
 
   function ensurePanel() {
     var panel = $("oeTrimPanel");
-    if (panel) return panel;
+    if (panel) {
+      // Atualizar markup antigo (labels partidos) sem exigir hard refresh total
+      if (!panel.querySelector(".oe-trim-mode__title")) {
+        panel.parentNode && panel.parentNode.removeChild(panel);
+        panel = null;
+      } else {
+        return panel;
+      }
+    }
     panel = document.createElement("section");
     panel.id = "oeTrimPanel";
     panel.className = "oe-trim-panel hidden";
@@ -79,8 +87,18 @@
       '<p class="oe-trim-panel__meta" id="oeTrimMeta"></p>' +
       "</div>" +
       '<div class="oe-trim-mode" role="radiogroup" aria-label="Modo de transcrição">' +
-      '<label class="oe-trim-mode__opt"><input type="radio" name="oeTrimMode" value="full" checked> Ficheiro completo</label>' +
-      '<label class="oe-trim-mode__opt"><input type="radio" name="oeTrimMode" value="segment"> Só um trecho</label>' +
+      '<label class="oe-trim-mode__opt">' +
+      '<input type="radio" name="oeTrimMode" value="full" checked>' +
+      '<span class="oe-trim-mode__text">' +
+      '<span class="oe-trim-mode__title">Ficheiro completo</span>' +
+      '<span class="oe-trim-mode__sub">Todo o áudio · extrai só o som</span>' +
+      "</span></label>" +
+      '<label class="oe-trim-mode__opt">' +
+      '<input type="radio" name="oeTrimMode" value="segment">' +
+      '<span class="oe-trim-mode__text">' +
+      '<span class="oe-trim-mode__title">Só um trecho</span>' +
+      '<span class="oe-trim-mode__sub">Escolhe início e fim</span>' +
+      "</span></label>" +
       "</div>" +
       '<p class="oe-trim-panel__note hidden" id="oeTrimForceNote"></p>' +
       '<div class="oe-trim-segment hidden" id="oeTrimSegment">' +
