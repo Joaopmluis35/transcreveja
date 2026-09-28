@@ -1223,6 +1223,18 @@
                 " MB de vídeo). Cancela e tenta outra vez — vamos extrair só o áudio."
             );
           }
+          // Segurança: nunca enviar o MP4 gigante se a extração de áudio falhou em silêncio
+          if (
+            isVideoFile(file) &&
+            fileSizeMb(file) >= 20 &&
+            uploadFile === file
+          ) {
+            throw new Error(
+              "Não foi possível preparar o áudio deste vídeo (" +
+                formatMb(fileSizeMb(file)) +
+                " MB). Escolhe «Só um trecho» (ex.: primeiros 15 min) ou tenta de novo — não enviamos o vídeo completo."
+            );
+          }
           formData.append("file", uploadFile);
           if (!prepared.trimmed) OuviescreviMediaTrim.appendToFormData(formData);
         } else {
@@ -1285,10 +1297,12 @@
           }
 
           const controller = activeAbortController || beginCancellableJob();
+          // Uploads + jobs longos: não abortar aos 10 min (causava "ligação interrompida" a meio)
+          const uploadMb = fileSizeMb(uploadFile);
+          const uploadAbortMs = Math.max(900000, Math.round(uploadMb * 120000) + 600000);
           const to = setTimeout(function () {
             if (!jobCancelled && controller) controller.abort();
-          }, 600000);
-          const uploadMb = fileSizeMb(uploadFile);
+          }, uploadAbortMs);
           const useUploadProgress = uploadMb > 5;
           let res;
           lastUploadProgressPct = 0;
@@ -1306,7 +1320,7 @@
                 var pctLabel = Math.round(pct * 100);
                 if (total > 0) {
                   statusEl.textContent =
-                    `📤 A enviar (${formatMb(uploadMb)} MB)… ${pctLabel}%` +
+                    `📤 A enviar áudio (${formatMb(uploadMb)} MB)… ${pctLabel}%` +
                     ` · ${formatMb(loaded / (1024 * 1024))} MB enviados`;
                 } else {
                   statusEl.textContent =
@@ -1391,11 +1405,16 @@
             break;
           }
           if (err.name === "AbortError"){
-            data = { error: "Tempo limite atingido. Tentaremos novamente…" };
+            data = {
+              error:
+                lastUploadProgressPct >= 0.85
+                  ? "O envio foi interrompido quase no fim (rede ou servidor a reiniciar). Espera 1 minuto e tenta outra vez — não cliques várias vezes seguidas."
+                  : "Tempo limite ou ligação interrompida. Tenta outra vez.",
+            };
           } else if (lastUploadProgressPct >= 0.9) {
             data = {
               error:
-                "Ligação interrompida no fim do envio. O servidor pode já estar a processar — espera 1–2 minutos antes de repetir.",
+                "Ligação interrompida no fim do envio (por vezes o servidor reinicia durante um deploy). Espera 1–2 minutos e tenta uma vez — o ficheiro pode não ter chegado.",
             };
             break;
           } else {
