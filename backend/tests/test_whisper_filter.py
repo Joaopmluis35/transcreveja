@@ -98,3 +98,11 @@ def test_filter_keeps_real_pt_despite_high_no_speech():
     kept = app_main.filter_whisper_segments(segs, language="pt")
     assert len(kept) == 1
     assert "staging" in kept[0]["text"]
+
+
+def test_is_music_only_transcript():
+    assert app_main.is_music_only_transcript("[00:00] Música")
+    assert app_main.is_music_only_transcript("Música")
+    assert app_main.is_music_only_transcript("[Music]")
+    assert not app_main.is_music_only_transcript("[00:00] Música\n\n[00:12] Olá a todos")
+    assert not app_main.is_music_only_transcript("")

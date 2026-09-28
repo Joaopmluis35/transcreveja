@@ -403,6 +403,30 @@ def _transcription_has_content(transcription: str, formatted: str) -> bool:
     return True
 
 
+_MUSIC_ONLY_LINE = re.compile(
+    r"^(?:\[\d{2}:\d{2}\]\s*)?(?:🎵\s*)?(?:\[?\s*(?:música|music|♪+|♫+)\s*\]?)\s*\.?$",
+    re.IGNORECASE,
+)
+
+
+def is_music_only_transcript(text: str) -> bool:
+    """True se o resultado Whisper for só etiquetas de música (sem fala)."""
+    raw = (text or "").strip()
+    if not raw:
+        return False
+    lines = [ln.strip() for ln in re.split(r"\n+", raw) if ln.strip()]
+    if not lines:
+        return False
+    return all(_MUSIC_ONLY_LINE.match(ln) for ln in lines)
+
+
+MUSIC_ONLY_WARNING = (
+    "Não detetámos fala neste ficheiro — só música/instrumento. "
+    "A transcrição funciona com voz falada (reuniões, aulas, podcasts), "
+    "não com piano ou faixas instrumentais."
+)
+
+
 def enforce_transcribe_quota(request: Request) -> dict:
     actor = resolve_site_actor(request)
     status = admin_store.transcribe_quota_status(request, actor)
@@ -2705,6 +2729,8 @@ def _execute_transcribe_job(
         if watchdog_hit:
             extra = "Tempo total excedido (parcial devolvido)."
             warning = f"{warning} {extra}" if warning else extra
+        if is_music_only_transcript(formatted_out) or is_music_only_transcript(transcription_out):
+            warning = f"{warning} {MUSIC_ONLY_WARNING}".strip() if warning else MUSIC_ONLY_WARNING
 
         if _transcription_has_content(transcription_out, formatted_out):
             record_transcribe_success(
@@ -3252,6 +3278,80 @@ async def summarize(req: SummarizeRequest, request: Request):
         return {"summary": resp.choices[0].message.content.strip()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+class TranscriptChatMessage(BaseModel):
+    role: str
+    content: str
+
+
+class TranscriptChatRequest(BaseModel):
+    text: str
+    question: str
+    history: list[TranscriptChatMessage] = []
+    token: str = ""
+    lang: str = "pt"
+
+
+@app.post("/transcript-chat")
+async def transcript_chat(req: TranscriptChatRequest, request: Request):
+    """Perguntas sobre a transcrição atual (chat curto multi-turno)."""
+    require_token(req.token)
+    enforce_rate_limit(request, "ai", RATE_LIMIT_AI, RATE_LIMIT_AI_WINDOW)
+    transcript = (req.text or "").strip()
+    question = (req.question or "").strip()
+    if not transcript:
+        raise HTTPException(status_code=400, detail="Transcrição vazia.")
+    if not question:
+        raise HTTPException(status_code=400, detail="Escreve uma pergunta.")
+    if len(question) > 2000:
+        raise HTTPException(status_code=400, detail="Pergunta demasiado longa.")
+
+    # Limitar contexto para caber no modelo
+    max_chars = 14000
+    if len(transcript) > max_chars:
+        transcript = transcript[:max_chars] + "\n\n[…transcrição truncada…]"
+
+    lang = (req.lang or "pt").strip().lower()[:8]
+    if lang == "en":
+        sys = (
+            "You answer questions about an audio/video transcript. "
+            "Use only the transcript below. If the answer is not there, say you don't know. "
+            "Be concise and clear. Reply in English.\n\n"
+            f"TRANSCRIPT:\n{transcript}"
+        )
+    else:
+        sys = (
+            "Responde a perguntas sobre uma transcrição de áudio/vídeo. "
+            "Usa apenas a transcrição abaixo. Se a resposta não estiver lá, diz que não sabes. "
+            "Sê claro e conciso. Responde em português.\n\n"
+            f"TRANSCRIÇÃO:\n{transcript}"
+        )
+
+    messages: list[dict] = [{"role": "system", "content": sys}]
+    # Últimas 6 mensagens do histórico (user/assistant)
+    hist = list(req.history or [])[-6:]
+    for item in hist:
+        role = (item.role or "").strip().lower()
+        content = (item.content or "").strip()
+        if role not in ("user", "assistant") or not content:
+            continue
+        messages.append({"role": role, "content": content[:4000]})
+    messages.append({"role": "user", "content": question})
+
+    try:
+        resp = client.chat.completions.create(
+            model=SUM_MODEL,
+            messages=messages,
+            temperature=0.4,
+            max_tokens=800,
+        )
+        answer = (resp.choices[0].message.content or "").strip()
+        maybe_notify_activity(request, "Chat sobre transcrição", "Pergunta à IA no Ouviescrevi")
+        return {"answer": answer}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.post("/translate")
 async def translate_text(request: Request):

@@ -40,6 +40,47 @@ def test_summarize_returns_summary(mock_create, client):
     mock_create.assert_called_once()
 
 
+def test_transcript_chat_rejects_empty_question(client):
+    res = client.post(
+        "/transcript-chat",
+        json={"text": LONG_TEXT, "question": "  ", "token": API_TOKEN, "lang": "pt"},
+    )
+    assert res.status_code == 400
+
+
+def test_transcript_chat_rejects_invalid_token(client):
+    res = client.post(
+        "/transcript-chat",
+        json={"text": LONG_TEXT, "question": "Quem falou?", "token": "bad", "lang": "pt"},
+    )
+    assert res.status_code == 403
+
+
+@patch("main.client.chat.completions.create")
+def test_transcript_chat_returns_answer(mock_create, client):
+    mock_create.return_value = _mock_completion("Resposta de teste.")
+    res = client.post(
+        "/transcript-chat",
+        json={
+            "text": LONG_TEXT,
+            "question": "Resume em 3 pontos",
+            "history": [
+                {"role": "user", "content": "Olá"},
+                {"role": "assistant", "content": "Olá! Em que posso ajudar?"},
+            ],
+            "token": API_TOKEN,
+            "lang": "pt",
+        },
+    )
+    assert res.status_code == 200, res.text
+    assert res.json()["answer"] == "Resposta de teste."
+    mock_create.assert_called_once()
+    messages = mock_create.call_args.kwargs["messages"]
+    assert messages[0]["role"] == "system"
+    assert "TRANSCRIÇÃO" in messages[0]["content"]
+    assert messages[-1]["content"] == "Resume em 3 pontos"
+
+
 def test_generate_flashcards_rejects_short_text(client):
     res = client.post(
         "/generate-flashcards",

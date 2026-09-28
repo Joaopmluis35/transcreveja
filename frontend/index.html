@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <script>document.documentElement.classList.add("oe-pricing-hidden");</script>
   <link rel="stylesheet" href="css/ouviescrevi.css?v=30">
-  <link rel="stylesheet" href="css/index-home.css?v=42">
+  <link rel="stylesheet" href="css/index-home.css?v=44">
   <link rel="stylesheet" href="css/pricing-visibility.css?v=2">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <link rel="manifest" href="/manifest.webmanifest">
@@ -188,6 +188,23 @@
                 </div>
               </div>
               <textarea id="transcriptionText" aria-labelledby="outputTitle" placeholder="O texto transcrito aparece aqui…"></textarea>
+
+              <section id="transcriptChat" class="oe-transcript-chat hidden" aria-label="Chat sobre a transcrição">
+                <h3 class="oe-transcript-chat__title">💬 Perguntar à IA sobre esta transcrição</h3>
+                <p class="oe-transcript-chat__hint">A IA responde só com base no texto acima.</p>
+                <div id="transcriptChatMessages" class="oe-transcript-chat__messages" role="log" aria-live="polite"></div>
+                <div class="oe-transcript-chat__suggestions" id="transcriptChatSuggestions">
+                  <button type="button" class="oe-transcript-chat__chip" data-q="Resume em 3 pontos">Resume em 3 pontos</button>
+                  <button type="button" class="oe-transcript-chat__chip" data-q="Quais foram as decisões?">Quais foram as decisões?</button>
+                  <button type="button" class="oe-transcript-chat__chip" data-q="Quem tem ações?">Quem tem ações?</button>
+                </div>
+                <form id="transcriptChatForm" class="oe-transcript-chat__form">
+                  <label class="oe-sr-only" for="transcriptChatInput">A tua pergunta</label>
+                  <input type="text" id="transcriptChatInput" class="oe-transcript-chat__input" placeholder="Escreve a tua pergunta…" maxlength="2000" autocomplete="off">
+                  <button type="submit" id="transcriptChatSend" class="oe-transcript-chat__send">Enviar</button>
+                </form>
+                <p id="transcriptChatStatus" class="oe-transcript-chat__status" hidden></p>
+              </section>
             </section>
         
             <aside class="oe-output__sidebar" aria-label="Ações sobre a transcrição">
@@ -907,6 +924,7 @@
   function definirTranscricao(texto) {
     transcriptionText.value = texto || "";
     atualizarMetaTranscricao();
+    if (typeof syncTranscriptChatVisibility === "function") syncTranscriptChatVisibility();
   }
   window.definirTranscricao = definirTranscricao;
 
@@ -2772,6 +2790,132 @@
     finally{ btn.innerHTML = original; btn.disabled = false; }
   }
 
+  /* —— Chat sobre a transcrição —— */
+  var transcriptChatHistory = [];
+  var transcriptChatBusy = false;
+
+  function syncTranscriptChatVisibility() {
+    var panel = document.getElementById("transcriptChat");
+    if (!panel || !transcriptionText) return;
+    var hasText = !!(transcriptionText.value || "").trim();
+    panel.classList.toggle("hidden", !hasText);
+  }
+
+  function resetTranscriptChat() {
+    transcriptChatHistory = [];
+    transcriptChatBusy = false;
+    var msgs = document.getElementById("transcriptChatMessages");
+    if (msgs) msgs.innerHTML = "";
+    var input = document.getElementById("transcriptChatInput");
+    if (input) input.value = "";
+    var status = document.getElementById("transcriptChatStatus");
+    if (status) {
+      status.hidden = true;
+      status.textContent = "";
+    }
+    var send = document.getElementById("transcriptChatSend");
+    if (send) send.disabled = false;
+    syncTranscriptChatVisibility();
+  }
+
+  function appendTranscriptChatBubble(role, content) {
+    var msgs = document.getElementById("transcriptChatMessages");
+    if (!msgs) return;
+    var bubble = document.createElement("div");
+    bubble.className = "oe-transcript-chat__bubble oe-transcript-chat__bubble--" + (role === "user" ? "user" : "assistant");
+    bubble.textContent = content;
+    msgs.appendChild(bubble);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function setTranscriptChatStatus(text) {
+    var status = document.getElementById("transcriptChatStatus");
+    if (!status) return;
+    if (!text) {
+      status.hidden = true;
+      status.textContent = "";
+      return;
+    }
+    status.hidden = false;
+    status.textContent = text;
+  }
+
+  async function enviarPerguntaTranscriptChat(question) {
+    question = (question || "").trim();
+    if (!question || transcriptChatBusy) return;
+    await ensureApi();
+    var text = (transcriptionText.value || "").trim();
+    if (!text) {
+      alert("⚠️ Transcrição vazia.");
+      return;
+    }
+    transcriptChatBusy = true;
+    var sendBtn = document.getElementById("transcriptChatSend");
+    if (sendBtn) sendBtn.disabled = true;
+    appendTranscriptChatBubble("user", question);
+    transcriptChatHistory.push({ role: "user", content: question });
+    setTranscriptChatStatus("A pensar…");
+    try {
+      var historyPayload = transcriptChatHistory.slice(0, -1).slice(-6);
+      var res = await fetch(API_BASE + "/transcript-chat", {
+        method: "POST",
+        headers: OuviescreviAPI.authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify(OuviescreviAPI.authJson({
+          text: text,
+          question: question,
+          history: historyPayload,
+          lang: "pt"
+        }))
+      });
+      var data = {};
+      try { data = await res.json(); } catch (_) {}
+      if (!res.ok) {
+        var detail = data.detail || data.error || ("Erro " + res.status);
+        if (Array.isArray(detail)) detail = detail.map(function (d) { return d.msg || d; }).join(" ");
+        appendTranscriptChatBubble("assistant", "❌ " + detail);
+        setTranscriptChatStatus("");
+        return;
+      }
+      var answer = (data.answer || "").trim() || "Sem resposta.";
+      appendTranscriptChatBubble("assistant", answer);
+      transcriptChatHistory.push({ role: "assistant", content: answer });
+      setTranscriptChatStatus("");
+    } catch (_) {
+      appendTranscriptChatBubble("assistant", "❌ Erro ao comunicar com a API.");
+      setTranscriptChatStatus("");
+    } finally {
+      transcriptChatBusy = false;
+      if (sendBtn) sendBtn.disabled = false;
+      var inputEl = document.getElementById("transcriptChatInput");
+      if (inputEl) inputEl.focus();
+    }
+  }
+
+  (function initTranscriptChat() {
+    var form = document.getElementById("transcriptChatForm");
+    var input = document.getElementById("transcriptChatInput");
+    var suggestions = document.getElementById("transcriptChatSuggestions");
+    if (form && input) {
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var q = input.value;
+        input.value = "";
+        enviarPerguntaTranscriptChat(q);
+      });
+    }
+    if (suggestions) {
+      suggestions.addEventListener("click", function (e) {
+        var btn = e.target.closest("[data-q]");
+        if (!btn) return;
+        enviarPerguntaTranscriptChat(btn.getAttribute("data-q") || "");
+      });
+    }
+    if (transcriptionText) {
+      transcriptionText.addEventListener("input", syncTranscriptChatVisibility);
+    }
+    syncTranscriptChatVisibility();
+  })();
+
   async function gerarEmailIA(){
     await ensureApi();
     const text = transcriptionText.value.trim();
@@ -3030,6 +3174,7 @@
     document.getElementById("traducaoProgressWrapper").classList.add("hidden");
     document.getElementById("traducaoProgressBar").style.width = "0%";
     document.getElementById("btnRetry").classList.add("hidden");
+    if (typeof resetTranscriptChat === "function") resetTranscriptChat();
     ultimaTentativaFalhada = false;
     lastTranscribeFingerprint = "";
     lastTranscribeSuccessAt = 0;
