@@ -616,6 +616,17 @@ def _is_hallucination_text(text: str, language: str | None = None) -> bool:
     return False
 
 
+def _looks_like_real_speech(text: str, language: str | None = None) -> bool:
+    """Texto com aparência de fala real (não spam) — útil para áudio baixo no início."""
+    t = (text or "").strip()
+    if len(t) < 10:
+        return False
+    if _is_hallucination_text(t, language):
+        return False
+    letters = sum(1 for c in t if ("A" <= c <= "Z") or ("a" <= c <= "z") or c in "áàâãéêíóôõúçÁÀÂÃÉÊÍÓÔÕÚÇ")
+    return letters >= 8 and (letters / max(len(t), 1)) >= 0.35
+
+
 def filter_whisper_segments(segments, language: str | None = None):
     """Remove segmentos com sinais típicos de alucinação do Whisper (silêncio/ruído)."""
     raw = list(segments or [])
@@ -642,10 +653,12 @@ def filter_whisper_segments(segments, language: str | None = None):
             no_speech = float(_seg_get(s, "no_speech_prob", 0) or 0)
             avg_logprob = float(_seg_get(s, "avg_logprob", 0) or 0)
             compression = float(_seg_get(s, "compression_ratio", 1) or 1)
-            if no_speech > no_speech_max:
+            realish = _looks_like_real_speech(text, language)
+            # Áudio baixo (início de reuniões) sobe no_speech_prob — não descartar fala PT clara
+            if no_speech > no_speech_max and not realish:
                 dropped += 1
                 continue
-            if avg_logprob < logprob_min:
+            if avg_logprob < logprob_min and not realish:
                 dropped += 1
                 continue
             if compression > compression_max:
@@ -654,10 +667,10 @@ def filter_whisper_segments(segments, language: str | None = None):
             filtered.append(s)
         return filtered, dropped
 
-    filtered, dropped = _apply(non_empty, no_speech_max=0.5, logprob_min=-1.0, compression_max=2.2)
+    filtered, dropped = _apply(non_empty, no_speech_max=0.55, logprob_min=-1.15, compression_max=2.4)
     if len(non_empty) >= 5 and len(filtered) < max(2, int(len(non_empty) * 0.2)):
         relaxed, dropped_relaxed = _apply(
-            non_empty, no_speech_max=0.75, logprob_min=-1.4, compression_max=2.8
+            non_empty, no_speech_max=0.82, logprob_min=-1.55, compression_max=2.9
         )
         if len(relaxed) > len(filtered):
             logger.warning(
@@ -670,7 +683,6 @@ def filter_whisper_segments(segments, language: str | None = None):
         logger.info("Whisper: descartados %d segmentos (ruído/alucinação)", dropped)
 
     # Nunca restaurar todos os segmentos — isso reintroduzia alucinações (「」, ok ok ok…).
-    # Preferir trechos sparsos / vazios a spam inventado.
     if dropped and len(filtered) < len(non_empty):
         kept_ratio = len(filtered) / max(len(non_empty), 1)
         if kept_ratio < 0.35:
@@ -762,11 +774,21 @@ def clean_transcription_text(text: str, language: str | None = None) -> str:
     return text.strip()
 
 
-def resolve_whisper_language(form_language: str | None) -> str | None:
+def resolve_whisper_language(
+    form_language: str | None,
+    ui_locale: str | None = None,
+) -> str | None:
     lang = (form_language or WHISPER_LANGUAGE or "").strip().lower()
-    if not lang or lang in ("auto", "detect"):
-        return None
-    return lang
+    if lang and lang not in ("auto", "detect"):
+        return lang
+    # Auto / vazio: na UI PT (ou sem locale) força pt — evita alucinações CJK
+    # em silêncio e áudio baixo no início de reuniões/gravações de ecrã.
+    loc = (ui_locale or "").strip().lower()[:2]
+    if loc in ("", "pt"):
+        return "pt"
+    if loc in ("en", "es", "fr", "de"):
+        return loc
+    return None
 
 
 def whisper_prompt_for_language(language: str | None) -> str | None:
@@ -776,7 +798,12 @@ def whisper_prompt_for_language(language: str | None) -> str | None:
         return "Transcrição em português de Portugal de uma reunião de trabalho ou conversa."
     if language == "en":
         return "English speech transcription of a conversation or presentation."
-    # Auto: prompt PT reduz alucinações CJK em silêncio (produto PT-first)
+    if language == "es":
+        return "Transcripción en español de una conversación o reunión."
+    if language == "fr":
+        return "Transcription en français d'une conversation ou réunion."
+    if language == "de":
+        return "Transkription auf Deutsch eines Gesprächs oder Meetings."
     return "Transcrição em português. Ignorar silêncio e ruído de fundo."
 
 
@@ -2238,7 +2265,7 @@ async def transcribe(
     enforce_transcribe_quota(request)
     enforce_rate_limit(request, "transcribe", RATE_LIMIT_TRANSCRIBE, RATE_LIMIT_TRANSCRIBE_WINDOW)
     rid = str(uuid.uuid4())
-    whisper_lang = resolve_whisper_language(language)
+    whisper_lang = resolve_whisper_language(language, ui_locale)
     logger.info(
         "[%s] Upload recebido (transcribe): nome=%s ct=%s cl=%s lang=%s",
         rid, file.filename, file.content_type, request.headers.get("content-length"), whisper_lang or "auto",
@@ -3001,12 +3028,13 @@ async def video_subs(
     language: str | None = Form(None),
     trim_start_sec: str | None = Form(None),
     trim_end_sec: str | None = Form(None),
+    ui_locale: str | None = Form(None),
 ):
     require_api_token(request, token)
     require_not_maintenance()
     enforce_transcribe_quota(request)
     enforce_rate_limit(request, "video-subs", RATE_LIMIT_VIDEO_SUBS, RATE_LIMIT_VIDEO_SUBS_WINDOW)
-    whisper_lang = resolve_whisper_language(language)
+    whisper_lang = resolve_whisper_language(language, ui_locale)
     want_burn_mp4 = str(burn_mp4 or "true").strip().lower() not in ("0", "false", "no", "off")
     actor = resolve_site_actor(request)
     usage_key, _tier = admin_store.usage_key_for_request(request, actor)

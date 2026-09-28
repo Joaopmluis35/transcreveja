@@ -61,8 +61,40 @@ def test_clean_removes_cyrillic_stub():
     assert "Pronto" in cleaned
 
 
-def test_is_hallucination_bracket_spam():
-    assert app_main._is_hallucination_text("「」「」「」「」「」「」「」")
-    assert not app_main._is_hallucination_text(
-        "Pronto, e agora para já, segundo as últimas atualizações."
+def test_looks_like_real_speech_keeps_quiet_pt():
+    assert app_main._looks_like_real_speech(
+        "Nós entretanto passámos o projeto todo para o staging.",
+        "pt",
     )
+    assert not app_main._looks_like_real_speech("「」「」「」「」「」", "pt")
+
+
+def test_resolve_auto_defaults_to_pt_on_pt_ui():
+    assert app_main.resolve_whisper_language(None, "pt") == "pt"
+    assert app_main.resolve_whisper_language("auto", None) == "pt"
+    assert app_main.resolve_whisper_language("auto", "en") == "en"
+    assert app_main.resolve_whisper_language("es", "pt") == "es"
+
+
+def test_filter_keeps_real_pt_despite_high_no_speech():
+    segs = [
+        {
+            "text": "Criámos aqui um subdomínio que é o staging.lin.org.pt",
+            "no_speech_prob": 0.72,
+            "avg_logprob": -1.2,
+            "compression_ratio": 1.3,
+            "start": 0,
+            "end": 2,
+        },
+        {
+            "text": "ok, ok, ok, ok, ok, ok, ok, ok",
+            "no_speech_prob": 0.2,
+            "avg_logprob": -0.2,
+            "compression_ratio": 1.1,
+            "start": 2,
+            "end": 3,
+        },
+    ]
+    kept = app_main.filter_whisper_segments(segs, language="pt")
+    assert len(kept) == 1
+    assert "staging" in kept[0]["text"]
