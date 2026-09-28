@@ -564,9 +564,56 @@ def _cjk_ratio(text: str) -> float:
     return cjk / max(len(text), 1)
 
 
+def _cyrillic_ratio(text: str) -> float:
+    if not text:
+        return 0.0
+    cyr = sum(1 for c in text if "\u0400" <= c <= "\u04ff")
+    return cyr / max(len(text), 1)
+
+
 def _normalize_block(text: str) -> str:
     text = re.sub(r"^\[\d{2}:\d{2}\]\s*", "", text.strip(), flags=re.MULTILINE)
     return re.sub(r"\s+", " ", text).strip().lower()
+
+
+def _is_hallucination_text(text: str, language: str | None = None) -> bool:
+    """
+    Deteta padrões típicos de alucinação Whisper em silêncio/ruído de ecrã:
+    aspas CJK repetidas, loops de 'ok', scripts errados, etc.
+    """
+    t = (text or "").strip()
+    if not t:
+        return True
+
+    # 「」「」 / aspas tipográficas em spam
+    bracketish = sum(1 for c in t if c in "「」『』【】〈〉《》")
+    if len(t) >= 8 and bracketish / len(t) > 0.25:
+        return True
+
+    # Pouquíssimos caracteres distintos (ex.: só 」 ou só .)
+    compact = re.sub(r"[\s,.;:…\-—_]+", "", t)
+    if len(compact) >= 12 and len(set(compact)) <= 3:
+        return True
+
+    # Loops de palavra curta: "ok, ok, ok, …"
+    words = re.findall(r"\w+", t.lower(), flags=re.UNICODE)
+    if len(words) >= 6:
+        from collections import Counter
+
+        top_word, top_n = Counter(words).most_common(1)[0]
+        if top_n / len(words) >= 0.65 and len(top_word) <= 12:
+            return True
+
+    # CJK: sempre suspeito em PT; em auto também (produto PT-first)
+    lang = (language or "").strip().lower()
+    if lang in ("", "auto", "detect", "pt", "pt-pt", "pt-br"):
+        if _cjk_ratio(t) > 0.2:
+            return True
+        # Cyrillic isolado em blocos curtos (ex.: "Да.")
+        if len(t) <= 40 and _cyrillic_ratio(t) > 0.4:
+            return True
+
+    return False
 
 
 def filter_whisper_segments(segments, language: str | None = None):
@@ -589,6 +636,9 @@ def filter_whisper_segments(segments, language: str | None = None):
             text = (_seg_get(s, "text", "") or "").strip()
             if not text:
                 continue
+            if _is_hallucination_text(text, language):
+                dropped += 1
+                continue
             no_speech = float(_seg_get(s, "no_speech_prob", 0) or 0)
             avg_logprob = float(_seg_get(s, "avg_logprob", 0) or 0)
             compression = float(_seg_get(s, "compression_ratio", 1) or 1)
@@ -599,9 +649,6 @@ def filter_whisper_segments(segments, language: str | None = None):
                 dropped += 1
                 continue
             if compression > compression_max:
-                dropped += 1
-                continue
-            if language == "pt" and _cjk_ratio(text) > 0.2:
                 dropped += 1
                 continue
             filtered.append(s)
@@ -622,12 +669,17 @@ def filter_whisper_segments(segments, language: str | None = None):
     elif dropped:
         logger.info("Whisper: descartados %d segmentos (ruído/alucinação)", dropped)
 
-    if len(non_empty) >= 3 and len(filtered) < max(2, int(len(non_empty) * 0.35)):
-        logger.warning(
-            "Whisper: mantendo %d/%d segmentos com filtro mínimo (muito conteúdo descartado)",
-            len(non_empty), len(non_empty),
-        )
-        return non_empty
+    # Nunca restaurar todos os segmentos — isso reintroduzia alucinações (「」, ok ok ok…).
+    # Preferir trechos sparsos / vazios a spam inventado.
+    if dropped and len(filtered) < len(non_empty):
+        kept_ratio = len(filtered) / max(len(non_empty), 1)
+        if kept_ratio < 0.35:
+            logger.warning(
+                "Whisper: mantidos %d/%d segmentos após filtro (%.0f%% descartado — silêncio/alucinação)",
+                len(filtered),
+                len(non_empty),
+                (1 - kept_ratio) * 100,
+            )
     return filtered
 
 
@@ -643,17 +695,32 @@ def dedupe_consecutive_blocks(text: str) -> str:
     return "\n\n".join(out)
 
 
-def collapse_repeated_phrases(text: str, min_chars: int = 18, max_keep: int = 1) -> str:
-    """Frases longas repetidas 3+ vezes (padrão de alucinação) ficam só uma vez."""
-    blocks = [b.strip() for b in text.split("\n\n") if b.strip()]
+def collapse_word_loops_in_block(block: str) -> str:
+    """Colapsa 'ok, ok, ok, …' / 'sim sim sim' dentro do mesmo bloco."""
+    m = re.match(r"^(\[\d{2}:\d{2}\]\s*)(.*)$", block, flags=re.DOTALL)
+    prefix, body = (m.group(1), m.group(2)) if m else ("", block)
+    # palavra curta repetida 4+ vezes com vírgulas/espaços
+    body = re.sub(
+        r"(?i)\b(\w{1,16})(?:\s*[,;]?\s+\1){3,}\b",
+        r"\1",
+        body,
+        flags=re.UNICODE,
+    )
+    return prefix + body
+
+
+def collapse_repeated_phrases(text: str, min_chars: int = 8, max_keep: int = 1) -> str:
+    """Frases/blocos repetidos (padrão de alucinação) ficam só uma vez."""
+    blocks = [collapse_word_loops_in_block(b.strip()) for b in text.split("\n\n") if b.strip()]
     counts: dict[str, int] = {}
     for block in blocks:
         norm = _normalize_block(block)
         if len(norm) >= min_chars:
             counts[norm] = counts.get(norm, 0) + 1
+    # Também conta loops de palavra única curta entre blocos
     noisy = {n for n, c in counts.items() if c >= 3}
     if not noisy:
-        return text
+        return "\n\n".join(blocks)
     seen: dict[str, int] = {}
     out = []
     for block in blocks:
@@ -672,12 +739,25 @@ def remove_cjk_blocks(text: str) -> str:
     return "\n\n".join(kept)
 
 
+def remove_hallucination_blocks(text: str, language: str | None = None) -> str:
+    blocks = [b.strip() for b in text.split("\n\n") if b.strip()]
+    kept = []
+    for b in blocks:
+        body = _normalize_block(b)
+        if _is_hallucination_text(body, language):
+            continue
+        kept.append(b)
+    return "\n\n".join(kept)
+
+
 def clean_transcription_text(text: str, language: str | None = None) -> str:
     if not text:
         return ""
     text = dedupe_consecutive_blocks(text)
     text = collapse_repeated_phrases(text)
-    if language == "pt":
+    text = remove_hallucination_blocks(text, language)
+    lang = (language or "").strip().lower()
+    if lang in ("", "auto", "detect", "pt", "pt-pt", "pt-br"):
         text = remove_cjk_blocks(text)
     return text.strip()
 
@@ -696,7 +776,8 @@ def whisper_prompt_for_language(language: str | None) -> str | None:
         return "Transcrição em português de Portugal de uma reunião de trabalho ou conversa."
     if language == "en":
         return "English speech transcription of a conversation or presentation."
-    return None
+    # Auto: prompt PT reduz alucinações CJK em silêncio (produto PT-first)
+    return "Transcrição em português. Ignorar silêncio e ruído de fundo."
 
 
 def process_whisper_result(result, language: str | None, offset_seconds: int = 0):
