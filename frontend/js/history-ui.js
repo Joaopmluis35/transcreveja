@@ -111,18 +111,52 @@
       : "Ainda não tens transcrições guardadas nesta conta.";
   }
 
+  function setHistoryCount(n) {
+    var el = document.getElementById("historyCount");
+    if (!el) return;
+    if (!n) {
+      el.hidden = true;
+      el.textContent = "";
+      return;
+    }
+    el.hidden = false;
+    el.textContent = n === 1 ? "1 guardada" : n + " guardadas";
+  }
+
+  function setRowBusy(li, busy) {
+    if (!li) return;
+    li.classList.toggle("is-busy", !!busy);
+    li.querySelectorAll("button").forEach(function (btn) {
+      btn.disabled = !!busy;
+    });
+  }
+
+  async function fetchHistoryRow(id) {
+    await global.OuviescreviAPI.init();
+    var res = await fetch(global.OuviescreviAPI.getBase() + "/api/auth/history/" + id, {
+      headers: global.OuviescreviAPI.authHeaders(),
+    });
+    if (!res.ok) throw new Error();
+    return res.json();
+  }
+
+  function historyText(row) {
+    return (row.formatted || row.transcription || "").trim();
+  }
+
   function renderHistoryItems(items) {
     var list = document.getElementById("historyList");
     if (!list) return;
     list.innerHTML = "";
+    setHistoryCount(items.length);
     items.forEach(function (row) {
       var li = document.createElement("li");
       li.className = "oe-history-item";
       li.dataset.id = String(row.id);
       var name = row.filename || "Sem nome";
-      var preview = (row.preview || "").trim();
+      var preview = (row.preview || "").replace(/\s+/g, " ").trim();
       li.innerHTML =
-        '<button type="button" class="oe-history-item__open">' +
+        '<button type="button" class="oe-history-item__open oe-history-tool">' +
         '<span class="oe-history-item__name">' +
         escapeHtml(name) +
         "</span>" +
@@ -130,20 +164,30 @@
         formatDate(row.created_at) +
         "</span>" +
         (preview
-          ? '<span class="oe-history-item__preview">' + escapeHtml(preview) + "…</span>"
+          ? '<span class="oe-history-item__preview">' + escapeHtml(preview) + "</span>"
           : "") +
         "</button>" +
         '<div class="oe-history-item__actions">' +
-        '<button type="button" class="oe-history-item__share" title="Partilhar link" aria-label="Partilhar">↗</button>' +
-        '<button type="button" class="oe-history-item__rename" title="Renomear" aria-label="Renomear">✎</button>' +
-        '<button type="button" class="oe-history-item__del" title="Apagar" aria-label="Apagar">✕</button>' +
+        '<button type="button" class="oe-history-item__copy oe-history-tool">Copiar</button>' +
+        '<button type="button" class="oe-history-item__txt oe-history-tool">TXT</button>' +
+        '<button type="button" class="oe-history-item__share oe-history-tool">Partilhar</button>' +
+        '<button type="button" class="oe-history-item__rename oe-history-tool">Renomear</button>' +
+        '<button type="button" class="oe-history-item__del oe-history-tool">Apagar</button>' +
         "</div>";
       li.querySelector(".oe-history-item__open").addEventListener("click", function () {
-        openHistoryItem(row.id);
+        openHistoryItem(row.id, li);
+      });
+      li.querySelector(".oe-history-item__copy").addEventListener("click", function (e) {
+        e.stopPropagation();
+        copyHistoryItem(row.id, li);
+      });
+      li.querySelector(".oe-history-item__txt").addEventListener("click", function (e) {
+        e.stopPropagation();
+        downloadHistoryItem(row.id, name, li);
       });
       li.querySelector(".oe-history-item__share").addEventListener("click", function (e) {
         e.stopPropagation();
-        shareHistoryItem(row.id, name);
+        shareHistoryItem(row.id, name, li);
       });
       li.querySelector(".oe-history-item__rename").addEventListener("click", function (e) {
         e.stopPropagation();
@@ -171,7 +215,7 @@
     panel.classList.remove("hidden");
     var q = typeof query === "string" ? query.trim() : currentSearchQuery();
     lastQuery = q;
-    list.innerHTML = "<li class='oe-history-loading'>A carregar…</li>";
+    list.innerHTML = "<li class='oe-history-loading'><span class='oe-history-loading__spinner' aria-hidden='true'></span><span>A carregar…</span></li>";
     if (empty) empty.classList.add("hidden");
 
     try {
@@ -199,6 +243,7 @@
       var items = data.items || [];
       if (!items.length) {
         list.innerHTML = "";
+        setHistoryCount(0);
         syncEmptyState(items, q);
         return;
       }
@@ -209,16 +254,12 @@
     }
   }
 
-  async function openHistoryItem(id) {
+  async function openHistoryItem(id, li) {
+    setRowBusy(li, true);
     try {
-      await global.OuviescreviAPI.init();
-      var res = await fetch(global.OuviescreviAPI.getBase() + "/api/auth/history/" + id, {
-        headers: global.OuviescreviAPI.authHeaders(),
-      });
-      if (!res.ok) throw new Error();
-      var row = await res.json();
-      var texto = row.formatted || row.transcription || "";
-      if (!texto.trim()) return;
+      var row = await fetchHistoryRow(id);
+      var texto = historyText(row);
+      if (!texto) return;
       if (typeof global.definirTranscricao === "function") {
         global.definirTranscricao(texto);
       } else {
@@ -242,6 +283,55 @@
       toast("Transcrição carregada do histórico.", "success");
     } catch (e) {
       toast("Erro ao abrir transcrição.", "error");
+    } finally {
+      setRowBusy(li, false);
+    }
+  }
+
+  async function copyHistoryItem(id, li) {
+    setRowBusy(li, true);
+    try {
+      var row = await fetchHistoryRow(id);
+      var text = historyText(row);
+      if (!text) {
+        toast("Esta transcrição não tem texto.", "error");
+        return;
+      }
+      if (!navigator.clipboard || !navigator.clipboard.writeText) {
+        toast("Não foi possível copiar neste browser.", "error");
+        return;
+      }
+      await navigator.clipboard.writeText(text);
+      toast("Texto copiado.", "success");
+    } catch (e) {
+      toast("Erro ao copiar.", "error");
+    } finally {
+      setRowBusy(li, false);
+    }
+  }
+
+  async function downloadHistoryItem(id, fallbackName, li) {
+    setRowBusy(li, true);
+    try {
+      var row = await fetchHistoryRow(id);
+      var text = historyText(row);
+      if (!text) {
+        toast("Esta transcrição não tem texto.", "error");
+        return;
+      }
+      var base = String(row.filename || fallbackName || "transcricao").replace(/\.[^.]+$/, "");
+      var blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = base + ".txt";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(a.href);
+    } catch (e) {
+      toast("Erro ao descarregar.", "error");
+    } finally {
+      setRowBusy(li, false);
     }
   }
 
@@ -321,7 +411,10 @@
       if (li && li.parentNode) li.parentNode.removeChild(li);
       var list = document.getElementById("historyList");
       if (list && !list.querySelector(".oe-history-item")) {
+        setHistoryCount(0);
         syncEmptyState([], lastQuery);
+      } else if (list) {
+        setHistoryCount(list.querySelectorAll(".oe-history-item").length);
       }
       toast("Transcrição apagada.", "success");
     } catch (e) {

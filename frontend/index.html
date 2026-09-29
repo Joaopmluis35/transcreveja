@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <script>document.documentElement.classList.add("oe-pricing-hidden");</script>
-  <link rel="stylesheet" href="css/ouviescrevi.css?v=32">
-  <link rel="stylesheet" href="css/index-home.css?v=47">
+  <link rel="stylesheet" href="css/ouviescrevi.css?v=35">
+  <link rel="stylesheet" href="css/index-home.css?v=50">
   <link rel="stylesheet" href="css/pricing-visibility.css?v=2">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <link rel="manifest" href="/manifest.webmanifest">
@@ -189,12 +189,6 @@
               </div>
               <textarea id="transcriptionText" aria-labelledby="outputTitle" placeholder="O texto transcrito aparece aqui…"></textarea>
 
-              <section id="transcriptChat" class="oe-transcript-chat hidden" aria-label="Chat sobre a transcrição">
-                <h3 class="oe-transcript-chat__title">💬 Perguntar à IA sobre esta transcrição</h3>
-                <p class="oe-transcript-chat__hint">A IA responde só com base no texto acima.</p>
-                <div id="transcriptChatMessages" class="oe-transcript-chat__messages" role="log" aria-live="polite"></div>
-              </section>
-
               <aside class="oe-output__sidebar" aria-label="Ações sobre a transcrição">
                 <p class="oe-output__sidebar-title">Ações com IA</p>
                 <div class="oe-output__actions btn-group">
@@ -226,7 +220,9 @@
                 <button id="btnRetry" type="button" class="oe-output__retry hidden" onclick="tentarNovamente()"><span>🔁 Tentar novamente</span></button>
               </aside>
 
-              <div id="transcriptChatComposer" class="oe-transcript-chat__composer hidden">
+              <section id="transcriptChat" class="oe-transcript-chat hidden" aria-label="Chat sobre a transcrição">
+                <h3 class="oe-transcript-chat__title">💬 Perguntar à IA sobre esta transcrição</h3>
+                <p class="oe-transcript-chat__hint">A IA responde só com base no texto acima.</p>
                 <form id="transcriptChatForm" class="oe-transcript-chat__form">
                   <div class="oe-transcript-chat__row">
                     <label class="oe-sr-only" for="transcriptChatInput">A tua pergunta</label>
@@ -240,8 +236,14 @@
                   <button type="button" data-q="Quais foram as decisões?"><span>Quais foram as decisões?</span></button>
                   <button type="button" data-q="Quem tem ações?"><span>Quem tem ações?</span></button>
                 </div>
-                <p id="transcriptChatStatus" class="oe-transcript-chat__status" hidden></p>
-              </div>
+                <div class="oe-transcript-chat__thread">
+                  <div id="transcriptChatMessages" class="oe-transcript-chat__messages" role="log" aria-live="polite"></div>
+                  <p id="transcriptChatStatus" class="oe-transcript-chat__status" hidden>
+                    <span class="oe-transcript-chat__spinner" aria-hidden="true"></span>
+                    <span id="transcriptChatStatusText"></span>
+                  </p>
+                </div>
+              </section>
             </section>
           </div>
 
@@ -344,6 +346,7 @@
     <section id="historyPanel" class="oe-history-panel hidden" aria-labelledby="historyPanelTitle">
       <header class="oe-history-panel__head">
         <h2 id="historyPanelTitle" class="oe-history-panel__title">As tuas transcrições</h2>
+        <span id="historyCount" class="oe-history-panel__count" hidden></span>
         <button type="button" id="btnRefreshHistory" class="oe-history-panel__refresh">Atualizar</button>
       </header>
       <div class="oe-history-panel__search">
@@ -552,7 +555,7 @@
 <script src="js/docx-export.js?v=25"></script>
 <script src="js/ouviescrevi-ui.js?v=28"></script>
 <script src="js/pricing-visibility.js?v=26"></script>
-<script src="js/history-ui.js?v=26"></script>
+<script src="js/history-ui.js?v=28"></script>
 <script src="js/upsell-ui.js?v=27"></script>
 <script src="js/share-ui.js?v=28"></script>
 <script src="/js/suggestion-fab.js?v=25" defer></script>
@@ -2790,11 +2793,9 @@
 
   function syncTranscriptChatVisibility() {
     var panel = document.getElementById("transcriptChat");
-    var composer = document.getElementById("transcriptChatComposer");
-    if (!transcriptionText || (!panel && !composer)) return;
+    if (!panel || !transcriptionText) return;
     var hasText = !!(transcriptionText.value || "").trim();
-    if (panel) panel.classList.toggle("hidden", !hasText);
-    if (composer) composer.classList.toggle("hidden", !hasText);
+    panel.classList.toggle("hidden", !hasText);
   }
 
   function resetTranscriptChat() {
@@ -2805,10 +2806,9 @@
     var input = document.getElementById("transcriptChatInput");
     if (input) input.value = "";
     var status = document.getElementById("transcriptChatStatus");
-    if (status) {
-      status.hidden = true;
-      status.textContent = "";
-    }
+    if (status) status.hidden = true;
+    var statusText = document.getElementById("transcriptChatStatusText");
+    if (statusText) statusText.textContent = "";
     var send = document.getElementById("transcriptChatSend");
     if (send) send.disabled = false;
     syncTranscriptChatVisibility();
@@ -2821,19 +2821,23 @@
     bubble.className = "oe-transcript-chat__bubble oe-transcript-chat__bubble--" + (role === "user" ? "user" : "assistant");
     bubble.textContent = content;
     msgs.appendChild(bubble);
+    msgs.hidden = false;
     msgs.scrollTop = msgs.scrollHeight;
+    bubble.scrollIntoView({ block: "nearest" });
   }
 
   function setTranscriptChatStatus(text) {
     var status = document.getElementById("transcriptChatStatus");
+    var label = document.getElementById("transcriptChatStatusText");
     if (!status) return;
     if (!text) {
       status.hidden = true;
-      status.textContent = "";
+      if (label) label.textContent = "";
       return;
     }
     status.hidden = false;
-    status.textContent = text;
+    if (label) label.textContent = text;
+    status.scrollIntoView({ block: "nearest" });
   }
 
   async function enviarPerguntaTranscriptChat(question) {
