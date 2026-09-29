@@ -760,6 +760,26 @@ def chunk_needs_lyrics_retry(segments, language: str | None = None) -> bool:
     return len(usable) >= 6 and n / len(usable) >= 0.7 and len(top) <= 48
 
 
+def _wrong_script_share(segments) -> float:
+    """Fração de segmentos em CJK/cirílico — típico quando o Whisper erra a língua numa reunião PT."""
+    texts = _nonempty_seg_texts(segments)
+    if not texts:
+        return 0.0
+    bad = 0
+    for text in texts:
+        brackets = sum(1 for c in text if c in "「」『』【】〈〉《》")
+        if brackets / max(len(text), 1) > 0.25:
+            bad += 1
+            continue
+        if _cjk_ratio(text) > 0.15 or _cyrillic_ratio(text) > 0.25:
+            bad += 1
+    return bad / len(texts)
+
+
+def _usable_char_count(segments, language: str | None = None) -> int:
+    return sum(len(text) for text in _usable_seg_texts(segments, language))
+
+
 def filter_whisper_segments(segments, language: str | None = None):
     """Remove segmentos com sinais típicos de alucinação do Whisper (silêncio/ruído)."""
     raw = list(segments or [])
@@ -2809,14 +2829,19 @@ def _execute_transcribe_job(
                     part, retries=3, sleep_base=1.0, timeout=WHISPER_TIMEOUT, language=whisper_lang
                 )
                 raw_segs = getattr(result, "segments", []) or []
-                if chunk_needs_lyrics_retry(raw_segs, whisper_lang):
+                pt_site = (ui_locale or "pt").strip().lower()[:2] in ("", "pt")
+                wrong_script = _wrong_script_share(raw_segs)
+                force_pt = pt_site and (whisper_lang or "") != "pt" and wrong_script >= 0.2
+                if force_pt or chunk_needs_lyrics_retry(raw_segs, whisper_lang):
                     logger.warning(
-                        "[%s] Chunk %d/%d só etiquetas/repetição (%d segs) amostras=%s; nova tentativa sem língua forçada",
+                        "[%s] Chunk %d/%d saída fraca (%d segs, script_errado=%.0f%%) amostras=%s; %s",
                         rid,
                         idx + 1,
                         total_parts,
                         len(raw_segs),
+                        wrong_script * 100,
                         _sample_seg_texts(raw_segs),
+                        "nova tentativa em português" if force_pt else "nova tentativa sem língua forçada",
                     )
                     try:
                         retry = transcrever_parte_c_com_retries(
@@ -2824,22 +2849,31 @@ def _execute_transcribe_job(
                             retries=2,
                             sleep_base=1.0,
                             timeout=WHISPER_TIMEOUT,
-                            language=whisper_lang,
-                            temperature=0.2,
-                            skip_language=True,
+                            language="pt" if force_pt else whisper_lang,
+                            temperature=0 if force_pt else 0.2,
+                            skip_language=not force_pt,
                         )
                         retry_segs = getattr(retry, "segments", []) or []
-                        usable_first = len(_usable_seg_texts(raw_segs, whisper_lang))
-                        usable_retry = len(_usable_seg_texts(retry_segs, None))
+                        score_lang = "pt" if force_pt else None
+                        chars_first = _usable_char_count(raw_segs, whisper_lang)
+                        chars_retry = _usable_char_count(retry_segs, score_lang)
                         logger.warning(
-                            "[%s] Retry chunk %d usable %d→%d amostras=%s",
+                            "[%s] Retry chunk %d chars úteis %d→%d amostras=%s",
                             rid,
                             idx + 1,
-                            usable_first,
-                            usable_retry,
+                            chars_first,
+                            chars_retry,
                             _sample_seg_texts(retry_segs),
                         )
-                        if usable_retry > usable_first:
+                        accept = False
+                        if force_pt:
+                            accept = (
+                                _wrong_script_share(retry_segs) < 0.2
+                                and chars_retry >= 40
+                            ) or chars_retry > chars_first
+                        elif chars_retry > chars_first:
+                            accept = True
+                        if accept:
                             result = retry
                             raw_segs = retry_segs
                     except Exception as retry_err:

@@ -164,6 +164,23 @@ def test_repeated_music_description_needs_retry():
     assert app_main.chunk_needs_lyrics_retry(segs, "pt") is False
 
 
+def test_wrong_script_share_flags_meeting_hallucinations():
+    segs = [_seg("「」" * 12) for _ in range(8)]
+    segs.append(_seg("Да."))
+    segs.append(_seg("Bom dia, vamos começar o treino de hoje na sala."))
+    assert app_main._wrong_script_share(segs) >= 0.2
+
+
+def test_wrong_script_share_ignores_original_lyrics():
+    segs = [
+        _seg("Every game you play"),
+        _seg("I'll be watching you"),
+        _seg("You belong to me"),
+        _seg("Eu quero lançar para live depois."),
+    ]
+    assert app_main._wrong_script_share(segs) == 0.0
+
+
 def test_music_tag_does_not_hide_lyrics():
     segs = [
         _seg("Música", no_speech=0.05),
