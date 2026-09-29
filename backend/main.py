@@ -422,9 +422,39 @@ def is_music_only_transcript(text: str) -> bool:
 
 MUSIC_ONLY_WARNING = (
     "Não detetámos fala neste ficheiro — só música/instrumento. "
-    "A transcrição funciona com voz falada (reuniões, aulas, podcasts), "
-    "não com piano ou faixas instrumentais."
+    "A transcrição precisa de fala, narração ou letra cantada (não só instrumental)."
 )
+
+NO_CLEAR_SPEECH_MUSIC_ERROR = (
+    "Parece só música sem voz clara. "
+    "A transcrição precisa de fala, narração ou letra cantada — "
+    "áudio só instrumental ou sem voz perceptível não gera texto útil."
+)
+
+NO_SPEECH_GENERIC_ERROR = (
+    "Não detetámos fala neste áudio. O trecho pode estar em silêncio, "
+    "ser demasiado curto, ou o corte no browser ter falhado — "
+    "escolhe outro trecho com fala e tenta de novo."
+)
+
+
+def is_unusable_whisper_text(text: str, language: str | None = None) -> bool:
+    """True se o texto for etiqueta de música ou slogan de alucinação (sem fala útil)."""
+    t = (text or "").strip()
+    if not t:
+        return True
+    if _MUSIC_ONLY_LINE.match(t) or _MUSIC_ONLY_LINE.match(_normalize_block(t)):
+        return True
+    return _is_hallucination_text(t, language)
+
+
+def raw_segments_are_unusable(segments, language: str | None = None) -> bool:
+    """True se todos os segmentos não-vazios forem música/slogans (sem fala útil)."""
+    texts = [(_seg_get(s, "text", "") or "").strip() for s in (segments or [])]
+    texts = [t for t in texts if t]
+    if not texts:
+        return False
+    return all(is_unusable_whisper_text(t, language) for t in texts)
 
 
 def enforce_transcribe_quota(request: Request) -> dict:
@@ -712,7 +742,12 @@ def filter_whisper_segments(segments, language: str | None = None):
         return filtered, dropped
 
     filtered, dropped = _apply(non_empty, no_speech_max=0.55, logprob_min=-1.15, compression_max=2.4)
-    if len(non_empty) >= 5 and len(filtered) < max(2, int(len(non_empty) * 0.2)):
+    # Relaxed: muitos drops OU strict vazio com algum texto bruto (música+voz: 1–4 segs, no_speech alto)
+    need_relaxed = (
+        (len(non_empty) >= 5 and len(filtered) < max(2, int(len(non_empty) * 0.2)))
+        or (len(filtered) == 0 and len(non_empty) >= 1)
+    )
+    if need_relaxed:
         relaxed, dropped_relaxed = _apply(
             non_empty, no_speech_max=0.82, logprob_min=-1.55, compression_max=2.9
         )
@@ -839,16 +874,40 @@ def whisper_prompt_for_language(language: str | None) -> str | None:
     if WHISPER_PROMPT_OVERRIDE:
         return WHISPER_PROMPT_OVERRIDE
     if language == "pt":
-        return "Transcrição em português de Portugal de uma reunião de trabalho ou conversa."
+        return (
+            "Transcrição em português de Portugal. "
+            "Transcrever fala, narração ou letra cantada quando existirem; "
+            "ignorar silêncio e música só instrumental."
+        )
     if language == "en":
-        return "English speech transcription of a conversation or presentation."
+        return (
+            "English speech transcription. "
+            "Transcribe speech, narration, or sung lyrics when present; "
+            "ignore silence and instrumental-only music."
+        )
     if language == "es":
-        return "Transcripción en español de una conversación o reunión."
+        return (
+            "Transcripción en español. "
+            "Transcribir habla, narración o letra cantada si existen; "
+            "ignorar silencio y música solo instrumental."
+        )
     if language == "fr":
-        return "Transcription en français d'une conversation ou réunion."
+        return (
+            "Transcription en français. "
+            "Transcrire la parole, la narration ou les paroles chantées s'il y en a; "
+            "ignorer le silence et la musique purement instrumentale."
+        )
     if language == "de":
-        return "Transkription auf Deutsch eines Gesprächs oder Meetings."
-    return "Transcrição em português. Ignorar silêncio e ruído de fundo."
+        return (
+            "Transkription auf Deutsch. "
+            "Sprache, Erzählung oder gesungenen Text transkribieren falls vorhanden; "
+            "Stille und rein instrumentale Musik ignorieren."
+        )
+    return (
+        "Transcrição em português. "
+        "Transcrever fala, narração ou letra cantada quando existirem; "
+        "ignorar silêncio e música só instrumental."
+    )
 
 
 def process_whisper_result(result, language: str | None, offset_seconds: int = 0):
@@ -2645,6 +2704,8 @@ def _execute_transcribe_job(
         duration_sec = None
         total_parts = len(parts)
         cancelled_midway = False
+        saw_raw_nonempty = False
+        raw_only_unusable = True
 
         for idx, part in enumerate(parts):
             if _transcribe_job_cancel_requested(job_id):
@@ -2664,6 +2725,12 @@ def _execute_transcribe_job(
                 result = transcrever_parte_c_com_retries(
                     part, retries=3, sleep_base=1.0, timeout=WHISPER_TIMEOUT, language=whisper_lang
                 )
+                raw_segs = getattr(result, "segments", []) or []
+                raw_nonempty = [s for s in raw_segs if (_seg_get(s, "text", "") or "").strip()]
+                if raw_nonempty:
+                    saw_raw_nonempty = True
+                    if not raw_segments_are_unusable(raw_nonempty, whisper_lang):
+                        raw_only_unusable = False
                 text_piece, formatted_piece, kept_segs = process_whisper_result(
                     result, whisper_lang, offset_seconds
                 )
@@ -2765,15 +2832,16 @@ def _execute_transcribe_job(
             )
 
         if not _transcription_has_content(transcription_out, formatted_out) and not warning:
+            empty_error = (
+                NO_CLEAR_SPEECH_MUSIC_ERROR
+                if saw_raw_nonempty and raw_only_unusable
+                else NO_SPEECH_GENERIC_ERROR
+            )
             _transcribe_job_set(
                 job_id,
                 status="failed",
                 progress=100,
-                error=(
-                    "Não detetámos fala neste áudio. O trecho pode estar em silêncio, "
-                    "ser demasiado curto, ou o corte no browser ter falhado — "
-                    "escolhe outro trecho com fala e tenta de novo."
-                ),
+                error=empty_error,
                 message="Sem fala detetada.",
             )
             return

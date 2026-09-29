@@ -127,3 +127,35 @@ def test_clean_removes_cidade_hallucination_blocks():
     )
     cleaned = app_main.clean_transcription_text(text, language="pt")
     assert not cleaned.strip()
+
+
+def test_whisper_prompt_mentions_lyrics():
+    pt = app_main.whisper_prompt_for_language("pt")
+    assert pt and "letra cantada" in pt.lower()
+    assert "reunião de trabalho" not in pt.lower()
+
+
+def test_raw_segments_cidade_are_unusable():
+    segs = [
+        _seg("A CIDADE NO BRASIL"),
+        _seg("A CIDADE NO BRASILEIRO"),
+        _seg("Música"),
+    ]
+    assert app_main.raw_segments_are_unusable(segs, language="pt") is True
+    segs.append(_seg("Bom dia, vamos começar o treino."))
+    assert app_main.raw_segments_are_unusable(segs, language="pt") is False
+
+
+def test_relaxed_keeps_few_narration_segs_when_strict_empty():
+    """Música+voz: poucos segs, no_speech alto e compression que falha no strict."""
+    segs = [
+        _seg(
+            "Vamos começar o aquecimento na sala de fitness.",
+            no_speech=0.78,
+            compression=2.55,
+        ),
+        _seg("A CIDADE NO BRASIL", no_speech=0.95),
+    ]
+    kept = app_main.filter_whisper_segments(segs, language="pt")
+    assert len(kept) == 1
+    assert "aquecimento" in kept[0]["text"].lower()
