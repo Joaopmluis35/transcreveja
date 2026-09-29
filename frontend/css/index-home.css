@@ -1400,6 +1400,23 @@ body.oe-page--home .oe-transcript-chat__send:disabled {
   cursor: not-allowed;
 }
 
+body.oe-page--home .oe-transcript-chat__clear {
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: #fff;
+  color: #4b5563;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+body.oe-page--home .oe-transcript-chat__clear:hover {
+  border-color: #9ca3af;
+  color: #111827;
+}
+
 body.oe-page--home .oe-transcript-chat__status {
   margin: 8px 0 0;
   font-size: 0.8125rem;
@@ -1411,7 +1428,8 @@ body.oe-page--home .oe-transcript-chat__status {
     flex-direction: column;
   }
 
-  body.oe-page--home .oe-transcript-chat__send {
+  body.oe-page--home .oe-transcript-chat__send,
+  body.oe-page--home .oe-transcript-chat__clear {
     width: 100%;
   }
 }

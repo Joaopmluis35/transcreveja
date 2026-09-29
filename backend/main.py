@@ -600,6 +600,22 @@ def _normalize_block(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip().lower()
 
 
+# Frases típicas de alucinação Whisper em silêncio (PT/YouTube), não fala real
+_PT_SILENCE_HALLUCINATION = re.compile(
+    r"^(?:"
+    r"a cidade no brasil(?:eiro)?"
+    r"|obrigad[oa]s? por assistir(?:em)?"
+    r"|inscreva-?se(?: no canal)?"
+    r"|deixe (?:o )?like"
+    r"|legendas?(?:\s+por|\s+by)\b.*"
+    r"|subtitles?(?:\s+by)\b.*"
+    r"|thanks for watching"
+    r"|música de fundo"
+    r")[\s.!?…]*$",
+    re.IGNORECASE,
+)
+
+
 def _is_hallucination_text(text: str, language: str | None = None) -> bool:
     """
     Deteta padrões típicos de alucinação Whisper em silêncio/ruído de ecrã:
@@ -607,6 +623,10 @@ def _is_hallucination_text(text: str, language: str | None = None) -> bool:
     """
     t = (text or "").strip()
     if not t:
+        return True
+
+    norm = _normalize_block(t)
+    if _PT_SILENCE_HALLUCINATION.match(norm):
         return True
 
     # 「」「」 / aspas tipográficas em spam

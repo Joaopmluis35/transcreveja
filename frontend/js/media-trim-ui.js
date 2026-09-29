@@ -762,7 +762,7 @@
       var outMime = "video/mp4";
       var outBlob = await readReadableStreamToBlob(com.output({ maxTime: clipDuration }), outMime);
       if (!outBlob.size) throw new Error("Trecho vazio.");
-      if (audioOnly) assertUsefulAudioBlob(outBlob, Math.max(0.5, endSec - startSec));
+      if (audioOnly) await assertUsefulAudioBlob(outBlob, Math.max(0.5, endSec - startSec));
       onProgress(
         (audioOnly ? "Áudio" : "Vídeo") +
           " do trecho pronto (" +
@@ -888,7 +888,7 @@
       var mime = opts.audioOnly ? "audio/mp4" : file.type || "video/mp4";
       var blob = new Blob([data.buffer], { type: mime });
       if (!blob.size) throw new Error("Trecho FFmpeg vazio.");
-      if (opts.audioOnly) assertUsefulAudioBlob(blob, dur);
+      if (opts.audioOnly) await assertUsefulAudioBlob(blob, dur);
       onProgress("Trecho pronto (" + formatBlobMbLabel(blob.size) + ").");
       var base = (file.name || "media").replace(/\.[^.]+$/, "");
       return new File([blob], base + "_trecho." + (opts.audioOnly ? "m4a" : ext), { type: mime });
@@ -1111,15 +1111,13 @@
           };
           recorder.onstop = function () {
             var blob = new Blob(chunks, { type: mime });
-            try {
-              assertUsefulAudioBlob(blob, segmentSec);
-            } catch (err) {
-              fail(err);
-              return;
-            }
-            onProgress("Áudio do trecho pronto (" + formatBlobMbLabel(blob.size) + ").");
-            var base = (state.file.name || "media").replace(/\.[^.]+$/, "");
-            succeed(new File([blob], base + "_trecho." + mimeToAudioExt(mime), { type: mime }));
+            Promise.resolve(assertUsefulAudioBlob(blob, segmentSec))
+              .then(function () {
+                onProgress("Áudio do trecho pronto (" + formatBlobMbLabel(blob.size) + ").");
+                var base = (state.file.name || "media").replace(/\.[^.]+$/, "");
+                succeed(new File([blob], base + "_trecho." + mimeToAudioExt(mime), { type: mime }));
+              })
+              .catch(fail);
           };
 
           audioCtx
@@ -1175,16 +1173,69 @@
     return Math.max(MIN_AUDIO_BYTES_FLOOR, Math.round(sec * MIN_AUDIO_BYTES_PER_SEC));
   }
 
-  function assertUsefulAudioBlob(blob, segmentSec) {
+  async function assertUsefulAudioBlob(blob, segmentSec) {
     var size = blob && blob.size ? blob.size : 0;
     var need = minUsefulAudioBytes(segmentSec);
-    if (size >= need) return;
-    throw new Error(
-      "O áudio do trecho ficou quase vazio (" +
-        Math.max(1, Math.round(size / 1024)) +
-        " KB) — tipicamente silêncio (falha comum em gravações Meet). " +
-        "Clica «Primeiros 15 min», espera a extração FFmpeg terminar, e tenta no Chrome/Edge."
-    );
+    if (size < need) {
+      throw new Error(
+        "O áudio do trecho ficou quase vazio (" +
+          Math.max(1, Math.round(size / 1024)) +
+          " KB) — tipicamente silêncio (falha comum em gravações Meet). " +
+          "Clica «Primeiros 15 min», espera a extração FFmpeg terminar, e tenta no Chrome/Edge."
+      );
+    }
+    return assertAudioHasEnergy(blob);
+  }
+
+  /**
+   * Byte-size não deteta WAV PCM silencioso (~mesmo tamanho). Mede pico/RMS via Web Audio.
+   * Se o decode falhar, não bloqueia (já passou o tamanho mínimo).
+   */
+  async function measureAudioEnergy(blob) {
+    if (!blob || !blob.size) return { peak: 0, rms: 0 };
+    var AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return null;
+    var ctx = new AudioCtx();
+    try {
+      var ab = await blob.arrayBuffer();
+      var buf = await ctx.decodeAudioData(ab.slice(0));
+      var ch = buf.numberOfChannels > 0 ? buf.getChannelData(0) : null;
+      if (!ch || !ch.length) return { peak: 0, rms: 0 };
+      var step = Math.max(1, Math.floor(ch.length / 250000));
+      var sum = 0;
+      var peak = 0;
+      var n = 0;
+      for (var i = 0; i < ch.length; i += step) {
+        var v = Math.abs(ch[i]);
+        sum += v * v;
+        if (v > peak) peak = v;
+        n++;
+      }
+      return { peak: peak, rms: Math.sqrt(sum / Math.max(n, 1)) };
+    } finally {
+      try {
+        await ctx.close();
+      } catch (_) {}
+    }
+  }
+
+  async function assertAudioHasEnergy(blob) {
+    try {
+      var e = await measureAudioEnergy(blob);
+      if (!e) return;
+      // Silêncio quase total: Whisper inventa slogans PT («A CIDADE NO BRASIL», etc.)
+      if (e.peak < 0.008 && e.rms < 0.0015) {
+        throw new Error(
+          "O áudio extraído no browser parece silêncio (sem energia útil). " +
+            "Tenta «Só um trecho» (ex.: primeiros 15 min) ou outro browser (Chrome/Edge)."
+        );
+      }
+    } catch (err) {
+      if (err && /silêncio|quase vazio|sem energia/i.test(String(err.message || ""))) {
+        throw err;
+      }
+      console.warn("OuviescreviMediaTrim: verificação de energia ignorada", err);
+    }
   }
 
   function formatBlobMbLabel(size) {
@@ -1218,7 +1269,7 @@
           var ffAudio = await extractSegmentViaFfmpegMount(file, startSec, endSec, onProgress, {
             audioOnly: true,
           });
-          assertUsefulAudioBlob(ffAudio, segmentSec);
+          await assertUsefulAudioBlob(ffAudio, segmentSec);
           return ffAudio;
         } catch (err) {
           lastErr = err;
@@ -1229,7 +1280,7 @@
           var webAvAudio = await extractSegmentViaWebAV(file, startSec, endSec, onProgress, {
             audioOnly: true,
           });
-          assertUsefulAudioBlob(webAvAudio, segmentSec);
+          await assertUsefulAudioBlob(webAvAudio, segmentSec);
           return webAvAudio;
         } catch (err) {
           lastErr = err;
@@ -1342,7 +1393,7 @@
         var data = await ffmpeg.readFile(outName);
         var mime = wantAudio ? "audio/wav" : file.type || "application/octet-stream";
         var blob = new Blob([data.buffer], { type: mime });
-        if (wantAudio) assertUsefulAudioBlob(blob, segmentSec);
+        if (wantAudio) await assertUsefulAudioBlob(blob, segmentSec);
         var base = (file.name || "media").replace(/\.[^.]+$/, "");
         var outExt = wantAudio ? "wav" : ext;
         return new File([blob], base + "_trecho." + outExt, { type: mime });
@@ -1428,8 +1479,20 @@
         if (!(durHint > 0)) {
           throw new Error("Não foi possível ler a duração do vídeo para extrair o áudio.");
         }
-        var extracted = await trimClientSide(file, 0, durHint, onProgress, { audioOnly: true });
-        return { file: extracted, trimmed: true, fullFileAudio: true };
+        try {
+          var extracted = await trimClientSide(file, 0, durHint, onProgress, { audioOnly: true });
+          return { file: extracted, trimmed: true, fullFileAudio: true };
+        } catch (err) {
+          // Extração silenciosa/falhada: enviar o vídeo original se ainda couber no limite
+          if (!isOverUploadLimit(file)) {
+            console.warn("OuviescreviMediaTrim: extract completo falhou — fallback vídeo", err);
+            onProgress(
+              "Extração de áudio falhou — a enviar o vídeo original (mais lento, mas fiável)…"
+            );
+            return { file: file, trimmed: false, extractFallback: true };
+          }
+          throw err;
+        }
       }
       return { file: file, trimmed: false };
     }
@@ -1454,6 +1517,13 @@
         });
         return { file: fullAudio, trimmed: true, fullFileAudio: true };
       } catch (err) {
+        if (opts.audioOnly && !isOverUploadLimit(file)) {
+          console.warn("OuviescreviMediaTrim: extract completo falhou — fallback vídeo", err);
+          onProgress(
+            "Extração de áudio falhou — a enviar o vídeo original (mais lento, mas fiável)…"
+          );
+          return { file: file, trimmed: false, extractFallback: true };
+        }
         throw new Error(
           (err && err.message) ||
             "Não foi possível extrair o áudio completo. Tenta «Só um trecho» (ex.: primeiros 15 min)."

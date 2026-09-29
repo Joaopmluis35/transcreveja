@@ -106,3 +106,24 @@ def test_is_music_only_transcript():
     assert app_main.is_music_only_transcript("[Music]")
     assert not app_main.is_music_only_transcript("[00:00] Música\n\n[00:12] Olá a todos")
     assert not app_main.is_music_only_transcript("")
+
+
+def test_filter_drops_pt_silence_slogans():
+    segs = [
+        _seg("A CIDADE NO BRASIL"),
+        _seg("A CIDADE NO BRASILEIRO"),
+        _seg("Obrigado por assistir"),
+        _seg("Bom dia, vamos começar o treino de hoje na sala."),
+    ]
+    kept = app_main.filter_whisper_segments(segs, language="pt")
+    assert len(kept) == 1
+    assert "treino" in kept[0]["text"].lower()
+
+
+def test_clean_removes_cidade_hallucination_blocks():
+    text = (
+        "[00:00] A CIDADE NO BRASIL\n\n"
+        "[10:00] A CIDADE NO BRASILEIRO"
+    )
+    cleaned = app_main.clean_transcription_text(text, language="pt")
+    assert not cleaned.strip()
