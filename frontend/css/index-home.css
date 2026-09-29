@@ -957,9 +957,16 @@ body.oe-page--home #adminContent {
   max-width: 1280px;
 }
 
-body.oe-page--home.oe-logged-in #adminContent {
-  padding-left: 196px;
+body.oe-page--home.oe-logged-in main {
+  align-items: stretch;
+  padding-left: 208px;
   box-sizing: border-box;
+}
+
+body.oe-page--home.oe-logged-in #adminContent {
+  margin-left: 0;
+  margin-right: auto;
+  padding-left: 0;
 }
 
 body.oe-page--home .oe-account-nav {
@@ -971,8 +978,8 @@ body.oe-page--home.oe-logged-in .oe-account-nav {
   flex-direction: column;
   gap: 8px;
   position: fixed;
-  top: 88px;
-  left: max(16px, calc(50vw - 640px + 8px));
+  top: 116px;
+  left: 12px;
   width: 176px;
   z-index: 30;
   padding: 12px;
@@ -1028,8 +1035,12 @@ body.oe-page--home .oe-account-nav__btn.is-active {
 }
 
 @media (max-width: 900px) {
+  body.oe-page--home.oe-logged-in main {
+    padding-left: 20px;
+  }
+
   body.oe-page--home.oe-logged-in #adminContent {
-    padding-left: 0;
+    margin-right: 0;
   }
 
   body.oe-page--home.oe-logged-in .oe-account-nav {
