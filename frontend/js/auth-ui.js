@@ -309,12 +309,18 @@
     var logoutBtn = document.getElementById("oeAuthLogout");
     var logged = isLoggedIn();
     if (userEl) {
-      userEl.textContent = logged ? getDisplayLabel() : "";
+      var label = logged ? getDisplayLabel() : "";
+      var email = logged ? storageGet(SITE_EMAIL_KEY) || label : "";
+      userEl.textContent = label;
+      userEl.title = email || "";
       userEl.classList.toggle("hidden", !logged);
     }
     if (loginBtn) loginBtn.classList.toggle("hidden", logged);
     if (regBtn) regBtn.classList.toggle("hidden", logged);
-    if (logoutBtn) logoutBtn.classList.toggle("hidden", !logged);
+    if (logoutBtn) {
+      logoutBtn.classList.toggle("hidden", !logged);
+      logoutBtn.title = logged ? storageGet(SITE_EMAIL_KEY) || getDisplayLabel() || "" : "";
+    }
   }
 
   function bindChrome() {
