@@ -7,6 +7,8 @@
   var CLIENT_TRIM_MIN_MB = 50;
   var CLIENT_TRIM_MAX_SEGMENT_RATIO = 0.85;
   var CLIENT_TRIM_LARGE_MB = 120;
+  /** Em «Ficheiro completo» + transcrição: extrair áudio se o vídeo for ≥ isto (upload mais rápido). */
+  var FULL_FILE_AUDIO_EXTRACT_MIN_MB = 20;
   /** Acima disto o FFmpeg.wasm tende a falhar — usar WebAV (corte rápido). */
   var WASM_TRIM_MAX_BYTES = 150 * 1024 * 1024;
   /** MediaRecorder grava em tempo real — último recurso se WebAV/FFmpeg falharem. */
@@ -268,7 +270,7 @@
         "Com um trecho escolhido, cortamos no teu dispositivo antes do envio.";
     } else {
       note.textContent =
-        "Ficheiro completo: enviamos o vídeo e o servidor extrai o áudio (mais fiável).";
+        "Ficheiro completo: extraímos o áudio no browser (rápido). Se falhar, tentamos o vídeo original.";
     }
   }
 
@@ -1459,10 +1461,9 @@
   function shouldExtractFullAudioForTranscribe(file, opts) {
     if (!opts || !opts.audioOnly) return false;
     if (!isLikelyVideoFile(file)) return false;
-    // Só extrair no browser quando o vídeo NÃO cabe no upload — senão o servidor
-    // demuxa com FFmpeg (mais fiável em WhatsApp/CapCut; extract local pode
-    // “passar” com energia de música mas sem voz útil para o Whisper).
-    return isOverUploadLimit(file);
+    // Vídeos médios/grandes: extrair áudio no browser (upload rápido). Se o resultado
+    // vier vazio, o index.html reenvia o MP4 original uma vez (fiabilidade).
+    return isOverUploadLimit(file) || fileSizeMb(file) >= FULL_FILE_AUDIO_EXTRACT_MIN_MB;
   }
 
   async function prepareForUpload(file, onProgress, opts) {
