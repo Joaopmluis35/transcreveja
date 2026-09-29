@@ -69,10 +69,11 @@ def test_looks_like_real_speech_keeps_quiet_pt():
     assert not app_main._looks_like_real_speech("「」「」「」「」「」", "pt")
 
 
-def test_resolve_auto_defaults_to_pt_on_pt_ui():
-    assert app_main.resolve_whisper_language(None, "pt") == "pt"
-    assert app_main.resolve_whisper_language("auto", None) == "pt"
-    assert app_main.resolve_whisper_language("auto", "en") == "en"
+def test_resolve_auto_keeps_original_language():
+    assert app_main.resolve_whisper_language(None, "pt") is None
+    assert app_main.resolve_whisper_language("auto", "pt") is None
+    assert app_main.resolve_whisper_language("auto", "en") is None
+    assert app_main.resolve_whisper_language("pt", "en") == "pt"
     assert app_main.resolve_whisper_language("es", "pt") == "es"
 
 

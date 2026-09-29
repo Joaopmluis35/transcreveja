@@ -976,13 +976,8 @@ def resolve_whisper_language(
     lang = (form_language or WHISPER_LANGUAGE or "").strip().lower()
     if lang and lang not in ("auto", "detect"):
         return lang
-    # Auto / vazio: na UI PT (ou sem locale) força pt — evita alucinações CJK
-    # em silêncio e áudio baixo no início de reuniões/gravações de ecrã.
-    loc = (ui_locale or "").strip().lower()[:2]
-    if loc in ("", "pt"):
-        return "pt"
-    if loc in ("en", "es", "fr", "de"):
-        return loc
+    # Auto: não forçar a língua da interface. Forçar pt faz o Whisper
+    # escrever português por cima de letra noutra língua.
     return None
 
 
