@@ -1334,29 +1334,36 @@ body.oe-page--home .oe-transcript-chat__bubble--assistant {
 }
 
 body.oe-page--home .oe-transcript-chat__suggestions {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
-  margin-bottom: 10px;
+  margin-top: 10px;
 }
 
-body.oe-page--home .oe-transcript-chat__chip {
-  border: 1px solid #e5e7eb;
-  background: #fff;
-  color: #374151;
-  border-radius: 999px;
-  padding: 6px 12px;
-  font-size: 0.8125rem;
-  cursor: pointer;
-  transition: border-color 0.15s ease, color 0.15s ease;
+body.oe-page--home .oe-transcript-chat__suggestions button {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
 }
 
-body.oe-page--home .oe-transcript-chat__chip:hover {
-  border-color: #a550f7;
-  color: #7c3aed;
+body.oe-page--home .oe-transcript-chat__composer {
+  margin-top: 12px;
+}
+
+@media (max-width: 640px) {
+  body.oe-page--home .oe-transcript-chat__suggestions {
+    grid-template-columns: 1fr;
+  }
 }
 
 body.oe-page--home .oe-transcript-chat__form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: stretch;
+}
+
+body.oe-page--home .oe-transcript-chat__row {
   display: flex;
   gap: 8px;
   align-items: stretch;
@@ -1424,7 +1431,7 @@ body.oe-page--home .oe-transcript-chat__status {
 }
 
 @media (max-width: 767px) {
-  body.oe-page--home .oe-transcript-chat__form {
+  body.oe-page--home .oe-transcript-chat__row {
     flex-direction: column;
   }
 
