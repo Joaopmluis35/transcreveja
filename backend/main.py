@@ -690,15 +690,23 @@ def _is_hallucination_text(text: str, language: str | None = None) -> bool:
     return False
 
 
+def _latin_letter_count(text: str) -> int:
+    return sum(
+        1
+        for c in text
+        if ("A" <= c <= "Z") or ("a" <= c <= "z") or c in "áàâãéêíóôõúçÁÀÂÃÉÊÍÓÔÕÚÇ"
+    )
+
+
 def _looks_like_real_speech(text: str, language: str | None = None) -> bool:
-    """Texto com aparência de fala real (não spam) — útil para áudio baixo no início."""
+    """Texto com aparência de fala/letra (não spam) — útil com música de fundo."""
     t = (text or "").strip()
-    if len(t) < 10:
+    if len(t) < 6:
         return False
     if _is_hallucination_text(t, language):
         return False
-    letters = sum(1 for c in t if ("A" <= c <= "Z") or ("a" <= c <= "z") or c in "áàâãéêíóôõúçÁÀÂÃÉÊÍÓÔÕÚÇ")
-    return letters >= 8 and (letters / max(len(t), 1)) >= 0.35
+    letters = _latin_letter_count(t)
+    return letters >= 4 and (letters / max(len(t), 1)) >= 0.35
 
 
 def filter_whisper_segments(segments, language: str | None = None):
@@ -735,7 +743,8 @@ def filter_whisper_segments(segments, language: str | None = None):
             if avg_logprob < logprob_min and not realish:
                 dropped += 1
                 continue
-            if compression > compression_max:
+            # Refrão/letra repetida sobe compression — não deitar fora fala clara
+            if compression > compression_max and not realish:
                 dropped += 1
                 continue
             filtered.append(s)
@@ -760,6 +769,36 @@ def filter_whisper_segments(segments, language: str | None = None):
             dropped = dropped_relaxed
     elif dropped:
         logger.info("Whisper: descartados %d segmentos (ruído/alucinação)", dropped)
+
+    # Música+voz: métricas (no_speech/compression) podem zerar tudo. Recuperar
+    # linhas que não são alucinação conhecida, sem restaurar CJK/loops/slogans.
+    if not filtered and non_empty:
+        salvaged = []
+        for s in non_empty:
+            text = (_seg_get(s, "text", "") or "").strip()
+            if _is_hallucination_text(text, language):
+                continue
+            if _latin_letter_count(text) < 4:
+                continue
+            salvaged.append(s)
+        if salvaged:
+            logger.warning(
+                "Whisper: salvage música/voz manteve %d/%d (métricas tinham zerado)",
+                len(salvaged),
+                len(non_empty),
+            )
+            filtered = salvaged
+        else:
+            samples = []
+            for s in non_empty[:8]:
+                sample = ((_seg_get(s, "text", "") or "").strip())[:80]
+                if sample and sample not in samples:
+                    samples.append(sample)
+            logger.warning(
+                "Whisper: 0/%d após filtro; amostras=%s",
+                len(non_empty),
+                samples,
+            )
 
     # Nunca restaurar todos os segmentos — isso reintroduzia alucinações (「」, ok ok ok…).
     if dropped and len(filtered) < len(non_empty):

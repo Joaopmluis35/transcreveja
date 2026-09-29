@@ -146,6 +146,21 @@ def test_raw_segments_cidade_are_unusable():
     assert app_main.raw_segments_are_unusable(segs, language="pt") is False
 
 
+def test_salvage_keeps_lyrics_when_metrics_wipe_all():
+    """Música com letra: no_speech e compression extremos não podem zerar o texto."""
+    segs = [
+        _seg("Vamos todos", no_speech=0.97, logprob=-2.1, compression=3.4),
+        _seg("Vamos com tudo agora", no_speech=0.96, logprob=-1.9, compression=3.2),
+        _seg("A CIDADE NO BRASIL", no_speech=0.99, compression=4.0),
+        _seg("「」" * 12, no_speech=0.2),
+    ]
+    kept = app_main.filter_whisper_segments(segs, language="pt")
+    texts = " ".join(s["text"] for s in kept).lower()
+    assert "vamos todos" in texts
+    assert "vamos com tudo" in texts
+    assert "cidade" not in texts
+
+
 def test_relaxed_keeps_few_narration_segs_when_strict_empty():
     """Música+voz: poucos segs, no_speech alto e compression que falha no strict."""
     segs = [
