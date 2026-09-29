@@ -270,7 +270,7 @@
         "Com um trecho escolhido, cortamos no teu dispositivo antes do envio.";
     } else {
       note.textContent =
-        "Ficheiro completo: extraímos o áudio no browser (rápido). Se falhar, tentamos o vídeo original.";
+        "Ficheiro completo: extraímos o áudio no browser e enviamos só o som (mais rápido).";
     }
   }
 
