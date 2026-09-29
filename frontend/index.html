@@ -552,7 +552,7 @@
 <script src="js/share-ui.js?v=28"></script>
 <script src="/js/suggestion-fab.js?v=25" defer></script>
 <script src="/js/feedback-pulse.js?v=1" defer></script>
-  <script src="/js/media-trim-ui.js?v=44" defer></script>
+  <script src="/js/media-trim-ui.js?v=45" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
   const ADMIN_EMAIL = "admin@ouviescrevi.pt";
@@ -1242,18 +1242,8 @@
                 " MB de vídeo). Cancela e tenta outra vez — vamos extrair só o áudio."
             );
           }
-          // Segurança: nunca enviar o MP4 gigante se a extração de áudio falhou em silêncio
-          if (
-            isVideoFile(file) &&
-            fileSizeMb(file) >= 20 &&
-            uploadFile === file
-          ) {
-            throw new Error(
-              "Não foi possível preparar o áudio deste vídeo (" +
-                formatMb(fileSizeMb(file)) +
-                " MB). Escolhe «Só um trecho» (ex.: primeiros 15 min) ou tenta de novo — não enviamos o vídeo completo."
-            );
-          }
+          // Vídeos abaixo do limite de upload: enviar o original (servidor extrai áudio).
+          // Acima do limite: prepareForUpload já falha se a extração no browser não der.
           formData.append("file", uploadFile);
           if (!prepared.trimmed) OuviescreviMediaTrim.appendToFormData(formData);
         } else {
