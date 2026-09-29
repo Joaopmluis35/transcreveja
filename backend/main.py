@@ -669,13 +669,13 @@ def _is_hallucination_text(text: str, language: str | None = None) -> bool:
     if len(compact) >= 12 and len(set(compact)) <= 3:
         return True
 
-    # Loops de palavra curta: "ok, ok, ok, …"
+    # Loops extremos: "ok, ok, ok, …" — refrões com uma palavra repetida não contam
     words = re.findall(r"\w+", t.lower(), flags=re.UNICODE)
-    if len(words) >= 6:
+    if len(words) >= 8:
         from collections import Counter
 
         top_word, top_n = Counter(words).most_common(1)[0]
-        if top_n / len(words) >= 0.65 and len(top_word) <= 12:
+        if top_n / len(words) >= 0.85 and len(top_word) <= 8:
             return True
 
     # CJK: sempre suspeito em PT; em auto também (produto PT-first)
@@ -810,7 +810,33 @@ def filter_whisper_segments(segments, language: str | None = None):
                 len(non_empty),
                 (1 - kept_ratio) * 100,
             )
+
+    kept_texts = [(_seg_get(s, "text", "") or "").strip() for s in filtered]
+    if kept_texts and all(_is_music_tag_text(t) for t in kept_texts):
+        lyrics = []
+        for s in non_empty:
+            text = (_seg_get(s, "text", "") or "").strip()
+            if not text or _is_music_tag_text(text):
+                continue
+            if _is_hallucination_text(text, language):
+                continue
+            if _latin_letter_count(text) < 4:
+                continue
+            lyrics.append(s)
+        if lyrics:
+            logger.warning(
+                "Whisper: etiqueta Música substituída por %d linhas de letra/fala",
+                len(lyrics),
+            )
+            filtered = lyrics
     return filtered
+
+
+def _is_music_tag_text(text: str) -> bool:
+    t = (text or "").strip()
+    if not t:
+        return False
+    return bool(_MUSIC_ONLY_LINE.match(t) or _MUSIC_ONLY_LINE.match(_normalize_block(t)))
 
 
 def dedupe_consecutive_blocks(text: str) -> str:
@@ -915,8 +941,8 @@ def whisper_prompt_for_language(language: str | None) -> str | None:
     if language == "pt":
         return (
             "Transcrição em português de Portugal. "
-            "Transcrever fala, narração ou letra cantada quando existirem; "
-            "ignorar silêncio e música só instrumental."
+            "Transcrever fala, narração e letra cantada, incluindo canções. "
+            "Não substituir a letra pela palavra Música."
         )
     if language == "en":
         return (

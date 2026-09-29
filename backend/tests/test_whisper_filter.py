@@ -132,7 +132,21 @@ def test_clean_removes_cidade_hallucination_blocks():
 def test_whisper_prompt_mentions_lyrics():
     pt = app_main.whisper_prompt_for_language("pt")
     assert pt and "letra cantada" in pt.lower()
+    assert "não substituir" in pt.lower()
     assert "reunião de trabalho" not in pt.lower()
+
+
+def test_music_tag_does_not_hide_lyrics():
+    segs = [
+        _seg("Música", no_speech=0.05),
+        _seg("Canta", no_speech=0.95, logprob=-1.4, compression=1.2),
+        _seg("A CIDADE NO BRASIL", no_speech=0.2),
+    ]
+    kept = app_main.filter_whisper_segments(segs, language="pt")
+    texts = " ".join(s["text"] for s in kept).lower()
+    assert "canta" in texts
+    assert "cidade" not in texts
+    assert "música" not in texts
 
 
 def test_raw_segments_cidade_are_unusable():
