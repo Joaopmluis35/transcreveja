@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <script>document.documentElement.classList.add("oe-pricing-hidden");</script>
-  <link rel="stylesheet" href="css/ouviescrevi.css?v=35">
-  <link rel="stylesheet" href="css/index-home.css?v=50">
+  <link rel="stylesheet" href="css/ouviescrevi.css?v=36">
+  <link rel="stylesheet" href="css/index-home.css?v=51">
   <link rel="stylesheet" href="css/pricing-visibility.css?v=2">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <link rel="manifest" href="/manifest.webmanifest">
@@ -37,6 +37,16 @@
 <main id="mainContent">
   <h1 class="oe-visually-hidden">Ouviescrevi — Transcrição de Áudio e Vídeo com IA Grátis</h1>
   <div id="adminContent">
+    <aside id="oeAccountNav" class="oe-account-nav" hidden>
+      <p class="oe-account-nav__label">Navegação</p>
+      <nav class="oe-account-nav__list" aria-label="Conta">
+        <button type="button" class="oe-account-nav__btn is-active" data-oe-nav="transcribe">Transcrever</button>
+        <button type="button" class="oe-account-nav__btn" data-oe-nav="history">Histórico</button>
+        <a class="oe-account-nav__link" href="resumo.html">Resumo</a>
+        <a class="oe-account-nav__link" href="perguntas.html">Perguntas</a>
+        <a class="oe-account-nav__link" href="ajuda.html">Ajuda</a>
+      </nav>
+    </aside>
     <div id="cmsHomeIntro" class="oe-home-intro" data-cms-key="home_intro_html" data-cms-mode="html">
       <p><strong>Áudio ou vídeo → texto em minutos.</strong></p>
       <p class="oe-home-intro__sub">Grátis para começar. Escolhe o ficheiro e clica em Transcrever.</p>
@@ -349,19 +359,32 @@
         <span id="historyCount" class="oe-history-panel__count" hidden></span>
         <button type="button" id="btnRefreshHistory" class="oe-history-panel__refresh">Atualizar</button>
       </header>
-      <div class="oe-history-panel__search">
-        <label class="oe-sr-only" for="historySearch">Pesquisar no histórico</label>
-        <input
-          type="search"
-          id="historySearch"
-          class="oe-history-panel__search-input"
-          placeholder="Pesquisar por nome ou texto…"
-          autocomplete="off"
-        >
-        <button type="button" id="btnClearHistorySearch" class="oe-history-panel__search-clear" title="Limpar pesquisa">Limpar</button>
+      <div class="oe-history-split">
+        <div class="oe-history-split__list">
+          <div class="oe-history-panel__search">
+            <label class="oe-sr-only" for="historySearch">Pesquisar no histórico</label>
+            <input
+              type="search"
+              id="historySearch"
+              class="oe-history-panel__search-input"
+              placeholder="Pesquisar por nome ou texto…"
+              autocomplete="off"
+            >
+            <button type="button" id="btnClearHistorySearch" class="oe-history-panel__search-clear" title="Limpar pesquisa">Limpar</button>
+          </div>
+          <ul id="historyList" class="oe-history-list" aria-live="polite"></ul>
+          <p id="historyEmpty" class="oe-history-empty hidden">Ainda não tens transcrições guardadas nesta conta.</p>
+        </div>
+        <aside class="oe-history-reader" id="historyReader" aria-live="polite">
+          <p class="oe-history-reader__empty" id="historyReaderEmpty">Escolhe uma transcrição para ver o texto completo aqui ao lado.</p>
+          <div class="oe-history-reader__view hidden" id="historyReaderView">
+            <h3 class="oe-history-reader__title" id="historyReaderTitle"></h3>
+            <p class="oe-history-reader__meta" id="historyReaderMeta"></p>
+            <pre class="oe-history-reader__text" id="historyReaderText"></pre>
+            <button type="button" id="historyReaderUse" class="oe-history-tool">Usar no editor</button>
+          </div>
+        </aside>
       </div>
-      <ul id="historyList" class="oe-history-list" aria-live="polite"></ul>
-      <p id="historyEmpty" class="oe-history-empty hidden">Ainda não tens transcrições guardadas nesta conta.</p>
     </section>
 
     <div id="subtitlePanelWrap" class="oe-subtitle-wrap hidden" aria-live="polite">
@@ -555,7 +578,7 @@
 <script src="js/docx-export.js?v=25"></script>
 <script src="js/ouviescrevi-ui.js?v=28"></script>
 <script src="js/pricing-visibility.js?v=26"></script>
-<script src="js/history-ui.js?v=28"></script>
+<script src="js/history-ui.js?v=29"></script>
 <script src="js/upsell-ui.js?v=27"></script>
 <script src="js/share-ui.js?v=28"></script>
 <script src="/js/suggestion-fab.js?v=25" defer></script>

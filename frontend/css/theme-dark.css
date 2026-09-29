@@ -251,7 +251,23 @@ html.oe-theme-dark body.oe-page--home #uploadAlert.oe-upload-alert {
   color: #fde68a;
 }
 
-html.oe-theme-dark body.oe-page--home .oe-history-panel {
+html.oe-theme-dark body.oe-page--home.oe-logged-in .oe-account-nav,
+html.oe-theme-dark body.oe-page--home.oe-logged-in .oe-history-reader {
+  background: var(--pro-surface);
+  border-color: var(--pro-border);
+}
+
+html.oe-theme-dark body.oe-page--home .oe-account-nav__btn,
+html.oe-theme-dark body.oe-page--home .oe-account-nav__link,
+html.oe-theme-dark body.oe-page--home .oe-history-reader__title,
+html.oe-theme-dark body.oe-page--home .oe-history-reader__text {
+  color: var(--pro-text);
+}
+
+html.oe-theme-dark body.oe-page--home .oe-history-reader__text {
+  background: #0f172a;
+  border-color: var(--pro-border);
+}
   background: var(--pro-surface);
   border-color: var(--pro-border);
 }
@@ -382,16 +398,16 @@ html.oe-theme-dark .oe-seo-block p {
 }
 
 html.oe-theme-dark .oe-btn,
-html.oe-theme-dark .oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(#oeThemeToggle):not(.oe-fc-card):not(.oe-fc-export__btn):not(.oe-transcript-chat__chip):not(.oe-history-item__open):not(.oe-history-item__share):not(.oe-history-item__rename):not(.oe-history-item__del):not(.oe-history-panel__refresh):not(.oe-history-panel__search-clear):not(.oe-history-tool),
-html.oe-theme-dark .container button:not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card):not(.oe-fc-export__btn):not(.oe-transcript-chat__chip):not(.oe-history-item__open):not(.oe-history-item__share):not(.oe-history-item__rename):not(.oe-history-item__del):not(.oe-history-panel__refresh):not(.oe-history-panel__search-clear):not(.oe-history-tool) {
+html.oe-theme-dark .oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(#oeThemeToggle):not(.oe-fc-card):not(.oe-fc-export__btn):not(.oe-transcript-chat__chip):not(.oe-history-item__open):not(.oe-history-item__share):not(.oe-history-item__rename):not(.oe-history-item__del):not(.oe-history-panel__refresh):not(.oe-history-panel__search-clear):not(.oe-history-tool):not(.oe-account-nav__btn),
+html.oe-theme-dark .container button:not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card):not(.oe-fc-export__btn):not(.oe-transcript-chat__chip):not(.oe-history-item__open):not(.oe-history-item__share):not(.oe-history-item__rename):not(.oe-history-item__del):not(.oe-history-panel__refresh):not(.oe-history-panel__search-clear):not(.oe-history-tool):not(.oe-account-nav__btn) {
   background: var(--oe-btn-bg) !important;
   color: var(--oe-btn-text) !important;
   border-color: var(--oe-btn-border) !important;
 }
 
 html.oe-theme-dark .oe-btn:hover:not(:disabled),
-html.oe-theme-dark .oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(#oeThemeToggle):not(.oe-fc-card):not(.oe-fc-export__btn):not(.oe-transcript-chat__chip):not(.oe-history-item__open):not(.oe-history-item__share):not(.oe-history-item__rename):not(.oe-history-item__del):not(.oe-history-panel__refresh):not(.oe-history-panel__search-clear):not(.oe-history-tool):hover:not(:disabled),
-html.oe-theme-dark .container button:not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card):not(.oe-fc-export__btn):not(.oe-transcript-chat__chip):not(.oe-history-item__open):not(.oe-history-item__share):not(.oe-history-item__rename):not(.oe-history-item__del):not(.oe-history-panel__refresh):not(.oe-history-panel__search-clear):not(.oe-history-tool):hover:not(:disabled) {
+html.oe-theme-dark .oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(#oeThemeToggle):not(.oe-fc-card):not(.oe-fc-export__btn):not(.oe-transcript-chat__chip):not(.oe-history-item__open):not(.oe-history-item__share):not(.oe-history-item__rename):not(.oe-history-item__del):not(.oe-history-panel__refresh):not(.oe-history-panel__search-clear):not(.oe-history-tool):not(.oe-account-nav__btn):hover:not(:disabled),
+html.oe-theme-dark .container button:not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card):not(.oe-fc-export__btn):not(.oe-transcript-chat__chip):not(.oe-history-item__open):not(.oe-history-item__share):not(.oe-history-item__rename):not(.oe-history-item__del):not(.oe-history-panel__refresh):not(.oe-history-panel__search-clear):not(.oe-history-tool):not(.oe-account-nav__btn):hover:not(:disabled) {
   background: var(--oe-gradient) !important;
   color: #fff !important;
   border-color: transparent !important;

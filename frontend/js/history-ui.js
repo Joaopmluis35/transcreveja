@@ -4,6 +4,7 @@
 (function (global) {
   var searchTimer = null;
   var lastQuery = "";
+  var loadedReader = null;
 
   function isSiteUser() {
     var role = (function () {
@@ -254,33 +255,70 @@
     }
   }
 
+  function showHistoryReader(row, li) {
+    var empty = document.getElementById("historyReaderEmpty");
+    var view = document.getElementById("historyReaderView");
+    var title = document.getElementById("historyReaderTitle");
+    var meta = document.getElementById("historyReaderMeta");
+    var textEl = document.getElementById("historyReaderText");
+    var text = historyText(row);
+    loadedReader = { text: text, filename: row.filename || "" };
+    if (title) title.textContent = row.filename || "Transcrição";
+    if (meta) meta.textContent = formatDate(row.created_at);
+    if (textEl) textEl.textContent = text || "Esta transcrição não tem texto.";
+    if (view) view.classList.remove("hidden");
+    if (empty) empty.hidden = true;
+    document.querySelectorAll(".oe-history-item.is-selected").forEach(function (el) {
+      el.classList.remove("is-selected");
+    });
+    if (li) li.classList.add("is-selected");
+  }
+
+  function useReaderInEditor() {
+    if (!loadedReader || !loadedReader.text) {
+      toast("Escolhe uma transcrição primeiro.", "error");
+      return;
+    }
+    if (typeof global.definirTranscricao === "function") {
+      global.definirTranscricao(loadedReader.text);
+    } else {
+      var ta = document.getElementById("transcriptionText");
+      if (ta) ta.value = loadedReader.text;
+    }
+    var output = document.getElementById("output");
+    if (output) {
+      output.classList.remove("hidden");
+      output.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    document.querySelectorAll("[data-oe-nav]").forEach(function (btn) {
+      btn.classList.toggle("is-active", btn.getAttribute("data-oe-nav") === "transcribe");
+    });
+    toast("Transcrição aberta no editor.", "success");
+  }
+
+  function syncAccountNav() {
+    var on = isSiteUser();
+    document.body.classList.toggle("oe-logged-in", on);
+    var nav = document.getElementById("oeAccountNav");
+    if (nav) nav.hidden = !on;
+  }
+
+  function setAccountSection(name) {
+    document.querySelectorAll("[data-oe-nav]").forEach(function (btn) {
+      btn.classList.toggle("is-active", btn.getAttribute("data-oe-nav") === name);
+    });
+    var target = name === "history"
+      ? document.getElementById("historyPanel")
+      : document.querySelector(".oe-home-workspace");
+    if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   async function openHistoryItem(id, li) {
     setRowBusy(li, true);
     try {
       var row = await fetchHistoryRow(id);
-      var texto = historyText(row);
-      if (!texto) return;
-      if (typeof global.definirTranscricao === "function") {
-        global.definirTranscricao(texto);
-      } else {
-        var out = document.getElementById("transcricao");
-        if (out) out.textContent = texto;
-        var ta = document.getElementById("transcriptionText");
-        if (ta) ta.value = texto;
-      }
-      var output = document.getElementById("output");
-      if (output) {
-        output.classList.remove("hidden");
-        if (typeof global.focusTranscriptionResult === "function") {
-          global.focusTranscriptionResult();
-        } else {
-          output.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-      }
-      if (global.OuviescreviShare && global.OuviescreviShare.syncVisibility) {
-        global.OuviescreviShare.syncVisibility();
-      }
-      toast("Transcrição carregada do histórico.", "success");
+      showHistoryReader(row, li);
+      toast("Transcrição aberta ao lado.", "success");
     } catch (e) {
       toast("Erro ao abrir transcrição.", "error");
     } finally {
@@ -469,11 +507,22 @@
         }
       });
     }
-    document.addEventListener("oe-auth-change", refresh);
+    document.addEventListener("oe-auth-change", function () {
+      syncAccountNav();
+      refresh();
+    });
+    var useBtn = document.getElementById("historyReaderUse");
+    if (useBtn) useBtn.addEventListener("click", useReaderInEditor);
+    document.querySelectorAll("[data-oe-nav]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        setAccountSection(btn.getAttribute("data-oe-nav"));
+      });
+    });
   }
 
   function init() {
     bind();
+    syncAccountNav();
     refresh();
   }
 

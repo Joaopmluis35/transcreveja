@@ -1,6 +1,6 @@
 /* Ouviescrevi — design system partilhado */
 @import url("ouviescrevi-pro.css");
-@import url("theme-dark.css?v=2");
+@import url("theme-dark.css?v=3");
 
 :root {
   --oe-purple: #7c3aed;
@@ -443,8 +443,8 @@ nav#nichoMenu button span { position: relative; z-index: 1; }
 .oe-page textarea,
 .container textarea { min-height: 160px; resize: vertical; line-height: 1.55; }
 
-.oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card):not(.oe-fc-export__btn):not(.oe-transcript-chat__chip):not(.oe-history-item__open):not(.oe-history-item__share):not(.oe-history-item__rename):not(.oe-history-item__del):not(.oe-history-panel__refresh):not(.oe-history-panel__search-clear):not(.oe-history-tool),
-.container button:not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card):not(.oe-fc-export__btn):not(.oe-transcript-chat__chip):not(.oe-history-item__open):not(.oe-history-item__share):not(.oe-history-item__rename):not(.oe-history-item__del):not(.oe-history-panel__refresh):not(.oe-history-panel__search-clear):not(.oe-history-tool),
+.oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card):not(.oe-fc-export__btn):not(.oe-transcript-chat__chip):not(.oe-history-item__open):not(.oe-history-item__share):not(.oe-history-item__rename):not(.oe-history-item__del):not(.oe-history-panel__refresh):not(.oe-history-panel__search-clear):not(.oe-history-tool):not(.oe-account-nav__btn),
+.container button:not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card):not(.oe-fc-export__btn):not(.oe-transcript-chat__chip):not(.oe-history-item__open):not(.oe-history-item__share):not(.oe-history-item__rename):not(.oe-history-item__del):not(.oe-history-panel__refresh):not(.oe-history-panel__search-clear):not(.oe-history-tool):not(.oe-account-nav__btn),
 .oe-btn {
   display: inline-flex;
   align-items: center;
@@ -464,8 +464,8 @@ nav#nichoMenu button span { position: relative; z-index: 1; }
   width: auto;
   min-width: 140px;
 }
-.oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card):not(.oe-fc-export__btn):not(.oe-transcript-chat__chip):not(.oe-history-item__open):not(.oe-history-item__share):not(.oe-history-item__rename):not(.oe-history-item__del):not(.oe-history-panel__refresh):not(.oe-history-panel__search-clear):not(.oe-history-tool):hover:not(:disabled),
-.container button:not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card):not(.oe-fc-export__btn):not(.oe-transcript-chat__chip):not(.oe-history-item__open):not(.oe-history-item__share):not(.oe-history-item__rename):not(.oe-history-item__del):not(.oe-history-panel__refresh):not(.oe-history-panel__search-clear):not(.oe-history-tool):hover:not(:disabled),
+.oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card):not(.oe-fc-export__btn):not(.oe-transcript-chat__chip):not(.oe-history-item__open):not(.oe-history-item__share):not(.oe-history-item__rename):not(.oe-history-item__del):not(.oe-history-panel__refresh):not(.oe-history-panel__search-clear):not(.oe-history-tool):not(.oe-account-nav__btn):hover:not(:disabled),
+.container button:not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card):not(.oe-fc-export__btn):not(.oe-transcript-chat__chip):not(.oe-history-item__open):not(.oe-history-item__share):not(.oe-history-item__rename):not(.oe-history-item__del):not(.oe-history-panel__refresh):not(.oe-history-panel__search-clear):not(.oe-history-tool):not(.oe-account-nav__btn):hover:not(:disabled),
 .oe-btn:hover:not(:disabled) {
   background: var(--oe-gradient);
   color: #fff;
@@ -473,14 +473,14 @@ nav#nichoMenu button span { position: relative; z-index: 1; }
   transform: translateY(-1px);
   box-shadow: 0 6px 20px rgba(124, 58, 237, 0.3);
 }
-.oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card):not(.oe-fc-export__btn):not(.oe-transcript-chat__chip):not(.oe-history-item__open):not(.oe-history-item__share):not(.oe-history-item__rename):not(.oe-history-item__del):not(.oe-history-panel__refresh):not(.oe-history-panel__search-clear):not(.oe-history-tool):focus-visible,
-.container button:not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card):not(.oe-fc-export__btn):not(.oe-transcript-chat__chip):not(.oe-history-item__open):not(.oe-history-item__share):not(.oe-history-item__rename):not(.oe-history-item__del):not(.oe-history-panel__refresh):not(.oe-history-panel__search-clear):not(.oe-history-tool):focus-visible,
+.oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card):not(.oe-fc-export__btn):not(.oe-transcript-chat__chip):not(.oe-history-item__open):not(.oe-history-item__share):not(.oe-history-item__rename):not(.oe-history-item__del):not(.oe-history-panel__refresh):not(.oe-history-panel__search-clear):not(.oe-history-tool):not(.oe-account-nav__btn):focus-visible,
+.container button:not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card):not(.oe-fc-export__btn):not(.oe-transcript-chat__chip):not(.oe-history-item__open):not(.oe-history-item__share):not(.oe-history-item__rename):not(.oe-history-item__del):not(.oe-history-panel__refresh):not(.oe-history-panel__search-clear):not(.oe-history-tool):not(.oe-account-nav__btn):focus-visible,
 .oe-btn:focus-visible {
   outline: none;
   box-shadow: var(--oe-focus);
 }
-.oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card):not(.oe-fc-export__btn):not(.oe-transcript-chat__chip):not(.oe-history-item__open):not(.oe-history-item__share):not(.oe-history-item__rename):not(.oe-history-item__del):not(.oe-history-panel__refresh):not(.oe-history-panel__search-clear):not(.oe-history-tool):disabled,
-.container button:not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card):not(.oe-fc-export__btn):not(.oe-transcript-chat__chip):not(.oe-history-item__open):not(.oe-history-item__share):not(.oe-history-item__rename):not(.oe-history-item__del):not(.oe-history-panel__refresh):not(.oe-history-panel__search-clear):not(.oe-history-tool):disabled,
+.oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card):not(.oe-fc-export__btn):not(.oe-transcript-chat__chip):not(.oe-history-item__open):not(.oe-history-item__share):not(.oe-history-item__rename):not(.oe-history-item__del):not(.oe-history-panel__refresh):not(.oe-history-panel__search-clear):not(.oe-history-tool):not(.oe-account-nav__btn):disabled,
+.container button:not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card):not(.oe-fc-export__btn):not(.oe-transcript-chat__chip):not(.oe-history-item__open):not(.oe-history-item__share):not(.oe-history-item__rename):not(.oe-history-item__del):not(.oe-history-panel__refresh):not(.oe-history-panel__search-clear):not(.oe-history-tool):not(.oe-account-nav__btn):disabled,
 .oe-btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
