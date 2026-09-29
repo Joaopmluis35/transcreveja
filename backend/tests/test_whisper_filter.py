@@ -103,6 +103,7 @@ def test_filter_keeps_real_pt_despite_high_no_speech():
 def test_is_music_only_transcript():
     assert app_main.is_music_only_transcript("[00:00] Música")
     assert app_main.is_music_only_transcript("Música")
+    assert app_main.is_music_only_transcript("Música de suspenso")
     assert app_main.is_music_only_transcript("[Music]")
     assert not app_main.is_music_only_transcript("[00:00] Música\n\n[00:12] Olá a todos")
     assert not app_main.is_music_only_transcript("")
@@ -129,11 +130,37 @@ def test_clean_removes_cidade_hallucination_blocks():
     assert not cleaned.strip()
 
 
-def test_whisper_prompt_mentions_lyrics():
-    pt = app_main.whisper_prompt_for_language("pt")
-    assert pt and "letra cantada" in pt.lower()
-    assert "não substituir" in pt.lower()
-    assert "reunião de trabalho" not in pt.lower()
+def test_whisper_prompt_is_not_instructional(monkeypatch):
+    monkeypatch.setattr(app_main, "WHISPER_PROMPT_OVERRIDE", None)
+    assert app_main.whisper_prompt_for_language("pt") is None
+    assert app_main.whisper_prompt_for_language("en") is None
+
+
+def test_filter_drops_music_description_and_prompt_echo():
+    segs = [
+        _seg("Música de suspenso"),
+        _seg("Transcrição em português de Portugal."),
+        _seg("Legendas pela comunidade Amara.org"),
+        _seg("Vamos todos, vamos com tudo"),
+    ]
+    kept = app_main.filter_whisper_segments(segs, language="pt")
+    texts = " ".join(s["text"] for s in kept).lower()
+    assert "vamos todos" in texts
+    assert "suspenso" not in texts
+    assert "portugal" not in texts
+    assert "amara" not in texts
+
+
+def test_music_description_counts_as_music_only():
+    assert app_main.is_music_only_transcript("[00:00] Música de suspenso")
+    assert app_main.is_unusable_whisper_text("Música de suspenso", "pt")
+
+
+def test_repeated_music_description_needs_retry():
+    segs = [_seg("Música de suspenso") for _ in range(20)]
+    assert app_main.chunk_needs_lyrics_retry(segs, "pt") is True
+    segs.append(_seg("Bom dia, vamos começar o treino de hoje na sala."))
+    assert app_main.chunk_needs_lyrics_retry(segs, "pt") is False
 
 
 def test_music_tag_does_not_hide_lyrics():

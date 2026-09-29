@@ -404,7 +404,10 @@ def _transcription_has_content(transcription: str, formatted: str) -> bool:
 
 
 _MUSIC_ONLY_LINE = re.compile(
-    r"^(?:\[\d{2}:\d{2}\]\s*)?(?:🎵\s*)?(?:\[?\s*(?:música|music|♪+|♫+)\s*\]?)\s*\.?$",
+    r"^(?:\[\d{2}:\d{2}\]\s*)?(?:🎵\s*)?"
+    r"(?:\[?\s*(?:música|music|♪+|♫+)"
+    r"(?:\s+de\s+[\wáàâãéêíóôõúç]+){0,3}\s*\]?)"
+    r"\s*[.!?]*$",
     re.IGNORECASE,
 )
 
@@ -640,7 +643,10 @@ _PT_SILENCE_HALLUCINATION = re.compile(
     r"|legendas?(?:\s+por|\s+by)\b.*"
     r"|subtitles?(?:\s+by)\b.*"
     r"|thanks for watching"
-    r"|música de fundo"
+    r"|música de (?:fundo|suspens[oe]|suspense|tens[aã]o|ambiente)"
+    r"|transcri[cç][aã]o em portugu[eê]s(?:\s+de\s+portugal)?"
+    r"|legendas?\s+pela\s+comunidade.*"
+    r"|amara\.org.*"
     r")[\s.!?…]*$",
     re.IGNORECASE,
 )
@@ -707,6 +713,51 @@ def _looks_like_real_speech(text: str, language: str | None = None) -> bool:
         return False
     letters = _latin_letter_count(t)
     return letters >= 4 and (letters / max(len(t), 1)) >= 0.35
+
+
+def _nonempty_seg_texts(segments) -> list[str]:
+    return [
+        t
+        for t in ((_seg_get(s, "text", "") or "").strip() for s in (segments or []))
+        if t
+    ]
+
+
+def _usable_seg_texts(segments, language: str | None = None) -> list[str]:
+    out = []
+    for text in _nonempty_seg_texts(segments):
+        if is_unusable_whisper_text(text, language):
+            continue
+        if _latin_letter_count(text) < 4:
+            continue
+        out.append(text)
+    return out
+
+
+def _sample_seg_texts(segments, limit: int = 4) -> list[str]:
+    samples: list[str] = []
+    for text in _nonempty_seg_texts(segments):
+        sample = text[:80]
+        if sample not in samples:
+            samples.append(sample)
+        if len(samples) >= limit:
+            break
+    return samples
+
+
+def chunk_needs_lyrics_retry(segments, language: str | None = None) -> bool:
+    """True se o Whisper só devolveu etiquetas, slogans ou a mesma frase curta."""
+    texts = _nonempty_seg_texts(segments)
+    if not texts:
+        return False
+    usable = _usable_seg_texts(segments, language)
+    if not usable:
+        return True
+    from collections import Counter
+
+    norms = [_normalize_block(t) for t in usable]
+    top, n = Counter(norms).most_common(1)[0]
+    return len(usable) >= 6 and n / len(usable) >= 0.7 and len(top) <= 48
 
 
 def filter_whisper_segments(segments, language: str | None = None):
@@ -936,43 +987,12 @@ def resolve_whisper_language(
 
 
 def whisper_prompt_for_language(language: str | None) -> str | None:
+    # Instruções no prompt são copiadas quando o áudio é música
+    # («Transcrição em português de Portugal», «Música de suspenso»).
+    # A língua segue no parâmetro language. WHISPER_PROMPT ainda substitui isto.
     if WHISPER_PROMPT_OVERRIDE:
         return WHISPER_PROMPT_OVERRIDE
-    if language == "pt":
-        return (
-            "Transcrição em português de Portugal. "
-            "Transcrever fala, narração e letra cantada, incluindo canções. "
-            "Não substituir a letra pela palavra Música."
-        )
-    if language == "en":
-        return (
-            "English speech transcription. "
-            "Transcribe speech, narration, or sung lyrics when present; "
-            "ignore silence and instrumental-only music."
-        )
-    if language == "es":
-        return (
-            "Transcripción en español. "
-            "Transcribir habla, narración o letra cantada si existen; "
-            "ignorar silencio y música solo instrumental."
-        )
-    if language == "fr":
-        return (
-            "Transcription en français. "
-            "Transcrire la parole, la narration ou les paroles chantées s'il y en a; "
-            "ignorer le silence et la musique purement instrumentale."
-        )
-    if language == "de":
-        return (
-            "Transkription auf Deutsch. "
-            "Sprache, Erzählung oder gesungenen Text transkribieren falls vorhanden; "
-            "Stille und rein instrumentale Musik ignorieren."
-        )
-    return (
-        "Transcrição em português. "
-        "Transcrever fala, narração ou letra cantada quando existirem; "
-        "ignorar silêncio e música só instrumental."
-    )
+    return None
 
 
 def process_whisper_result(result, language: str | None, offset_seconds: int = 0):
@@ -1744,17 +1764,20 @@ def transcrever_parte_c_com_retries(
     sleep_base: float = 1.0,
     timeout: int = WHISPER_TIMEOUT,
     language: str | None = None,
+    temperature: float | None = None,
+    skip_language: bool = False,
 ):
     last_err = None
-    lang = resolve_whisper_language(language)
-    prompt = whisper_prompt_for_language(lang)
+    lang = None if skip_language else resolve_whisper_language(language)
+    prompt = None if skip_language else whisper_prompt_for_language(lang)
+    temp = WHISPER_TEMPERATURE if temperature is None else temperature
     for attempt in range(1, retries + 1):
         t0 = time.monotonic()
         try:
             kwargs = {
                 "model": "whisper-1",
                 "response_format": "verbose_json",
-                "temperature": WHISPER_TEMPERATURE,
+                "temperature": temp,
             }
             if lang:
                 kwargs["language"] = lang
@@ -2791,6 +2814,46 @@ def _execute_transcribe_job(
                     part, retries=3, sleep_base=1.0, timeout=WHISPER_TIMEOUT, language=whisper_lang
                 )
                 raw_segs = getattr(result, "segments", []) or []
+                if chunk_needs_lyrics_retry(raw_segs, whisper_lang):
+                    logger.warning(
+                        "[%s] Chunk %d/%d só etiquetas/repetição (%d segs) amostras=%s; nova tentativa sem língua forçada",
+                        rid,
+                        idx + 1,
+                        total_parts,
+                        len(raw_segs),
+                        _sample_seg_texts(raw_segs),
+                    )
+                    try:
+                        retry = transcrever_parte_c_com_retries(
+                            part,
+                            retries=2,
+                            sleep_base=1.0,
+                            timeout=WHISPER_TIMEOUT,
+                            language=whisper_lang,
+                            temperature=0.2,
+                            skip_language=True,
+                        )
+                        retry_segs = getattr(retry, "segments", []) or []
+                        usable_first = len(_usable_seg_texts(raw_segs, whisper_lang))
+                        usable_retry = len(_usable_seg_texts(retry_segs, None))
+                        logger.warning(
+                            "[%s] Retry chunk %d usable %d→%d amostras=%s",
+                            rid,
+                            idx + 1,
+                            usable_first,
+                            usable_retry,
+                            _sample_seg_texts(retry_segs),
+                        )
+                        if usable_retry > usable_first:
+                            result = retry
+                            raw_segs = retry_segs
+                    except Exception as retry_err:
+                        logger.warning(
+                            "[%s] Retry chunk %d falhou: %s",
+                            rid,
+                            idx + 1,
+                            str(retry_err)[:200],
+                        )
                 raw_nonempty = [s for s in raw_segs if (_seg_get(s, "text", "") or "").strip()]
                 if raw_nonempty:
                     saw_raw_nonempty = True
