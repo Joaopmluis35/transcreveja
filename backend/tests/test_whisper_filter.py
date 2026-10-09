@@ -69,6 +69,22 @@ def test_looks_like_real_speech_keeps_quiet_pt():
     assert not app_main._looks_like_real_speech("「」「」「」「」「」", "pt")
 
 
+def test_leading_silence_skips_clicks_until_speech():
+    log = (
+        "silence_start: 0\n"
+        "silence_end: 159.693875 | silence_duration: 159.693875\n"
+        "silence_start: 159.760437\n"
+        "silence_end: 160.190687 | silence_duration: 0.43025\n"
+        "silence_start: 160.237375\n"
+        "silence_end: 196.006625 | silence_duration: 35.76925\n"
+        "silence_start: 210\n"
+        "silence_end: 211\n"
+    )
+    assert app_main.leading_silence_from_silencedetect(log) == 196.006625
+    assert app_main.leading_silence_from_silencedetect("silence_start: 12\nsilence_end: 20\n") == 0.0
+    assert app_main.leading_silence_from_silencedetect("") == 0.0
+
+
 def test_resolve_auto_keeps_original_language():
     assert app_main.resolve_whisper_language(None, "pt") is None
     assert app_main.resolve_whisper_language("auto", "pt") is None

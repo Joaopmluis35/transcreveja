@@ -1739,6 +1739,73 @@ def split_audio(input_path, output_dir, segment_duration=SEGMENT_DURATION):
     segments = sorted(os.path.join(output_dir, f) for f in os.listdir(output_dir) if f.endswith(".wav"))
     return segments
 
+
+# O Whisper decide a língua pelos primeiros ~30 s. Silêncio longo no início
+# (gravação de ecrã) fá-lo escolher inglês e escrever o resto nessa língua.
+_SILENCE_START_RE = re.compile(r"silence_start:\s*(-?\d+(?:\.\d+)?)")
+_SILENCE_END_RE = re.compile(r"silence_end:\s*(-?\d+(?:\.\d+)?)")
+MIN_LEADING_SILENCE_SEC = 8.0
+LEADING_SILENCE_KEEP_SEC = 0.4
+
+
+def leading_silence_from_silencedetect(log: str) -> float:
+    """Segundos até à fala contínua. Ignora cliques curtos no meio do silêncio."""
+    regions: list[tuple[float, float]] = []
+    start = None
+    for line in (log or "").splitlines():
+        found_start = _SILENCE_START_RE.search(line)
+        if found_start:
+            start = float(found_start.group(1))
+            continue
+        found_end = _SILENCE_END_RE.search(line)
+        if found_end and start is not None:
+            regions.append((start, float(found_end.group(1))))
+            start = None
+    cursor = 0.0
+    for silence_at, silence_end in regions:
+        if silence_at > cursor + 1.2:
+            return cursor if cursor >= MIN_LEADING_SILENCE_SEC else 0.0
+        cursor = silence_end
+    return cursor if cursor >= MIN_LEADING_SILENCE_SEC else 0.0
+
+
+def trim_leading_silence_wav(path: str) -> tuple[str, float]:
+    """Remove silêncio inicial longo. Devolve (wav, segundos cortados)."""
+    if not FFMPEG or not path or not os.path.isfile(path):
+        return path, 0.0
+    cmd = [
+        FFMPEG, "-nostdin", "-hide_banner",
+        "-i", path,
+        "-af", "silencedetect=noise=-40dB:d=0.5",
+        "-f", "null", "-",
+    ]
+    try:
+        cp = subprocess.run(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180, check=False
+        )
+    except Exception:
+        logger.warning("silencedetect falhou em %s", os.path.basename(path))
+        return path, 0.0
+    log = (cp.stderr or b"").decode("utf-8", errors="replace")
+    cut = leading_silence_from_silencedetect(log) - LEADING_SILENCE_KEEP_SEC
+    if cut < MIN_LEADING_SILENCE_SEC:
+        return path, 0.0
+    out = os.path.join(os.path.dirname(path) or ".", f"speech_{uuid.uuid4().hex}.wav")
+    trim_cmd = [
+        FFMPEG, "-nostdin", "-hide_banner", "-loglevel", "error", "-y",
+        "-ss", f"{cut:.3f}", "-i", path,
+        "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", out,
+    ]
+    try:
+        safe_run_ffmpeg(trim_cmd, desc="corte-silencio-inicial", timeout=180)
+    except Exception:
+        logger.warning("Corte do silêncio inicial falhou em %s", os.path.basename(path))
+        return path, 0.0
+    if not os.path.isfile(out) or os.path.getsize(out) < 32000:
+        return path, 0.0
+    logger.info("Silêncio inicial de %.1fs removido antes do Whisper (%s)", cut, os.path.basename(path))
+    return out, cut
+
 def registar_transcricao(
     nome_ficheiro: str,
     *,
@@ -2824,9 +2891,11 @@ def _execute_transcribe_job(
                 message=f"A transcrever segmento {idx + 1}/{total_parts}…",
                 progress=pct,
             )
+            part_audio, skipped = trim_leading_silence_wav(part)
+            chunk_offset = offset_seconds + int(round(skipped))
             try:
                 result = transcrever_parte_c_com_retries(
-                    part, retries=3, sleep_base=1.0, timeout=WHISPER_TIMEOUT, language=whisper_lang
+                    part_audio, retries=3, sleep_base=1.0, timeout=WHISPER_TIMEOUT, language=whisper_lang
                 )
                 raw_segs = getattr(result, "segments", []) or []
                 pt_site = (ui_locale or "pt").strip().lower()[:2] in ("", "pt")
@@ -2845,7 +2914,7 @@ def _execute_transcribe_job(
                     )
                     try:
                         retry = transcrever_parte_c_com_retries(
-                            part,
+                            part_audio,
                             retries=2,
                             sleep_base=1.0,
                             timeout=WHISPER_TIMEOUT,
@@ -2889,7 +2958,7 @@ def _execute_transcribe_job(
                     if not raw_segments_are_unusable(raw_nonempty, whisper_lang):
                         raw_only_unusable = False
                 text_piece, formatted_piece, kept_segs = process_whisper_result(
-                    result, whisper_lang, offset_seconds
+                    result, whisper_lang, chunk_offset
                 )
                 full_text_chunks.append(text_piece)
                 formatted_chunks.append(formatted_piece)
@@ -3103,14 +3172,15 @@ def _execute_video_subs_job(
                 break
             pct = 25 + int((idx / max(len(parts), 1)) * 40)
             _video_job_set(job_id, message=f"A transcrever segmento {idx + 1}/{len(parts)}…", progress=pct)
+            part_audio, skipped = trim_leading_silence_wav(part)
             try:
                 result = transcrever_parte_c_com_retries(
-                    part, retries=3, sleep_base=1.0, timeout=WHISPER_TIMEOUT, language=whisper_lang
+                    part_audio, retries=3, sleep_base=1.0, timeout=WHISPER_TIMEOUT, language=whisper_lang
                 )
                 segs = filter_whisper_segments(getattr(result, "segments", []) or [], whisper_lang)
                 for s in segs:
-                    st = float(_seg_get(s, "start", 0.0)) + offset_seconds
-                    en = float(_seg_get(s, "end", st + 0.01)) + offset_seconds
+                    st = float(_seg_get(s, "start", 0.0)) + offset_seconds + skipped
+                    en = float(_seg_get(s, "end", st + 0.01)) + offset_seconds + skipped
                     tx = (_seg_get(s, "text", "") or "").strip()
                     if tx:
                         entries.append((st, en, tx))
