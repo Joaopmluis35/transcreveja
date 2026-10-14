@@ -27,6 +27,9 @@
     mode: "full",
     visible: false,
     maxFileMb: 500,
+    rangeTouched: false,
+    durationPending: false,
+    durationPromise: null,
   };
 
   function $(id) {
@@ -202,6 +205,7 @@
   }
 
   function syncRangeInputs() {
+    if (!(state.duration > 0)) return;
     var max = Math.max(1, Math.round(state.duration * 10));
     var start = $("oeTrimStart");
     var end = $("oeTrimEnd");
@@ -216,6 +220,7 @@
     var start = $("oeTrimStart");
     var end = $("oeTrimEnd");
     if (!start || !end || !state.duration) return;
+    state.rangeTouched = true;
     stopSegmentPreview();
     state.startSec = Math.min(parseInt(start.value, 10) / 10, state.duration);
     state.endSec = Math.min(parseInt(end.value, 10) / 10, state.duration);
@@ -276,6 +281,7 @@
 
   function applyPreset(seconds) {
     if (!state.duration) return;
+    state.rangeTouched = true;
     stopSegmentPreview();
     state.startSec = 0;
     state.endSec = Math.min(state.duration, seconds);
@@ -309,6 +315,44 @@
     }
   }
 
+  function renderMeta() {
+    var meta = $("oeTrimMeta");
+    if (!meta || !state.file) return;
+    var durLabel;
+    if (state.duration > 0) durLabel = formatDuration(state.duration);
+    else if (state.durationPending) durLabel = "a ler a duração…";
+    else durLabel = "duração indisponível";
+    meta.textContent =
+      state.file.name +
+      " · " +
+      durLabel +
+      " · " +
+      Math.round(fileSizeMb(state.file)) +
+      " MB";
+  }
+
+  function applyKnownDuration(durationSec) {
+    if (!state.visible || !(durationSec > 0)) return;
+    var untouched = !state.rangeTouched;
+    var prevDuration = state.duration;
+    state.duration = durationSec;
+    state.durationPending = false;
+    if (untouched) {
+      state.startSec = 0;
+      state.endSec =
+        state.mode === "segment" && isOverUploadLimit(state.file)
+          ? Math.min(durationSec, 900)
+          : durationSec;
+    } else {
+      if (prevDuration > 0 && state.endSec >= prevDuration - 0.5) state.endSec = durationSec;
+      state.endSec = Math.min(Math.max(state.endSec, state.startSec + 1), durationSec);
+      state.startSec = Math.min(state.startSec, Math.max(0, state.endSec - 1));
+    }
+    renderMeta();
+    updateSummary();
+    updateForceNote();
+  }
+
   function showPanel(file, durationSec, objectUrl, isVideo) {
     var panel = ensurePanel();
     state.file = file;
@@ -318,17 +362,9 @@
     state.startSec = 0;
     state.endSec = state.duration || 0;
     state.visible = true;
-
-    var meta = $("oeTrimMeta");
-    if (meta) {
-      meta.textContent =
-        file.name +
-        " · " +
-        formatDuration(state.duration) +
-        " · " +
-        Math.round(fileSizeMb(file)) +
-        " MB";
-    }
+    state.rangeTouched = false;
+    state.durationPending = !(state.duration > 0);
+    renderMeta();
 
     var video = $("oeTrimVideo");
     var audio = $("oeTrimAudio");
@@ -346,13 +382,14 @@
     }
 
     panel.classList.remove("hidden");
+    if (typeof panel.scrollIntoView === "function") {
+      panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
     // Acima do limite: default a trecho (mais rápido), mas «completo» fica disponível
     if (isOverUploadLimit(file)) {
       setMode("segment");
-      if (state.duration > 0) {
-        state.startSec = 0;
-        state.endSec = Math.min(state.duration, 900);
-      }
+      state.startSec = 0;
+      state.endSec = state.duration > 0 ? Math.min(state.duration, 900) : 900;
       // Aquecer motores enquanto o utilizador escolhe o trecho
       preloadTrimEngines();
     } else {
@@ -370,6 +407,9 @@
     if (panel) panel.classList.add("hidden");
     state.file = null;
     state.visible = false;
+    state.durationPending = false;
+    state.durationPromise = null;
+    state.rangeTouched = false;
     var video = $("oeTrimVideo");
     var audio = $("oeTrimAudio");
     if (video) {
@@ -410,6 +450,7 @@
   function canUploadFile(file) {
     if (!file) return false;
     if (!state.visible || !isSameFile(state.file, file)) return !isOverUploadLimit(file);
+    if (state.durationPending && !(state.duration > 0)) return true;
     var sel = getSelection();
     // Acima do limite: ok em modo completo (extraímos áudio) ou trecho válido
     if (isOverUploadLimit(file)) {
@@ -1466,8 +1507,20 @@
     return isOverUploadLimit(file) || fileSizeMb(file) >= FULL_FILE_AUDIO_EXTRACT_MIN_MB;
   }
 
+  function ensureDuration(onProgress) {
+    if (state.duration > 0) return Promise.resolve(state.duration);
+    if (state.durationPromise) {
+      if (onProgress) onProgress("A ler a duração do vídeo…");
+      return state.durationPromise;
+    }
+    return Promise.resolve(0);
+  }
+
   async function prepareForUpload(file, onProgress, opts) {
     opts = opts || {};
+    if (state.visible && isSameFile(state.file, file) && !(state.duration > 0)) {
+      await ensureDuration(onProgress);
+    }
     var sel = getSelection();
     if (!state.visible || !isSameFile(state.file, file)) {
       // Painel não visível: mesmo assim extrair áudio em vídeos grandes (transcrição).
@@ -1565,6 +1618,127 @@
     return { file: file, trimmed: false, trimStart: sel.startSec, trimEnd: sel.endSec };
   }
 
+  function probeDuration(file, objectUrl, isVideo) {
+    return new Promise(function (resolve) {
+      if (!file) {
+        resolve(0);
+        return;
+      }
+      var el = document.createElement(isVideo ? "video" : "audio");
+      el.preload = "metadata";
+      el.muted = true;
+      if (isVideo) el.playsInline = true;
+      var url = objectUrl || URL.createObjectURL(file);
+      var revoke = !objectUrl;
+      var done = function (value) {
+        if (revoke) URL.revokeObjectURL(url);
+        resolve(value);
+      };
+      el.onloadedmetadata = function () {
+        var d = el.duration;
+        done(isFinite(d) ? d : 0);
+      };
+      el.onerror = function () {
+        done(0);
+      };
+      el.src = url;
+    });
+  }
+
+  function watchDuration(file, objectUrl, isVideo) {
+    var token = file;
+    state.durationPromise = new Promise(function (resolve) {
+      function finish(d) {
+        if (state.file !== token || !state.visible) {
+          resolve(0);
+          return;
+        }
+        if (d > 0) applyKnownDuration(d);
+        else {
+          state.durationPending = false;
+          renderMeta();
+          global.dispatchEvent(new CustomEvent("oe-trim-change", { detail: getSelection() }));
+        }
+        resolve(d > 0 ? d : 0);
+      }
+      if (isVideo) {
+        var preview = $("uploadVideoPreview");
+        if (preview && (preview.currentSrc || preview.getAttribute("src"))) {
+          var ready = preview.duration;
+          if (isFinite(ready) && ready > 0) {
+            finish(ready);
+            return;
+          }
+          var onMeta = function () {
+            preview.removeEventListener("loadedmetadata", onMeta);
+            preview.removeEventListener("error", onErr);
+            var dd = preview.duration;
+            finish(isFinite(dd) ? dd : 0);
+          };
+          var onErr = function () {
+            preview.removeEventListener("loadedmetadata", onMeta);
+            preview.removeEventListener("error", onErr);
+            probeDuration(file, objectUrl, isVideo).then(finish);
+          };
+          if (preview._oeDurWatch) {
+            preview.removeEventListener("loadedmetadata", preview._oeDurWatch);
+            preview.removeEventListener("error", preview._oeDurWatchErr);
+          }
+          preview._oeDurWatch = onMeta;
+          preview._oeDurWatchErr = onErr;
+          preview.addEventListener("loadedmetadata", onMeta);
+          preview.addEventListener("error", onErr);
+          return;
+        }
+      }
+      probeDuration(file, objectUrl, isVideo).then(finish);
+    });
+    return state.durationPromise;
+  }
+
+  function previewDurationSec() {
+    var preview = $("uploadVideoPreview");
+    if (!preview) return 0;
+    var d = preview.duration;
+    return isFinite(d) && d > 0 ? d : 0;
+  }
+
+  function needsLargeFileChoice(file) {
+    if (!file) return false;
+    if (fileSizeMb(file) > SIZE_THRESHOLD_MB || isOverUploadLimit(file)) return true;
+    if (state.visible && isSameFile(state.file, file) && state.duration > DURATION_THRESHOLD_SEC) {
+      return true;
+    }
+    return previewDurationSec() > DURATION_THRESHOLD_SEC;
+  }
+
+  function shouldHoldForChoice(file) {
+    if (!file) return false;
+    if (state.visible && isSameFile(state.file, file)) return false;
+    if (fileSizeMb(file) > SIZE_THRESHOLD_MB || isOverUploadLimit(file)) return true;
+    var d = previewDurationSec();
+    if (d > DURATION_THRESHOLD_SEC) return true;
+    if (d > 0) return false;
+    // Vídeo ainda sem duração no preview: espera o metadata antes de enviar.
+    return isLikelyVideoFile(file);
+  }
+
+  function isChoicePanelOpen(file) {
+    return !!(
+      state.visible &&
+      file &&
+      isSameFile(state.file, file) &&
+      $("oeTrimPanel") &&
+      !$("oeTrimPanel").classList.contains("hidden")
+    );
+  }
+
+  function openChoicePanel(file, durationSec, objectUrl, isVideo) {
+    if (!objectUrl) objectUrl = URL.createObjectURL(file);
+    showPanel(file, durationSec || 0, objectUrl, isVideo);
+    if (!(durationSec > 0)) watchDuration(file, objectUrl, isVideo);
+  }
+
   function onFileSelected(file, opts) {
     opts = opts || {};
     state.maxFileMb =
@@ -1578,35 +1752,69 @@
     var sizeMb = fileSizeMb(file);
     var objectUrl = opts.objectUrl || null;
     var isVideo = !!opts.isVideo;
+    var known = isVideo ? previewDurationSec() : 0;
+    var offerBySize = sizeMb > SIZE_THRESHOLD_MB || isOverUploadLimit(file);
 
-    function tryDurationFromMedia() {
-      return new Promise(function (resolve) {
-        var el = document.createElement(isVideo ? "video" : "audio");
-        el.preload = "metadata";
-        el.muted = true;
-        if (isVideo) el.playsInline = true;
-        var url = objectUrl || URL.createObjectURL(file);
-        var revoke = !objectUrl;
-        el.src = url;
-        el.onloadedmetadata = function () {
-          var d = el.duration;
-          if (revoke) URL.revokeObjectURL(url);
-          resolve(isFinite(d) ? d : 0);
-        };
-        el.onerror = function () {
-          if (revoke) URL.revokeObjectURL(url);
-          resolve(0);
-        };
-      });
+    // Ficheiro grande ou duração já conhecida no preview: painel já.
+    if (offerBySize || shouldOfferTrim(known, sizeMb)) {
+      openChoicePanel(file, known, objectUrl, isVideo);
+      return Promise.resolve();
     }
 
-    return tryDurationFromMedia().then(function (durationSec) {
+    // Vídeo: as opções aparecem no instante em que o preview souber a duração.
+    if (isVideo) {
+      if (!objectUrl) objectUrl = URL.createObjectURL(file);
+      var preview = $("uploadVideoPreview");
+      if (preview) {
+        var token = file;
+        return new Promise(function (resolve) {
+          var finish = function (durationSec) {
+            if (state.file && state.file !== token && !isSameFile(state.file, token)) {
+              resolve();
+              return;
+            }
+            if (shouldOfferTrim(durationSec, sizeMb) || isOverUploadLimit(file)) {
+              openChoicePanel(file, durationSec, objectUrl, true);
+            } else {
+              hidePanel();
+            }
+            resolve();
+          };
+          var ready = previewDurationSec();
+          if (ready > 0) {
+            finish(ready);
+            return;
+          }
+          var onMeta = function () {
+            preview.removeEventListener("loadedmetadata", onMeta);
+            preview.removeEventListener("error", onErr);
+            var d = preview.duration;
+            finish(isFinite(d) ? d : 0);
+          };
+          var onErr = function () {
+            preview.removeEventListener("loadedmetadata", onMeta);
+            preview.removeEventListener("error", onErr);
+            probeDuration(file, objectUrl, true).then(finish);
+          };
+          preview.addEventListener("loadedmetadata", onMeta);
+          preview.addEventListener("error", onErr);
+          // Se o metadata já correu entre o check e o listener
+          ready = previewDurationSec();
+          if (ready > 0) {
+            preview.removeEventListener("loadedmetadata", onMeta);
+            preview.removeEventListener("error", onErr);
+            finish(ready);
+          }
+        });
+      }
+    }
+
+    return probeDuration(file, objectUrl, isVideo).then(function (durationSec) {
       if (!shouldOfferTrim(durationSec, sizeMb) && !isOverUploadLimit(file)) {
         hidePanel();
         return;
       }
-      if (!objectUrl) objectUrl = URL.createObjectURL(file);
-      showPanel(file, durationSec, objectUrl, isVideo);
+      openChoicePanel(file, durationSec, objectUrl, isVideo);
     });
   }
 
@@ -1617,6 +1825,8 @@
 
   global.OuviescreviMediaTrim = {
     onFileSelected: onFileSelected,
+    shouldHoldForChoice: shouldHoldForChoice,
+    isChoicePanelOpen: isChoicePanelOpen,
     hide: hidePanel,
     getSelection: getSelection,
     appendToFormData: appendToFormData,
