@@ -15,13 +15,43 @@ def parse_csv_env(value: str) -> list[str]:
     return [item.strip() for item in (value or "").split(",") if item.strip()]
 
 
+# Proxies à frente da API (Cloudflare → Render). Fonte: https://www.cloudflare.com/ips/
+_TRUSTED_PROXY_NETS = tuple(
+    ipaddress.ip_network(net)
+    for net in (
+        "173.245.48.0/20", "103.21.244.0/22", "103.22.200.0/22", "103.31.4.0/22",
+        "141.101.64.0/18", "108.162.192.0/18", "190.93.240.0/20", "188.114.96.0/20",
+        "197.234.240.0/22", "198.41.128.0/17", "162.158.0.0/15", "104.16.0.0/13",
+        "104.24.0.0/14", "172.64.0.0/13", "131.0.72.0/22",
+        "2400:cb00::/32", "2606:4700::/32", "2803:f800::/32", "2405:b500::/32",
+        "2405:8100::/32", "2a06:98c0::/29", "2c0f:f248::/32",
+        # Rede interna do Render / loopback
+        "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "127.0.0.0/8", "::1/128", "fc00::/7",
+    )
+)
+
+
+def _is_trusted_proxy(value: str) -> bool:
+    try:
+        addr = ipaddress.ip_address(value)
+    except ValueError:
+        return False
+    return any(addr in net for net in _TRUSTED_PROXY_NETS)
+
+
 def client_ip(request: Request) -> str:
+    """IP real do cliente: percorre o X-Forwarded-For da direita para a esquerda,
+    saltando proxies de confiança. As entradas à esquerda são escritas pelo
+    cliente e não podem ser usadas (permitiriam contornar o rate limit)."""
+    peer = request.client.host if request.client else "unknown"
     forwarded = request.headers.get("x-forwarded-for")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-    if request.client:
-        return request.client.host
-    return "unknown"
+    if not forwarded:
+        return peer
+    hops = [h.strip() for h in forwarded.split(",") if h.strip()]
+    for hop in reversed(hops):
+        if not _is_trusted_proxy(hop):
+            return hop
+    return hops[0] if hops else peer
 
 
 def request_origin(request: Request) -> str | None:
@@ -54,11 +84,19 @@ class RateLimiter:
       if limit <= 0:
           return
       now = time.time()
+      if len(self._hits) > 10_000:
+          self._prune(now, window_sec)
       key = (ip, bucket)
       self._hits[key] = [t for t in self._hits[key] if now - t < window_sec]
       if len(self._hits[key]) >= limit:
           raise HTTPException(status_code=429, detail="Demasiados pedidos. Tenta mais tarde.")
       self._hits[key].append(now)
+
+  def _prune(self, now: float, window_sec: int) -> None:
+      # Remove IPs sem pedidos recentes para a memória não crescer sem limite.
+      max_age = max(window_sec, 86_400)
+      for key in [k for k, hits in self._hits.items() if not hits or now - hits[-1] >= max_age]:
+          del self._hits[key]
 
 
 _PRIVATE_NETS = (

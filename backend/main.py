@@ -21,6 +21,7 @@ import math
 import re
 import threading
 import hashlib
+import hmac
 
 import requests
 from bs4 import BeautifulSoup
@@ -126,7 +127,13 @@ ADMIN_TOKEN = os.getenv("ADMIN_TOKEN")
 if not ADMIN_TOKEN:
     raise RuntimeError("Falta ADMIN_TOKEN no .env")
 
-API_TOKEN = os.getenv("API_TOKEN") or ADMIN_TOKEN
+# O API_TOKEN é público (vai para o browser via /api/frontend-config); nunca pode ser o ADMIN_TOKEN.
+API_TOKEN = os.getenv("API_TOKEN")
+if not API_TOKEN:
+    API_TOKEN = hmac.new(ADMIN_TOKEN.encode(), b"ouviescrevi-api-token", hashlib.sha256).hexdigest()
+    logger.warning("API_TOKEN não definido no .env; a usar um token derivado do ADMIN_TOKEN.")
+if hmac.compare_digest(API_TOKEN, ADMIN_TOKEN):
+    raise RuntimeError("API_TOKEN não pode ser igual ao ADMIN_TOKEN (o API_TOKEN é público)")
 BACKOFFICE_PASSWORD = os.getenv("BACKOFFICE_PASSWORD")
 if not BACKOFFICE_PASSWORD:
     raise RuntimeError("Falta BACKOFFICE_PASSWORD no .env")
@@ -330,15 +337,20 @@ def extract_api_token(request: Request, body_token: str | None = None) -> str:
     return (request.headers.get("x-api-token") or "").strip()
 
 
+def secret_equals(given: str | None, expected: str) -> bool:
+    """Comparação em tempo constante (evita timing attacks em tokens e passwords)."""
+    return hmac.compare_digest((given or "").encode(), expected.encode())
+
+
 def require_api_token(request: Request, body_token: str | None = None) -> None:
     token = extract_api_token(request, body_token)
-    if token != API_TOKEN:
+    if not secret_equals(token, API_TOKEN):
         raise HTTPException(status_code=403, detail="Token inválido.")
 
 
 def require_admin_token(request: Request) -> None:
     token = extract_api_token(request)
-    if token == ADMIN_TOKEN:
+    if secret_equals(token, ADMIN_TOKEN):
         request.state.admin_session = {"username": "env", "role": "admin"}
         request.state.admin_user = "env"
         return
@@ -352,7 +364,7 @@ def require_admin_token(request: Request) -> None:
 
 def require_token(token: str):
     """Compatibilidade com rotas que recebem token no corpo JSON."""
-    if token != API_TOKEN:
+    if not secret_equals(token, API_TOKEN):
         raise HTTPException(status_code=403, detail="Token inválido.")
 
 
@@ -364,7 +376,7 @@ def resolve_site_actor(request: Request) -> dict:
     site_token = (request.headers.get("x-site-session") or "").strip()
     if not site_token:
         return {"type": "anonymous"}
-    if site_token == ADMIN_TOKEN:
+    if secret_equals(site_token, ADMIN_TOKEN):
         return {"type": "admin", "username": "env", "role": "admin"}
     session = admin_store.resolve_session(site_token)
     if not session:
@@ -2206,48 +2218,7 @@ def site_login(req: SiteLoginRequest, request: Request):
         raise HTTPException(status_code=400, detail="Email e palavra-passe são obrigatórios.")
     if req.admin:
         user = admin_store.authenticate_user(ident, password)
-        if not user and password == BACKOFFICE_PASSWORD and ident in ("", "admin"):
-            token = admin_store.create_session("admin", "admin")
-            admin_store.log_audit_login("admin")
-            return {
-                "sessionToken": token,
-                "username": "admin",
-                "role": "admin",
-                "isStaff": True,
-            }
-        if not user:
-            raise HTTPException(status_code=403, detail="Credenciais de administrador inválidas.")
-        token = admin_store.create_session(user["username"], user["role"])
-        admin_store.log_audit_login(user["username"])
-        return {
-            "sessionToken": token,
-            "username": user["username"],
-            "role": user["role"],
-            "isStaff": True,
-        }
-    user = admin_store.authenticate_site_user(ident, password)
-    if not user:
-        raise HTTPException(status_code=403, detail="Email ou palavra-passe incorretos.")
-    token = admin_store.create_session(user["email"], SITE_USER_ROLE, hours=720)
-    return {
-        "sessionToken": token,
-        "email": user["email"],
-        "name": user.get("name"),
-        "role": SITE_USER_ROLE,
-        "isStaff": False,
-    }
-
-
-@app.post("/api/auth/login")
-def site_login(req: SiteLoginRequest, request: Request):
-    enforce_rate_limit(request, "auth", 30, 3600)
-    ident = (req.email or "").strip()
-    password = req.password or ""
-    if not ident or not password:
-        raise HTTPException(status_code=400, detail="Email e palavra-passe são obrigatórios.")
-    if req.admin:
-        user = admin_store.authenticate_user(ident, password)
-        if not user and password == BACKOFFICE_PASSWORD and ident in ("", "admin"):
+        if not user and secret_equals(password, BACKOFFICE_PASSWORD) and ident in ("", "admin"):
             token = admin_store.create_session("admin", "admin")
             admin_store.log_audit_login("admin")
             return {
@@ -2397,7 +2368,8 @@ class AdminLoginRequest(BaseModel):
 
 
 @app.post("/api/admin/login")
-def admin_login(req: AdminLoginRequest):
+def admin_login(req: AdminLoginRequest, request: Request):
+    enforce_rate_limit(request, "admin-login", 10, 3600)
     if req.username:
         user = admin_store.authenticate_user(req.username, req.password)
         if not user:
@@ -2405,7 +2377,7 @@ def admin_login(req: AdminLoginRequest):
         token = admin_store.create_session(user["username"], user["role"])
         admin_store.log_audit_login(user["username"])
         return {"ok": True, "adminToken": token, "role": user["role"], "username": user["username"]}
-    if req.password == BACKOFFICE_PASSWORD:
+    if secret_equals(req.password, BACKOFFICE_PASSWORD):
         token = admin_store.create_session("admin", "admin")
         admin_store.log_audit_login("admin")
         return {"ok": True, "adminToken": token, "role": "admin", "username": "admin"}
