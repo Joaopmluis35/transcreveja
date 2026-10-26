@@ -4,6 +4,8 @@ from __future__ import annotations
 import json
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 API_TOKEN = "test-api-token"
 LONG_TEXT = (
     "Esta é uma transcrição de exemplo com conteúdo suficiente para validar os endpoints de IA. "
@@ -141,3 +143,36 @@ def test_generate_questions_returns_text(mock_create, client):
     assert res.status_code == 200, res.text
     assert "questions" in res.json()
     assert "Pergunta" in res.json()["questions"]
+
+
+@pytest.mark.parametrize(
+    "lang, expected",
+    [("pt", "português de Portugal"), ("es", "espanhol"), ("fr", "francês"), ("de", "alemão"), ("en", "inglês")],
+)
+@patch("main.client.chat.completions.create")
+def test_summarize_writes_in_site_language(mock_create, client, lang, expected):
+    mock_create.return_value = _mock_completion("ok")
+    res = client.post("/summarize", json={"text": LONG_TEXT, "token": API_TOKEN, "lang": lang})
+    assert res.status_code == 200, res.text
+    system = mock_create.call_args.kwargs["messages"][0]["content"]
+    assert f"Escreve sempre em {expected}" in system
+
+
+@pytest.mark.parametrize(
+    "mode, marker",
+    [("normal", "um terço"), ("minuta", "minuta"), ("informal", "informal"), ("email", "email")],
+)
+@patch("main.client.chat.completions.create")
+def test_summarize_uses_selected_style(mock_create, client, mode, marker):
+    mock_create.return_value = _mock_completion("ok")
+    res = client.post("/summarize", json={"text": LONG_TEXT, "token": API_TOKEN, "mode": mode})
+    assert res.status_code == 200, res.text
+    assert marker in mock_create.call_args.kwargs["messages"][0]["content"]
+
+
+@patch("main.client.chat.completions.create")
+def test_generate_email_uses_requested_language(mock_create, client):
+    mock_create.return_value = _mock_completion("ok")
+    res = client.post("/generate-email", json={"text": LONG_TEXT, "token": API_TOKEN, "lang": "fr"})
+    assert res.status_code == 200, res.text
+    assert "francês" in mock_create.call_args.kwargs["messages"][1]["content"]

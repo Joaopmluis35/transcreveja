@@ -3644,28 +3644,48 @@ class SummarizeRequest(BaseModel):
     mode: str = "normal"
     lang: str = "pt"
 
+# Língua de saída dos textos gerados por IA, pelo locale do site.
+AI_OUTPUT_LANGUAGES = {
+    "pt": "português de Portugal (nunca português do Brasil)",
+    "en": "inglês",
+    "es": "espanhol",
+    "fr": "francês",
+    "de": "alemão",
+}
+
+
+def ai_output_language(lang: str | None) -> str:
+    return AI_OUTPUT_LANGUAGES.get((lang or "pt").strip().lower()[:2], AI_OUTPUT_LANGUAGES["pt"])
+
+
+SUMMARY_STYLES = {
+    "normal": (
+        "Resume o texto de forma clara e concisa, com no máximo um terço do tamanho original. "
+        "Mantém os factos, nomes, datas e decisões importantes."
+    ),
+    "minuta": (
+        "Cria uma minuta de reunião em tópicos com: tópicos discutidos, decisões, "
+        "responsáveis (se houver) e próximas ações."
+    ),
+    "informal": "Resume o texto em poucas frases simples, num tom informal, como se explicasses a um amigo.",
+    "email": (
+        "Escreve um email curto que resuma o texto, com assunto, saudação, "
+        "os pontos principais e despedida."
+    ),
+}
+
+
 @app.post("/summarize")
 async def summarize(req: SummarizeRequest, request: Request):
     require_token(req.token)
     enforce_rate_limit(request, "ai", RATE_LIMIT_AI, RATE_LIMIT_AI_WINDOW)
-    if req.lang == "en":
-        if req.mode == "minuta":
-            prompt = ("Based on the transcript below, create clear bullet-point minutes including:\n"
-                      "- Topics discussed\n- Decisions\n- Owners (if mentioned)\n- Action items\n\n"
-                      f"Transcript:\n{req.text}")
-            sys = "You summarize transcripts into meeting minutes."
-        else:
-            prompt = f"Summarize clearly and concisely:\n\n{req.text}"
-            sys = "You summarize transcripts."
-    else:
-        if req.mode == "minuta":
-            prompt = ("A partir da transcrição abaixo, cria uma minuta em tópicos com:\n"
-                      "- Tópicos discutidos\n- Decisões\n- Responsáveis (se houver)\n- Ações\n\n"
-                      f"Transcrição:\n{req.text}")
-            sys = "Resumes transcrições em minutas."
-        else:
-            prompt = f"Resume de forma clara e concisa:\n\n{req.text}"
-            sys = "És um assistente que resume transcrições de áudio."
+    style = SUMMARY_STYLES.get(req.mode, SUMMARY_STYLES["normal"])
+    sys = (
+        "És um assistente que resume textos e transcrições. "
+        f"{style} Escreve sempre em {ai_output_language(req.lang)}, mesmo que o texto esteja noutra língua. "
+        "Devolve só o resultado, sem comentários."
+    )
+    prompt = f"Texto:\n{req.text}"
     try:
         resp = client.chat.completions.create(
             model=SUM_MODEL,
@@ -3723,7 +3743,7 @@ async def transcript_chat(req: TranscriptChatRequest, request: Request):
         sys = (
             "Responde a perguntas sobre uma transcrição de áudio/vídeo. "
             "Usa apenas a transcrição abaixo. Se a resposta não estiver lá, diz que não sabes. "
-            "Sê claro e conciso. Responde em português.\n\n"
+            "Sê claro e conciso. Responde em português de Portugal (nunca português do Brasil).\n\n"
             f"TRANSCRIÇÃO:\n{transcript}"
         )
 
@@ -3760,7 +3780,7 @@ async def translate_text(request: Request):
     token = data.get("token") or ""
     require_token(token)
     enforce_rate_limit(request, "ai", RATE_LIMIT_AI, RATE_LIMIT_AI_WINDOW)
-    idiomas = {"inglês": "English", "espanhol": "Spanish", "francês": "French", "alemão": "German", "italiano": "Italian", "português": "Portuguese"}
+    idiomas = {"inglês": "English", "espanhol": "Spanish", "francês": "French", "alemão": "German", "italiano": "Italian", "português": "European Portuguese (Portugal, not Brazilian)"}
     if language not in idiomas:
         raise HTTPException(status_code=400, detail=f"Idioma não suportado: {language}")
     try:
@@ -3868,13 +3888,15 @@ class EmailRequest(BaseModel):
     text: str
     token: str
     tone: str = "formal"
+    lang: str = "pt"
 
 @app.post("/generate-email")
 async def generate_email(req: EmailRequest, request: Request):
     require_token(req.token)
     enforce_rate_limit(request, "ai", RATE_LIMIT_AI, RATE_LIMIT_AI_WINDOW)
     prompt = (f"Gera um email em tom {req.tone} a partir do seguinte resumo/transcrição de uma reunião:\n\n{req.text}\n\n"
-              "O email deve ser claro, direto e adequado para enviar após a reunião.")
+              "O email deve ser claro, direto e adequado para enviar após a reunião. "
+              f"Escreve-o em {ai_output_language(req.lang)}.")
     try:
         resp = client.chat.completions.create(
             model=EML_MODEL,
@@ -3931,10 +3953,10 @@ class QuestionRequest(BaseModel):
 
 _QUESTION_LANG_SPECS: dict[str, tuple[str, str]] = {
     "pt": (
-        "Crias perguntas de estudo em português.",
+        "Crias perguntas de estudo em português de Portugal (nunca português do Brasil).",
         "Gera {n} perguntas de escolha múltipla com base no texto. "
         "Para cada pergunta: enunciado, quatro opções (A–D), resposta correta e breve explicação. "
-        "Escreve tudo em português, mesmo que o texto de origem esteja noutro idioma.\n\nTexto:\n{text}",
+        "Escreve tudo em português de Portugal, mesmo que o texto de origem esteja noutro idioma.\n\nTexto:\n{text}",
     ),
     "en": (
         "You create study questions in English.",

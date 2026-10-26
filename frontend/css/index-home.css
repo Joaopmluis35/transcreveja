@@ -464,10 +464,6 @@ body.oe-page--home .oe-drop-zone__lead {
   margin: 0;
 }
 
-body.oe-page--home .oe-drop-zone__copy--touch {
-  display: none;
-}
-
 /* Resultado — scroll + destaque exportar */
 @keyframes oe-export-glow {
   0% {

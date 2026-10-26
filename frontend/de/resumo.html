@@ -179,7 +179,7 @@ function extrairTextoDOCX(file) {
       const res = await fetch(`${OuviescreviAPI.getBase()}/summarize`, {
         method: "POST",
         headers: OuviescreviAPI.authHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify(OuviescreviAPI.authJson({ text: text, mode: modo, lang: "en" }))
+        body: JSON.stringify(OuviescreviAPI.authJson({ text: text, mode: modo, lang: "de" }))
       });
       const data = await res.json();
       const out = document.getElementById("resultado");

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="stylesheet" href="../css/ouviescrevi.css?v=29">
-  <link rel="stylesheet" href="../css/index-home.css?v=33">
+  <link rel="stylesheet" href="../css/index-home.css?v=57">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <title>Ouviescrevi — Transcription audio et vidéo IA gratuite</title>
   <link rel="canonical" href="https://www.ouviescrevi.pt/fr/index.html">
@@ -1420,7 +1420,7 @@
       const res = await fetch(`${API_BASE}/generate-email`, {
         method:"POST",
         headers: OuviescreviAPI.authHeaders({ "Content-Type":"application/json" }),
-        body: JSON.stringify(OuviescreviAPI.authJson({ text, tone }))
+        body: JSON.stringify(OuviescreviAPI.authJson({ text, tone, lang: "fr" }))
       });
       const data = await res.json();
       if (data.email){
