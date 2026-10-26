@@ -162,6 +162,8 @@ WHISPER_TIMEOUT = int(os.getenv("WHISPER_TIMEOUT", "110"))  # por chunk
 WHISPER_LANGUAGE = (os.getenv("WHISPER_LANGUAGE", "") or "").strip().lower() or None
 WHISPER_TEMPERATURE = float(os.getenv("WHISPER_TEMPERATURE", "0"))
 WHISPER_PROMPT_OVERRIDE = (os.getenv("WHISPER_PROMPT") or "").strip() or None
+# Quanto pior pode ser a confiança da repetição em pt para ainda a preferir (site PT).
+PT_RETRY_LOGPROB_MARGIN = float(os.getenv("PT_RETRY_LOGPROB_MARGIN", "0.1"))
 FFMPEG_TIMEOUT = int(os.getenv("FFMPEG_TIMEOUT", "60"))
 TOTAL_TRANSCRIBE_TIMEOUT = int(os.getenv("TOTAL_TRANSCRIBE_TIMEOUT", "900"))  # watchdog global
 MAX_FILE_SIZE_MB = int(os.getenv("MAX_FILE_SIZE_MB", "500"))
@@ -772,6 +774,30 @@ def chunk_needs_lyrics_retry(segments, language: str | None = None) -> bool:
     return len(usable) >= 6 and n / len(usable) >= 0.7 and len(top) <= 48
 
 
+def _is_portuguese(language: str | None) -> bool:
+    return (language or "").strip().lower() in ("pt", "portuguese")
+
+
+def _mean_logprob(segments) -> float | None:
+    """Confiança média do Whisper nos segmentos com texto (mais perto de 0 = mais confiante)."""
+    vals = []
+    for seg in segments:
+        lp = _seg_get(seg, "avg_logprob")
+        if lp is not None and (_seg_get(seg, "text", "") or "").strip():
+            vals.append(float(lp))
+    return sum(vals) / len(vals) if vals else None
+
+
+def _pt_retry_is_better(first_segs, retry_segs) -> bool:
+    """Fala em português que o Whisper deteta como inglês sai traduzida; forçada a pt,
+    a transcrição real tem mais confiança. Fala mesmo noutra língua forçada a pt
+    fica com menos confiança e é rejeitada."""
+    first, retry = _mean_logprob(first_segs), _mean_logprob(retry_segs)
+    if first is None or retry is None:
+        return False
+    return retry >= first - PT_RETRY_LOGPROB_MARGIN
+
+
 def _wrong_script_share(segments) -> float:
     """Fração de segmentos em CJK/cirílico — típico quando o Whisper erra a língua numa reunião PT."""
     texts = _nonempty_seg_texts(segments)
@@ -1030,6 +1056,51 @@ def process_whisper_result(result, language: str | None, offset_seconds: int = 0
     text = clean_transcription_text(text, language)
     formatted = clean_transcription_text(formatted, language)
     return text, formatted, segs
+
+
+_TIMESTAMP_PREFIX = re.compile(r"^\[\d{2,}:\d{2}\]\s*", re.MULTILINE)
+
+
+def plain_from_formatted(formatted: str) -> str:
+    lines = (_TIMESTAMP_PREFIX.sub("", line).strip() for line in formatted.splitlines())
+    return " ".join(line for line in lines if line)
+
+
+def translate_formatted_transcript(formatted: str, max_chars: int = 8000) -> str:
+    """Traduz para português de Portugal, mantendo as marcas [mm:ss] e as quebras de linha."""
+    batches, current = [], ""
+    for block in formatted.split("\n\n"):
+        if current and len(current) + len(block) + 2 > max_chars:
+            batches.append(current)
+            current = block
+        else:
+            current = f"{current}\n\n{block}" if current else block
+    if current:
+        batches.append(current)
+
+    translated = []
+    for batch in batches:
+        resp = client.chat.completions.create(
+            model=SUM_MODEL,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "Traduz esta transcrição para português de Portugal. Mantém exatamente as marcas "
+                        "de tempo no início das linhas (por exemplo [04:12]) e as linhas em branco. "
+                        "Não resumas nem acrescentes comentários. Devolve só o texto traduzido."
+                    ),
+                },
+                {"role": "user", "content": batch},
+            ],
+            temperature=0,
+            max_tokens=6000,
+        )
+        out = (resp.choices[0].message.content or "").strip()
+        if len(_TIMESTAMP_PREFIX.findall(out)) != len(_TIMESTAMP_PREFIX.findall(batch)):
+            raise ValueError("A tradução perdeu marcas de tempo.")
+        translated.append(out)
+    return "\n\n".join(translated)
 
 def safe_run_ffmpeg(cmd: list, desc: str, timeout: int = FFMPEG_TIMEOUT):
     t0 = time.monotonic()
@@ -2839,6 +2910,7 @@ def _execute_transcribe_job(
             parts = [used_source]
 
         full_text_chunks, formatted_chunks = [], []
+        chunk_languages: list[str] = []
         offset_seconds = 0
         failed_segments = 0
         processed_segments = 0
@@ -2872,14 +2944,18 @@ def _execute_transcribe_job(
                 raw_segs = getattr(result, "segments", []) or []
                 pt_site = (ui_locale or "pt").strip().lower()[:2] in ("", "pt")
                 wrong_script = _wrong_script_share(raw_segs)
-                force_pt = pt_site and (whisper_lang or "") != "pt" and wrong_script >= 0.2
+                chunk_lang = (getattr(result, "language", None) or "").strip().lower()
+                # Em modo automático, fala em português detetada como inglês sai já traduzida.
+                wrong_language = pt_site and not whisper_lang and bool(chunk_lang) and not _is_portuguese(chunk_lang)
+                force_pt = pt_site and (whisper_lang or "") != "pt" and (wrong_script >= 0.2 or wrong_language)
                 if force_pt or chunk_needs_lyrics_retry(raw_segs, whisper_lang):
                     logger.warning(
-                        "[%s] Chunk %d/%d saída fraca (%d segs, script_errado=%.0f%%) amostras=%s; %s",
+                        "[%s] Chunk %d/%d saída fraca (%d segs, lingua=%s, script_errado=%.0f%%) amostras=%s; %s",
                         rid,
                         idx + 1,
                         total_parts,
                         len(raw_segs),
+                        chunk_lang or "?",
                         wrong_script * 100,
                         _sample_seg_texts(raw_segs),
                         "nova tentativa em português" if force_pt else "nova tentativa sem língua forçada",
@@ -2899,15 +2975,20 @@ def _execute_transcribe_job(
                         chars_first = _usable_char_count(raw_segs, whisper_lang)
                         chars_retry = _usable_char_count(retry_segs, score_lang)
                         logger.warning(
-                            "[%s] Retry chunk %d chars úteis %d→%d amostras=%s",
+                            "[%s] Retry chunk %d chars úteis %d→%d logprob %s→%s amostras=%s",
                             rid,
                             idx + 1,
                             chars_first,
                             chars_retry,
+                            _mean_logprob(raw_segs),
+                            _mean_logprob(retry_segs),
                             _sample_seg_texts(retry_segs),
                         )
                         accept = False
-                        if force_pt:
+                        if force_pt and wrong_script < 0.2:
+                            # Mesmo alfabeto, outra língua detetada: decide pela confiança do Whisper.
+                            accept = chars_retry > 0 and _pt_retry_is_better(raw_segs, retry_segs)
+                        elif force_pt:
                             accept = (
                                 _wrong_script_share(retry_segs) < 0.2
                                 and chars_retry >= 40
@@ -2917,6 +2998,7 @@ def _execute_transcribe_job(
                         if accept:
                             result = retry
                             raw_segs = retry_segs
+                            chunk_lang = "pt" if force_pt else (getattr(retry, "language", None) or "").strip().lower()
                     except Exception as retry_err:
                         logger.warning(
                             "[%s] Retry chunk %d falhou: %s",
@@ -2934,6 +3016,8 @@ def _execute_transcribe_job(
                 )
                 full_text_chunks.append(text_piece)
                 formatted_chunks.append(formatted_piece)
+                if text_piece.strip():
+                    chunk_languages.append(chunk_lang)
                 logger.info(
                     "[%s] Chunk %d/%d transcrito. segs=%d len(text)=%d",
                     rid, idx + 1, total_parts, len(kept_segs), len(text_piece),
@@ -3006,6 +3090,30 @@ def _execute_transcribe_job(
             "\n\n".join(t for t in formatted_chunks if t).strip(), whisper_lang
         )
 
+        # Site PT em modo automático: áudio noutra língua é entregue em português, com o original guardado.
+        original_formatted = None
+        original_language = None
+        translation_warning = None
+        foreign_languages = [lang for lang in chunk_languages if lang and not _is_portuguese(lang)]
+        pt_site = (ui_locale or "pt").strip().lower()[:2] in ("", "pt")
+        if (
+            pt_site
+            and not whisper_lang
+            and foreign_languages
+            and formatted_out
+            and not is_music_only_transcript(formatted_out)
+        ):
+            _transcribe_job_set(job_id, message="A traduzir para português…", progress=95)
+            try:
+                translated = translate_formatted_transcript(formatted_out)
+                original_formatted, original_language = formatted_out, foreign_languages[0]
+                formatted_out = translated
+                transcription_out = plain_from_formatted(translated)
+                logger.info("[%s] Transcrição traduzida de %s para pt", rid, original_language)
+            except Exception as e:
+                logger.warning("[%s] Tradução para pt falhou: %s", rid, str(e)[:200])
+                translation_warning = "Não foi possível traduzir para português; mostramos o texto na língua original."
+
         warning = None
         if quota_exceeded:
             warning = "Conta OpenAI sem créditos (insufficient_quota). Adiciona billing em platform.openai.com."
@@ -3016,6 +3124,8 @@ def _execute_transcribe_job(
             warning = f"{warning} {extra}" if warning else extra
         if is_music_only_transcript(formatted_out) or is_music_only_transcript(transcription_out):
             warning = f"{warning} {MUSIC_ONLY_WARNING}".strip() if warning else MUSIC_ONLY_WARNING
+        if translation_warning:
+            warning = f"{warning} {translation_warning}" if warning else translation_warning
 
         if _transcription_has_content(transcription_out, formatted_out):
             record_transcribe_success(
@@ -3051,6 +3161,8 @@ def _execute_transcribe_job(
             message="Transcrição concluída.",
             transcription=transcription_out,
             formatted=formatted_out,
+            original_formatted=original_formatted,
+            original_language=original_language,
             warning=warning,
             duration_sec=duration_sec,
             processing_ms=int((time.monotonic() - t_start) * 1000),

@@ -3146,3 +3146,27 @@ body.oe-page--home .oe-csat__btn--ghost {
   color: #5b5675 !important;
   border: 1px solid #ddd6fe !important;
 }
+
+body.oe-page--home .oe-output__translated {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 0 0 10px;
+  font-size: 0.85rem;
+  color: #5b5675;
+}
+
+body.oe-page--home .oe-output__translated[hidden] {
+  display: none;
+}
+
+body.oe-page--home .oe-output__translated-toggle {
+  background: transparent;
+  border: 1px solid #ddd6fe;
+  border-radius: 999px;
+  padding: 2px 10px;
+  color: #6d28d9;
+  font: inherit;
+  cursor: pointer;
+}

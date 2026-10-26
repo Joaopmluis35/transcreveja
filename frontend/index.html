@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <script>document.documentElement.classList.add("oe-pricing-hidden");</script>
   <link rel="stylesheet" href="css/ouviescrevi.css?v=36">
-  <link rel="stylesheet" href="css/index-home.css?v=55">
+  <link rel="stylesheet" href="css/index-home.css?v=56">
   <link rel="stylesheet" href="css/pricing-visibility.css?v=2">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <link rel="manifest" href="/manifest.webmanifest">
@@ -197,6 +197,10 @@
                   <button type="button" class="oe-copy-btn oe-output__copy" onclick="copiarTranscricao()">📋 Copiar</button>
                 </div>
               </div>
+              <p id="transcriptTranslatedNote" class="oe-output__translated" hidden>
+                <span id="transcriptTranslatedLabel"></span>
+                <button type="button" id="transcriptOriginalToggle" class="oe-output__translated-toggle">Ver original</button>
+              </p>
               <textarea id="transcriptionText" aria-labelledby="outputTitle" placeholder="O texto transcrito aparece aqui…"></textarea>
 
               <aside class="oe-output__sidebar" aria-label="Ações sobre a transcrição">
@@ -955,10 +959,47 @@
 
   function definirTranscricao(texto) {
     transcriptionText.value = texto || "";
+    esconderNotaTraducao();
     atualizarMetaTranscricao();
     if (typeof syncTranscriptChatVisibility === "function") syncTranscriptChatVisibility();
   }
   window.definirTranscricao = definirTranscricao;
+
+  // Áudio noutra língua no site PT: o servidor traduz e envia o original em original_formatted.
+  const NOMES_LINGUAS = {
+    english: "inglês", spanish: "espanhol", french: "francês", german: "alemão",
+    italian: "italiano", dutch: "neerlandês", russian: "russo", chinese: "chinês",
+    japanese: "japonês", arabic: "árabe", ukrainian: "ucraniano", romanian: "romeno",
+  };
+  let versoesTranscricao = null;
+
+  function esconderNotaTraducao() {
+    versoesTranscricao = null;
+    const nota = document.getElementById("transcriptTranslatedNote");
+    if (nota) nota.hidden = true;
+  }
+
+  function mostrarNotaTraducao(data) {
+    const original = (data && data.original_formatted) || "";
+    if (!original.trim()) return;
+    const lingua = NOMES_LINGUAS[(data.original_language || "").toLowerCase()] || data.original_language || "outra língua";
+    versoesTranscricao = { traducao: transcriptionText.value, original: original, aMostrar: "traducao", lingua: lingua };
+    document.getElementById("transcriptTranslatedLabel").textContent = "Traduzido de " + lingua + ".";
+    document.getElementById("transcriptOriginalToggle").textContent = "Ver original";
+    document.getElementById("transcriptTranslatedNote").hidden = false;
+  }
+
+  document.getElementById("transcriptOriginalToggle").addEventListener("click", function () {
+    if (!versoesTranscricao) return;
+    const v = versoesTranscricao;
+    v[v.aMostrar] = transcriptionText.value; // guarda edições feitas na versão visível
+    v.aMostrar = v.aMostrar === "traducao" ? "original" : "traducao";
+    transcriptionText.value = v[v.aMostrar];
+    document.getElementById("transcriptTranslatedLabel").textContent =
+      v.aMostrar === "traducao" ? "Traduzido de " + v.lingua + "." : "Texto original (" + v.lingua + ").";
+    this.textContent = v.aMostrar === "traducao" ? "Ver original" : "Ver tradução";
+    atualizarMetaTranscricao();
+  });
 
   function focusTranscriptionResult() {
     if (!output) return;
@@ -1485,6 +1526,7 @@
         let textoFinal = textoRecebido;
         if (identificar) textoFinal = await aplicarLocutores(textoFinal);
         definirTranscricao(textoFinal);
+        mostrarNotaTraducao(data);
         setOutputPanelVisible(true);
         focusTranscriptionResult();
         statusEl.textContent = "✅ Transcrição concluída com sucesso!";
@@ -2564,6 +2606,7 @@
           let textoFinal = textoRecebido;
           if (identificar) textoFinal = await aplicarLocutores(textoFinal);
           definirTranscricao(textoFinal);
+          mostrarNotaTraducao(data);
           setOutputPanelVisible(true);
           focusTranscriptionResult();
           status.textContent = "✅ Transcrição concluída!";
