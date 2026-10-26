@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <script>document.documentElement.classList.add("oe-pricing-hidden");</script>
-  <link rel="stylesheet" href="css/ouviescrevi.css?v=38">
+  <link rel="stylesheet" href="css/ouviescrevi.css?v=39">
   <link rel="stylesheet" href="css/index-home.css?v=58">
   <link rel="stylesheet" href="css/pricing-visibility.css?v=2">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
@@ -588,7 +588,6 @@
 <script src="/js/suggestion-fab.js?v=25" defer></script>
 <script src="/js/feedback-pulse.js?v=1" defer></script>
   <script src="/js/media-trim-ui.js?v=49" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
   const ADMIN_EMAIL = "admin@ouviescrevi.pt";
   let API_BASE = "";
@@ -2332,12 +2331,35 @@
   // =========================
   // Exportações
   // =========================
+  // jsPDF (~90 KB) só é descarregado quando alguém exporta para PDF.
+  let jspdfPronto = null;
+  function carregarJsPDF() {
+    if (window.jspdf) return Promise.resolve();
+    if (!jspdfPronto) {
+      jspdfPronto = new Promise(function (resolve, reject) {
+        const s = document.createElement("script");
+        s.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+        s.onload = resolve;
+        s.onerror = function () { jspdfPronto = null; reject(new Error("jsPDF")); };
+        document.head.appendChild(s);
+      });
+    }
+    return jspdfPronto;
+  }
+
   function exportText(type){
     const text = transcriptionText.value || "";
     if (!text) return;
 
     if (type === "docx") {
       exportDocxPro(text);
+      return;
+    }
+
+    if (type === 'pdf' && !window.jspdf){
+      carregarJsPDF()
+        .then(function () { exportText(type); })
+        .catch(function () { alert("Não foi possível preparar o PDF. Tenta outra vez."); });
       return;
     }
 

@@ -282,4 +282,252 @@
   <url><loc>https://www.ouviescrevi.pt/blog/transcrever-aulas.html</loc><lastmod>2026-07-22</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://www.ouviescrevi.pt/blog/reunioes-em-texto.html</loc><lastmod>2026-07-22</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
 
+  <url><loc>https://www.ouviescrevi.pt/de/ajuda.html</loc><lastmod>2026-10-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/ajuda.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/ajuda.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/ajuda.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/ajuda.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/ajuda.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/ajuda.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/de/conversor.html</loc><lastmod>2026-10-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/conversor.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/conversor.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/conversor.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/conversor.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/conversor.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/conversor.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/de/cookies.html</loc><lastmod>2026-10-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/cookies.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/cookies.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/cookies.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/cookies.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/cookies.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/cookies.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/de/corretor.html</loc><lastmod>2026-10-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/corretor.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/corretor.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/corretor.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/corretor.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/corretor.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/corretor.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/de/perguntas.html</loc><lastmod>2026-10-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/perguntas.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/perguntas.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/perguntas.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/perguntas.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/perguntas.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/perguntas.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/de/privacy.html</loc><lastmod>2026-10-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/privacidade.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/privacidade.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/de/resumo.html</loc><lastmod>2026-10-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/resumo.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/resumo.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/resumo.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/resumo.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/resumo.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/resumo.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/de/sugestoes.html</loc><lastmod>2026-10-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/sugestoes.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/sugestoes.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/sugestoes.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/sugestoes.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/sugestoes.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/sugestoes.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/de/terms.html</loc><lastmod>2026-10-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/termos.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/terms.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/terms.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/terms.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/terms.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/termos.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/de/url-resumo.html</loc><lastmod>2026-10-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/url-resumo.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/url-resumo.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/url-resumo.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/url-resumo.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/url-resumo.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/url-resumo.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/en/corretor.html</loc><lastmod>2026-10-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/corretor.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/corretor.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/corretor.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/corretor.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/corretor.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/corretor.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/es/ajuda.html</loc><lastmod>2026-10-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/ajuda.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/ajuda.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/ajuda.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/ajuda.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/ajuda.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/ajuda.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/es/conversor.html</loc><lastmod>2026-10-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/conversor.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/conversor.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/conversor.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/conversor.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/conversor.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/conversor.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/es/cookies.html</loc><lastmod>2026-10-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/cookies.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/cookies.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/cookies.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/cookies.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/cookies.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/cookies.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/es/corretor.html</loc><lastmod>2026-10-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/corretor.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/corretor.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/corretor.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/corretor.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/corretor.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/corretor.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/es/perguntas.html</loc><lastmod>2026-10-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/perguntas.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/perguntas.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/perguntas.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/perguntas.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/perguntas.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/perguntas.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/es/privacy.html</loc><lastmod>2026-10-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/privacidade.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/privacidade.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/es/resumo.html</loc><lastmod>2026-10-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/resumo.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/resumo.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/resumo.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/resumo.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/resumo.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/resumo.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/es/sugestoes.html</loc><lastmod>2026-10-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/sugestoes.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/sugestoes.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/sugestoes.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/sugestoes.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/sugestoes.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/sugestoes.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/es/terms.html</loc><lastmod>2026-10-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/termos.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/terms.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/terms.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/terms.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/terms.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/termos.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/es/url-resumo.html</loc><lastmod>2026-10-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/url-resumo.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/url-resumo.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/url-resumo.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/url-resumo.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/url-resumo.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/url-resumo.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/fr/ajuda.html</loc><lastmod>2026-10-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/ajuda.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/ajuda.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/ajuda.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/ajuda.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/ajuda.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/ajuda.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/fr/conversor.html</loc><lastmod>2026-10-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/conversor.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/conversor.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/conversor.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/conversor.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/conversor.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/conversor.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/fr/cookies.html</loc><lastmod>2026-10-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/cookies.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/cookies.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/cookies.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/cookies.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/cookies.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/cookies.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/fr/corretor.html</loc><lastmod>2026-10-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/corretor.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/corretor.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/corretor.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/corretor.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/corretor.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/corretor.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/fr/perguntas.html</loc><lastmod>2026-10-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/perguntas.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/perguntas.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/perguntas.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/perguntas.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/perguntas.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/perguntas.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/fr/privacy.html</loc><lastmod>2026-10-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/privacidade.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/privacy.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/privacidade.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/fr/resumo.html</loc><lastmod>2026-10-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/resumo.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/resumo.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/resumo.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/resumo.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/resumo.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/resumo.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/fr/sugestoes.html</loc><lastmod>2026-10-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/sugestoes.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/sugestoes.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/sugestoes.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/sugestoes.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/sugestoes.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/sugestoes.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/fr/terms.html</loc><lastmod>2026-10-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/termos.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/terms.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/terms.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/terms.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/terms.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/termos.html"/>
+  </url>
+  <url><loc>https://www.ouviescrevi.pt/fr/url-resumo.html</loc><lastmod>2026-10-26</lastmod><changefreq>monthly</changefreq><priority>0.6</priority>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.ouviescrevi.pt/url-resumo.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.ouviescrevi.pt/en/url-resumo.html"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://www.ouviescrevi.pt/es/url-resumo.html"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://www.ouviescrevi.pt/fr/url-resumo.html"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://www.ouviescrevi.pt/de/url-resumo.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://www.ouviescrevi.pt/url-resumo.html"/>
+  </url>
 </urlset>

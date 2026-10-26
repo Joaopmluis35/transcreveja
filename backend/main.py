@@ -2218,7 +2218,7 @@ def share_transcript(req: ShareTranscriptRequest, request: Request):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
     origin = (request.headers.get("origin") or "https://www.ouviescrevi.pt").rstrip("/")
-    # Prefer pretty /s/{id} (proxied to API HTML with OG tags via Cloudflare Pages)
+    # Prefer pretty /s/{id} (proxied to API HTML with OG tags via vercel.json)
     url = f"{origin}/s/{created['id']}"
     return {"ok": True, "id": created["id"], "url": url, "expires_at": created["expires_at"]}
 
