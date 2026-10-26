@@ -251,8 +251,8 @@ body.oe-page--home .oe-home-panel--placeholder {
   justify-content: center;
   align-items: center;
   text-align: center;
-  min-height: 420px;
-  height: 100%;
+  min-height: 320px;
+  align-self: start;
   box-sizing: border-box;
   padding: 28px 24px;
   border-radius: 16px;
@@ -275,19 +275,87 @@ body.oe-page--home .oe-home-panel__hint {
   line-height: 1.5;
 }
 
+/* Progresso: cartão compacto no topo da coluna (não estica até à altura do formulário). */
 body.oe-page--home .oe-home-workspace__col--output #loading {
   max-width: none;
   margin-top: 0;
-  height: 100%;
+  height: auto;
+  align-self: start;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 8px;
-  padding: 22px 20px;
-  overflow: auto;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 22px 22px 18px;
   position: relative;
   z-index: 2;
+}
+
+body.oe-page--home .oe-home-workspace__col--output #loading.oe-loading {
+  background: var(--pro-surface, #fff);
+  border: 1px solid #c4b5fd;
+  box-shadow: 0 10px 30px rgba(124, 58, 237, 0.1);
+}
+
+body.oe-page--home .oe-home-workspace__col--output #loading p {
+  margin: 0;
+}
+
+body.oe-page--home .oe-home-workspace__col--output #loading .oe-loading__eyebrow {
+  text-align: left;
+}
+
+body.oe-page--home .oe-home-workspace__col--output #loading #transcricaoStatus {
+  min-height: 0;
+  justify-content: flex-start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--pro-text, #1f2937);
+  font-size: 1.08rem;
+  line-height: 1.4;
+  text-align: left;
+}
+
+body.oe-page--home .oe-home-workspace__col--output #loading #timerTranscricao,
+body.oe-page--home .oe-home-workspace__col--output #loading #legendarEta {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--pro-text-muted, #6b7280);
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-align: left;
+}
+
+body.oe-page--home .oe-home-workspace__col--output #loading #progressWrap {
+  height: 10px;
+  border-radius: 999px;
+  background: #ede9fe;
+  overflow: hidden;
+}
+
+body.oe-page--home .oe-home-workspace__col--output #loading #progressBar {
+  border-radius: 999px;
+  background: linear-gradient(90deg, #7c3aed, #a855f7);
+}
+
+body.oe-page--home .oe-home-workspace__col--output #loading .oe-loading__hint {
+  text-align: left;
+}
+
+body.oe-page--home .oe-home-workspace__col--output #loading .oe-loading__cancel {
+  align-self: flex-start;
+  margin: 2px 0 0;
+}
+
+@media (min-width: 901px) {
+  /* Ao fazer scroll pelo vídeo e opções, o progresso fica visível. */
+  body.oe-page--home .oe-home-workspace__col--output #loading,
+  body.oe-page--home .oe-home-workspace__col--output .oe-home-panel--placeholder {
+    position: sticky;
+    top: 84px;
+  }
 }
 
 body.oe-page--home .oe-home-workspace__col--output #output.oe-output {

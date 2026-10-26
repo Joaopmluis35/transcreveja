@@ -245,6 +245,15 @@ html.oe-theme-dark body.oe-page--home #progressWrap {
   background: #0f172a;
 }
 
+html.oe-theme-dark body.oe-page--home .oe-home-workspace__col--output #loading.oe-loading {
+  background: var(--pro-surface);
+  border-color: #5b21b6;
+}
+
+html.oe-theme-dark body.oe-page--home .oe-home-workspace__col--output #loading #progressWrap {
+  background: #2e1065;
+}
+
 html.oe-theme-dark body.oe-page--home #uploadAlert.oe-upload-alert {
   background: #422006;
   border-color: #92400e;
