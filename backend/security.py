@@ -5,7 +5,7 @@ import ipaddress
 import socket
 import time
 from collections import defaultdict
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 
 import requests
 from fastapi import HTTPException, Request
@@ -99,21 +99,16 @@ class RateLimiter:
           del self._hits[key]
 
 
-_PRIVATE_NETS = (
-    ipaddress.ip_network("0.0.0.0/8"),
-    ipaddress.ip_network("10.0.0.0/8"),
-    ipaddress.ip_network("127.0.0.0/8"),
-    ipaddress.ip_network("169.254.0.0/16"),
-    ipaddress.ip_network("172.16.0.0/12"),
-    ipaddress.ip_network("192.168.0.0/16"),
-    ipaddress.ip_network("::1/128"),
-    ipaddress.ip_network("fc00::/7"),
-    ipaddress.ip_network("fe80::/10"),
-)
+MAX_REDIRECTS = 5
 
 
 def _ip_is_blocked(addr: ipaddress.IPv4Address | ipaddress.IPv6Address) -> bool:
-    return any(addr in net for net in _PRIVATE_NETS)
+    # ::ffff:127.0.0.1 é o 127.0.0.1 disfarçado de IPv6.
+    if isinstance(addr, ipaddress.IPv6Address) and addr.ipv4_mapped:
+        addr = addr.ipv4_mapped
+    # Só IPs públicos: bloqueia privados, loopback, link-local (metadata 169.254.x),
+    # 100.64/10 (CGNAT), multicast e reservados.
+    return not addr.is_global or addr.is_multicast
 
 
 def _resolve_host_ips(hostname: str) -> list[ipaddress.IPv4Address | ipaddress.IPv6Address]:
@@ -151,7 +146,6 @@ def safe_http_get(
     max_bytes: int = 2_000_000,
     headers: dict | None = None,
 ) -> requests.Response:
-    validate_public_http_url(url)
     hdrs = {
         "User-Agent": "Mozilla/5.0 (compatible; OuviescreviBot/1.0; +https://ouviescrevi.pt)",
         "Accept": "text/html,application/xhtml+xml;q=0.9,*/*;q=0.8",
@@ -159,10 +153,21 @@ def safe_http_get(
     }
     if headers:
         hdrs.update(headers)
-    with requests.get(url, timeout=timeout, stream=True, allow_redirects=True, headers=hdrs) as resp:
-        resp.raise_for_status()
-        content = resp.raw.read(max_bytes + 1, decode_content=True)
-        if len(content) > max_bytes:
-            raise HTTPException(status_code=400, detail="Resposta da URL demasiado grande.")
-        resp._content = content
-        return resp
+    # Redirecionamentos seguidos à mão: cada destino é validado antes do pedido,
+    # senão um site público podia redirecionar para a rede interna.
+    for _ in range(MAX_REDIRECTS + 1):
+        validate_public_http_url(url)
+        with requests.get(url, timeout=timeout, stream=True, allow_redirects=False, headers=hdrs) as resp:
+            if resp.is_redirect:
+                location = resp.headers.get("location")
+                if not location:
+                    raise HTTPException(status_code=400, detail="Redirecionamento inválido.")
+                url = urljoin(url, location)
+                continue
+            resp.raise_for_status()
+            content = resp.raw.read(max_bytes + 1, decode_content=True)
+            if len(content) > max_bytes:
+                raise HTTPException(status_code=400, detail="Resposta da URL demasiado grande.")
+            resp._content = content
+            return resp
+    raise HTTPException(status_code=400, detail="Demasiados redirecionamentos.")
