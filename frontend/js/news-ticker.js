@@ -6,11 +6,13 @@
   var PACKS = {
     pt: {
       badge: "NOVO",
+      // [data, texto]: novidades com data própria; texto simples usa RELEASE.
       items: [
-        "Flashcards com IA — PDF e impressão personalizada",
-        "Assistente Aula completa: transcrição → flashcards",
-        "Descrição YouTube com IA",
-        "Conversor de imagens: comprimir e unir em PDF",
+        ["26/10/2026", "Áudio noutra língua? A transcrição chega em português, com o original à mão"],
+        ["28/09/2026", "Chat com IA: faz perguntas sobre a tua transcrição"],
+        ["22/09/2026", "Ficheiros longos: escolhe só o trecho que queres transcrever"],
+        ["21/09/2026", "Vídeos transcritos mais depressa: o áudio é extraído no teu browser"],
+        ["25/07/2026", "Histórico: pesquisa, renomeia e partilha as tuas transcrições"],
       ],
     },
     en: {
@@ -92,11 +94,15 @@
 
   function fillTrack(track, pack, date) {
     var chunks = [];
-    pack.items.forEach(function (text, index) {
+    pack.items.forEach(function (item, index) {
       if (index > 0) {
         chunks.push('<span class="oe-news-ticker__dot" aria-hidden="true">•</span>');
       }
-      chunks.push(itemHtml(pack.badge, text, date));
+      if (Array.isArray(item)) {
+        chunks.push(itemHtml(pack.badge, item[1], item[0]));
+      } else {
+        chunks.push(itemHtml(pack.badge, item, date));
+      }
     });
     var once = chunks.join("");
     track.innerHTML =
