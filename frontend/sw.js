@@ -1,5 +1,5 @@
 /* Service worker leve — cache de shell estático para visitas repetidas. */
-const CACHE = "oe-shell-v2";
+const CACHE = "oe-shell-v3";
 const PRECACHE = [
   "/",
   "/index.html",
