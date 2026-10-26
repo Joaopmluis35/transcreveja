@@ -18,7 +18,7 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="canonical" href="https://www.ouviescrevi.pt/conversor.html">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
-  <link rel="stylesheet" href="css/ouviescrevi.css?v=37">
+  <link rel="stylesheet" href="css/ouviescrevi.css?v=38">
   <link rel="stylesheet" href="css/conversor.css?v=1">
   <script src="js/theme-ui.js"></script>
   <script src="/js/ouviescrevi-seo.js" defer></script>
@@ -176,9 +176,7 @@
           const page = await pdf.getPage(i);
           const content = await page.getTextContent();
           const strings = content.items.map(function (item) { return item.str; }).join(" ");
-          textContent += strings + "
-
-";
+          textContent += strings + "\n\n";
         }
         const blob = new Blob([textContent], { type: "text/plain;charset=utf-8" });
         const url = URL.createObjectURL(blob);
@@ -258,9 +256,5 @@
 </script>
 
 <div id="footer"></div>
-<script>
-  OuviescreviUI.loadHeader();
-  OuviescreviUI.loadFooter();
-</script>
 </body>
 </html>

@@ -252,14 +252,14 @@
       escapeHtml(t("description")) +
       '</h2><button type="button" class="oe-yt-result__btn oe-yt-result__btn--primary" data-copy="desc">' +
       escapeHtml(t("copyDesc")) +
-      "</button></div><pre class="oe-yt-pre">" +
+      '</button></div><pre class="oe-yt-pre">' +
       escapeHtml(data.description || "") +
       "</pre></section>" +
       '<section class="oe-yt-block"><div class="oe-yt-block__head"><h2>' +
       escapeHtml(t("tags")) +
       '</h2><button type="button" class="oe-yt-result__btn" data-copy="tags">' +
       escapeHtml(t("copyTags")) +
-      "</button></div><p class="oe-yt-tags">" +
+      '</button></div><p class="oe-yt-tags">' +
       escapeHtml(data.tags_csv || (data.tags || []).join(", ")) +
       "</p></section>" +
       '<button type="button" class="oe-pw-btn oe-pw-btn--ghost" id="btnPwRestart">' +

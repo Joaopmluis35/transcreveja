@@ -16,8 +16,8 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="canonical" href="https://www.ouviescrevi.pt/precos.html">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
-  <link rel="stylesheet" href="css/ouviescrevi.css?v=37">
-  <link rel="stylesheet" href="css/ouviescrevi-pro.css">
+  <link rel="stylesheet" href="css/ouviescrevi.css?v=38">
+  <link rel="stylesheet" href="css/ouviescrevi-pro.css?v=2">
   <link rel="stylesheet" href="css/index-home.css?v=58">
   <script src="/js/ouviescrevi-seo.js" defer></script>
   <script src="js/pricing-visibility.js?v=25" defer></script>
@@ -128,8 +128,6 @@
 </main>
 <div id="footer"></div>
 <script>
-  OuviescreviUI.loadHeader();
-  OuviescreviUI.loadFooter();
   (async function () {
     await OuviescreviAPI.init();
     if (OuviescreviPricingVisibility) await OuviescreviPricingVisibility.whenReady();

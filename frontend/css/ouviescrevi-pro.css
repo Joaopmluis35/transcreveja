@@ -1728,8 +1728,12 @@ body.oe-pro.oe-page--home #cmsSeoClosing {
     flex-wrap: nowrap;
     flex-shrink: 1;
   }
-  .oe-pro-nav {
-    overflow: hidden;
+}
+/* Ecrãs médios: sem espaço para todos os links. Sugestões continua no rodapé e no botão 👋.
+   (Não usar overflow: hidden na .oe-pro-nav — corta os submenus.) */
+@media (min-width: 900px) and (max-width: 1199px) {
+  .oe-pro-nav__toplinks a[href$="sugestoes.html"] {
+    display: none;
   }
 }
 .oe-pro-auth__user {
