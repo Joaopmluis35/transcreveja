@@ -598,6 +598,21 @@
     API_TOKEN = OuviescreviAPI.getToken();
   }
 
+  // Ações de IA: se a ligação falhar (servidor a reiniciar ou a acordar), tenta de novo antes de desistir.
+  // Não usar no envio de ficheiros — repetir uma transcrição duplicava o custo.
+  async function fetchIA(url, opts) {
+    const esperas = [3000, 8000];
+    for (let i = 0; ; i++) {
+      try {
+        const res = await fetch(url, opts);
+        if (![502, 503, 504].includes(res.status) || i >= esperas.length) return res;
+      } catch (err) {
+        if (i >= esperas.length) throw err;
+      }
+      await new Promise(r => setTimeout(r, esperas[i]));
+    }
+  }
+
   async function loadSiteContent() {
     try {
       await ensureApi();
@@ -2440,7 +2455,7 @@
         }
         return;
       }
-      const res = await fetch(`${API_BASE}/api/export/docx`, {
+      const res = await fetchIA(`${API_BASE}/api/export/docx`, {
         method: "POST",
         headers: Object.assign({ "Content-Type": "application/json" }, OuviescreviAPI.authHeaders()),
         body: JSON.stringify({ text: text, title: "Transcrição Ouviescrevi" }),
@@ -2687,7 +2702,7 @@
     const btn = event.target.closest("button");
     const original = btn.innerHTML; btn.innerHTML = "<span>📚 A classificar...</span>"; btn.disabled = true;
     try{
-      const res = await fetch(`${API_BASE}/classify`, {
+      const res = await fetchIA(`${API_BASE}/classify`, {
         method:"POST",
         headers: OuviescreviAPI.authHeaders({ "Content-Type":"application/json" }),
         body: JSON.stringify(OuviescreviAPI.authJson({ text }))
@@ -2747,7 +2762,7 @@
     const original = btn.innerHTML; btn.innerHTML = "<span>📝 A corrigir...</span>"; btn.disabled = true;
 
     try{
-      const res = await fetch(`${API_BASE}/correct`, {
+      const res = await fetchIA(`${API_BASE}/correct`, {
         method:"POST",
         headers: OuviescreviAPI.authHeaders({ "Content-Type":"application/json" }),
         body: JSON.stringify(OuviescreviAPI.authJson({ text }))
@@ -2846,7 +2861,7 @@
     const btn = event.target.closest("button");
     const original = btn.innerHTML; btn.innerHTML = "<span>📩 A gerar minuta...</span>"; btn.disabled = true;
     try{
-      const res = await fetch(`${API_BASE}/summarize`, {
+      const res = await fetchIA(`${API_BASE}/summarize`, {
         method:"POST",
         headers: OuviescreviAPI.authHeaders({ "Content-Type":"application/json" }),
         body: JSON.stringify(OuviescreviAPI.authJson({ text, mode:"minuta" }))
@@ -2872,7 +2887,7 @@
     const btn = e?.target?.closest("button") || document.querySelector("#btnGerarResumo");
     const original = btn.innerHTML; btn.innerHTML = "<span>🧠 A gerar resumo...</span>"; btn.disabled = true;
     try{
-      const res = await fetch(`${API_BASE}/summarize`, {
+      const res = await fetchIA(`${API_BASE}/summarize`, {
         method:"POST",
         headers: OuviescreviAPI.authHeaders({ "Content-Type":"application/json" }),
         body: JSON.stringify(OuviescreviAPI.authJson({ text }))
@@ -2880,10 +2895,10 @@
       const data = await res.json();
       const box = document.getElementById("resumoBox");
       document.getElementById("resumoTexto").textContent =
-        data.summary || ("❌ Erro ao gerar resumo: " + (data.error || "resposta inválida"));
+        data.summary || ("❌ Erro ao gerar resumo: " + (data.detail || data.error || "resposta inválida"));
       box.classList.remove("hidden");
       scrollSeInvisivel("resumoBox");
-    }catch{ alert("❌ Erro ao gerar resumo."); }
+    }catch{ alert("❌ O servidor não respondeu ao gerar o resumo — tenta outra vez dentro de um minuto."); }
     finally{ btn.innerHTML = original; btn.disabled = false; }
   }
 
@@ -3060,7 +3075,7 @@
     }
 
     try{
-      const res = await fetch(`${API_BASE}/generate-email`, {
+      const res = await fetchIA(`${API_BASE}/generate-email`, {
         method:"POST",
         headers: OuviescreviAPI.authHeaders({ "Content-Type":"application/json" }),
         body: JSON.stringify(OuviescreviAPI.authJson({ text, tone }))
@@ -3218,7 +3233,7 @@
     btn.textContent = "🌍 A traduzir..."; btn.disabled = true;
 
     try{
-      const res = await fetch(`${API_BASE}/translate`, {
+      const res = await fetchIA(`${API_BASE}/translate`, {
         method:"POST",
         headers: OuviescreviAPI.authHeaders({ "Content-Type":"application/json" }),
         body: JSON.stringify(OuviescreviAPI.authJson({ text: texto, language: idioma }))
