@@ -201,6 +201,15 @@
       ? '<p class="oe-ap-pack__warn">' + escapeHtml(t("truncated")) + "</p>"
       : "";
 
+    // Jogo animado com as mesmas perguntas (js/quiz-game.js).
+    var packLang = (document.getElementById("apLang") || {}).value || config.lang;
+    var playBtn =
+      lastQuestions.length && global.OuviescreviQuizGame
+        ? '<button type="button" class="oe-ap-pack__btn oe-ap-pack__btn--play" data-ap-play>' +
+          escapeHtml(global.OuviescreviQuizGame.label(packLang)) +
+          "</button>"
+        : "";
+
     var classroom =
       lastQuestions.length && global.PerguntasTemplates
         ? '<section class="oe-ap-section oe-ap-section--classroom">' +
@@ -219,6 +228,7 @@
       escapeHtml(pack.title || "Aula Pronta") +
       "</h2>" +
       '<div class="oe-ap-pack__actions">' +
+      playBtn +
       '<button type="button" class="oe-ap-pack__btn" data-ap-export="copy">' +
       escapeHtml(t("copy")) +
       "</button>" +
@@ -254,9 +264,11 @@
           glossaryHtml +
           "</section>"
         : "") +
-      '<section class="oe-ap-section"><h3>' +
+      '<section class="oe-ap-section"><div class="oe-ap-section__head"><h3>' +
       escapeHtml(t("questions")) +
       "</h3>" +
+      playBtn +
+      "</div>" +
       questionsHtml +
       "</section>" +
       classroom +
@@ -267,6 +279,12 @@
     container.querySelectorAll("[data-ap-export]").forEach(function (btn) {
       btn.addEventListener("click", function () {
         exportPack(btn.getAttribute("data-ap-export"), btn);
+      });
+    });
+
+    container.querySelectorAll("[data-ap-play]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        global.OuviescreviQuizGame.open(lastQuestions, { title: pack.title || "Aula Pronta", lang: packLang });
       });
     });
 

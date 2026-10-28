@@ -193,6 +193,32 @@ body.oe-page--aula-pronta .oe-ap-hero .oe-lead {
   color: #fff;
 }
 
+.oe-ap-pack__btn--play {
+  margin: 12px 0 4px;
+  padding: 12px 22px;
+  border-radius: 12px;
+  font-size: 1rem;
+  border: 2px solid transparent;
+  background: linear-gradient(90deg, #f59e0b, #ec4899);
+  color: #fff;
+  font-weight: 800;
+  box-shadow: 0 4px 14px rgba(236, 72, 153, 0.3);
+}
+
+.oe-ap-pack__btn--play:hover {
+  border-color: transparent;
+  background: linear-gradient(90deg, #f59e0b, #ec4899);
+  filter: brightness(1.08);
+}
+
+.oe-ap-section__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .oe-ap-pack__body {
   padding: 8px 0 16px;
 }
