@@ -35,6 +35,7 @@
       explanation: "Explicação",
       classroomTitle: "Folha para sala de aula",
       signature: "\n\n— Gerado com Ouviescrevi: https://ouviescrevi.pt/aula-pronta.html",
+      count: "{w} palavras · {c} caracteres",
     },
     en: {
       eyebrow: "Teachers · Students · Revision",
@@ -63,6 +64,7 @@
       explanation: "Explanation",
       classroomTitle: "Classroom sheet",
       signature: "\n\n— Generated with Ouviescrevi: https://ouviescrevi.pt/en/aula-pronta.html",
+      count: "{w} words · {c} characters",
     },
   };
 
@@ -510,6 +512,34 @@
 
     var btn = document.getElementById("btnAulaPronta");
     if (btn) btn.addEventListener("click", generate);
+
+    setupTextarea();
+  }
+
+  // A caixa cresce com o texto (até ao max-height do CSS) e mostra palavras/caracteres.
+  function setupTextarea() {
+    var ta = document.getElementById("texto");
+    if (!ta) return;
+    var count = document.createElement("p");
+    count.className = "oe-ap-form__count";
+    count.setAttribute("aria-live", "polite");
+    ta.insertAdjacentElement("afterend", count);
+    var minH = 0;
+
+    function update() {
+      var text = ta.value.trim();
+      var words = text ? text.split(/\s+/).length : 0;
+      var fmt = function (n) {
+        return n.toLocaleString(config.lang === "en" ? "en-GB" : "pt-PT");
+      };
+      count.textContent = t("count").replace("{w}", fmt(words)).replace("{c}", fmt(ta.value.length));
+      if (!minH) minH = ta.offsetHeight;
+      ta.style.height = "auto";
+      ta.style.height = Math.max(minH, ta.scrollHeight + 2) + "px";
+    }
+
+    ta.addEventListener("input", update);
+    update();
   }
 
   global.AulaProntaUI = { init: init };
