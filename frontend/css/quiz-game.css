@@ -455,3 +455,84 @@ html.oe-qg-open body {
     transition: none !important;
   }
 }
+
+/* Página pública de um jogo partilhado (jogo.html) */
+.oe-qg-landing {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 40px 16px 56px;
+  box-sizing: border-box;
+}
+.oe-qg-landing__card {
+  padding: 40px 24px 36px;
+  border-radius: 24px;
+  text-align: center;
+  color: #fff;
+  background: radial-gradient(circle at 20% 10%, #7c3aed 0%, #4c1d95 50%, #1e1b4b 100%);
+  box-shadow: 0 20px 50px rgba(76, 29, 149, 0.35);
+}
+.oe-qg-landing__logo {
+  font-size: 3.6rem;
+  animation: oe-qg-bounce 1.6s ease-in-out infinite;
+}
+.oe-qg-landing__eyebrow {
+  margin: 8px 0 4px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #facc15;
+}
+.oe-qg-landing__title {
+  margin: 0 0 8px;
+  font-size: clamp(1.4rem, 5vw, 2rem);
+  font-weight: 800;
+  line-height: 1.25;
+  color: #fff;
+}
+.oe-qg-landing__meta {
+  margin: 0 0 24px;
+  color: #ddd6fe;
+}
+.oe-qg-landing .oe-qg-landing__play {
+  padding: 16px 40px;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #1e1b4b;
+  cursor: pointer;
+  background: linear-gradient(90deg, #facc15, #fb923c);
+  box-shadow: 0 10px 30px rgba(250, 204, 21, 0.35);
+  animation: oe-qg-glow 2s ease-in-out infinite;
+}
+.oe-qg-landing .oe-qg-landing__play:hover {
+  transform: translateY(-2px) scale(1.03);
+}
+.oe-qg-landing .oe-qg-landing__play:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+.oe-qg-landing__error {
+  margin: 0;
+  color: #fecaca;
+  font-weight: 600;
+}
+.oe-qg-landing__cta {
+  margin: 22px 0 0;
+  text-align: center;
+  color: var(--pro-text-secondary, #475569);
+  line-height: 1.6;
+}
+.oe-qg-landing__cta a {
+  margin-left: 4px;
+  font-weight: 700;
+  color: var(--pro-accent, #7c3aed);
+}
+@media (prefers-reduced-motion: reduce) {
+  .oe-qg-landing__logo,
+  .oe-qg-landing .oe-qg-landing__play {
+    animation: none;
+  }
+}

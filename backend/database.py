@@ -495,6 +495,18 @@ def criar_base() -> None:
         """)
 
         cur.execute("""
+            CREATE TABLE IF NOT EXISTS shared_quizzes (
+                id TEXT PRIMARY KEY,
+                title TEXT,
+                questions_json TEXT NOT NULL,
+                locale TEXT DEFAULT 'pt',
+                created_at TEXT NOT NULL,
+                expires_at TEXT,
+                play_count INTEGER NOT NULL DEFAULT 0
+            )
+        """)
+
+        cur.execute("""
             CREATE TABLE IF NOT EXISTS ai_insights (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 run_id TEXT,

@@ -373,6 +373,97 @@ def get_shared_transcript(share_id: str) -> dict | None:
         conn.close()
 
 
+def _clean_quiz_questions(questions: list) -> list[dict]:
+    """Só guarda o que o jogo usa, com limites de tamanho (o conteúdo vem do browser)."""
+    clean = []
+    for q in (questions or [])[:30]:
+        if not isinstance(q, dict):
+            continue
+        options = []
+        for o in (q.get("options") or [])[:4]:
+            if isinstance(o, dict) and str(o.get("text") or "").strip():
+                letter = str(o.get("letter") or "").strip().upper()[:1]
+                if letter in "ABCD" and letter:
+                    options.append({"letter": letter, "text": str(o["text"]).strip()[:300]})
+        answer = str(q.get("answer") or "").strip().upper()[:1]
+        prompt = str(q.get("prompt") or "").strip()[:500]
+        if prompt and len(options) >= 2 and answer in {o["letter"] for o in options}:
+            clean.append({
+                "prompt": prompt,
+                "options": options,
+                "answer": answer,
+                "explanation": str(q.get("explanation") or "").strip()[:600],
+            })
+    return clean
+
+
+def create_shared_quiz(
+    questions: list,
+    *,
+    title: str | None = None,
+    locale: str = "pt",
+    days_valid: int = 30,
+) -> dict:
+    clean = _clean_quiz_questions(questions)
+    if not clean:
+        raise ValueError("O jogo precisa de pelo menos uma pergunta válida.")
+    share_id = secrets.token_urlsafe(10)
+    now = datetime.utcnow()
+    expires = (now + timedelta(days=max(1, min(days_valid, 90)))).isoformat(timespec="seconds") + "Z"
+    conn = get_connection()
+    try:
+        conn.execute(
+            """
+            INSERT INTO shared_quizzes (id, title, questions_json, locale, created_at, expires_at, play_count)
+            VALUES (?, ?, ?, ?, ?, ?, 0)
+            """,
+            (
+                share_id,
+                (title or "Quiz").strip()[:120],
+                json.dumps(clean, ensure_ascii=False),
+                (locale or "pt")[:8],
+                now.isoformat(timespec="seconds") + "Z",
+                expires,
+            ),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+    return {"id": share_id, "expires_at": expires, "count": len(clean)}
+
+
+def get_shared_quiz(share_id: str) -> dict | None:
+    sid = (share_id or "").strip()
+    if not sid:
+        return None
+    now = datetime.utcnow().isoformat(timespec="seconds") + "Z"
+    conn = get_connection()
+    try:
+        row = conn.execute(
+            "SELECT id, title, questions_json, locale, expires_at, play_count FROM shared_quizzes WHERE id = ?",
+            (sid,),
+        ).fetchone()
+        if not row:
+            return None
+        if row["expires_at"] and str(row["expires_at"]) < now:
+            return None
+        conn.execute(
+            "UPDATE shared_quizzes SET play_count = COALESCE(play_count,0) + 1 WHERE id = ?",
+            (sid,),
+        )
+        conn.commit()
+        item = row_to_dict(row)
+        return {
+            "id": item["id"],
+            "title": item.get("title") or "Quiz",
+            "locale": item.get("locale") or "pt",
+            "questions": json.loads(item.get("questions_json") or "[]"),
+            "expires_at": item.get("expires_at"),
+        }
+    finally:
+        conn.close()
+
+
 def authenticate_site_user(email: str, password: str) -> dict[str, str] | None:
     email = email.strip().lower()
     conn = get_connection()

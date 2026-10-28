@@ -29,6 +29,10 @@
       noMistakes: "Sem erros — perfeito! 🏆",
       again: "Jogar outra vez",
       close: "Fechar",
+      share: "🔗 Partilhar jogo",
+      shareCopied: "Link copiado — envia-o a quem quiseres desafiar!",
+      shareFail: "Não foi possível criar o link. Tenta outra vez.",
+      shareText: "Desafio-te para este quiz: «{t}»",
       sound: "Som",
       keysHint: "Teclas 1–4 para responder · Enter para avançar · Esc para sair",
       praise: ["Continua a estudar 📚", "Bom começo 👍", "Muito bem! 👏", "Excelente! 🌟", "Perfeito! 🏆"],
@@ -53,6 +57,10 @@
       noMistakes: "No mistakes — perfect! 🏆",
       again: "Play again",
       close: "Close",
+      share: "🔗 Share game",
+      shareCopied: "Link copied — send it to whoever you want to challenge!",
+      shareFail: "Could not create the link. Try again.",
+      shareText: "I challenge you to this quiz: “{t}”",
       sound: "Sound",
       keysHint: "Keys 1–4 to answer · Enter to continue · Esc to exit",
       praise: ["Keep studying 📚", "Good start 👍", "Well done! 👏", "Excellent! 🌟", "Perfect! 🏆"],
@@ -77,6 +85,10 @@
       noMistakes: "Sin errores — ¡perfecto! 🏆",
       again: "Jugar otra vez",
       close: "Cerrar",
+      share: "🔗 Compartir juego",
+      shareCopied: "Enlace copiado — ¡envíalo a quien quieras retar!",
+      shareFail: "No se pudo crear el enlace. Inténtalo de nuevo.",
+      shareText: "Te reto a este quiz: «{t}»",
       sound: "Sonido",
       keysHint: "Teclas 1–4 para responder · Enter para seguir · Esc para salir",
       praise: ["Sigue estudiando 📚", "Buen comienzo 👍", "¡Muy bien! 👏", "¡Excelente! 🌟", "¡Perfecto! 🏆"],
@@ -101,6 +113,10 @@
       noMistakes: "Aucune erreur — parfait ! 🏆",
       again: "Rejouer",
       close: "Fermer",
+      share: "🔗 Partager le jeu",
+      shareCopied: "Lien copié — envoie-le à qui tu veux défier !",
+      shareFail: "Impossible de créer le lien. Réessaie.",
+      shareText: "Je te défie sur ce quiz : « {t} »",
       sound: "Son",
       keysHint: "Touches 1–4 pour répondre · Entrée pour continuer · Échap pour quitter",
       praise: ["Continue à réviser 📚", "Bon début 👍", "Très bien ! 👏", "Excellent ! 🌟", "Parfait ! 🏆"],
@@ -125,6 +141,10 @@
       noMistakes: "Keine Fehler — perfekt! 🏆",
       again: "Nochmal spielen",
       close: "Schließen",
+      share: "🔗 Spiel teilen",
+      shareCopied: "Link kopiert — schick ihn an alle, die du herausfordern willst!",
+      shareFail: "Link konnte nicht erstellt werden. Versuch es nochmal.",
+      shareText: "Ich fordere dich zu diesem Quiz heraus: „{t}“",
       sound: "Ton",
       keysHint: "Tasten 1–4 zum Antworten · Enter zum Weitermachen · Esc zum Beenden",
       praise: ["Weiter lernen 📚", "Guter Anfang 👍", "Sehr gut! 👏", "Ausgezeichnet! 🌟", "Perfekt! 🏆"],
@@ -442,6 +462,7 @@
       '<p class="oe-qg__meta">' + esc(s("resultLine", { c: state.correct, n: n })) + " · " + esc(praise) + "</p>" +
       '<div class="oe-qg__actions">' +
       '<button type="button" class="oe-qg__btn oe-qg__btn--go" data-qg-again data-qg-focus>↻ ' + esc(s("again")) + "</button>" +
+      '<button type="button" class="oe-qg__btn oe-qg__btn--ghost" data-qg-share>' + esc(s("share")) + "</button>" +
       '<button type="button" class="oe-qg__btn oe-qg__btn--ghost" data-qg-close>' + esc(s("close")) + "</button>" +
       "</div>" +
       (review
@@ -466,7 +487,10 @@
       beep([523, 659, 784, 1047], 0.11);
     }
     root.querySelector("[data-qg-again]").addEventListener("click", function () {
-      start(state.source, { title: state.title, lang: state.lang });
+      start(state.source, { title: state.title, lang: state.lang, shareUrl: state.shareUrl, onLink: state.onLink });
+    });
+    root.querySelector("[data-qg-share]").addEventListener("click", function () {
+      shareQuiz(state.source, { title: state.title, lang: state.lang, shareUrl: state.shareUrl, onLink: state.onLink, button: this });
     });
     root.querySelector("[data-qg-close]").addEventListener("click", close);
   }
@@ -510,6 +534,8 @@
       source: questions,
       lang: STRINGS[(opts && opts.lang) || "pt"] ? opts.lang : "pt",
       title: (opts && opts.title) || "Quiz",
+      shareUrl: (opts && opts.shareUrl) || null,
+      onLink: (opts && opts.onLink) || null,
       questions: playable.map(function (q) {
         return Object.assign({}, q, { shuffled: shuffle(q.options) });
       }),
@@ -565,9 +591,73 @@
     if (lastFocus && lastFocus.focus) lastFocus.focus();
   }
 
+  // ── Partilha ─────────────────────────────────────────────────────────────
+  function toast(msg, type) {
+    if (global.OuviescreviUI && global.OuviescreviUI.toast) global.OuviescreviUI.toast(msg, type);
+    else global.alert(msg);
+  }
+
+  async function sendLink(url, title, lang) {
+    var text = (STRINGS[lang] || STRINGS.pt).shareText.replace("{t}", title);
+    if (navigator.share && /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)) {
+      try {
+        await navigator.share({ title: title, text: text, url: url });
+        return;
+      } catch (e) {
+        if (e && e.name === "AbortError") return;
+      }
+    }
+    var copied = false;
+    try {
+      await navigator.clipboard.writeText(url);
+      copied = true;
+    } catch (e) {}
+    if (copied) toast((STRINGS[lang] || STRINGS.pt).shareCopied, "success");
+    else global.prompt(text, url);
+  }
+
+  // Guarda as perguntas na API (link curto, 30 dias) e partilha. Reaproveita o link se já existir.
+  async function shareQuiz(questions, opts) {
+    opts = opts || {};
+    var lang = STRINGS[opts.lang] ? opts.lang : "pt";
+    var title = opts.title || "Quiz";
+    if (opts.shareUrl) return sendLink(opts.shareUrl, title, lang);
+    var btn = opts.button;
+    if (btn) btn.disabled = true;
+    try {
+      var api = global.OuviescreviAPI;
+      await api.init();
+      var res = await fetch(api.getBase() + "/api/share/quiz", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: title,
+          locale: lang,
+          questions: (questions || []).map(function (q) {
+            return { prompt: q.prompt, options: q.options, answer: q.answer, explanation: q.explanation };
+          }),
+        }),
+      });
+      var data = await res.json();
+      if (!res.ok || !data.url) throw new Error(data.detail || "share");
+      if (state) state.shareUrl = data.url;
+      if (opts.onLink) opts.onLink(data.url);
+      await sendLink(data.url, title, lang);
+      return data.url;
+    } catch (e) {
+      toast((STRINGS[lang] || STRINGS.pt).shareFail, "error");
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
   global.OuviescreviQuizGame = {
     open: start,
     close: close,
+    share: shareQuiz,
+    shareLabel: function (lang) {
+      return (STRINGS[lang] || STRINGS.pt).share;
+    },
     label: function (lang) {
       return (STRINGS[lang] || STRINGS.pt).play;
     },

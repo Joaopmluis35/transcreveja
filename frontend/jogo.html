@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Alguém partilhou contigo um quiz criado com o Ouviescrevi. Joga e vê quantas acertas!">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://www.ouviescrevi.pt/og/aulas.png">
+  <meta name="twitter:title" content="🎮 Desafio Ouviescrevi — joga este quiz">
+  <meta name="twitter:description" content="Alguém partilhou contigo um quiz. Joga e vê quantas acertas!">
+  <meta property="og:title" content="🎮 Desafio Ouviescrevi — joga este quiz">
+  <meta property="og:description" content="Alguém partilhou contigo um quiz. Joga e vê quantas acertas!">
+  <meta name="robots" content="noindex, follow">
+  <title>🎮 Desafio — Quiz | Ouviescrevi</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
+  <link rel="stylesheet" href="css/ouviescrevi.css?v=42">
+  <link rel="stylesheet" href="css/quiz-game.css?v=3">
+  <script src="js/theme-ui.js"></script>
+  <script src="js/ouviescrevi-ui.js?v=29" defer></script>
+</head>
+<body class="oe-page oe-pro oe-page--jogo">
+<a class="oe-skip" href="#conteudo">Saltar para o conteúdo</a>
+<div id="header"></div>
+
+<main class="oe-qg-landing" id="conteudo">
+  <div class="oe-qg-landing__card" id="jogoCard" aria-live="polite">
+    <div class="oe-qg-landing__logo" aria-hidden="true">🎮</div>
+    <p class="oe-qg-landing__eyebrow" id="jogoEyebrow">Desafio</p>
+    <h1 class="oe-qg-landing__title" id="jogoTitle">A carregar o jogo…</h1>
+    <p class="oe-qg-landing__meta" id="jogoMeta"></p>
+    <button type="button" class="oe-qg__btn oe-qg-landing__play" id="jogoPlay" hidden>Jogar ▶</button>
+    <p class="oe-qg-landing__error" id="jogoError" hidden></p>
+  </div>
+  <p class="oe-qg-landing__cta">
+    <span id="jogoCtaText">Queres criar um jogo assim a partir de uma aula ou reunião?</span>
+    <a href="aula-pronta.html" id="jogoCtaLink">Experimenta a Aula Pronta →</a>
+  </p>
+</main>
+
+<div id="footer"></div>
+
+<script src="js/ouviescrevi-api.js?v=25"></script>
+<script src="js/quiz-game.js?v=3"></script>
+<script>
+  (function () {
+    var TEXT = {
+      pt: { eyebrow: "Desafio", meta: "{n} perguntas · cerca de {m} min", play: "Jogar ▶", notFound: "Este jogo não existe ou o link expirou.", error: "Não foi possível carregar o jogo. Tenta outra vez.", cta: "Queres criar um jogo assim a partir de uma aula ou reunião?", ctaLink: "Experimenta a Aula Pronta →", ctaHref: "aula-pronta.html" },
+      en: { eyebrow: "Challenge", meta: "{n} questions · about {m} min", play: "Play ▶", notFound: "This game does not exist or the link has expired.", error: "Could not load the game. Try again.", cta: "Want to make a game like this from a lesson or meeting?", ctaLink: "Try Lesson Ready →", ctaHref: "en/aula-pronta.html" },
+      es: { eyebrow: "Desafío", meta: "{n} preguntas · unos {m} min", play: "Jugar ▶", notFound: "Este juego no existe o el enlace ha caducado.", error: "No se pudo cargar el juego. Inténtalo de nuevo.", cta: "¿Quieres crear un juego así a partir de una clase o reunión?", ctaLink: "Prueba Clase lista →", ctaHref: "es/aula-pronta.html" },
+      fr: { eyebrow: "Défi", meta: "{n} questions · environ {m} min", play: "Jouer ▶", notFound: "Ce jeu n'existe pas ou le lien a expiré.", error: "Impossible de charger le jeu. Réessaie.", cta: "Envie de créer un jeu comme ça à partir d'un cours ou d'une réunion ?", ctaLink: "Essaie Cours prêt →", ctaHref: "fr/aula-pronta.html" },
+      de: { eyebrow: "Herausforderung", meta: "{n} Fragen · ca. {m} Min.", play: "Spielen ▶", notFound: "Dieses Spiel existiert nicht oder der Link ist abgelaufen.", error: "Spiel konnte nicht geladen werden. Versuch es nochmal.", cta: "Willst du so ein Spiel aus einer Stunde oder einem Meeting erstellen?", ctaLink: "Lektion fertig ausprobieren →", ctaHref: "de/aula-pronta.html" },
+    };
+    var $ = function (id) { return document.getElementById(id); };
+
+    function apply(lang) {
+      var t = TEXT[lang] || TEXT.pt;
+      document.documentElement.lang = lang;
+      $("jogoEyebrow").textContent = t.eyebrow;
+      $("jogoPlay").textContent = t.play;
+      $("jogoCtaText").textContent = t.cta;
+      $("jogoCtaLink").textContent = t.ctaLink;
+      $("jogoCtaLink").setAttribute("href", t.ctaHref);
+      return t;
+    }
+
+    function fail(message) {
+      $("jogoTitle").textContent = "😕";
+      $("jogoError").textContent = message;
+      $("jogoError").hidden = false;
+    }
+
+    async function load() {
+      var id = new URLSearchParams(location.search).get("id");
+      if (!id) return fail(TEXT.pt.notFound);
+      try {
+        await OuviescreviAPI.init();
+        var res = await fetch(OuviescreviAPI.getBase() + "/api/share/quiz/" + encodeURIComponent(id));
+        if (res.status === 404) return fail(TEXT.pt.notFound);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        var quiz = await res.json();
+        var lang = TEXT[quiz.locale] ? quiz.locale : "pt";
+        var t = apply(lang);
+        var n = (quiz.questions || []).length;
+        document.title = "🎮 " + quiz.title + " | Ouviescrevi";
+        $("jogoTitle").textContent = quiz.title;
+        $("jogoMeta").textContent = t.meta.replace("{n}", n).replace("{m}", Math.max(1, Math.round(n * 0.5)));
+        var play = $("jogoPlay");
+        play.hidden = false;
+        play.focus();
+        play.addEventListener("click", function () {
+          OuviescreviQuizGame.open(quiz.questions, { title: quiz.title, lang: lang, shareUrl: location.href });
+        });
+      } catch (e) {
+        fail(TEXT.pt.error);
+      }
+    }
+
+    load();
+  })();
+</script>
+</body>
+</html>

@@ -207,8 +207,15 @@
       lastQuestions.length && global.OuviescreviQuizGame
         ? '<button type="button" class="oe-ap-pack__btn oe-ap-pack__btn--play" data-ap-play>' +
           escapeHtml(global.OuviescreviQuizGame.label(packLang)) +
+          "</button>" +
+          '<button type="button" class="oe-ap-pack__btn" data-ap-share-game>' +
+          escapeHtml(global.OuviescreviQuizGame.shareLabel(packLang)) +
           "</button>"
         : "";
+    var shareUrl = null; // o mesmo link serve para o pacote todo
+    var rememberLink = function (url) {
+      shareUrl = url;
+    };
 
     var classroom =
       lastQuestions.length && global.PerguntasTemplates
@@ -284,7 +291,24 @@
 
     container.querySelectorAll("[data-ap-play]").forEach(function (btn) {
       btn.addEventListener("click", function () {
-        global.OuviescreviQuizGame.open(lastQuestions, { title: pack.title || "Aula Pronta", lang: packLang });
+        global.OuviescreviQuizGame.open(lastQuestions, {
+          title: pack.title || "Aula Pronta",
+          lang: packLang,
+          shareUrl: shareUrl,
+          onLink: rememberLink,
+        });
+      });
+    });
+
+    container.querySelectorAll("[data-ap-share-game]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        global.OuviescreviQuizGame.share(lastQuestions, {
+          title: pack.title || "Aula Pronta",
+          lang: packLang,
+          shareUrl: shareUrl,
+          onLink: rememberLink,
+          button: btn,
+        });
       });
     });
 

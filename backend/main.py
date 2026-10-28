@@ -2140,6 +2140,12 @@ class ShareTranscriptRequest(BaseModel):
     locale: str = "pt"
 
 
+class ShareQuizRequest(BaseModel):
+    questions: list[dict]
+    title: str | None = None
+    locale: str = "pt"
+
+
 @app.post("/api/auth/register")
 def site_register(req: SiteRegisterRequest, request: Request):
     enforce_rate_limit(request, "auth", 15, 3600)
@@ -2221,6 +2227,31 @@ def share_transcript(req: ShareTranscriptRequest, request: Request):
     # Prefer pretty /s/{id} (proxied to API HTML with OG tags via vercel.json)
     url = f"{origin}/s/{created['id']}"
     return {"ok": True, "id": created["id"], "url": url, "expires_at": created["expires_at"]}
+
+
+@app.post("/api/share/quiz")
+def share_quiz(req: ShareQuizRequest, request: Request):
+    """Guarda as perguntas de um jogo (Aula Pronta) e devolve um link para outra pessoa jogar."""
+    if not origin_is_allowed(request, ALLOWED_ORIGINS):
+        raise HTTPException(status_code=403, detail="Origem não autorizada.")
+    enforce_rate_limit(request, "share", 30, 3600)
+    try:
+        created = admin_store.create_shared_quiz(req.questions, title=req.title, locale=req.locale or "pt")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    origin = (request.headers.get("origin") or "https://www.ouviescrevi.pt").rstrip("/")
+    url = f"{origin}/jogo.html?id={created['id']}"
+    return {"ok": True, "id": created["id"], "url": url, "expires_at": created["expires_at"]}
+
+
+@app.get("/api/share/quiz/{share_id}")
+def get_share_quiz(share_id: str, request: Request):
+    if not origin_is_allowed(request, ALLOWED_ORIGINS):
+        raise HTTPException(status_code=403, detail="Origem não autorizada.")
+    item = admin_store.get_shared_quiz(share_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Jogo não encontrado ou expirado.")
+    return item
 
 
 @app.get("/api/share/transcript/{share_id}")
