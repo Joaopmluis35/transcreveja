@@ -507,6 +507,19 @@ def criar_base() -> None:
         """)
 
         cur.execute("""
+            CREATE TABLE IF NOT EXISTS quiz_scores (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                quiz_id TEXT NOT NULL,
+                name TEXT NOT NULL,
+                score INTEGER NOT NULL,
+                correct INTEGER NOT NULL,
+                total INTEGER NOT NULL,
+                created_at TEXT NOT NULL
+            )
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_quiz_scores_quiz ON quiz_scores(quiz_id, score)")
+
+        cur.execute("""
             CREATE TABLE IF NOT EXISTS ai_insights (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 run_id TEXT,

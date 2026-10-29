@@ -464,6 +464,89 @@ def get_shared_quiz(share_id: str) -> dict | None:
         conn.close()
 
 
+# Pontos máximos por pergunta no jogo (100 base + 100 rapidez, x2 de sequência) — js/quiz-game.js.
+QUIZ_MAX_POINTS_PER_QUESTION = 400
+
+
+def _quiz_question_count(conn, quiz_id: str) -> int | None:
+    now = datetime.utcnow().isoformat(timespec="seconds") + "Z"
+    row = conn.execute(
+        "SELECT questions_json, expires_at FROM shared_quizzes WHERE id = ?", (quiz_id,)
+    ).fetchone()
+    if not row or (row["expires_at"] and str(row["expires_at"]) < now):
+        return None
+    return len(json.loads(row["questions_json"] or "[]"))
+
+
+def _quiz_ranking(conn, quiz_id: str, limit: int = 10) -> list[dict]:
+    rows = conn.execute(
+        "SELECT name, score, correct, total, created_at FROM quiz_scores "
+        "WHERE quiz_id = ? ORDER BY score DESC, created_at ASC LIMIT 300",
+        (quiz_id,),
+    ).fetchall()
+    # Melhor resultado de cada nome (o mesmo jogador pode jogar várias vezes).
+    best: list[dict] = []
+    seen: set[str] = set()
+    for r in rows:
+        item = row_to_dict(r)
+        key = str(item["name"]).strip().lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        best.append({k: item[k] for k in ("name", "score", "correct", "total")})
+        if len(best) >= limit:
+            break
+    return best
+
+
+def get_quiz_ranking(quiz_id: str) -> list[dict] | None:
+    conn = get_connection()
+    try:
+        if _quiz_question_count(conn, quiz_id) is None:
+            return None
+        return _quiz_ranking(conn, quiz_id)
+    finally:
+        conn.close()
+
+
+def add_quiz_score(quiz_id: str, *, name: str, score: int, correct: int, total: int) -> dict | None:
+    clean_name = " ".join(str(name or "").split())[:24]
+    if not clean_name:
+        raise ValueError("Indica o teu nome.")
+    conn = get_connection()
+    try:
+        n_questions = _quiz_question_count(conn, quiz_id)
+        if n_questions is None:
+            return None
+        total = int(total)
+        correct = int(correct)
+        score = int(score)
+        # Os pontos são calculados no browser: só se aceitam valores possíveis neste jogo.
+        if total != n_questions or not (0 <= correct <= total) or not (0 <= score <= total * QUIZ_MAX_POINTS_PER_QUESTION):
+            raise ValueError("Resultado inválido.")
+        if correct == 0 and score > 0:
+            raise ValueError("Resultado inválido.")
+        conn.execute(
+            "INSERT INTO quiz_scores (quiz_id, name, score, correct, total, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+            (quiz_id, clean_name, score, correct, total, datetime.utcnow().isoformat(timespec="seconds") + "Z"),
+        )
+        conn.commit()
+        better = conn.execute(
+            "SELECT COUNT(DISTINCT lower(name)) AS n FROM quiz_scores WHERE quiz_id = ? AND score > ? AND lower(name) != lower(?)",
+            (quiz_id, score, clean_name),
+        ).fetchone()
+        players = conn.execute(
+            "SELECT COUNT(DISTINCT lower(name)) AS n FROM quiz_scores WHERE quiz_id = ?", (quiz_id,)
+        ).fetchone()
+        return {
+            "position": int(row_to_dict(better)["n"]) + 1,
+            "players": int(row_to_dict(players)["n"]),
+            "ranking": _quiz_ranking(conn, quiz_id),
+        }
+    finally:
+        conn.close()
+
+
 def authenticate_site_user(email: str, password: str) -> dict[str, str] | None:
     email = email.strip().lower()
     conn = get_connection()

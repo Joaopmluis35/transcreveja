@@ -536,3 +536,116 @@ html.oe-qg-open body {
     animation: none;
   }
 }
+
+/* Nome do jogador (ecrã inicial) */
+.oe-qg__name {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  max-width: 340px;
+  margin: 0 auto;
+}
+.oe-qg__name-label {
+  font-weight: 700;
+  color: #ede9fe;
+}
+.oe-qg .oe-qg__name-input {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 14px 18px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.95);
+  color: #1e1b4b;
+  font: inherit;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-align: center;
+}
+.oe-qg .oe-qg__name-input:focus {
+  outline: none;
+  border-color: #facc15;
+  box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.35);
+}
+.oe-qg .oe-qg__btn--go:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  animation: none;
+  transform: none;
+}
+
+/* Ranking (ecrã final e página do desafio) */
+.oe-qg__ranking {
+  margin: 18px auto 0;
+  max-width: 460px;
+  text-align: left;
+}
+.oe-qg__ranking:empty {
+  display: none;
+}
+.oe-qg__ranking h3 {
+  margin: 0 0 6px;
+  text-align: center;
+  font-size: 1.05rem;
+}
+.oe-qg__ranking ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.oe-qg__rank-row {
+  display: grid;
+  grid-template-columns: 2.2em 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  animation: oe-qg-rise 0.35s ease both;
+}
+.oe-qg__rank-row.is-me {
+  background: rgba(250, 204, 21, 0.22);
+  box-shadow: inset 0 0 0 2px #facc15;
+}
+.oe-qg__rank-pos {
+  text-align: center;
+  font-weight: 800;
+}
+.oe-qg__rank-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+}
+.oe-qg__rank-name em {
+  font-style: normal;
+  font-weight: 600;
+  color: #fde68a;
+}
+.oe-qg__rank-hits {
+  font-size: 0.85rem;
+  color: #ddd6fe;
+}
+.oe-qg__rank-score {
+  min-width: 3.5em;
+  text-align: right;
+}
+.oe-qg__rank-me {
+  margin: 0 0 10px;
+  text-align: center;
+  font-weight: 700;
+  color: #fde68a;
+}
+.oe-qg__rank-note,
+.oe-qg__rank-empty {
+  margin: 8px 0 0;
+  text-align: center;
+  font-size: 0.88rem;
+  color: #ddd6fe;
+}
+.oe-qg-landing .oe-qg__ranking {
+  margin-top: 26px;
+}

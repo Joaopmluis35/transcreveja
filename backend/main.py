@@ -2146,6 +2146,13 @@ class ShareQuizRequest(BaseModel):
     locale: str = "pt"
 
 
+class QuizScoreRequest(BaseModel):
+    name: str
+    score: int
+    correct: int
+    total: int
+
+
 @app.post("/api/auth/register")
 def site_register(req: SiteRegisterRequest, request: Request):
     enforce_rate_limit(request, "auth", 15, 3600)
@@ -2252,6 +2259,33 @@ def get_share_quiz(share_id: str, request: Request):
     if not item:
         raise HTTPException(status_code=404, detail="Jogo não encontrado ou expirado.")
     return item
+
+
+@app.get("/api/share/quiz/{share_id}/scores")
+def get_quiz_scores(share_id: str, request: Request):
+    if not origin_is_allowed(request, ALLOWED_ORIGINS):
+        raise HTTPException(status_code=403, detail="Origem não autorizada.")
+    ranking = admin_store.get_quiz_ranking(share_id)
+    if ranking is None:
+        raise HTTPException(status_code=404, detail="Jogo não encontrado ou expirado.")
+    return {"ranking": ranking}
+
+
+@app.post("/api/share/quiz/{share_id}/scores")
+def post_quiz_score(share_id: str, req: QuizScoreRequest, request: Request):
+    """Regista o resultado de um jogador e devolve a posição e o top 10."""
+    if not origin_is_allowed(request, ALLOWED_ORIGINS):
+        raise HTTPException(status_code=403, detail="Origem não autorizada.")
+    enforce_rate_limit(request, "quiz-score", 60, 3600)
+    try:
+        result = admin_store.add_quiz_score(
+            share_id, name=req.name, score=req.score, correct=req.correct, total=req.total
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    if result is None:
+        raise HTTPException(status_code=404, detail="Jogo não encontrado ou expirado.")
+    return result
 
 
 @app.get("/api/share/transcript/{share_id}")

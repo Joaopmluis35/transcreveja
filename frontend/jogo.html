@@ -15,8 +15,8 @@
   <title>🎮 Desafio — Quiz | Ouviescrevi</title>
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
-  <link rel="stylesheet" href="css/ouviescrevi.css?v=42">
-  <link rel="stylesheet" href="css/quiz-game.css?v=3">
+  <link rel="stylesheet" href="css/ouviescrevi.css?v=44">
+  <link rel="stylesheet" href="css/quiz-game.css?v=4">
   <script src="js/theme-ui.js"></script>
   <script src="js/ouviescrevi-ui.js?v=29" defer></script>
 </head>
@@ -32,6 +32,7 @@
     <p class="oe-qg-landing__meta" id="jogoMeta"></p>
     <button type="button" class="oe-qg__btn oe-qg-landing__play" id="jogoPlay" hidden>Jogar ▶</button>
     <p class="oe-qg-landing__error" id="jogoError" hidden></p>
+    <section class="oe-qg__ranking" id="jogoRanking" aria-live="polite"></section>
   </div>
   <p class="oe-qg-landing__cta">
     <span id="jogoCtaText">Queres criar um jogo assim a partir de uma aula ou reunião?</span>
@@ -42,15 +43,15 @@
 <div id="footer"></div>
 
 <script src="js/ouviescrevi-api.js?v=25"></script>
-<script src="js/quiz-game.js?v=3"></script>
+<script src="js/quiz-game.js?v=4"></script>
 <script>
   (function () {
     var TEXT = {
-      pt: { eyebrow: "Desafio", meta: "{n} perguntas · cerca de {m} min", play: "Jogar ▶", notFound: "Este jogo não existe ou o link expirou.", error: "Não foi possível carregar o jogo. Tenta outra vez.", cta: "Queres criar um jogo assim a partir de uma aula ou reunião?", ctaLink: "Experimenta a Aula Pronta →", ctaHref: "aula-pronta.html" },
-      en: { eyebrow: "Challenge", meta: "{n} questions · about {m} min", play: "Play ▶", notFound: "This game does not exist or the link has expired.", error: "Could not load the game. Try again.", cta: "Want to make a game like this from a lesson or meeting?", ctaLink: "Try Lesson Ready →", ctaHref: "en/aula-pronta.html" },
-      es: { eyebrow: "Desafío", meta: "{n} preguntas · unos {m} min", play: "Jugar ▶", notFound: "Este juego no existe o el enlace ha caducado.", error: "No se pudo cargar el juego. Inténtalo de nuevo.", cta: "¿Quieres crear un juego así a partir de una clase o reunión?", ctaLink: "Prueba Clase lista →", ctaHref: "es/aula-pronta.html" },
-      fr: { eyebrow: "Défi", meta: "{n} questions · environ {m} min", play: "Jouer ▶", notFound: "Ce jeu n'existe pas ou le lien a expiré.", error: "Impossible de charger le jeu. Réessaie.", cta: "Envie de créer un jeu comme ça à partir d'un cours ou d'une réunion ?", ctaLink: "Essaie Cours prêt →", ctaHref: "fr/aula-pronta.html" },
-      de: { eyebrow: "Herausforderung", meta: "{n} Fragen · ca. {m} Min.", play: "Spielen ▶", notFound: "Dieses Spiel existiert nicht oder der Link ist abgelaufen.", error: "Spiel konnte nicht geladen werden. Versuch es nochmal.", cta: "Willst du so ein Spiel aus einer Stunde oder einem Meeting erstellen?", ctaLink: "Lektion fertig ausprobieren →", ctaHref: "de/aula-pronta.html" },
+      pt: { eyebrow: "Desafio", meta: "{n} perguntas · cerca de {m} min", meta1: "1 pergunta · cerca de 1 min", ranking: "🏆 Ranking", empty: "Ainda ninguém jogou — sê o primeiro!", you: "tu", play: "Jogar ▶", notFound: "Este jogo não existe ou o link expirou.", error: "Não foi possível carregar o jogo. Tenta outra vez.", cta: "Queres criar um jogo assim a partir de uma aula ou reunião?", ctaLink: "Experimenta a Aula Pronta →", ctaHref: "aula-pronta.html" },
+      en: { eyebrow: "Challenge", meta: "{n} questions · about {m} min", meta1: "1 question · about 1 min", ranking: "🏆 Leaderboard", empty: "Nobody has played yet — be the first!", you: "you", play: "Play ▶", notFound: "This game does not exist or the link has expired.", error: "Could not load the game. Try again.", cta: "Want to make a game like this from a lesson or meeting?", ctaLink: "Try Lesson Ready →", ctaHref: "en/aula-pronta.html" },
+      es: { eyebrow: "Desafío", meta: "{n} preguntas · unos {m} min", meta1: "1 pregunta · 1 min", ranking: "🏆 Clasificación", empty: "Nadie ha jugado aún — ¡sé el primero!", you: "tú", play: "Jugar ▶", notFound: "Este juego no existe o el enlace ha caducado.", error: "No se pudo cargar el juego. Inténtalo de nuevo.", cta: "¿Quieres crear un juego así a partir de una clase o reunión?", ctaLink: "Prueba Clase lista →", ctaHref: "es/aula-pronta.html" },
+      fr: { eyebrow: "Défi", meta: "{n} questions · environ {m} min", meta1: "1 question · environ 1 min", ranking: "🏆 Classement", empty: "Personne n'a encore joué — sois le premier !", you: "toi", play: "Jouer ▶", notFound: "Ce jeu n'existe pas ou le lien a expiré.", error: "Impossible de charger le jeu. Réessaie.", cta: "Envie de créer un jeu comme ça à partir d'un cours ou d'une réunion ?", ctaLink: "Essaie Cours prêt →", ctaHref: "fr/aula-pronta.html" },
+      de: { eyebrow: "Herausforderung", meta: "{n} Fragen · ca. {m} Min.", meta1: "1 Frage · ca. 1 Min.", ranking: "🏆 Rangliste", empty: "Noch niemand hat gespielt — sei der Erste!", you: "du", play: "Spielen ▶", notFound: "Dieses Spiel existiert nicht oder der Link ist abgelaufen.", error: "Spiel konnte nicht geladen werden. Versuch es nochmal.", cta: "Willst du so ein Spiel aus einer Stunde oder einem Meeting erstellen?", ctaLink: "Lektion fertig ausprobieren →", ctaHref: "de/aula-pronta.html" },
     };
     var $ = function (id) { return document.getElementById(id); };
 
@@ -85,16 +86,45 @@
         var n = (quiz.questions || []).length;
         document.title = "🎮 " + quiz.title + " | Ouviescrevi";
         $("jogoTitle").textContent = quiz.title;
-        $("jogoMeta").textContent = t.meta.replace("{n}", n).replace("{m}", Math.max(1, Math.round(n * 0.5)));
+        $("jogoMeta").textContent = n === 1 ? t.meta1 : t.meta.replace("{n}", n).replace("{m}", Math.max(1, Math.round(n * 0.5)));
         var play = $("jogoPlay");
         play.hidden = false;
         play.focus();
         play.addEventListener("click", function () {
-          OuviescreviQuizGame.open(quiz.questions, { title: quiz.title, lang: lang, shareUrl: location.href });
+          OuviescreviQuizGame.open(quiz.questions, {
+            title: quiz.title,
+            lang: lang,
+            shareUrl: location.href,
+            quizId: id,
+            onClose: function () { loadRanking(id, t); },
+          });
         });
+        loadRanking(id, t);
       } catch (e) {
         fail(TEXT.pt.error);
       }
+    }
+
+    // Top 10 do jogo, com a linha do jogador deste dispositivo destacada.
+    async function loadRanking(id, t) {
+      var box = $("jogoRanking");
+      try {
+        var res = await fetch(OuviescreviAPI.getBase() + "/api/share/quiz/" + encodeURIComponent(id) + "/scores");
+        if (!res.ok) return;
+        var rows = (await res.json()).ranking || [];
+        var me = "";
+        try { me = (localStorage.getItem("oe_quiz_name") || "").toLowerCase(); } catch (e) {}
+        var medals = ["🥇", "🥈", "🥉"];
+        var esc = function (v) { var d = document.createElement("span"); d.textContent = v; return d.innerHTML; };
+        box.innerHTML = "<h3>" + esc(t.ranking) + "</h3>" + (rows.length
+          ? "<ol>" + rows.map(function (r, i) {
+              var mine = String(r.name).toLowerCase() === me;
+              return '<li class="oe-qg__rank-row' + (mine ? " is-me" : "") + '"><span class="oe-qg__rank-pos">' + (medals[i] || i + 1) +
+                '</span><span class="oe-qg__rank-name">' + esc(r.name) + (mine ? " <em>(" + esc(t.you) + ")</em>" : "") +
+                '</span><span class="oe-qg__rank-hits">' + r.correct + "/" + r.total + '</span><strong class="oe-qg__rank-score">' + r.score + "</strong></li>";
+            }).join("") + "</ol>"
+          : '<p class="oe-qg__rank-empty">' + esc(t.empty) + "</p>");
+      } catch (e) {}
     }
 
     load();

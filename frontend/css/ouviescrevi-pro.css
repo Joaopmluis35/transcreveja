@@ -199,13 +199,20 @@ body.oe-pro {
     background: var(--pro-surface);
     border-left: 1px solid var(--pro-border);
     box-shadow: -8px 0 30px rgba(15, 23, 42, 0.12);
-    transform: translateX(100%);
-    transition: transform 0.25s ease;
+    /* Fechado: recortado no sítio, não empurrado para fora do ecrã — um translateX(100%)
+       alargava a página nos telemóveis (scroll horizontal e zoom). */
+    clip-path: inset(0 0 0 100%);
+    visibility: hidden;
+    transition: clip-path 0.25s ease, visibility 0s linear 0.25s;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     z-index: 200;
   }
-  .oe-pro-header.is-mobile-open .oe-pro-nav__panel { transform: translateX(0); }
+  .oe-pro-header.is-mobile-open .oe-pro-nav__panel {
+    clip-path: inset(0 0 0 0);
+    visibility: visible;
+    transition: clip-path 0.25s ease, visibility 0s;
+  }
 }
 
 .oe-pro-nav {
@@ -236,6 +243,9 @@ body.oe-pro {
   .oe-pro-nav {
     flex-direction: column;
     align-items: stretch;
+    /* No desktop é flex-end (encosta à direita); em coluna isso empurrava os itens para o fundo. */
+    justify-content: flex-start;
+    flex: 0 0 auto;
     width: 100%;
     gap: 4px;
     margin-bottom: 16px;

@@ -35,6 +35,16 @@
       shareText: "Desafio-te para este quiz: «{t}»",
       sound: "Som",
       keysHint: "Teclas 1–4 para responder · Enter para avançar · Esc para sair",
+      nameLabel: "O teu nome",
+      namePlaceholder: "Ex.: Maria",
+      ranking: "🏆 Ranking",
+      rankingLocal: "🏆 Ranking neste dispositivo",
+      rankingOnlineHint: "Partilha o jogo para ter um ranking com outras pessoas.",
+      rankingEmpty: "Ainda ninguém jogou — sê o primeiro!",
+      position: "Ficaste em {p}.º de {n}",
+      you: "tu",
+      saving: "A guardar o resultado…",
+      saveFail: "Não foi possível guardar no ranking online.",
       praise: ["Continua a estudar 📚", "Bom começo 👍", "Muito bem! 👏", "Excelente! 🌟", "Perfeito! 🏆"],
     },
     en: {
@@ -63,6 +73,16 @@
       shareText: "I challenge you to this quiz: “{t}”",
       sound: "Sound",
       keysHint: "Keys 1–4 to answer · Enter to continue · Esc to exit",
+      nameLabel: "Your name",
+      namePlaceholder: "e.g. Maria",
+      ranking: "🏆 Leaderboard",
+      rankingLocal: "🏆 Leaderboard on this device",
+      rankingOnlineHint: "Share the game to get a leaderboard with other people.",
+      rankingEmpty: "Nobody has played yet — be the first!",
+      position: "You are #{p} of {n}",
+      you: "you",
+      saving: "Saving your result…",
+      saveFail: "Could not save to the online leaderboard.",
       praise: ["Keep studying 📚", "Good start 👍", "Well done! 👏", "Excellent! 🌟", "Perfect! 🏆"],
     },
     es: {
@@ -91,6 +111,16 @@
       shareText: "Te reto a este quiz: «{t}»",
       sound: "Sonido",
       keysHint: "Teclas 1–4 para responder · Enter para seguir · Esc para salir",
+      nameLabel: "Tu nombre",
+      namePlaceholder: "Ej.: María",
+      ranking: "🏆 Clasificación",
+      rankingLocal: "🏆 Clasificación en este dispositivo",
+      rankingOnlineHint: "Comparte el juego para tener una clasificación con otras personas.",
+      rankingEmpty: "Nadie ha jugado aún — ¡sé el primero!",
+      position: "Quedaste {p}.º de {n}",
+      you: "tú",
+      saving: "Guardando el resultado…",
+      saveFail: "No se pudo guardar en la clasificación online.",
       praise: ["Sigue estudiando 📚", "Buen comienzo 👍", "¡Muy bien! 👏", "¡Excelente! 🌟", "¡Perfecto! 🏆"],
     },
     fr: {
@@ -119,6 +149,16 @@
       shareText: "Je te défie sur ce quiz : « {t} »",
       sound: "Son",
       keysHint: "Touches 1–4 pour répondre · Entrée pour continuer · Échap pour quitter",
+      nameLabel: "Ton prénom",
+      namePlaceholder: "Ex. : Marie",
+      ranking: "🏆 Classement",
+      rankingLocal: "🏆 Classement sur cet appareil",
+      rankingOnlineHint: "Partage le jeu pour avoir un classement avec d'autres personnes.",
+      rankingEmpty: "Personne n'a encore joué — sois le premier !",
+      position: "Tu es {p}e sur {n}",
+      you: "toi",
+      saving: "Enregistrement du résultat…",
+      saveFail: "Impossible d'enregistrer dans le classement en ligne.",
       praise: ["Continue à réviser 📚", "Bon début 👍", "Très bien ! 👏", "Excellent ! 🌟", "Parfait ! 🏆"],
     },
     de: {
@@ -147,6 +187,16 @@
       shareText: "Ich fordere dich zu diesem Quiz heraus: „{t}“",
       sound: "Ton",
       keysHint: "Tasten 1–4 zum Antworten · Enter zum Weitermachen · Esc zum Beenden",
+      nameLabel: "Dein Name",
+      namePlaceholder: "z. B. Maria",
+      ranking: "🏆 Rangliste",
+      rankingLocal: "🏆 Rangliste auf diesem Gerät",
+      rankingOnlineHint: "Teile das Spiel, um eine Rangliste mit anderen zu haben.",
+      rankingEmpty: "Noch niemand hat gespielt — sei der Erste!",
+      position: "Du bist Platz {p} von {n}",
+      you: "du",
+      saving: "Ergebnis wird gespeichert…",
+      saveFail: "Konnte nicht in der Online-Rangliste speichern.",
       praise: ["Weiter lernen 📚", "Guter Anfang 👍", "Sehr gut! 👏", "Ausgezeichnet! 🌟", "Perfekt! 🏆"],
     },
   };
@@ -288,14 +338,41 @@
       '<h2 class="oe-qg__title">' + esc(state.title) + "</h2>" +
       '<p class="oe-qg__meta">' + esc(s("questionsCount", { n: state.questions.length, s: SECONDS })) + "</p>" +
       '<p class="oe-qg__rules">' + esc(s("rules")) + "</p>" +
-      '<button type="button" class="oe-qg__btn oe-qg__btn--go" data-qg-start data-qg-focus>' + esc(s("start")) + " ▶</button>" +
+      '<form class="oe-qg__name" data-qg-name-form novalidate>' +
+      '<label class="oe-qg__name-label" for="oeQgName">' + esc(s("nameLabel")) + "</label>" +
+      '<input class="oe-qg__name-input" id="oeQgName" type="text" maxlength="24" autocomplete="nickname" ' +
+      'placeholder="' + esc(s("namePlaceholder")) + '" value="' + esc(state.player || savedName()) + '" data-qg-focus>' +
+      '<button type="submit" class="oe-qg__btn oe-qg__btn--go" data-qg-start>' + esc(s("start")) + " ▶</button>" +
+      "</form>" +
       '<p class="oe-qg__keys">' + esc(s("keysHint")) + "</p>" +
       "</div>"
     );
-    root.querySelector("[data-qg-start]").addEventListener("click", function () {
+    var input = root.querySelector("#oeQgName");
+    var go = root.querySelector("[data-qg-start]");
+    var sync = function () {
+      go.disabled = !input.value.trim();
+    };
+    input.addEventListener("input", sync);
+    sync();
+    root.querySelector("[data-qg-name-form]").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var name = input.value.replace(/\s+/g, " ").trim().slice(0, 24);
+      if (!name) return input.focus();
+      state.player = name;
+      try {
+        localStorage.setItem("oe_quiz_name", name);
+      } catch (err) {}
       beep([523, 659], 0.09);
       showQuestion(0);
     });
+  }
+
+  function savedName() {
+    try {
+      return localStorage.getItem("oe_quiz_name") || "";
+    } catch (e) {
+      return "";
+    }
   }
 
   function showQuestion(i) {
@@ -460,6 +537,7 @@
       '<div class="oe-qg__stars" aria-hidden="true">' + starsHtml + "</div>" +
       '<p class="oe-qg__big"><span data-qg-total>0</span> <small>' + esc(s("score").toLowerCase()) + "</small></p>" +
       '<p class="oe-qg__meta">' + esc(s("resultLine", { c: state.correct, n: n })) + " · " + esc(praise) + "</p>" +
+      '<section class="oe-qg__ranking" data-qg-ranking aria-live="polite"></section>' +
       '<div class="oe-qg__actions">' +
       '<button type="button" class="oe-qg__btn oe-qg__btn--go" data-qg-again data-qg-focus>↻ ' + esc(s("again")) + "</button>" +
       '<button type="button" class="oe-qg__btn oe-qg__btn--ghost" data-qg-share>' + esc(s("share")) + "</button>" +
@@ -487,12 +565,110 @@
       beep([523, 659, 784, 1047], 0.11);
     }
     root.querySelector("[data-qg-again]").addEventListener("click", function () {
-      start(state.source, { title: state.title, lang: state.lang, shareUrl: state.shareUrl, onLink: state.onLink });
+      start(state.source, { title: state.title, lang: state.lang, shareUrl: state.shareUrl, onLink: state.onLink, quizId: state.quizId, onClose: state.onClose });
     });
     root.querySelector("[data-qg-share]").addEventListener("click", function () {
       shareQuiz(state.source, { title: state.title, lang: state.lang, shareUrl: state.shareUrl, onLink: state.onLink, button: this });
     });
     root.querySelector("[data-qg-close]").addEventListener("click", close);
+    saveAndShowRanking();
+  }
+
+  // ── Ranking ──────────────────────────────────────────────────────────────
+  // Jogo partilhado (tem id): ranking online. Sem link: ranking guardado neste dispositivo.
+  function quizIdOf(st) {
+    if (st.quizId) return st.quizId;
+    var m = /[?&]id=([^&#]+)/.exec(st.shareUrl || "");
+    return m ? decodeURIComponent(m[1]) : null;
+  }
+
+  function renderRanking(box, rows, opts) {
+    if (!box || !root) return;
+    var me = (state.player || "").toLowerCase();
+    var medals = ["🥇", "🥈", "🥉"];
+    var list = rows.length
+      ? "<ol>" +
+        rows
+          .map(function (r, i) {
+            var mine = String(r.name).toLowerCase() === me;
+            return (
+              '<li class="oe-qg__rank-row' + (mine ? " is-me" : "") + '">' +
+              '<span class="oe-qg__rank-pos">' + (medals[i] || i + 1) + "</span>" +
+              '<span class="oe-qg__rank-name">' + esc(r.name) + (mine ? " <em>(" + esc(s("you")) + ")</em>" : "") + "</span>" +
+              '<span class="oe-qg__rank-hits">' + r.correct + "/" + r.total + "</span>" +
+              '<strong class="oe-qg__rank-score">' + r.score + "</strong>" +
+              "</li>"
+            );
+          })
+          .join("") +
+        "</ol>"
+      : '<p class="oe-qg__rank-empty">' + esc(s("rankingEmpty")) + "</p>";
+    box.innerHTML =
+      "<h3>" + esc(opts.local ? s("rankingLocal") : s("ranking")) + "</h3>" +
+      (opts.position ? '<p class="oe-qg__rank-me">' + esc(s("position", { p: opts.position, n: opts.players })) + "</p>" : "") +
+      list +
+      (opts.note ? '<p class="oe-qg__rank-note">' + esc(opts.note) + "</p>" : "");
+  }
+
+  function localRankingKey(st) {
+    var src = st.title + "|" + st.questions.map(function (q) { return q.prompt; }).join("|");
+    var h = 0;
+    for (var i = 0; i < src.length; i++) h = (h * 31 + src.charCodeAt(i)) | 0;
+    return "oe_quiz_rank_" + (h >>> 0).toString(36);
+  }
+
+  function saveLocalRanking(st, entry) {
+    var key = localRankingKey(st);
+    var rows = [];
+    try {
+      rows = JSON.parse(localStorage.getItem(key) || "[]");
+    } catch (e) {}
+    rows.push(entry);
+    // Melhor resultado de cada nome.
+    var best = {};
+    rows.forEach(function (r) {
+      var k = String(r.name).toLowerCase();
+      if (!best[k] || r.score > best[k].score) best[k] = r;
+    });
+    var sorted = Object.keys(best)
+      .map(function (k) { return best[k]; })
+      .sort(function (a, b) { return b.score - a.score; });
+    try {
+      localStorage.setItem(key, JSON.stringify(sorted.slice(0, 50)));
+    } catch (e) {}
+    var pos = sorted.findIndex(function (r) { return String(r.name).toLowerCase() === String(entry.name).toLowerCase(); }) + 1;
+    return { rows: sorted.slice(0, 10), position: pos, players: sorted.length };
+  }
+
+  async function saveAndShowRanking() {
+    var st = state;
+    var box = root && root.querySelector("[data-qg-ranking]");
+    if (!box || !st.player) return;
+    var entry = { name: st.player, score: st.score, correct: st.correct, total: st.questions.length };
+    var quizId = quizIdOf(st);
+    if (!quizId) {
+      var local = saveLocalRanking(st, entry);
+      renderRanking(box, local.rows, { local: true, position: local.position, players: local.players, note: s("rankingOnlineHint") });
+      return;
+    }
+    box.innerHTML = '<p class="oe-qg__rank-note">' + esc(s("saving")) + "</p>";
+    try {
+      var api = global.OuviescreviAPI;
+      await api.init();
+      var res = await fetch(api.getBase() + "/api/share/quiz/" + encodeURIComponent(quizId) + "/scores", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(entry),
+      });
+      var data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "score");
+      if (state !== st) return; // o jogador já fechou ou recomeçou
+      renderRanking(box, data.ranking || [], { position: data.position, players: data.players });
+    } catch (e) {
+      if (state !== st) return;
+      var fallback = saveLocalRanking(st, entry);
+      renderRanking(box, fallback.rows, { local: true, position: fallback.position, players: fallback.players, note: s("saveFail") });
+    }
   }
 
   // ── Abrir / fechar ───────────────────────────────────────────────────────
@@ -512,7 +688,7 @@
     }
     if (e.key === "Tab") {
       // Manter o foco dentro do jogo.
-      var f = root.querySelectorAll("button:not([disabled]), summary, [tabindex='0']");
+      var f = root.querySelectorAll("button:not([disabled]), input, summary, [tabindex='0']");
       if (!f.length) return;
       var first = f[0];
       var lastEl = f[f.length - 1];
@@ -536,6 +712,9 @@
       title: (opts && opts.title) || "Quiz",
       shareUrl: (opts && opts.shareUrl) || null,
       onLink: (opts && opts.onLink) || null,
+      quizId: (opts && opts.quizId) || null,
+      onClose: (opts && opts.onClose) || null,
+      player: "",
       questions: playable.map(function (q) {
         return Object.assign({}, q, { shuffled: shuffle(q.options) });
       }),
@@ -582,6 +761,7 @@
   }
 
   function close() {
+    var onClose = state && state.onClose;
     clearTimer();
     document.removeEventListener("keydown", onKey);
     if (root) root.remove();
@@ -589,6 +769,7 @@
     state = null;
     document.documentElement.classList.remove("oe-qg-open");
     if (lastFocus && lastFocus.focus) lastFocus.focus();
+    if (onClose) onClose();
   }
 
   // ── Partilha ─────────────────────────────────────────────────────────────
