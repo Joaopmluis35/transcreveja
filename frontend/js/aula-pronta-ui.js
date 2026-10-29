@@ -36,6 +36,18 @@
       classroomTitle: "Folha para sala de aula",
       signature: "\n\n— Gerado com Ouviescrevi: https://ouviescrevi.pt/aula-pronta.html",
       count: "{w} palavras · {c} caracteres",
+      viewRanking: "🏆 Ver ranking",
+      myGamesTitle: "🎮 Os teus jogos partilhados",
+      myGamesHint: "Guardados neste dispositivo. Abre o ranking para ver quem jogou e com que pontuação.",
+      questionsN: "{n} perguntas",
+      playersN: "{n} jogadores",
+      players1: "1 jogador",
+      noPlayers: "Ainda ninguém jogou",
+      leader: "1.º {name} · {s} pts",
+      copyLink: "🔗 Copiar link",
+      linkCopied: "Link copiado!",
+      remove: "Remover da lista",
+      expired: "Link expirado",
     },
     en: {
       eyebrow: "Teachers · Students · Revision",
@@ -65,6 +77,18 @@
       classroomTitle: "Classroom sheet",
       signature: "\n\n— Generated with Ouviescrevi: https://ouviescrevi.pt/en/aula-pronta.html",
       count: "{w} words · {c} characters",
+      viewRanking: "🏆 View leaderboard",
+      myGamesTitle: "🎮 Your shared games",
+      myGamesHint: "Saved on this device. Open the leaderboard to see who played and their scores.",
+      questionsN: "{n} questions",
+      playersN: "{n} players",
+      players1: "1 player",
+      noPlayers: "Nobody has played yet",
+      leader: "#1 {name} · {s} pts",
+      copyLink: "🔗 Copy link",
+      linkCopied: "Link copied!",
+      remove: "Remove from list",
+      expired: "Link expired",
     },
   };
 
@@ -212,11 +236,19 @@
           "</button>" +
           '<button type="button" class="oe-ap-pack__btn" data-ap-share-game>' +
           escapeHtml(global.OuviescreviQuizGame.shareLabel(packLang)) +
-          "</button>"
+          "</button>" +
+          '<a class="oe-ap-pack__btn oe-ap-pack__btn--ranking" data-ap-ranking target="_blank" rel="noopener" hidden>' +
+          escapeHtml(t("viewRanking")) +
+          "</a>"
         : "";
     var shareUrl = null; // o mesmo link serve para o pacote todo
+    // Depois de partilhar, o ranking online fica a um clique (abre a página do desafio no ranking).
     var rememberLink = function (url) {
       shareUrl = url;
+      container.querySelectorAll("[data-ap-ranking]").forEach(function (a) {
+        a.href = url + "#ranking";
+        a.hidden = false;
+      });
     };
 
     var classroom =
@@ -514,6 +546,111 @@
     if (btn) btn.addEventListener("click", generate);
 
     setupTextarea();
+    setupMyGames();
+  }
+
+  // Lista dos jogos que este dispositivo partilhou, com acesso direto ao ranking online.
+  function setupMyGames() {
+    var quiz = global.OuviescreviQuizGame;
+    var form = document.querySelector(".oe-ap-form");
+    if (!quiz || !quiz.myGames || !form) return;
+    var box = document.createElement("section");
+    box.className = "oe-ap-mygames";
+    box.id = "osMeusJogos";
+    box.setAttribute("aria-label", t("myGamesTitle"));
+    form.insertAdjacentElement("afterend", box);
+    // Atalho no topo: a lista fica por baixo da caixa de texto, longe da vista.
+    var jump = document.createElement("a");
+    jump.className = "oe-ap-mygames__jump";
+    jump.href = "#osMeusJogos";
+    var hero = document.querySelector(".oe-ap-hero");
+    if (hero) hero.appendChild(jump);
+
+    function fmtDate(iso) {
+      try {
+        return new Date(iso).toLocaleDateString(config.lang === "en" ? "en-GB" : "pt-PT", { day: "numeric", month: "short" });
+      } catch (e) {
+        return "";
+      }
+    }
+
+    function render() {
+      var games = quiz.myGames();
+      jump.hidden = !games.length;
+      jump.textContent = "🏆 " + t("myGamesTitle").replace(/^\S+\s/, "") + " (" + games.length + ")";
+      if (!games.length) {
+        box.hidden = true;
+        box.innerHTML = "";
+        return;
+      }
+      box.hidden = false;
+      box.innerHTML =
+        "<h2>" + escapeHtml(t("myGamesTitle")) + "</h2>" +
+        '<p class="oe-ap-mygames__hint">' + escapeHtml(t("myGamesHint")) + "</p>" +
+        "<ul>" +
+        games
+          .map(function (g) {
+            return (
+              '<li class="oe-ap-mygames__item" data-game="' + escapeHtml(g.id) + '">' +
+              '<div class="oe-ap-mygames__info"><strong>' + escapeHtml(g.title) + "</strong>" +
+              '<span class="oe-ap-mygames__meta">' + escapeHtml(fmtDate(g.created)) +
+              (g.count ? " · " + escapeHtml(t("questionsN").replace("{n}", g.count)) : "") + "</span>" +
+              '<span class="oe-ap-mygames__stats" data-stats>…</span></div>' +
+              '<div class="oe-ap-mygames__actions">' +
+              '<a class="oe-ap-pack__btn oe-ap-pack__btn--ranking" href="' + escapeHtml(g.url) + '#ranking" target="_blank" rel="noopener">' + escapeHtml(t("viewRanking")) + "</a>" +
+              '<a class="oe-ap-pack__btn" href="' + escapeHtml(g.url) + '" data-copy>' + escapeHtml(t("copyLink")) + "</a>" +
+              '<a class="oe-ap-mygames__remove" href="#" data-remove aria-label="' + escapeHtml(t("remove")) + '" title="' + escapeHtml(t("remove")) + '">✕</a>' +
+              "</div></li>"
+            );
+          })
+          .join("") +
+        "</ul>";
+      games.forEach(loadStats);
+    }
+
+    async function loadStats(g) {
+      var el = box.querySelector('[data-game="' + g.id + '"] [data-stats]');
+      if (!el) return;
+      try {
+        var api = global.OuviescreviAPI;
+        await api.init();
+        var res = await fetch(api.getBase() + "/api/share/quiz/" + encodeURIComponent(g.id) + "/scores");
+        if (res.status === 404) {
+          el.textContent = t("expired");
+          return;
+        }
+        var data = await res.json();
+        var top = (data.ranking || [])[0];
+        var n = data.players || 0;
+        el.textContent = !n
+          ? t("noPlayers")
+          : (n === 1 ? t("players1") : t("playersN").replace("{n}", n)) +
+            (top ? " · " + t("leader").replace("{name}", top.name).replace("{s}", top.score) : "");
+      } catch (e) {
+        el.textContent = "";
+      }
+    }
+
+    box.addEventListener("click", function (e) {
+      var item = e.target.closest("[data-game]");
+      if (!item) return;
+      if (e.target.closest("[data-remove]")) {
+        e.preventDefault();
+        quiz.forgetMyGame(item.getAttribute("data-game"));
+        render();
+      } else if (e.target.closest("[data-copy]")) {
+        e.preventDefault();
+        var url = e.target.closest("[data-copy]").getAttribute("href");
+        var done = function () {
+          if (global.OuviescreviUI) global.OuviescreviUI.toast(t("linkCopied"), "success");
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, function () { global.prompt(t("copyLink"), url); });
+        else global.prompt(t("copyLink"), url);
+      }
+    });
+
+    document.addEventListener("oe-quiz-shared", render);
+    render();
   }
 
   // A caixa cresce com o texto (até ao max-height do CSS) e mostra palavras/caracteres.

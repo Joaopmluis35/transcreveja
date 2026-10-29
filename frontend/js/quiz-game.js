@@ -822,6 +822,7 @@
       var data = await res.json();
       if (!res.ok || !data.url) throw new Error(data.detail || "share");
       if (state) state.shareUrl = data.url;
+      rememberMyGame({ id: data.id, url: data.url, title: title, lang: lang, count: (questions || []).length });
       if (opts.onLink) opts.onLink(data.url);
       await sendLink(data.url, title, lang);
       return data.url;
@@ -832,10 +833,44 @@
     }
   }
 
+  // ── Jogos que partilhei (guardados neste dispositivo, para voltar ao ranking) ──
+  var MY_GAMES_KEY = "oe_my_quiz_games";
+
+  function myGames() {
+    try {
+      var list = JSON.parse(localStorage.getItem(MY_GAMES_KEY) || "[]");
+      return Array.isArray(list) ? list : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveMyGames(list) {
+    try {
+      localStorage.setItem(MY_GAMES_KEY, JSON.stringify(list.slice(0, 30)));
+    } catch (e) {}
+  }
+
+  function rememberMyGame(game) {
+    if (!game || !game.id) return;
+    var list = myGames().filter(function (g) { return g.id !== game.id; });
+    list.unshift(Object.assign({ created: new Date().toISOString() }, game));
+    saveMyGames(list);
+    try {
+      document.dispatchEvent(new CustomEvent("oe-quiz-shared", { detail: game }));
+    } catch (e) {}
+  }
+
+  function forgetMyGame(id) {
+    saveMyGames(myGames().filter(function (g) { return g.id !== id; }));
+  }
+
   global.OuviescreviQuizGame = {
     open: start,
     close: close,
     share: shareQuiz,
+    myGames: myGames,
+    forgetMyGame: forgetMyGame,
     shareLabel: function (lang) {
       return (STRINGS[lang] || STRINGS.pt).share;
     },

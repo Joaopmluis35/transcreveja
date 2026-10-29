@@ -499,12 +499,15 @@ def _quiz_ranking(conn, quiz_id: str, limit: int = 10) -> list[dict]:
     return best
 
 
-def get_quiz_ranking(quiz_id: str) -> list[dict] | None:
+def get_quiz_ranking(quiz_id: str) -> dict | None:
     conn = get_connection()
     try:
         if _quiz_question_count(conn, quiz_id) is None:
             return None
-        return _quiz_ranking(conn, quiz_id)
+        players = conn.execute(
+            "SELECT COUNT(DISTINCT lower(name)) AS n FROM quiz_scores WHERE quiz_id = ?", (quiz_id,)
+        ).fetchone()
+        return {"ranking": _quiz_ranking(conn, quiz_id), "players": int(row_to_dict(players)["n"])}
     finally:
         conn.close()
 

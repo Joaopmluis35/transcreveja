@@ -337,3 +337,121 @@ body.oe-page--aula-pronta .oe-ap-hero .oe-lead {
     align-items: stretch;
   }
 }
+
+.oe-ap-pack__btn--ranking {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  border-color: #fcd34d;
+  background: #fffbeb;
+  color: #92400e;
+  font-weight: 700;
+}
+
+.oe-ap-pack__btn--ranking[hidden] {
+  display: none;
+}
+
+/* Os teus jogos partilhados (guardados neste dispositivo) */
+.oe-ap-mygames {
+  margin: 18px 0 0;
+  padding: 18px 20px;
+  border-radius: 16px;
+  border: 1px solid var(--pro-border, #e2e8f0);
+  background: var(--pro-surface, #fff);
+}
+
+.oe-ap-mygames h2 {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+  color: var(--pro-text, #0f172a);
+}
+
+.oe-ap-mygames__hint {
+  margin: 0 0 12px;
+  font-size: 0.85rem;
+  color: var(--pro-text-secondary, #64748b);
+}
+
+.oe-ap-mygames ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.oe-ap-mygames__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 0;
+  border-top: 1px solid var(--pro-border, #f1f5f9);
+}
+
+.oe-ap-mygames__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.oe-ap-mygames__info strong {
+  color: var(--pro-text, #0f172a);
+  overflow-wrap: anywhere;
+}
+
+.oe-ap-mygames__meta,
+.oe-ap-mygames__stats {
+  font-size: 0.82rem;
+  color: var(--pro-text-secondary, #64748b);
+}
+
+.oe-ap-mygames__stats {
+  font-weight: 600;
+  color: #7c3aed;
+}
+
+.oe-ap-mygames__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.oe-ap-mygames__actions .oe-ap-pack__btn {
+  text-decoration: none;
+}
+
+.oe-ap-mygames__remove {
+  padding: 6px 8px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--pro-text-secondary, #94a3b8);
+}
+
+.oe-ap-mygames__remove:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.oe-ap-mygames__jump {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  color: #92400e;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.oe-ap-mygames__jump[hidden] {
+  display: none;
+}
+
+.oe-ap-mygames {
+  scroll-margin-top: 90px;
+}

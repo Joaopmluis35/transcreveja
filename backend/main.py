@@ -2265,10 +2265,10 @@ def get_share_quiz(share_id: str, request: Request):
 def get_quiz_scores(share_id: str, request: Request):
     if not origin_is_allowed(request, ALLOWED_ORIGINS):
         raise HTTPException(status_code=403, detail="Origem não autorizada.")
-    ranking = admin_store.get_quiz_ranking(share_id)
-    if ranking is None:
+    result = admin_store.get_quiz_ranking(share_id)
+    if result is None:
         raise HTTPException(status_code=404, detail="Jogo não encontrado ou expirado.")
-    return {"ranking": ranking}
+    return result
 
 
 @app.post("/api/share/quiz/{share_id}/scores")

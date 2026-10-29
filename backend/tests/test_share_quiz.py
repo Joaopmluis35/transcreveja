@@ -67,7 +67,9 @@ def test_quiz_ranking_keeps_best_score_per_name(client, origin_headers):
     third = post("ana", 200, 1).json()  # mesmo nome, melhor pontuação
     assert third["position"] == 2
     assert third["players"] == 2
-    ranking = client.get(f"/api/share/quiz/{qid}/scores", headers=origin_headers).json()["ranking"]
+    body = client.get(f"/api/share/quiz/{qid}/scores", headers=origin_headers).json()
+    assert body["players"] == 2
+    ranking = body["ranking"]
     assert [(r["name"], r["score"]) for r in ranking] == [("Rui", 320), ("ana", 200)]
 
 

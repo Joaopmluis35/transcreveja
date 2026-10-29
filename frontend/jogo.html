@@ -43,7 +43,7 @@
 <div id="footer"></div>
 
 <script src="js/ouviescrevi-api.js?v=25"></script>
-<script src="js/quiz-game.js?v=4"></script>
+<script src="js/quiz-game.js?v=5"></script>
 <script>
   (function () {
     var TEXT = {
@@ -124,6 +124,8 @@
                 '</span><span class="oe-qg__rank-hits">' + r.correct + "/" + r.total + '</span><strong class="oe-qg__rank-score">' + r.score + "</strong></li>";
             }).join("") + "</ol>"
           : '<p class="oe-qg__rank-empty">' + esc(t.empty) + "</p>");
+        // Vindo de «Ver ranking» (…#ranking): mostra logo a tabela.
+        if (location.hash === "#ranking") box.scrollIntoView({ behavior: "smooth", block: "center" });
       } catch (e) {}
     }
 
