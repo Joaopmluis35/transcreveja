@@ -2612,6 +2612,48 @@ def site_content(request: Request):
     }
 
 
+# TEMPORÁRIO (fase 0 do simulador): o servidor consegue ler a Betclic? Remover depois do teste.
+_BETCLIC_PROBE_URLS = (
+    "https://m.betclic.pt/",
+    "https://m.betclic.pt/futebol-sfootball",
+    "https://m.betclic.pt/futebol-sfootball/liga-portugal-betclic-c32",
+)
+
+
+@app.get("/api/diagnostico/betclic")
+def diagnostico_betclic(request: Request):
+    enforce_rate_limit(request, "diag-betclic", 5, 3600)
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Mobile Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "pt-PT,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+    }
+    results = []
+    for url in _BETCLIC_PROBE_URLS:
+        t0 = time.monotonic()
+        try:
+            r = requests.get(url, headers=headers, timeout=20, allow_redirects=True)
+            body = r.text or ""
+            results.append({
+                "url": url,
+                "status": r.status_code,
+                "final_url": r.url,
+                "ms": int((time.monotonic() - t0) * 1000),
+                "bytes": len(r.content or b""),
+                "ng_state": '<script id="ng-state"' in body,
+                "title": (re.search(r"<title>([^<]{0,120})", body) or [None, None])[1],
+            })
+        except Exception as e:
+            results.append({"url": url, "error": str(e)[:200], "ms": int((time.monotonic() - t0) * 1000)})
+    egress = {}
+    try:
+        egress = requests.get("https://ipinfo.io/json", timeout=8).json()
+        egress = {k: egress.get(k) for k in ("ip", "city", "region", "country", "org")}
+    except Exception as e:
+        egress = {"error": str(e)[:120]}
+    return {"egress": egress, "results": results}
+
+
 @app.get("/debug")
 def debug():
     require_debug_enabled()
