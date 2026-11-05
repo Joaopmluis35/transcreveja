@@ -1,10 +1,18 @@
-# Passagem para o Cursor — Ouviescrevi / TranscreveJá + simulador online (26/10 a 02/11/2026)
+# Passagem para o Cursor e o Claude Code — Ouviescrevi / TranscreveJá (26/10 a 05/11/2026)
 
-Cola isto no Cursor. Antes de mexer em código: `git pull` e `git log --oneline d65e4f7..HEAD`.
-Há **dois projetos**: o Ouviescrevi (este repositório, `c:\Users\joao_\transcreveja`, público) e o simulador
-online (`c:\Projetos\Betclic-online`, repositório privado — ver secção 4). Não os misturar.
+Há **dois projetos**: o Ouviescrevi (este repositório, `c:\Users\joao_\transcreveja`, **público**) e o simulador
+online (outra pasta e repositório **privado** — ver secção 4). Não os misturar e não escrever nada do simulador aqui.
 Está tudo publicado no `main` (GitHub Joaopmluis35/transcreveja). **Não refaças nada disto.**
+O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `git pull`, `git status` e
+`git log --oneline -5`; commit só dos ficheiros que alteraste.
 
+**Prompt para colar no Cursor:**
+
+> Estou a trabalhar no Ouviescrevi (`c:\Users\joao_\transcreveja`, repositório público). Faz `git pull` e lê o `CURSOR_HANDOFF.md` todo. O Claude Code também pode ter feito commits: vê `git log --oneline -5` e não refaças o que já lá está. Segue as regras da secção 3 (alterações pequenas e explicadas antes; publicar só com o meu pedido; subir o `?v=` em todas as páginas que usam um CSS/JS alterado). Testes: `cd backend; py -m pytest -q` e `py scripts/frontend_smoke_test.py`. Nada do simulador de apostas neste repositório. Diz-me o estado (`git status`, testes) antes de propor alterações.
+
+**Prompt para colar no Claude Code:**
+
+> Trabalha no Ouviescrevi em `C:\Users\joao_\transcreveja` (repositório público; o simulador de apostas é outro projecto, privado — não o mencionar nem copiar nada dele para aqui). Faz `git pull`, lê o `CURSOR_HANDOFF.md` e vê `git log --oneline -5` (o Cursor também faz commits). Regras da secção 3; português de Portugal; testes `cd backend; py -m pytest -q` (Python do sistema) e `py scripts/frontend_smoke_test.py`; commit só dos teus ficheiros e só publicar (push) quando eu pedir. Diz-me o estado antes de propor alterações.
 ---
 
 ## 1. Infraestrutura (confirmado em produção)
@@ -79,22 +87,12 @@ Está tudo publicado no `main` (GitHub Joaopmluis35/transcreveja). **Não refaç
 - Prompts de IA em PT: `ai_output_language()` (“português de Portugal, nunca do Brasil”).
 - Alterações pequenas, explicadas antes; publicar só com pedido do dono.
 
-## 4. Simulador de apostas — cópia online (projeto à parte, repositório PRIVADO)
+## 4. Simulador de apostas (projeto à parte, repositório PRIVADO)
 
-**Não está no repositório transcreveja** (que é **público**). O Ouviescrevi só partilha o domínio
-(`simulador.ouviescrevi.pt`, Cloudflare).
-
-- **Código:** `c:\Projetos\Betclic-online` → **`github.com/Joaopmluis35/ouviescrevi-simulador` (privado)**.
-  Abrir **essa pasta** no Cursor; ler `CONTEXTO_CURSOR.md` (**secções 7 e 8**) e `GUIA_ONLINE.md`.
-  **Nunca** mexer em `c:\Projetos\Betclic` (PC local, 5050) excepto espelhar `betclic-boletim.user.js` se mudares o script.
-- **Arquitetura actual (03/11/2026):** Flask + **vigia** no **PC Windows** (`127.0.0.1:5051`) → Cloudflare Tunnel + Access
-  → `https://simulador.ouviescrevi.pt`. (Termux no Android ficou de reserva; a Betclic dá 403 a partir de datacenters.)
-- **Script:** Tampermonkey **1.19+** — PC Chrome/`www`; Android Firefox/`m.betclic.pt`. Depois de atualizar: Betclic F5 → Verificar.
-- **Melhorias recentes (secção 8 do CONTEXTO):** Gerar bilhete só no botão; odd min/max; mobile mais rápido (`fast=1`);
-  limpar boletim no m. antes de aposta nova; não desmarcar odds com 2.º clique; cruz no popup; logs quando 17→16
-  (jogo repetido, não o Al Nassr); `?v=online-28`; ~209 testes.
-- **Atualizar:** alterar em `Betclic-online` → testes → `?v=` / `@version` → atualizar CONTEXTO → **commit + push** → reiniciar 5051.
-- **Utilizadores:** dono `jonyluis1989@gmail.com`; amigos = email em `online.env` **e** Access.
+**Não está neste repositório** (que é **público**) e os detalhes dele **não se escrevem aqui**.
+O Ouviescrevi só partilha o domínio (subdomínio `simulador.`, Cloudflare).
+O contexto, as regras e os prompts para o Cursor e para o Claude Code estão no **`CONTEXTO_CURSOR.md` da pasta do
+simulador** (secções 2, 7 e 8). Abrir **essa pasta** no Cursor / Claude Code para trabalhar nele.
 
 ## 5. Ideias pendentes (Ouviescrevi)
 
