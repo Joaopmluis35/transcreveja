@@ -207,18 +207,18 @@
                 <p class="oe-output__sidebar-title">Ações com IA</p>
                 <div class="oe-output__actions btn-group">
                   <button id="btnGerarResumo" type="button"><span>🧠 Gerar Resumo</span></button>
-                  <button type="button" onclick="abrirAulaPronta()"><span>📦 Aula Pronta</span></button>
-                  <button type="button" onclick="abrirAulaCompleta()"><span>📚 Aula completa</span></button>
-                  <button type="button" onclick="abrirCapitulos()"><span>⏱️ Capítulos</span></button>
-                  <button type="button" onclick="abrirPodcastYoutube()"><span>🎙️ Podcast/YouTube</span></button>
-                  <button type="button" onclick="abrirFlashcards()"><span>🃏 Flashcards</span></button>
-                  <button type="button" onclick="abrirDescricaoYoutube()"><span>▶️ YouTube</span></button>
-                  <button type="button" onclick="corrigirTextoIA()"><span>📝 Corrigir Texto</span></button>
-                  <button type="button" onclick="abrirModalTraducao()"><span>🌍 Traduzir</span></button>
-                  <button type="button" onclick="classificarConteudo()"><span>📚 Classificar</span></button>
-                  <button type="button" onclick="gerarMinuta()"><span>📩 Gerar Minuta</span></button>
-                  <button type="button" onclick="gerarEmailIA()"><span>📧 Gerar Email</span></button>
-                  <button type="button" onclick="partilharWhatsapp()"><span>📲 WhatsApp</span></button>
+                  <button type="button" onclick="abrirAulaPronta(this)"><span>📦 Aula Pronta</span></button>
+                  <button type="button" onclick="abrirAulaCompleta(this)"><span>📚 Aula completa</span></button>
+                  <button type="button" onclick="abrirCapitulos(this)"><span>⏱️ Capítulos</span></button>
+                  <button type="button" onclick="abrirPodcastYoutube(this)"><span>🎙️ Podcast/YouTube</span></button>
+                  <button type="button" onclick="abrirFlashcards(this)"><span>🃏 Flashcards</span></button>
+                  <button type="button" onclick="abrirDescricaoYoutube(this)"><span>▶️ YouTube</span></button>
+                  <button type="button" onclick="corrigirTextoIA(this)"><span>📝 Corrigir Texto</span></button>
+                  <button type="button" id="btnTraduzir" onclick="abrirModalTraducao()"><span>🌍 Traduzir</span></button>
+                  <button type="button" onclick="classificarConteudo(this)"><span>📚 Classificar</span></button>
+                  <button type="button" onclick="gerarMinuta(this)"><span>📩 Gerar Minuta</span></button>
+                  <button type="button" onclick="gerarEmailIA(this)"><span>📧 Gerar Email</span></button>
+                  <button type="button" onclick="partilharWhatsapp(this)"><span>📲 WhatsApp</span></button>
                   <div class="dropdown-export" id="exportDropdown">
                     <button type="button" id="exportBtn" aria-haspopup="true" aria-expanded="false"><span>📁 Exportar ▼</span></button>
                     <div class="dropdown-content" id="exportOptions">
@@ -584,7 +584,7 @@
 <script src="js/pricing-visibility.js?v=26"></script>
 <script src="js/history-ui.js?v=29"></script>
 <script src="js/upsell-ui.js?v=27"></script>
-<script src="js/share-ui.js?v=28"></script>
+<script src="js/share-ui.js?v=29"></script>
 <script src="/js/suggestion-fab.js?v=25" defer></script>
 <script src="/js/feedback-pulse.js?v=1" defer></script>
   <script src="/js/media-trim-ui.js?v=49" defer></script>
@@ -612,6 +612,22 @@
       await new Promise(r => setTimeout(r, esperas[i]));
     }
   }
+
+  // Botões de "Ações com IA": enquanto a ação corre, o botão fica desativado com spinner e "A gerar…".
+  // Volta ao normal quando a IA responde ou dá erro. Um segundo clique durante o carregamento é ignorado.
+  async function comLoading(btn, texto, fn) {
+    if (!btn) return fn();
+    if (btn.getAttribute("aria-busy") === "true") return;
+    OuviescreviUI.setButtonLoading(btn, true, texto);
+    try { return await fn(); }
+    finally { OuviescreviUI.setButtonLoading(btn, false); }
+  }
+
+  // Se o utilizador voltar atrás para esta página (cache do browser), nenhum botão fica preso em "A abrir…".
+  window.addEventListener("pageshow", (e) => {
+    if (!e.persisted) return;
+    document.querySelectorAll('.oe-output__actions button[aria-busy="true"]').forEach((b) => OuviescreviUI.setButtonLoading(b, false));
+  });
 
   async function loadSiteContent() {
     try {
@@ -2367,12 +2383,11 @@
     if (!text) return;
 
     if (type === "docx") {
-      exportDocxPro(text);
-      return;
+      return exportDocxPro(text);
     }
 
     if (type === 'pdf' && !window.jspdf){
-      carregarJsPDF()
+      return carregarJsPDF()
         .then(function () { exportText(type); })
         .catch(function () { alert("Não foi possível preparar o PDF. Tenta outra vez."); });
       return;
@@ -2489,7 +2504,8 @@
   // =========================
   // Partilhar WhatsApp + notificar backend (com token)
   // =========================
-  async function partilharWhatsapp(){
+  function partilharWhatsapp(btn){
+    return comLoading(btn, "A abrir…", async () => {
     await ensureApi();
     const textoDaTranscricao = (document.getElementById("transcriptionText").value || "").trim();
     const assinatura = "\n\n🔗 Transcrito com Ouviescrevi: https://ouviescrevi.pt";
@@ -2516,6 +2532,7 @@
       );
       window.open(`mailto:${ADMIN_EMAIL}?subject=${subject}&body=${body}`, "_blank");
     }
+    });
   }
 
   // =========================
@@ -2695,12 +2712,11 @@
     form.dispatchEvent(new Event("submit", { bubbles:true, cancelable:true }));
   }
 
-  async function classificarConteudo(){
+  function classificarConteudo(btn){
+    return comLoading(btn, "A classificar…", async () => {
     await ensureApi();
     const text = transcriptionText.value.trim();
     if (!text) return alert("⚠️ Transcrição vazia.");
-    const btn = event.target.closest("button");
-    const original = btn.innerHTML; btn.innerHTML = "<span>📚 A classificar...</span>"; btn.disabled = true;
     try{
       const res = await fetchIA(`${API_BASE}/classify`, {
         method:"POST",
@@ -2716,12 +2732,12 @@
       const box = document.getElementById("classificacaoBox");
       document.getElementById("classificacaoTexto").textContent = "❌ Falha ao comunicar com a API.";
       box.classList.remove("hidden");
-    }finally{
-      btn.innerHTML = original; btn.disabled = false;
     }
+    });
   }
 
-  async function corrigirTextoIA(){
+  function corrigirTextoIA(btn){
+    return comLoading(btn, "A corrigir…", async () => {
     await ensureApi();
     const text = transcriptionText.value.trim();
     if (!text) return alert("⚠️ Transcrição vazia.");
@@ -2758,9 +2774,6 @@
       win.document.close();
     }
 
-    const btn = event.target.closest("button");
-    const original = btn.innerHTML; btn.innerHTML = "<span>📝 A corrigir...</span>"; btn.disabled = true;
-
     try{
       const res = await fetchIA(`${API_BASE}/correct`, {
         method:"POST",
@@ -2795,71 +2808,33 @@
     } catch {
       if (win) win.close();
       alert("❌ Falha ao comunicar com a API.");
-    } finally{
-      btn.innerHTML = original; btn.disabled = false;
     }
+    });
   }
 
-  function abrirAulaCompleta() {
+  // Abre a página da ferramenta com o texto da transcrição; o botão mostra "A abrir…" até a página mudar.
+  function abrirFerramenta(btn, chave, pagina) {
     const text = transcriptionText.value.trim();
     if (!text) return alert("⚠️ Transcrição vazia.");
+    if (btn && btn.getAttribute("aria-busy") === "true") return;
     try {
-      sessionStorage.setItem("oe_aula_completa_text", text);
+      sessionStorage.setItem(chave, text);
     } catch (e) {}
-    window.location.href = "aula-completa.html";
+    if (btn) OuviescreviUI.setButtonLoading(btn, true, "A abrir…");
+    window.location.href = pagina;
   }
+  function abrirAulaCompleta(btn) { abrirFerramenta(btn, "oe_aula_completa_text", "aula-completa.html"); }
+  function abrirAulaPronta(btn) { abrirFerramenta(btn, "oe_aula_pronta_text", "aula-pronta.html"); }
+  function abrirCapitulos(btn) { abrirFerramenta(btn, "oe_capitulos_text", "capitulos.html"); }
+  function abrirPodcastYoutube(btn) { abrirFerramenta(btn, "oe_podcast_wizard_text", "podcast-youtube.html"); }
+  function abrirFlashcards(btn) { abrirFerramenta(btn, "oe_flashcards_text", "flashcards.html"); }
+  function abrirDescricaoYoutube(btn) { abrirFerramenta(btn, "oe_youtube_desc_text", "descricao-youtube.html"); }
 
-  function abrirAulaPronta() {
-    const text = transcriptionText.value.trim();
-    if (!text) return alert("⚠️ Transcrição vazia.");
-    try {
-      sessionStorage.setItem("oe_aula_pronta_text", text);
-    } catch (e) {}
-    window.location.href = "aula-pronta.html";
-  }
-
-  function abrirCapitulos() {
-    const text = transcriptionText.value.trim();
-    if (!text) return alert("⚠️ Transcrição vazia.");
-    try {
-      sessionStorage.setItem("oe_capitulos_text", text);
-    } catch (e) {}
-    window.location.href = "capitulos.html";
-  }
-
-  function abrirPodcastYoutube() {
-    const text = transcriptionText.value.trim();
-    if (!text) return alert("⚠️ Transcrição vazia.");
-    try {
-      sessionStorage.setItem("oe_podcast_wizard_text", text);
-    } catch (e) {}
-    window.location.href = "podcast-youtube.html";
-  }
-
-  function abrirFlashcards() {
-    const text = transcriptionText.value.trim();
-    if (!text) return alert("⚠️ Transcrição vazia.");
-    try {
-      sessionStorage.setItem("oe_flashcards_text", text);
-    } catch (e) {}
-    window.location.href = "flashcards.html";
-  }
-
-  function abrirDescricaoYoutube() {
-    const text = transcriptionText.value.trim();
-    if (!text) return alert("⚠️ Transcrição vazia.");
-    try {
-      sessionStorage.setItem("oe_youtube_desc_text", text);
-    } catch (e) {}
-    window.location.href = "descricao-youtube.html";
-  }
-
-  async function gerarMinuta(){
+  function gerarMinuta(btn){
+    return comLoading(btn, "A gerar minuta…", async () => {
     await ensureApi();
     const text = transcriptionText.value.trim();
     if (!text) return alert("⚠️ Transcrição vazia.");
-    const btn = event.target.closest("button");
-    const original = btn.innerHTML; btn.innerHTML = "<span>📩 A gerar minuta...</span>"; btn.disabled = true;
     try{
       const res = await fetchIA(`${API_BASE}/summarize`, {
         method:"POST",
@@ -2875,17 +2850,15 @@
       const box = document.getElementById("minutaBox");
       document.getElementById("minutaTexto").textContent = "❌ Erro inesperado ao comunicar com a API.";
       box.classList.remove("hidden");
-    }finally{
-      btn.innerHTML = original; btn.disabled = false;
     }
+    });
   }
 
-  async function gerarResumo(e){
+  function gerarResumo(){
+    return comLoading(document.getElementById("btnGerarResumo"), "A gerar resumo…", async () => {
     await ensureApi();
     const text = transcriptionText.value.trim();
     if (!text) return alert("⚠️ Transcrição vazia.");
-    const btn = e?.target?.closest("button") || document.querySelector("#btnGerarResumo");
-    const original = btn.innerHTML; btn.innerHTML = "<span>🧠 A gerar resumo...</span>"; btn.disabled = true;
     try{
       const res = await fetchIA(`${API_BASE}/summarize`, {
         method:"POST",
@@ -2899,7 +2872,7 @@
       box.classList.remove("hidden");
       scrollSeInvisivel("resumoBox");
     }catch{ alert("❌ O servidor não respondeu ao gerar o resumo — tenta outra vez dentro de um minuto."); }
-    finally{ btn.innerHTML = original; btn.disabled = false; }
+    });
   }
 
   /* —— Chat sobre a transcrição —— */
@@ -3038,13 +3011,12 @@
     syncTranscriptChatVisibility();
   })();
 
-  async function gerarEmailIA(){
+  function gerarEmailIA(btn){
+    return comLoading(btn, "A gerar email…", async () => {
     await ensureApi();
     const text = transcriptionText.value.trim();
     if (!text) return alert("⚠️ Transcrição/Resumo vazio.");
     const tone = "formal";
-    const btn = event.target.closest("button");
-    const original = btn.innerHTML; btn.innerHTML = "<span>📧 A gerar email...</span>"; btn.disabled = true;
 
     const win = window.open("", "emailGerado", "width=640,height=560");
     if (win){
@@ -3105,9 +3077,8 @@
     }catch{
       if (win) win.close();
       alert("❌ Falha ao comunicar com a API.");
-    }finally{
-      btn.innerHTML = original; btn.disabled = false;
     }
+    });
   }
 
   async function aplicarLocutores(transcricao){
@@ -3228,9 +3199,8 @@
       if (p < 90){ p += Math.random() * 5; progressBar.style.width = `${p}%`; }
     }, 200);
 
-    const btn = event.target;
-    const originalText = btn.textContent || "🌍 Traduzir";
-    btn.textContent = "🌍 A traduzir..."; btn.disabled = true;
+    const btn = document.getElementById("btnTraduzir");
+    if (btn) OuviescreviUI.setButtonLoading(btn, true, "A traduzir…");
 
     try{
       const res = await fetchIA(`${API_BASE}/translate`, {
@@ -3257,7 +3227,7 @@
         progressWrapper.classList.add("hidden");
         progressBar.style.width = "0%";
       }, 1200);
-      btn.textContent = originalText; btn.disabled = false;
+      if (btn) OuviescreviUI.setButtonLoading(btn, false);
       scrollSeInvisivel("traducaoBox");
     }
   }
@@ -3512,7 +3482,7 @@
       if (!target) return;
       const type = target.getAttribute('data-export');
       close();
-      setTimeout(() => exportText(type), 0);
+      setTimeout(() => comLoading(btn, "A exportar…", async () => exportText(type)), 0);
     });
   })();
 

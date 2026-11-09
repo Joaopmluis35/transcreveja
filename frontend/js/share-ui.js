@@ -86,7 +86,13 @@
     btn.textContent = "🔗 Partilhar link";
     btn.setAttribute("aria-hidden", "true");
     btn.addEventListener("click", function () {
-      shareFromOutput();
+      // Enquanto o link é criado: botão desativado com spinner; volta ao normal no fim (também em erro).
+      if (btn.getAttribute("aria-busy") === "true") return;
+      var ui = global.OuviescreviUI;
+      if (ui) ui.setButtonLoading(btn, true, "A criar link…");
+      shareFromOutput().finally(function () {
+        if (ui) ui.setButtonLoading(btn, false);
+      });
     });
     host.appendChild(btn);
     return btn;
