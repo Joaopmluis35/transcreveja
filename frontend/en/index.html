@@ -8,7 +8,7 @@
   <script src="/js/ouviescrevi-seo.js" defer></script>
   <script src="../js/transcribe-jobs-ui.js?v=25" defer></script>
   <script src="../js/docx-export.js?v=25" defer></script>
-  <script src="../js/ouviescrevi-ui.js?v=29" defer></script>
+  <script src="../js/ouviescrevi-ui.js?v=30" defer></script>
   <title>Ouviescrevi — Free AI Audio & Video Transcription</title>
   <link rel="canonical" href="https://www.ouviescrevi.pt/en/index.html">
   <meta name="description" content="Transcribe audio and video online with AI for free. Summaries, translation, SRT subtitles, study questions and file conversion. No sign-up required.">
@@ -733,7 +733,6 @@
   async function classifyContent(){
     const text=transcriptionText.value.trim();
     if (!text) return alert("⚠️ Empty transcription.");
-    const btn=event.target.closest("button"); const original=btn.innerHTML; btn.innerHTML="<span>📚 Classifying...</span>"; btn.disabled=true;
     try{
       const res=await fetch(`${API_BASE}/classify`,{ method:"POST", headers:OuviescreviAPI.authHeaders({ "Content-Type":"application/json" }), body:JSON.stringify(OuviescreviAPI.authJson({ text, lang:"en" })) });
       const data=await res.json();
@@ -744,26 +743,24 @@
       const box=document.getElementById("classificationBox");
       document.getElementById("classificationText").textContent="❌ Failed to reach the API.";
       box.classList.remove("hidden");
-    }finally{ btn.innerHTML=original; btn.disabled=false; }
+    }finally{  }
   }
 
   async function correctText(){
     const text=transcriptionText.value.trim();
     if (!text) return alert("⚠️ Empty transcription.");
-    const btn=event.target.closest("button"); const original=btn.innerHTML; btn.innerHTML="<span>📝 Correcting...</span>"; btn.disabled=true;
     try{
       const res=await fetch(`${API_BASE}/correct`,{ method:"POST", headers:OuviescreviAPI.authHeaders({ "Content-Type":"application/json" }), body:JSON.stringify(OuviescreviAPI.authJson({ text })) });
       const data=await res.json();
       if (data.corrected){ transcriptionText.value=data.corrected; alert("✅ Text corrected!"); }
       else{ alert("❌ Error: "+(data.error||"Invalid response.")); }
     }catch{ alert("❌ Failed to reach the API."); }
-    finally{ btn.innerHTML=original; btn.disabled=false; }
+    finally{  }
   }
 
   async function generateMinutes(){
     const text=transcriptionText.value.trim();
     if (!text) return alert("⚠️ Empty transcription.");
-    const btn=event.target.closest("button"); const original=btn.innerHTML; btn.innerHTML="<span>📩 Generating minutes...</span>"; btn.disabled=true;
     try{
       const res=await fetch(`${API_BASE}/summarize`,{ method:"POST", headers:OuviescreviAPI.authHeaders({ "Content-Type":"application/json" }), body:JSON.stringify(OuviescreviAPI.authJson({ text, mode:"minuta", lang:"en" })) });
       const data=await res.json();
@@ -774,14 +771,13 @@
       const box=document.getElementById("minutesBox");
       document.getElementById("minutesText").textContent="❌ Unexpected error reaching the API.";
       box.classList.remove("hidden");
-    }finally{ btn.innerHTML=original; btn.disabled=false; }
+    }finally{  }
   }
 
   async function generateSummary(e){
     const text=transcriptionText.value.trim();
     if (!text) return alert("⚠️ Empty transcription.");
     const btn=e?.target?.closest("button")||document.querySelector("#btnGenerateSummary");
-    const original=btn.innerHTML; btn.innerHTML="<span>🧠 Generating summary...</span>"; btn.disabled=true;
     try{
       const res=await fetch(`${API_BASE}/summarize`,{ method:"POST", headers:OuviescreviAPI.authHeaders({ "Content-Type":"application/json" }), body:JSON.stringify(OuviescreviAPI.authJson({ text, lang:"en" })) });
       const data=await res.json();
@@ -789,21 +785,20 @@
       document.getElementById("summaryText").textContent=data.summary?data.summary:("❌ Error: "+(data.error||"Invalid response."));
       box.classList.remove("hidden"); scrollIfVisible("summaryBox");
     }catch{ alert("❌ Error generating summary."); }
-    finally{ btn.innerHTML=original; btn.disabled=false; }
+    finally{  }
   }
 
   async function generateEmail(){
     const text=transcriptionText.value.trim();
     if (!text) return alert("⚠️ Empty transcription.");
     const tone=confirm("Use informal tone?")?"informal":"formal";
-    const btn=event.target.closest("button"); const original=btn.innerHTML; btn.innerHTML="<span>📧 Generating email...</span>"; btn.disabled=true;
     try{
       const res=await fetch(`${API_BASE}/generate-email`,{ method:"POST", headers:OuviescreviAPI.authHeaders({ "Content-Type":"application/json" }), body:JSON.stringify(OuviescreviAPI.authJson({ text, tone, lang:"en" })) });
       const data=await res.json();
       if (data.email){ alert("📨 Email generated successfully!\n\n"+data.email); }
       else{ alert("❌ Error generating email: "+(data.error||"Invalid response.")); }
     }catch{ alert("❌ Failed to reach the API."); }
-    finally{ btn.innerHTML=original; btn.disabled=false; }
+    finally{  }
   }
 
   async function applySpeakers(t){
@@ -835,8 +830,6 @@
     wrap.classList.remove("hidden"); pBar.style.width="0%";
     let p=0; const interval=setInterval(()=>{ if(p<90){ p+=Math.random()*5; pBar.style.width=`${p}%`; }},200);
 
-    const btn=event?.target; const original=btn?.textContent||"🌍 Translate";
-    if (btn){ btn.textContent="🌍 Translating..."; btn.disabled=true; }
 
     try{
       const res=await fetch(`${API_BASE}/translate`,{ method:"POST", headers:OuviescreviAPI.authHeaders({ "Content-Type":"application/json" }), body:JSON.stringify(OuviescreviAPI.authJson({ text, language:lang })) });
@@ -850,7 +843,7 @@
     }catch{ status.textContent="❌ Oops! We had trouble contacting the AI."; }
     finally{
       setTimeout(()=>{ status.classList.add("hidden"); wrap.classList.add("hidden"); pBar.style.width="0%"; },1200);
-      if (btn){ btn.textContent=original; btn.disabled=false; }
+      
       scrollIfVisible("translationBox");
     }
   }
@@ -961,7 +954,7 @@
   }
 
   // Export dropdown buttons
-  document.getElementById("btnGenerateSummary").addEventListener("click", generateSummary);
+  document.getElementById("btnGenerateSummary").addEventListener("click", (e) => generateSummary(e));
   (function(){
     const dropdown=document.getElementById('exportDropdown');
     const btn=document.getElementById('exportBtn');
@@ -975,6 +968,16 @@
   })();
 </script>
 <div id="footer"></div>
-<script src="../js/share-ui.js?v=26"></script>
+<script src="../js/share-ui.js?v=29"></script>
+<script>
+// Loading nos botões de ações com IA (helper em js/ouviescrevi-ui.js).
+(function wire() {
+  if (window.OuviescreviUI && OuviescreviUI.wireActionLoading) {
+    OuviescreviUI.wireActionLoading({"generateSummary": {"label": "Generating summary…"}, "classifyContent": {"label": "Classifying…"}, "correctText": {"label": "Correcting…"}, "generateMinutes": {"label": "Generating minutes…"}, "generateEmail": {"label": "Generating email…"}, "shareWhatsapp": {"label": "Opening…"}, "translateTo": {"label": "Translating…", "target": "[onclick^=\"openTranslateModal\"]"}, "exportText": {"label": "Exporting…", "target": "#exportBtn"}, "abrirAulaCompleta": {"label": "Opening…", "nav": true}, "abrirAulaPronta": {"label": "Opening…", "nav": true}, "abrirCapitulos": {"label": "Opening…", "nav": true}, "abrirPodcastYoutube": {"label": "Opening…", "nav": true}, "abrirFlashcards": {"label": "Opening…", "nav": true}, "abrirDescricaoYoutube": {"label": "Opening…", "nav": true}});
+  } else {
+    document.addEventListener("DOMContentLoaded", wire, { once: true });
+  }
+})();
+</script>
 </body>
 </html>

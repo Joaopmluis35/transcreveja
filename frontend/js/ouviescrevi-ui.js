@@ -48,6 +48,63 @@
     }
   }
 
+  // Botões de ações com IA nas páginas EN/ES/FR/DE (11/11): envolve as funções globais dos botões.
+  // Loading (spinner + texto), 2.º clique ignorado, volta ao normal no fim — também em erro.
+  // spec: { nomeDaFuncao: { label, nav: true (abre outra página), target: "#seletor" (outro botão) } }
+  function wireActionLoading(spec) {
+    Object.keys(spec || {}).forEach(function (name) {
+      var orig = global[name];
+      var opt = spec[name] || {};
+      if (typeof orig !== "function" || orig.__oeLoading) return;
+      var wrapped = function () {
+        var ev = global.event;
+        var btn = opt.target
+          ? document.querySelector(opt.target)
+          : ev && ev.target && ev.target.closest
+            ? ev.target.closest("button")
+            : null;
+        if (btn && btn.getAttribute("aria-busy") === "true") return;
+        if (btn) setButtonLoading(btn, true, opt.label);
+        var done = function () {
+          if (btn) setButtonLoading(btn, false);
+        };
+        var out;
+        try {
+          out = orig.apply(this, arguments);
+        } catch (e) {
+          done();
+          throw e;
+        }
+        if (out && typeof out.then === "function") {
+          return out.then(
+            function (v) {
+              done();
+              return v;
+            },
+            function (e) {
+              done();
+              throw e;
+            }
+          );
+        }
+        // Abrir outra página: fica «A abrir…» até a página mudar (se não mudar, limpa ao fim de 5 s).
+        if (opt.nav) setTimeout(done, 5000);
+        else done();
+        return out;
+      };
+      wrapped.__oeLoading = true;
+      global[name] = wrapped;
+    });
+  }
+
+  // Voltar atrás para a página (cache do browser): nenhum botão fica preso em loading.
+  global.addEventListener("pageshow", function (e) {
+    if (!e.persisted) return;
+    document.querySelectorAll('button[aria-busy="true"]').forEach(function (b) {
+      setButtonLoading(b, false);
+    });
+  });
+
   function markCurrentNav() {
     if (global.OuviescreviNav && global.OuviescreviNav.markCurrentPage) {
       global.OuviescreviNav.markCurrentPage();
@@ -1084,6 +1141,7 @@
   global.OuviescreviUI = {
     toast: toast,
     setButtonLoading: setButtonLoading,
+    wireActionLoading: wireActionLoading,
     markCurrentNav: markCurrentNav,
     loadHeader: loadHeader,
     loadFooter: loadFooter,

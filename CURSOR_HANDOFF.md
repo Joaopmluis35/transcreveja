@@ -27,8 +27,8 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   `backend/.venv` tem uvicorn para correr a API em local). Frontend: `py scripts/frontend_smoke_test.py`.
 - **Cache:** CSS/JS com `?v=N` nos HTML. Ao mudar um ficheiro, sobe o `?v=` em **todas** as páginas que o usam.
   Versões atuais: `ouviescrevi.css?v=44` (importa `ouviescrevi-pro.css?v=4` e `theme-dark.css?v=5`),
-  `index-home.css?v=58`, `ouviescrevi-ui.js?v=29`, `news-ticker.js?v=4`, `quiz-game.js?v=5`, `quiz-game.css?v=4`,
-  `aula-pronta-ui.js?v=6`, `aula-pronta.css?v=6`, `share-ui.js?v=29` (na `index.html`).
+  `index-home.css?v=58`, `ouviescrevi-ui.js?v=30`, `news-ticker.js?v=4`, `quiz-game.js?v=5`, `quiz-game.css?v=4`,
+  `aula-pronta-ui.js?v=6`, `aula-pronta.css?v=6`, `share-ui.js?v=29` (na `index.html` e nas `en|es|fr|de/index.html`).
 - Na máquina do dono há outra app na porta **8000** (“AION”). Para testar a API em local usa outra porta (ex. 8010)
   e no browser força `OuviescreviAPI.getBase = () => "http://127.0.0.1:8010"`.
 
@@ -70,7 +70,14 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   `OuviescreviUI.setButtonLoading` (spinner, desativado, «A gerar…»): ignora o 2.º clique e limpa sempre no `finally`
   (também em erro). Os 6 de navegação usam `abrirFerramenta(btn, chave, pagina)` («A abrir…»; um `pageshow` limpa ao
   voltar atrás). O Traduzir mostra o loading no botão da barra lateral (`#btnTraduzir`), porque o modal fecha.
-  «Partilhar link» em `js/share-ui.js` («A criar link…»). Só na página PT; EN/ES/FR/DE ainda não.
+  «Partilhar link» em `js/share-ui.js` («A criar link…»).
+- (11/11, ainda não publicado) **O mesmo loading nas páginas EN/ES/FR/DE** (`frontend/{en,es,fr,de}/index.html`), na língua
+  da página. Helper partilhado `OuviescreviUI.wireActionLoading({ função: { label, nav, target } })` em
+  `js/ouviescrevi-ui.js` (`?v=30` em todas as páginas): envolve as funções globais dos botões (loading, 2.º clique
+  ignorado, limpa no fim também em erro; `nav` = abre outra página; `target` = Traduzir mostra no botão da barra e
+  Exportar no `#exportBtn`). Cada página chama-o num `<script>` no fim. **Corrigido também:** nas ES/FR/DE, Classificar,
+  Corrigir, Minuta, Email e Traduzir **não funcionavam** — liam `event.target` depois de `await ensureApi()` (o `event`
+  já não existe) e rebentavam com TypeError. O texto de loading estava em português nessas páginas.
 
 **Aula Pronta e jogo de quiz**
 - `3b266c1` Jogo animado (`js/quiz-game.js`, `css/quiz-game.css`): 4 cartões coloridos, 20 s, pontos com bónus de rapidez e
@@ -93,7 +100,8 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   **`css/ouviescrevi.css` e também em `css/theme-dark.css`** (há uma cópia com `!important`).
 - Não pôr `<script …></script>` literal dentro de strings/templates JS em HTML.
 - Prompts de IA em PT: `ai_output_language()` (“português de Portugal, nunca do Brasil”).
-- Botões de ações com IA: usar o `comLoading` da `index.html` (não voltar a `btn.innerHTML = "A gerar..."` à mão).
+- Botões de ações com IA: na PT o `comLoading` da `index.html`; nas EN/ES/FR/DE o `OuviescreviUI.wireActionLoading`
+  (não voltar a `btn.innerHTML = "A gerar..."` à mão). Nunca ler `event` depois de um `await`.
 - Alterações pequenas, explicadas antes; publicar só com pedido do dono.
 
 ## 4. Simulador de apostas (projeto à parte, repositório PRIVADO)
@@ -107,7 +115,7 @@ simulador** (secções 2, 7 e 8). Abrir **essa pasta** no Cursor / Claude Code p
 
 1. Testar modelo de transcrição mais recente (`gpt-4o-transcribe` / mini) vs `whisper-1`.
 2. Render pago (sem adormecer) e monitorização de erros (Sentry).
-3. Páginas EN/ES/FR/DE sem chat, escolha de trecho e histórico (nem o loading nos botões de ações com IA).
+3. Páginas EN/ES/FR/DE sem chat, escolha de trecho e histórico; ES/FR/DE ainda com vários botões e textos em português.
 4. Fixar versões em `requirements.txt`; uma só versão de Python; dividir `backend/main.py`.
 5. Os jogos partilhados só ficam guardados no dispositivo; para os ter em qualquer dispositivo, associar à conta.
 

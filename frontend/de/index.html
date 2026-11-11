@@ -335,7 +335,7 @@
 <script src="/js/ouviescrevi-seo.js"></script>
 <script src="../js/transcribe-jobs-ui.js?v=25"></script>
 <script src="../js/docx-export.js?v=25"></script>
-<script src="../js/ouviescrevi-ui.js?v=29"></script>
+<script src="../js/ouviescrevi-ui.js?v=30"></script>
 <script src="../js/ouviescrevi-api.js?v=25"></script>
 <script src="/js/suggestion-fab.js?v=25" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1229,8 +1229,6 @@
     await ensureApi();
     const text = transcriptionText.value.trim();
     if (!text) return alert("⚠️ Transcrição vazia.");
-    const btn = event.target.closest("button");
-    const original = btn.innerHTML; btn.innerHTML = "<span>📚 A classificar...</span>"; btn.disabled = true;
     try{
       const res = await fetch(`${API_BASE}/classify`, {
         method:"POST",
@@ -1247,7 +1245,7 @@
       document.getElementById("classificacaoTexto").textContent = "❌ Falha ao comunicar com a API.";
       box.classList.remove("hidden");
     }finally{
-      btn.innerHTML = original; btn.disabled = false;
+      
     }
   }
 
@@ -1288,8 +1286,6 @@
       win.document.close();
     }
 
-    const btn = event.target.closest("button");
-    const original = btn.innerHTML; btn.innerHTML = "<span>📝 A corrigir...</span>"; btn.disabled = true;
 
     try{
       const res = await fetch(`${API_BASE}/correct`, {
@@ -1326,7 +1322,7 @@
       if (win) win.close();
       alert("❌ Falha ao comunicar com a API.");
     } finally{
-      btn.innerHTML = original; btn.disabled = false;
+      
     }
   }
 
@@ -1334,8 +1330,6 @@
     await ensureApi();
     const text = transcriptionText.value.trim();
     if (!text) return alert("⚠️ Transcrição vazia.");
-    const btn = event.target.closest("button");
-    const original = btn.innerHTML; btn.innerHTML = "<span>📩 A gerar minuta...</span>"; btn.disabled = true;
     try{
       const res = await fetch(`${API_BASE}/summarize`, {
         method:"POST",
@@ -1352,7 +1346,7 @@
       document.getElementById("minutaTexto").textContent = "❌ Erro inesperado ao comunicar com a API.";
       box.classList.remove("hidden");
     }finally{
-      btn.innerHTML = original; btn.disabled = false;
+      
     }
   }
 
@@ -1361,7 +1355,6 @@
     const text = transcriptionText.value.trim();
     if (!text) return alert("⚠️ Transcrição vazia.");
     const btn = e?.target?.closest("button") || document.querySelector("#btnGerarResumo");
-    const original = btn.innerHTML; btn.innerHTML = "<span>🧠 A gerar resumo...</span>"; btn.disabled = true;
     try{
       const res = await fetch(`${API_BASE}/summarize`, {
         method:"POST",
@@ -1375,7 +1368,7 @@
       box.classList.remove("hidden");
       scrollSeInvisivel("resumoBox");
     }catch{ alert("❌ Erro ao gerar resumo."); }
-    finally{ btn.innerHTML = original; btn.disabled = false; }
+    finally{  }
   }
 
   async function gerarEmailIA(){
@@ -1383,8 +1376,6 @@
     const text = transcriptionText.value.trim();
     if (!text) return alert("⚠️ Transcrição/Resumo vazio.");
     const tone = "formal";
-    const btn = event.target.closest("button");
-    const original = btn.innerHTML; btn.innerHTML = "<span>📧 A gerar email...</span>"; btn.disabled = true;
 
     const win = window.open("", "emailGerado", "width=640,height=560");
     if (win){
@@ -1446,7 +1437,7 @@
       if (win) win.close();
       alert("❌ Falha ao comunicar com a API.");
     }finally{
-      btn.innerHTML = original; btn.disabled = false;
+      
     }
   }
 
@@ -1482,9 +1473,7 @@
       if (p < 90){ p += Math.random() * 5; progressBar.style.width = `${p}%`; }
     }, 200);
 
-    const btn = event.target;
-    const originalText = btn.textContent || "🌍 Traduzir";
-    btn.textContent = "🌍 A Übersetzen..."; btn.disabled = true;
+    
 
     try{
       const res = await fetch(`${API_BASE}/translate`, {
@@ -1511,7 +1500,7 @@
         progressWrapper.classList.add("hidden");
         progressBar.style.width = "0%";
       }, 1200);
-      btn.textContent = originalText; btn.disabled = false;
+      
       scrollSeInvisivel("traducaoBox");
     }
   }
@@ -1677,7 +1666,7 @@
   });
 
   // botão “Gerar Resumo”...
-  document.getElementById("btnGerarResumo").addEventListener("click", gerarResumo);
+  document.getElementById("btnGerarResumo").addEventListener("click", (e) => gerarResumo(e));
 
   // ▼ Exportar: robusto para mobile (pointer events) + fecha ao selecionar opção/fora/Escape
   (function(){
@@ -1703,6 +1692,16 @@
   })();
 
 </script>
-<script src="../js/share-ui.js?v=28"></script>
+<script src="../js/share-ui.js?v=29"></script>
+<script>
+// Loading nos botões de ações com IA (helper em js/ouviescrevi-ui.js).
+(function wire() {
+  if (window.OuviescreviUI && OuviescreviUI.wireActionLoading) {
+    OuviescreviUI.wireActionLoading({"gerarResumo": {"label": "Zusammenfassung wird erstellt…"}, "classificarConteudo": {"label": "Wird klassifiziert…"}, "corrigirTextoIA": {"label": "Wird korrigiert…"}, "gerarMinuta": {"label": "Protokoll wird erstellt…"}, "gerarEmailIA": {"label": "E-Mail wird erstellt…"}, "partilharWhatsapp": {"label": "Wird geöffnet…"}, "ÜbersetzenTextoComIdioma": {"label": "Wird übersetzt…", "target": "[onclick^=\"abrirModalTraducao\"]"}, "exportText": {"label": "Wird exportiert…", "target": "#exportBtn"}, "abrirAulaCompleta": {"label": "Wird geöffnet…", "nav": true}, "abrirCapitulos": {"label": "Wird geöffnet…", "nav": true}, "abrirPodcastYoutube": {"label": "Wird geöffnet…", "nav": true}, "abrirFlashcards": {"label": "Wird geöffnet…", "nav": true}, "abrirDescricaoYoutube": {"label": "Wird geöffnet…", "nav": true}});
+  } else {
+    document.addEventListener("DOMContentLoaded", wire, { once: true });
+  }
+})();
+</script>
 </body>
 </html>
