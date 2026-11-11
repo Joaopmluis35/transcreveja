@@ -1,4 +1,4 @@
-# Passagem para o Cursor e o Claude Code — Ouviescrevi / TranscreveJá (26/10 a 05/11/2026)
+# Passagem para o Cursor e o Claude Code — Ouviescrevi / TranscreveJá (26/10 a 11/11/2026)
 
 Há **dois projetos**: o Ouviescrevi (este repositório, `c:\Users\joao_\transcreveja`, **público**) e o simulador
 online (outra pasta e repositório **privado** — ver secção 4). Não os misturar e não escrever nada do simulador aqui.
@@ -28,7 +28,7 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
 - **Cache:** CSS/JS com `?v=N` nos HTML. Ao mudar um ficheiro, sobe o `?v=` em **todas** as páginas que o usam.
   Versões atuais: `ouviescrevi.css?v=44` (importa `ouviescrevi-pro.css?v=4` e `theme-dark.css?v=5`),
   `index-home.css?v=58`, `ouviescrevi-ui.js?v=29`, `news-ticker.js?v=4`, `quiz-game.js?v=5`, `quiz-game.css?v=4`,
-  `aula-pronta-ui.js?v=6`, `aula-pronta.css?v=6`.
+  `aula-pronta-ui.js?v=6`, `aula-pronta.css?v=6`, `share-ui.js?v=29` (na `index.html`).
 - Na máquina do dono há outra app na porta **8000** (“AION”). Para testar a API em local usa outra porta (ex. 8010)
   e no browser força `OuviescreviAPI.getBase = () => "http://127.0.0.1:8010"`.
 
@@ -64,6 +64,14 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
 - `c7c3fec` **Telemóvel:** o menu fechado estava fora do ecrã com `translateX(100%)` e alargava as páginas (390 px → 710 px);
   agora é escondido com `clip-path` + `visibility`. Itens do menu deixaram de ficar colados ao fundo.
 
+- `56a201b` (09/11) **Loading em todos os botões de «Ações com IA»** (`frontend/index.html`): Resumo, Classificar,
+  Corrigir, Minuta, Email, Traduzir, WhatsApp, Exportar, Partilhar link e os 6 que abrem outra página (Aula Pronta,
+  Aula completa, Capítulos, Podcast/YouTube, Flashcards, YouTube). Um só helper `comLoading(btn, texto, fn)` que usa
+  `OuviescreviUI.setButtonLoading` (spinner, desativado, «A gerar…»): ignora o 2.º clique e limpa sempre no `finally`
+  (também em erro). Os 6 de navegação usam `abrirFerramenta(btn, chave, pagina)` («A abrir…»; um `pageshow` limpa ao
+  voltar atrás). O Traduzir mostra o loading no botão da barra lateral (`#btnTraduzir`), porque o modal fecha.
+  «Partilhar link» em `js/share-ui.js` («A criar link…»). Só na página PT; EN/ES/FR/DE ainda não.
+
 **Aula Pronta e jogo de quiz**
 - `3b266c1` Jogo animado (`js/quiz-game.js`, `css/quiz-game.css`): 4 cartões coloridos, 20 s, pontos com bónus de rapidez e
   sequência, confetti, sons com mute, explicações, ecrã final com estrelas; PT/EN/ES/FR/DE.
@@ -85,6 +93,7 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   **`css/ouviescrevi.css` e também em `css/theme-dark.css`** (há uma cópia com `!important`).
 - Não pôr `<script …></script>` literal dentro de strings/templates JS em HTML.
 - Prompts de IA em PT: `ai_output_language()` (“português de Portugal, nunca do Brasil”).
+- Botões de ações com IA: usar o `comLoading` da `index.html` (não voltar a `btn.innerHTML = "A gerar..."` à mão).
 - Alterações pequenas, explicadas antes; publicar só com pedido do dono.
 
 ## 4. Simulador de apostas (projeto à parte, repositório PRIVADO)
@@ -98,7 +107,7 @@ simulador** (secções 2, 7 e 8). Abrir **essa pasta** no Cursor / Claude Code p
 
 1. Testar modelo de transcrição mais recente (`gpt-4o-transcribe` / mini) vs `whisper-1`.
 2. Render pago (sem adormecer) e monitorização de erros (Sentry).
-3. Páginas EN/ES/FR/DE sem chat, escolha de trecho e histórico.
+3. Páginas EN/ES/FR/DE sem chat, escolha de trecho e histórico (nem o loading nos botões de ações com IA).
 4. Fixar versões em `requirements.txt`; uma só versão de Python; dividir `backend/main.py`.
 5. Os jogos partilhados só ficam guardados no dispositivo; para os ter em qualquer dispositivo, associar à conta.
 
