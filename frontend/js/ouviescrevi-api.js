@@ -31,19 +31,29 @@
     if (initPromise && !forceRefresh) {
       return initPromise;
     }
-    initPromise = (async () => {
+    const attempt = (async () => {
       apiBase = detectApiBase();
       if (!forceRefresh) {
         const cached = sessionStorage.getItem(TOKEN_KEY);
         if (cached) {
           apiToken = cached;
+          // O servidor adormece ao fim de uns minutos sem visitas: acorda-o já, sem esperar.
+          fetch(`${apiBase}/api/frontend-config`, { method: "GET", credentials: "omit" }).catch(function () {});
           return { apiBase, token: apiToken };
         }
       }
-      const res = await fetch(`${apiBase}/api/frontend-config`, {
-        method: "GET",
-        credentials: "omit",
-      });
+      // Se a resposta demorar (servidor a acordar, até ~1 min), avisa em vez de parecer parado.
+      const wakeTimer = setTimeout(showWakeNotice, 4000);
+      let res;
+      try {
+        res = await fetch(`${apiBase}/api/frontend-config`, {
+          method: "GET",
+          credentials: "omit",
+        });
+      } finally {
+        clearTimeout(wakeTimer);
+        hideWakeNotice();
+      }
       if (!res.ok) {
         throw new Error(`Configuração da API indisponível (${res.status})`);
       }
@@ -58,7 +68,39 @@
       }
       return data;
     })();
-    return initPromise;
+    initPromise = attempt;
+    // Uma falha (rede, servidor a acordar) não pode ficar guardada: a tentativa seguinte volta a ligar.
+    attempt.catch(function () {
+      if (initPromise === attempt) initPromise = null;
+    });
+    return attempt;
+  }
+
+  const WAKE_TEXT = {
+    pt: "A ligar ao servidor… na primeira utilização pode demorar até 1 minuto.",
+    en: "Connecting to the server… the first use can take up to 1 minute.",
+    es: "Conectando con el servidor… la primera vez puede tardar hasta 1 minuto.",
+    fr: "Connexion au serveur… la première utilisation peut prendre jusqu’à 1 minute.",
+    de: "Verbindung zum Server… beim ersten Mal kann es bis zu 1 Minute dauern.",
+  };
+
+  function showWakeNotice() {
+    if (!document.body || document.getElementById("oe-wake-notice")) return;
+    const lang = (document.documentElement.lang || "pt").slice(0, 2).toLowerCase();
+    const box = document.createElement("div");
+    box.id = "oe-wake-notice";
+    box.setAttribute("role", "status");
+    box.textContent = WAKE_TEXT[lang] || WAKE_TEXT.pt;
+    box.style.cssText =
+      "position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:9999;max-width:calc(100vw - 24px);" +
+      "padding:10px 16px;border-radius:999px;background:#1f1b3a;color:#fff;border:1px solid #7c5cff;" +
+      "font:600 14px/1.35 system-ui,sans-serif;box-shadow:0 8px 28px rgba(0,0,0,.45);text-align:center";
+    document.body.appendChild(box);
+  }
+
+  function hideWakeNotice() {
+    const box = document.getElementById("oe-wake-notice");
+    if (box) box.remove();
   }
 
   function getBase() {

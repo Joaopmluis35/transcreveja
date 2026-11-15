@@ -90,6 +90,14 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
 - `750d4ac` “🏆 Ver ranking” depois de partilhar; lista “Os teus jogos partilhados” (localStorage `oe_my_quiz_games`)
   com jogadores e líder; `GET …/scores` devolve também `players`.
 
+**15/11 — API a acordar (Render grátis adormece; 1.º pedido medido a 53 s)**
+- `js/ouviescrevi-api.js` (v=27 em 69 páginas): se o `frontend-config` demorar mais de 4 s aparece um aviso fixo
+  «A ligar ao servidor… na primeira utilização pode demorar até 1 minuto.» (PT/EN/ES/FR/DE pelo `lang` da página);
+  uma falha do `init()` já não fica guardada (antes todas as chamadas seguintes falhavam até recarregar);
+  com o token em `sessionStorage` faz um pedido de aquecimento em segundo plano.
+- Auditoria de 15/11: 134 testes do backend a passar; 150 páginas sem links partidos nem scripts com erro;
+  cabeçalhos de segurança OK; `api.ouviescrevi.pt/docs` está público (decidir se se fecha).
+
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).
 
