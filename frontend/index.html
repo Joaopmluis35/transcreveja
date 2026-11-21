@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <script>document.documentElement.classList.add("oe-pricing-hidden");</script>
   <link rel="stylesheet" href="css/ouviescrevi.css?v=44">
-  <link rel="stylesheet" href="css/index-home.css?v=58">
+  <link rel="stylesheet" href="css/index-home.css?v=59">
   <link rel="stylesheet" href="css/pricing-visibility.css?v=2">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <link rel="manifest" href="/manifest.webmanifest">
@@ -91,6 +91,12 @@
       </div>
       </div>
 
+      <!-- Preço e privacidade à vista antes de transcrever (as pessoas tinham medo de pagar sem querer e não sabiam o que acontece ao áudio). -->
+      <ul class="oe-home-facts">
+        <li>Grátis: 3 transcrições por dia sem conta, 20 com conta<span data-pricing-only> · <a href="precos.html">Pro 9,99 €/mês</a> · cancela quando quiseres</span></li>
+        <li>🔒 O áudio é apagado do servidor minutos depois de transcrito. A transcrição é feita pela OpenAI (EUA). <a href="privacidade.html#ficheiros">Privacidade</a></li>
+      </ul>
+
       <p id="videoUploadHint" class="oe-video-hint hidden" role="status">
         <strong>Vídeo carregado.</strong> Escolhe uma ação acima:<br>
         <span class="oe-video-hint__line"><strong>Transcrever</strong> — áudio/vídeo para texto editável</span>
@@ -158,6 +164,13 @@
             <li><strong>Copia</strong> ou exporta o texto</li>
           </ol>
           <p class="oe-home-panel__hint">O resultado aparece aqui — editável, pronto a usar.</p>
+          <figure class="oe-home-example">
+            <figcaption>Exemplo de resultado (entrevista, com quem fala identificado)</figcaption>
+            <pre>[00:00] Jornalista: Quando é que decidiu abrir a loja aqui na vila?
+[00:04] Ana: Foi em 2019. Já tinha clientes de fora e faltava um sítio para os receber.
+[00:11] Jornalista: E o que mudou desde então?
+[00:14] Ana: Hoje metade das vendas são online, mas a loja continua a ser o coração do negócio.</pre>
+          </figure>
         </div>
 
         <div id="loading" class="oe-loading hidden" aria-live="polite" aria-busy="false">
@@ -206,19 +219,25 @@
               <aside class="oe-output__sidebar" aria-label="Ações sobre a transcrição">
                 <p class="oe-output__sidebar-title">Ações com IA</p>
                 <div class="oe-output__actions btn-group">
+                  <!-- Agrupadas por objetivo: 14 botões seguidos confundiam quem chega pela primeira vez. -->
+                  <p class="oe-output__group">Texto</p>
                   <button id="btnGerarResumo" type="button"><span>🧠 Gerar Resumo</span></button>
-                  <button type="button" onclick="abrirAulaPronta(this)"><span>📦 Aula Pronta</span></button>
-                  <button type="button" onclick="abrirAulaCompleta(this)"><span>📚 Aula completa</span></button>
-                  <button type="button" onclick="abrirCapitulos(this)"><span>⏱️ Capítulos</span></button>
-                  <button type="button" onclick="abrirPodcastYoutube(this)"><span>🎙️ Podcast/YouTube</span></button>
-                  <button type="button" onclick="abrirFlashcards(this)"><span>🃏 Flashcards</span></button>
-                  <button type="button" onclick="abrirDescricaoYoutube(this)"><span>▶️ YouTube</span></button>
                   <button type="button" onclick="corrigirTextoIA(this)"><span>📝 Corrigir Texto</span></button>
                   <button type="button" id="btnTraduzir" onclick="abrirModalTraducao()"><span>🌍 Traduzir</span></button>
                   <button type="button" onclick="classificarConteudo(this)"><span>📚 Classificar</span></button>
+                  <p class="oe-output__group">Estudar</p>
+                  <button type="button" onclick="abrirAulaPronta(this)"><span>📦 Aula Pronta</span></button>
+                  <button type="button" onclick="abrirAulaCompleta(this)"><span>📚 Aula completa</span></button>
+                  <button type="button" onclick="abrirFlashcards(this)"><span>🃏 Flashcards</span></button>
+                  <p class="oe-output__group">Reuniões</p>
                   <button type="button" onclick="gerarMinuta(this)"><span>📩 Gerar Minuta</span></button>
                   <button type="button" onclick="gerarEmailIA(this)"><span>📧 Gerar Email</span></button>
                   <button type="button" onclick="partilharWhatsapp(this)"><span>📲 WhatsApp</span></button>
+                  <p class="oe-output__group">Vídeo e podcast</p>
+                  <button type="button" onclick="abrirCapitulos(this)"><span>⏱️ Capítulos</span></button>
+                  <button type="button" onclick="abrirPodcastYoutube(this)"><span>🎙️ Podcast/YouTube</span></button>
+                  <button type="button" onclick="abrirDescricaoYoutube(this)"><span>▶️ YouTube</span></button>
+                  <p class="oe-output__group">Guardar</p>
                   <div class="dropdown-export" id="exportDropdown">
                     <button type="button" id="exportBtn" aria-haspopup="true" aria-expanded="false"><span>📁 Exportar ▼</span></button>
                     <div class="dropdown-content" id="exportOptions">

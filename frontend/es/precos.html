@@ -18,7 +18,7 @@
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
   <link rel="stylesheet" href="../css/ouviescrevi.css?v=44">
   <link rel="stylesheet" href="../css/ouviescrevi-pro.css?v=4">
-  <link rel="stylesheet" href="../css/index-home.css?v=58">
+  <link rel="stylesheet" href="../css/index-home.css?v=59">
   <script src="/js/ouviescrevi-seo.js" defer></script>
   <script src="../js/pricing-visibility.js?v=25" defer></script>
   <script src="../js/ouviescrevi-ui.js?v=30" defer></script>
@@ -103,6 +103,7 @@
         <li>Enlaces de compartición públicos</li>
       </ul>
       <button type="button" id="btnCheckoutPro" class="oe-pricing-cta oe-pricing-cta--primary">Suscribirse a Pro</button>
+      <p class="oe-pricing-note oe-pricing-note--stripe" style="margin-top:8px;font-size:.8rem">Al hacer clic irás a la página segura de Stripe, donde ves el precio y confirmas. No se cobra nada antes.</p>
       <button type="button" id="btnBillingPortal" class="oe-pricing-cta oe-pricing-cta--ghost hidden" style="margin-top:8px">Gestionar suscripción</button>
       <p class="oe-pricing-note" id="billingDisabledNote" style="margin-top:12px;font-size:.85rem"></p>
     </article>
@@ -139,6 +140,7 @@
     var btn = document.getElementById("btnCheckoutPro");
     if (!btn) return;
     if (!data.enabled || !data.checkout_ready) {
+      var stripeNote = document.querySelector(".oe-pricing-note--stripe"); if (stripeNote) stripeNote.hidden = true;
       note.textContent = "Checkout Pro en preparación — crea una cuenta para avisarte cuando abra.";
       btn.textContent = "Crear cuenta (avisarme)";
       btn.addEventListener("click", function () {

@@ -27,7 +27,7 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   `backend/.venv` tem uvicorn para correr a API em local). Frontend: `py scripts/frontend_smoke_test.py`.
 - **Cache:** CSS/JS com `?v=N` nos HTML. Ao mudar um ficheiro, sobe o `?v=` em **todas** as páginas que o usam.
   Versões atuais: `ouviescrevi.css?v=44` (importa `ouviescrevi-pro.css?v=4` e `theme-dark.css?v=5`),
-  `index-home.css?v=58`, `ouviescrevi-ui.js?v=30`, `news-ticker.js?v=4`, `quiz-game.js?v=6`, `quiz-game.css?v=4`,
+  `index-home.css?v=59`, `ouviescrevi-ui.js?v=30`, `news-ticker.js?v=4`, `quiz-game.js?v=6`, `quiz-game.css?v=4`,
   `aula-pronta-ui.js?v=7`, `aula-pronta.css?v=6`, `share-ui.js?v=29` (na `index.html` e nas `en|es|fr|de/index.html`).
 - Na máquina do dono há outra app na porta **8000** (“AION”). Para testar a API em local usa outra porta (ex. 8010)
   e no browser força `OuviescreviAPI.getBase = () => "http://127.0.0.1:8010"`.
@@ -124,6 +124,23 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
 - **`backend/share_routes.py`:** as rotas de partilha (`/api/share/transcript`, `/api/share/quiz…`, `/share/{id}`) e os
   seus modelos saíram do `main.py` (4841 → 4670 linhas). Recebem do main as origens, o limite de pedidos e a sessão
   por `share_routes.configure(...)`. Próximos candidatos a sair do `main.py`: rotas `/api/auth/*` e de IA.
+- **Primeira visita mais clara** (a partir de uma simulação de visitantes com pessoas virtuais; ainda não publicado):
+  - `index.html` (PT): debaixo do botão «Transcrever agora», uma lista `.oe-home-facts` com as quotas grátis
+    (3/dia sem conta, 20 com conta), o preço do Pro só com `data-pricing-only` (hoje os preços estão escondidos e o
+    checkout desligado) e a privacidade em linguagem simples: o áudio é apagado minutos depois e a transcrição é
+    feita pela OpenAI (EUA), tal como diz `privacidade.html`. No painel «Como funciona» há um exemplo de resultado
+    (`.oe-home-example`, entrevista inventada com marcas de tempo; o painel continua escondido abaixo de 900 px).
+    As 14 «Ações com IA» ficam agrupadas com títulos `.oe-output__group` (Texto, Estudar, Reuniões, Vídeo e
+    podcast, Guardar). Só mudou a ordem; as funções são as mesmas. `index-home.css?v=59` em todas as páginas.
+  - `en|es|fr|de/index.html`: a mesma linha de quotas e de privacidade (estilo inline, porque estas páginas não
+    carregam o `index-home.css`). Não têm o preço, porque não carregam o `pricing-visibility.js`.
+  - Frase «Recomendamos revisão por um advogado…» (e as traduções) tirada da privacidade: valores por omissão em
+    `backend/cms.py` e no HTML estático das 5 páginas. **Se o backoffice tiver o texto guardado na base de dados,
+    tem de se apagar também lá.**
+  - `precos.html` (5 línguas): por baixo de «Subscrever Pro», a nota «vais para a página segura da Stripe, onde vês
+    o valor e confirmas; nada é cobrado antes». Fica escondida quando o checkout está desligado.
+  - Não mexido: o aviso «A ligar ao servidor…» já existe em 5 línguas (`ouviescrevi-api.js`) e a API está acordada
+    pelo `keep-api-awake.yml`.
 
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).

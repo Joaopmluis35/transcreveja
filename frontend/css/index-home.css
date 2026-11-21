@@ -3234,3 +3234,60 @@ body.oe-page--home .oe-output__translated-toggle {
   font: inherit;
   cursor: pointer;
 }
+
+
+/* 21/11: preço e privacidade à vista, exemplo de resultado e ações agrupadas (simulação de 1.ª visita). */
+body.oe-page--home .oe-home-facts {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--pro-text-muted, #64748b);
+}
+
+body.oe-page--home .oe-home-facts a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+body.oe-page--home .oe-home-example {
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  border: 1px dashed var(--pro-border, #e2e8f0);
+  border-radius: 12px;
+  background: var(--pro-surface, #fff);
+  text-align: left;
+}
+
+body.oe-page--home .oe-home-example figcaption {
+  margin: 0 0 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--pro-text-muted, #64748b);
+}
+
+body.oe-page--home .oe-home-example pre {
+  margin: 0;
+  white-space: pre-wrap;
+  font: inherit;
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: var(--pro-text, #334155);
+}
+
+body.oe-page--home .oe-output__actions .oe-output__group {
+  grid-column: 1 / -1;
+  margin: 6px 0 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--pro-text-muted, #64748b);
+}
+
+body.oe-page--home .oe-output__actions .oe-output__group:first-child {
+  margin-top: 0;
+}

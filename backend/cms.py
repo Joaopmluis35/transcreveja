@@ -1382,8 +1382,7 @@ DEFAULT_SITE_CONTENT: dict[str, str] = {
     "url_resumo_lead": "Insere o link de um artigo ou página online para gerar um resumo automático com IA.",
     "privacidade_meta": "Última atualização: 22 de junho de 2026",
     "privacidade_disclaimer": (
-        "<p>Este documento descreve como o serviço <strong>Ouviescrevi</strong> trata dados pessoais. "
-        "Recomendamos revisão por um advogado antes de uso comercial em larga escala.</p>"
+        "<p>Este documento descreve como o serviço <strong>Ouviescrevi</strong> trata dados pessoais.</p>"
     ),
     "termos_meta": "Última atualização: 22 de junho de 2026",
     "termos_intro": (
@@ -1401,8 +1400,7 @@ DEFAULT_SITE_CONTENT: dict[str, str] = {
         'Last updated: 22 June 2026 · <a href="../privacidade.html">Português</a>'
     ),
     "en_privacidade_disclaimer": (
-        "<p>This policy describes how <strong>Ouviescrevi</strong> (ouviescrevi.pt) processes personal data. "
-        "We recommend legal review before large-scale commercial use.</p>"
+        "<p>This policy describes how <strong>Ouviescrevi</strong> (ouviescrevi.pt) processes personal data.</p>"
     ),
     "en_termos_meta": (
         'Last updated: 22 June 2026 · <a href="../termos.html">Português</a>'
@@ -1425,8 +1423,7 @@ DEFAULT_SITE_CONTENT: dict[str, str] = {
         'Última actualización: 22 de junio de 2026 · <a href="../privacidade.html">Português</a>'
     ),
     "es_privacidade_disclaimer": (
-        "<p>Esta política describe cómo <strong>Ouviescrevi</strong> (ouviescrevi.pt) trata los datos personales. "
-        "Recomendamos una revisión jurídica antes de un uso comercial a gran escala.</p>"
+        "<p>Esta política describe cómo <strong>Ouviescrevi</strong> (ouviescrevi.pt) trata los datos personales.</p>"
     ),
     "es_termos_meta": (
         'Última actualización: 22 de junio de 2026 · <a href="../termos.html">Português</a>'
@@ -1449,8 +1446,7 @@ DEFAULT_SITE_CONTENT: dict[str, str] = {
         "Dernière mise à jour : 22 juin 2026 · <a href=\"../privacidade.html\">Português</a>"
     ),
     "fr_privacidade_disclaimer": (
-        "<p>Cette politique décrit comment <strong>Ouviescrevi</strong> (ouviescrevi.pt) traite les données personnelles. "
-        "Nous recommandons une relecture juridique avant un usage commercial à grande échelle.</p>"
+        "<p>Cette politique décrit comment <strong>Ouviescrevi</strong> (ouviescrevi.pt) traite les données personnelles.</p>"
     ),
     "fr_termos_meta": (
         "Dernière mise à jour : 22 juin 2026 · <a href=\"../termos.html\">Português</a>"
