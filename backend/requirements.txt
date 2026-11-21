@@ -1,17 +1,19 @@
-fastapi
-uvicorn[standard]
-gunicorn
-python-multipart
-python-dotenv
-openai
-requests
-beautifulsoup4
-mammoth
+# Versões fixas (testadas com os testes locais em 21/11/2026).
+# Para atualizar: muda a versão aqui, corre `py -m pytest -q` e só depois publica.
+fastapi==0.138.0
+uvicorn[standard]==0.49.0
+gunicorn==26.0.0
+python-multipart==0.0.32
+python-dotenv==1.2.2
+openai==2.44.0
+requests==2.34.2
+beautifulsoup4==4.15.0
+mammoth==1.12.0
 moviepy==1.0.3
-imageio>=2.31.1
-imageio-ffmpeg>=0.4.8
-gtts
-jinja2  # (opcional – se fores usar templates HTML no futuro)
-libsql  # Turso Cloud (SQLite remoto, plano grátis)
-stripe
-python-docx
+imageio==2.37.3
+imageio-ffmpeg==0.6.0
+gtts==2.5.4
+jinja2==3.1.6
+libsql>=0.1.11,<0.2  # Turso Cloud (SQLite remoto, plano grátis)
+stripe==15.3.0
+python-docx==1.2.0

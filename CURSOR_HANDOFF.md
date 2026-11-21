@@ -1,4 +1,4 @@
-# Passagem para o Cursor e o Claude Code — Ouviescrevi / TranscreveJá (26/10 a 11/11/2026)
+# Passagem para o Cursor e o Claude Code — Ouviescrevi / TranscreveJá (26/10 a 21/11/2026)
 
 Há **dois projetos**: o Ouviescrevi (este repositório, `c:\Users\joao_\transcreveja`, **público**) e o simulador
 online (outra pasta e repositório **privado** — ver secção 4). Não os misturar e não escrever nada do simulador aqui.
@@ -23,7 +23,7 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
 - **Domínio canónico:** https://www.ouviescrevi.pt (Cloudflare à frente da Vercel).
 - **API:** Render, plano free, https://api.ouviescrevi.pt, base de dados Turso. autoDeploy no push para `main`.
   **O servidor corre nos EUA (Ashburn, Virgínia, rede Amazon)**, não em Frankfurt como diz o `render.yaml`.
-- **Testes:** `cd backend; py -m pytest -q` → 134 testes (usar o Python do sistema; o `backend/venv` antigo está partido;
+- **Testes:** `cd backend; py -m pytest -q` → 135 testes (usar o Python do sistema; o `backend/venv` antigo está partido;
   `backend/.venv` tem uvicorn para correr a API em local). Frontend: `py scripts/frontend_smoke_test.py`.
 - **Cache:** CSS/JS com `?v=N` nos HTML. Ao mudar um ficheiro, sobe o `?v=` em **todas** as páginas que o usam.
   Versões atuais: `ouviescrevi.css?v=44` (importa `ouviescrevi-pro.css?v=4` e `theme-dark.css?v=5`),
@@ -97,6 +97,16 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   com o token em `sessionStorage` faz um pedido de aquecimento em segundo plano.
 - Auditoria de 15/11: 134 testes do backend a passar; 150 páginas sem links partidos nem scripts com erro;
   cabeçalhos de segurança OK; `api.ouviescrevi.pt/docs` está público (decidir se se fecha).
+
+**21/11 — melhorias pós-auditoria**
+- API: `/docs`, `/redoc` e `/openapi.json` só existem com `ENABLE_DEBUG_ENDPOINTS=true` (em produção dão 404).
+- `.github/workflows/keep-api-awake.yml`: visita `api.ouviescrevi.pt/api/status` a cada 10 min para o Render grátis
+  não adormecer (gasta ~744 h das 750 h grátis/mês do Render: só chega para **um** serviço grátis na conta).
+  O GitHub desliga tarefas agendadas após 60 dias sem commits no repositório.
+- `backend/requirements.txt` com versões fixas (as testadas em local). Atualizar uma de cada vez e correr os testes.
+- `scripts/compare_transcribe_models.py áudio.mp3 [pt]`: compara `whisper-1`, `gpt-4o-transcribe` e
+  `gpt-4o-mini-transcribe` (custa cêntimos). **Atenção:** o site usa os segmentos com tempos do `whisper-1`
+  (legendas, capítulos, filtros de qualidade); os `gpt-4o-*` não os devolvem, por isso trocar não é só mudar o nome.
 
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).

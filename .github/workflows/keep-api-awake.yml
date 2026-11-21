@@ -1,0 +1,16 @@
+name: Manter API acordada
+
+# O plano grátis do Render adormece a API após 15 min sem visitas (1.º pedido demora ~1 min).
+# Uma visita a cada 10 min evita isso. Atenção: consome as 750 h grátis/mês do Render (chega para 1 serviço).
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Visitar a API
+        run: curl -fsS --max-time 90 -o /dev/null -w "%{http_code} em %{time_total}s\n" https://api.ouviescrevi.pt/api/status || true

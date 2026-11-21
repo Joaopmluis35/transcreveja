@@ -196,7 +196,13 @@ FFMPEG = shutil.which("ffmpeg") or (get_ffmpeg_exe() if get_ffmpeg_exe else None
 if not FFMPEG:
     raise RuntimeError("ffmpeg não encontrado. Instala o binário do sistema ou mantém 'imageio-ffmpeg' no requirements.")
 
-app = FastAPI()
+# Em produção não expor /docs, /redoc nem /openapi.json (lista pública de todas as rotas).
+_api_docs = ENABLE_DEBUG_ENDPOINTS
+app = FastAPI(
+    docs_url="/docs" if _api_docs else None,
+    redoc_url="/redoc" if _api_docs else None,
+    openapi_url="/openapi.json" if _api_docs else None,
+)
 
 app.add_middleware(
     CORSMiddleware,

@@ -111,3 +111,9 @@ def test_history_search_and_rename(client):
 def test_export_docx_disabled_without_billing(client):
     res = client.post("/api/export/docx", json={"text": "Texto de teste."})
     assert res.status_code in (401, 403, 503)
+
+
+def test_api_docs_hidden_when_debug_off(client):
+    # conftest desliga ENABLE_DEBUG_ENDPOINTS, como em produção
+    for path in ("/docs", "/redoc", "/openapi.json"):
+        assert client.get(path).status_code == 404
