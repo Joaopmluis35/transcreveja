@@ -86,3 +86,36 @@ def test_quiz_scores_unknown_quiz(client, origin_headers):
     assert client.get("/api/share/quiz/naoexiste/scores", headers=origin_headers).status_code == 404
     res = client.post("/api/share/quiz/naoexiste/scores", json={"name": "A", "score": 0, "correct": 0, "total": 1}, headers=origin_headers)
     assert res.status_code == 404
+
+
+def _login(client, monkeypatch):
+    import uuid
+
+    monkeypatch.setattr("email_notify.send_welcome_email", lambda to, name=None: (True, None))
+    email = f"pytest-{uuid.uuid4().hex[:10]}@ouviescrevi.test"
+    res = client.post("/api/auth/register", json={"email": email, "password": "TesteSeguro123!", "name": "Jogador"})
+    assert res.status_code == 200, res.text
+    return res.json()["sessionToken"]
+
+
+def test_my_quizzes_follow_the_account(client, origin_headers, monkeypatch):
+    token = _login(client, monkeypatch)
+    me = {**origin_headers, "X-Site-Session": token}
+
+    mine = client.post("/api/share/quiz", json={"title": "Meu", "questions": QUESTIONS}, headers=me).json()
+    client.post("/api/share/quiz", json={"title": "Anónimo", "questions": QUESTIONS}, headers=origin_headers)
+
+    listed = client.get("/api/share/quiz/mine", headers=me)
+    assert listed.status_code == 200, listed.text
+    games = listed.json()["games"]
+    assert [g["id"] for g in games] == [mine["id"]]
+    assert games[0]["count"] == 1 and games[0]["url"].endswith(mine["id"])
+
+    assert client.delete(f"/api/share/quiz/{mine['id']}/mine", headers=me).status_code == 200
+    assert client.get("/api/share/quiz/mine", headers=me).json()["games"] == []
+    # O link continua a funcionar depois de sair da lista.
+    assert client.get(f"/api/share/quiz/{mine['id']}", headers=origin_headers).status_code == 200
+
+
+def test_my_quizzes_requires_login(client, origin_headers):
+    assert client.get("/api/share/quiz/mine", headers=origin_headers).status_code == 401

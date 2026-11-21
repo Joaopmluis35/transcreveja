@@ -599,6 +599,11 @@ def criar_base() -> None:
         if not _column_exists(cur, "site_users", "marketing_opt_in"):
             cur.execute("ALTER TABLE site_users ADD COLUMN marketing_opt_in INTEGER DEFAULT 0")
 
+        # Dono do jogo partilhado (email da conta), para o ver em qualquer dispositivo.
+        if not _column_exists(cur, "shared_quizzes", "owner"):
+            cur.execute("ALTER TABLE shared_quizzes ADD COLUMN owner TEXT")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_shared_quizzes_owner ON shared_quizzes(owner)")
+
         conn.commit()
     finally:
         conn.close()

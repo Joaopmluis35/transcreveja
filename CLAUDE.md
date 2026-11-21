@@ -10,7 +10,7 @@ pendentes) e atualiza-o no mesmo commit de cada alteração. O Cursor também tr
 - **Frontend:** `frontend/` publicado na **Vercel** a cada push para `main` (regras em `/vercel.json`).
 - **API:** `backend/` (FastAPI) no **Render, plano grátis** — adormece sem visitas (1.º pedido pode levar ~1 min).
   `https://api.ouviescrevi.pt`, base de dados Turso.
-- **Testes:** `cd backend; py -m pytest -q` (139 a 21/11) e `py scripts/frontend_smoke_test.py`.
+- **Testes:** `cd backend; py -m pytest -q` (141 a 21/11) e `py scripts/frontend_smoke_test.py`.
 - **Cache:** CSS/JS com `?v=N`; ao mudar um ficheiro, sobe o `?v=` em **todas** as páginas que o usam
   (são ~150 páginas; usa um script em vez de editar à mão).
 - A porta **8000** do PC está ocupada por outra app: para correr a API em local usa outra (ex.: 8010).

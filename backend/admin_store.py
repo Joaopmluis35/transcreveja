@@ -403,6 +403,7 @@ def create_shared_quiz(
     title: str | None = None,
     locale: str = "pt",
     days_valid: int = 30,
+    owner: str | None = None,
 ) -> dict:
     clean = _clean_quiz_questions(questions)
     if not clean:
@@ -414,8 +415,8 @@ def create_shared_quiz(
     try:
         conn.execute(
             """
-            INSERT INTO shared_quizzes (id, title, questions_json, locale, created_at, expires_at, play_count)
-            VALUES (?, ?, ?, ?, ?, ?, 0)
+            INSERT INTO shared_quizzes (id, title, questions_json, locale, created_at, expires_at, play_count, owner)
+            VALUES (?, ?, ?, ?, ?, ?, 0, ?)
             """,
             (
                 share_id,
@@ -424,6 +425,7 @@ def create_shared_quiz(
                 (locale or "pt")[:8],
                 now.isoformat(timespec="seconds") + "Z",
                 expires,
+                (owner or "").strip().lower() or None,
             ),
         )
         conn.commit()
@@ -460,6 +462,46 @@ def get_shared_quiz(share_id: str) -> dict | None:
             "questions": json.loads(item.get("questions_json") or "[]"),
             "expires_at": item.get("expires_at"),
         }
+    finally:
+        conn.close()
+
+
+def list_owner_quizzes(owner: str, limit: int = 30) -> list[dict]:
+    """Jogos partilhados por uma conta (ainda válidos), mais recentes primeiro."""
+    now = datetime.utcnow().isoformat(timespec="seconds") + "Z"
+    conn = get_connection()
+    try:
+        rows = conn.execute(
+            "SELECT id, title, locale, created_at, questions_json FROM shared_quizzes "
+            "WHERE owner = ? AND (expires_at IS NULL OR expires_at >= ?) "
+            "ORDER BY created_at DESC LIMIT ?",
+            ((owner or "").strip().lower(), now, limit),
+        ).fetchall()
+        out = []
+        for r in rows:
+            item = row_to_dict(r)
+            out.append({
+                "id": item["id"],
+                "title": item.get("title") or "Quiz",
+                "lang": item.get("locale") or "pt",
+                "created": item.get("created_at"),
+                "count": len(json.loads(item.get("questions_json") or "[]")),
+            })
+        return out
+    finally:
+        conn.close()
+
+
+def unlink_owner_quiz(owner: str, quiz_id: str) -> bool:
+    """Tira o jogo da lista da conta (o link continua a funcionar)."""
+    conn = get_connection()
+    try:
+        cur = conn.execute(
+            "UPDATE shared_quizzes SET owner = NULL WHERE id = ? AND owner = ?",
+            (quiz_id, (owner or "").strip().lower()),
+        )
+        conn.commit()
+        return bool(getattr(cur, "rowcount", 0))
     finally:
         conn.close()
 

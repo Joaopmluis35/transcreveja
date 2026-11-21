@@ -810,7 +810,8 @@
       await api.init();
       var res = await fetch(api.getBase() + "/api/share/quiz", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        // authHeaders envia a sessão do site (se houver), para o jogo ficar associado à conta.
+        headers: api.authHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({
           title: title,
           locale: lang,
@@ -863,6 +864,34 @@
 
   function forgetMyGame(id) {
     saveMyGames(myGames().filter(function (g) { return g.id !== id; }));
+    var api = global.OuviescreviAPI;
+    if (api && api.getSiteSessionToken && api.getSiteSessionToken()) {
+      fetch(api.getBase() + "/api/share/quiz/" + encodeURIComponent(id) + "/mine", {
+        method: "DELETE",
+        headers: api.authHeaders(),
+      }).catch(function () {});
+    }
+  }
+
+  // Com sessão iniciada, junta à lista deste dispositivo os jogos guardados na conta.
+  async function syncMyGames() {
+    var api = global.OuviescreviAPI;
+    if (!api || !api.getSiteSessionToken || !api.getSiteSessionToken()) return false;
+    try {
+      await api.init();
+      var res = await fetch(api.getBase() + "/api/share/quiz/mine", { headers: api.authHeaders() });
+      if (!res.ok) return false;
+      var remote = (await res.json()).games || [];
+      var local = myGames();
+      var known = {};
+      local.forEach(function (g) { known[g.id] = true; });
+      var merged = local.concat(remote.filter(function (g) { return !known[g.id]; }));
+      merged.sort(function (a, b) { return String(b.created || "").localeCompare(String(a.created || "")); });
+      saveMyGames(merged);
+      return merged.length !== local.length;
+    } catch (e) {
+      return false;
+    }
   }
 
   global.OuviescreviQuizGame = {
@@ -871,6 +900,7 @@
     share: shareQuiz,
     myGames: myGames,
     forgetMyGame: forgetMyGame,
+    syncMyGames: syncMyGames,
     shareLabel: function (lang) {
       return (STRINGS[lang] || STRINGS.pt).share;
     },

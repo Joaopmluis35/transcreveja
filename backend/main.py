@@ -2248,13 +2248,48 @@ def share_quiz(req: ShareQuizRequest, request: Request):
     if not origin_is_allowed(request, ALLOWED_ORIGINS):
         raise HTTPException(status_code=403, detail="Origem não autorizada.")
     enforce_rate_limit(request, "share", 30, 3600)
+    actor = resolve_site_actor(request)
     try:
-        created = admin_store.create_shared_quiz(req.questions, title=req.title, locale=req.locale or "pt")
+        created = admin_store.create_shared_quiz(
+            req.questions,
+            title=req.title,
+            locale=req.locale or "pt",
+            owner=actor.get("email") if actor["type"] == "user" else None,
+        )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
     origin = (request.headers.get("origin") or "https://www.ouviescrevi.pt").rstrip("/")
     url = f"{origin}/jogo.html?id={created['id']}"
     return {"ok": True, "id": created["id"], "url": url, "expires_at": created["expires_at"]}
+
+
+def _quiz_owner_or_401(request: Request) -> str:
+    if not origin_is_allowed(request, ALLOWED_ORIGINS):
+        raise HTTPException(status_code=403, detail="Origem não autorizada.")
+    actor = resolve_site_actor(request)
+    if actor["type"] != "user":
+        raise HTTPException(status_code=401, detail="Inicia sessão para veres os teus jogos.")
+    return actor["email"]
+
+
+# Tem de vir antes de /api/share/quiz/{share_id}, senão "mine" seria lido como um id.
+@app.get("/api/share/quiz/mine")
+def my_shared_quizzes(request: Request):
+    """Jogos partilhados pela conta com sessão iniciada (para os ver em qualquer dispositivo)."""
+    owner = _quiz_owner_or_401(request)
+    origin = (request.headers.get("origin") or "https://www.ouviescrevi.pt").rstrip("/")
+    games = admin_store.list_owner_quizzes(owner)
+    for g in games:
+        g["url"] = f"{origin}/jogo.html?id={g['id']}"
+    return {"games": games}
+
+
+@app.delete("/api/share/quiz/{share_id}/mine")
+def unlink_my_quiz(share_id: str, request: Request):
+    """Tira o jogo da lista da conta; o link continua a funcionar até expirar."""
+    owner = _quiz_owner_or_401(request)
+    admin_store.unlink_owner_quiz(owner, share_id)
+    return {"ok": True}
 
 
 @app.get("/api/share/quiz/{share_id}")

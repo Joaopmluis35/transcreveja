@@ -23,12 +23,12 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
 - **Domínio canónico:** https://www.ouviescrevi.pt (Cloudflare à frente da Vercel).
 - **API:** Render, plano free, https://api.ouviescrevi.pt, base de dados Turso. autoDeploy no push para `main`.
   **O servidor corre nos EUA (Ashburn, Virgínia, rede Amazon)**, não em Frankfurt como diz o `render.yaml`.
-- **Testes:** `cd backend; py -m pytest -q` → 139 testes (usar o Python do sistema; o `backend/venv` antigo está partido;
+- **Testes:** `cd backend; py -m pytest -q` → 141 testes (usar o Python do sistema; o `backend/venv` antigo está partido;
   `backend/.venv` tem uvicorn para correr a API em local). Frontend: `py scripts/frontend_smoke_test.py`.
 - **Cache:** CSS/JS com `?v=N` nos HTML. Ao mudar um ficheiro, sobe o `?v=` em **todas** as páginas que o usam.
   Versões atuais: `ouviescrevi.css?v=44` (importa `ouviescrevi-pro.css?v=4` e `theme-dark.css?v=5`),
-  `index-home.css?v=58`, `ouviescrevi-ui.js?v=30`, `news-ticker.js?v=4`, `quiz-game.js?v=5`, `quiz-game.css?v=4`,
-  `aula-pronta-ui.js?v=6`, `aula-pronta.css?v=6`, `share-ui.js?v=29` (na `index.html` e nas `en|es|fr|de/index.html`).
+  `index-home.css?v=58`, `ouviescrevi-ui.js?v=30`, `news-ticker.js?v=4`, `quiz-game.js?v=6`, `quiz-game.css?v=4`,
+  `aula-pronta-ui.js?v=7`, `aula-pronta.css?v=6`, `share-ui.js?v=29` (na `index.html` e nas `en|es|fr|de/index.html`).
 - Na máquina do dono há outra app na porta **8000** (“AION”). Para testar a API em local usa outra porta (ex. 8010)
   e no browser força `OuviescreviAPI.getBase = () => "http://127.0.0.1:8010"`.
 
@@ -116,6 +116,11 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   debaixo da transcrição, textos na língua da página, estilos próprios). A PT continua com a versão dentro da
   `index.html`. `/transcript-chat` passou a responder em espanhol/francês/alemão (antes só PT ou EN).
   Botões que ainda estavam em PT nas ES/FR/DE: Corrigir, Traduzir, Classificar, Exportar e título das legendas.
+- **Jogos partilhados ligados à conta:** coluna `owner` em `shared_quizzes` (migração automática). Com sessão iniciada,
+  `POST /api/share/quiz` guarda o email da conta; `GET /api/share/quiz/mine` lista os jogos da conta (401 sem sessão);
+  `DELETE /api/share/quiz/{id}/mine` tira-o da lista (o link continua a funcionar). No site, `quiz-game.js?v=6`
+  (`syncMyGames`) junta os da conta aos do aparelho e `aula-pronta-ui.js?v=7` chama-o ao abrir a Aula Pronta.
+  Jogos partilhados antes disto ou sem sessão continuam só no aparelho.
 
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).
@@ -144,6 +149,5 @@ simulador** (secções 2, 7 e 8). Abrir **essa pasta** no Cursor / Claude Code p
 2. Render pago (sem adormecer) e monitorização de erros (Sentry).
 3. Páginas EN/ES/FR/DE sem escolha de trecho (`media-trim-ui.js`, ~1800 linhas só em PT) e sem histórico de transcrições.
 4. Fixar versões em `requirements.txt`; uma só versão de Python; dividir `backend/main.py`.
-5. Os jogos partilhados só ficam guardados no dispositivo; para os ter em qualquer dispositivo, associar à conta.
 
 Confirma que leste isto e diz-me o estado atual (`git status`, testes) antes de propor alterações.

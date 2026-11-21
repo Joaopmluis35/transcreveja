@@ -651,6 +651,7 @@
 
     document.addEventListener("oe-quiz-shared", render);
     render();
+    if (quiz.syncMyGames) quiz.syncMyGames().then(function (changed) { if (changed) render(); });
   }
 
   // A caixa cresce com o texto (até ao max-height do CSS) e mostra palavras/caracteres.
