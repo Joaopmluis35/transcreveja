@@ -28,7 +28,7 @@
 <div id="header"></div>
 
 <div id="cmsMaintenanceBanner" class="oe-maintenance-banner hidden" role="alert">
-  🛑 O serviço está temporariamente em manutenção. Novas transcrições estão indisponíveis.
+  🛑 Le service est temporairement en maintenance. Les nouvelles transcriptions sont indisponibles.
 </div>
 
 <main id="mainContent">
@@ -107,7 +107,7 @@
 
       <button id="btnRetry" class="hidden" onclick="tentarNovamente()"><span>🔁 Réessayer</span></button>
 
-      <p id="traducaoStatus" class="status hidden">🌍 A traduire... por favor aguarde</p>
+      <p id="traducaoStatus" class="status hidden">🌍 Traduction en cours... patiente un instant</p>
       <div id="traducaoProgressWrapper" class="hidden">
         <div id="traducaoProgressBar"></div>
       </div>
@@ -162,11 +162,11 @@
         <button type="button" onclick="abrirFlashcards()"><span>🃏 Flashcards</span></button>
         <button type="button" onclick="abrirDescricaoYoutube()"><span>▶️ YouTube</span></button>
         <button onclick="partilharWhatsapp()"><span>📲 Partager sur WhatsApp</span></button>
-        <button onclick="gerarMinuta()"><span>📩 Gerar Minuta</span></button>
+        <button onclick="gerarMinuta()"><span>📩 Générer un compte rendu</span></button>
         <button onclick="corrigirTextoIA()"><span>📝 Corrigir Texto</span></button>
         <button onclick="abrirModalTraducao()"><span>🌍 Traduzir</span></button>
         <button onclick="classificarConteudo()"><span>📚 Classificar Tipo</span></button>
-        <button onclick="gerarEmailIA()"><span>📧 Gerar Email</span></button>
+        <button onclick="gerarEmailIA()"><span>📧 Générer un e-mail</span></button>
 
         <div class="dropdown-export" id="exportDropdown">
           <button id="exportBtn" aria-haspopup="true" aria-expanded="false"><span>📁 Exportar ▼</span></button>
@@ -185,68 +185,68 @@
     <section id="subtitlePanel" class="hidden" aria-live="polite">
       <h3>🎨 Style des sous-titres et aperçu</h3>
       <div class="sub-grid">
-        <label>Texto de amostra
-          <input id="subSampleText" type="text" value="Isto é uma linha de legenda de amostra." />
+        <label>Texte d’exemple
+          <input id="subSampleText" type="text" value="Ceci est une ligne de sous-titre d’exemple." />
         </label>
 
-        <label>Tamanho (px)
+        <label>Taille (px)
           <input id="subFontSize" type="range" min="14" max="72" step="1" value="40" />
           <small id="subFontSizeVal">40</small>
         </label>
 
-        <label>Cor do texto
+        <label>Couleur du texte
           <input id="subColor" type="color" value="#ffffff" />
         </label>
 
-        <label>Contorno (px)
+        <label>Contour (px)
           <input id="subOutline" type="range" min="0" max="8" step="1" value="2" />
           <small id="subOutlineVal">2</small>
         </label>
 
-        <label>Sombra
+        <label>Ombre
           <select id="subShadow">
-            <option value="none">Sem sombra</option>
-            <option value="soft" selected>Suave</option>
+            <option value="none">Sans ombre</option>
+            <option value="soft" selected>Douce</option>
             <option value="strong">Forte</option>
           </select>
         </label>
 
-        <label>Caixa de fundo
+        <label>Fond du texte
           <div class="sub-bg-row">
             <input id="subBg" type="checkbox" checked />
-            <small>opacidade</small>
+            <small>opacité</small>
             <input id="subBgOpacity" type="range" min="0" max="0.9" step="0.05" value="0.35" />
             <small id="subBgOpacityVal">0.35</small>
           </div>
         </label>
 
-        <label>Alinhamento
+        <label>Alignement
           <select id="subAlign">
-            <option value="center" selected>Centro</option>
-            <option value="left">Esquerda</option>
-            <option value="right">Direita</option>
+            <option value="center" selected>Centre</option>
+            <option value="left">Gauche</option>
+            <option value="right">Droite</option>
           </select>
         </label>
 
-        <label>Posição
+        <label>Position
           <select id="subPosition">
-            <option value="bottom" selected>Fundo</option>
-            <option value="top">Topo</option>
-            <option value="custom">Personalizada (Y)</option>
+            <option value="bottom" selected>Bas</option>
+            <option value="top">Haut</option>
+            <option value="custom">Personnalisée (Y)</option>
           </select>
         </label>
 
-        <label>Margem vertical (px)
+        <label>Marge verticale (px)
           <input id="subMarginV" type="range" min="0" max="120" step="2" value="48" />
           <small id="subMarginVVal">48</small>
         </label>
 
-        <label>Padding da caixa (px)
+        <label>Marge intérieure (px)
           <input id="subPadding" type="range" min="0" max="40" step="2" value="10" />
           <small id="subPaddingVal">10</small>
         </label>
 
-        <label>Largura máx. do bloco (%)
+        <label>Largeur max. du bloc (%)
           <input id="subMaxWidth" type="range" min="40" max="100" step="1" value="90" />
           <small id="subMaxWidthVal">90%</small>
         </label>
@@ -256,17 +256,17 @@
 
       <div class="preview-wrap">
         <div class="preview-card">
-          <h4>Pré-visualização – 25% do vídeo</h4>
+          <h4>Aperçu – 25 % de la vidéo</h4>
           <canvas id="preview1" width="854" height="480"></canvas>
           <div class="preview-actions">
-            <button id="dlPrev1" type="button">⬇️ Guardar imagem 1</button>
+            <button id="dlPrev1" type="button">⬇️ Enregistrer l’image 1</button>
           </div>
         </div>
         <div class="preview-card">
-          <h4>Pré-visualização – 75% do vídeo</h4>
+          <h4>Aperçu – 75 % de la vidéo</h4>
           <canvas id="preview2" width="854" height="480"></canvas>
           <div class="preview-actions">
-            <button id="dlPrev2" type="button">⬇️ Guardar imagem 2</button>
+            <button id="dlPrev2" type="button">⬇️ Enregistrer l’image 2</button>
           </div>
         </div>
       </div>
@@ -279,7 +279,7 @@
   <!-- Modal de tradução -->
   <div id="modalTraducao" class="hidden">
     <div class="card">
-      <h3>🌍 Seleciona o idioma de destino:</h3>
+      <h3>🌍 Choisis la langue de destination :</h3>
       <div class="oe-lang-grid">
         <button onclick="traduireTextoComIdioma(event, 'português')">Portugais</button>
         <button onclick="traduireTextoComIdioma(event, 'inglês')">Anglais</button>
@@ -385,14 +385,14 @@
   const statusFrases = [
     "🧩 Assemblage du puzzle de ton enregistrement...",
     "🧠 Préparation de l’IA pour écouter le fichier...",
-    "📡 A sintonizar as ondas do áudio...",
-    "🎧 A escutar com atenção... já começámos a transcrire!",
-    "💬 A traduire som em texto com alma...",
-    "🔍 A caçar cada sílaba... nada escapa aos nossos ouvidos!",
-    "🧾 A transformar conversa fiada em texto afinado...",
-    "📚 A passar o áudio a limpo, como um bom aluno no fim da aula!",
-    "🕵️‍♂️ A investigar sotaques como um detetive linguístico!",
-    "⏳ A captar cada segundo como se fosse ouro!"
+    "📡 Réglage sur les ondes de l’audio...",
+    "🎧 Écoute attentive... la transcription a commencé !",
+    "💬 On transforme le son en texte avec âme...",
+    "🔍 On traque chaque syllabe... rien n’échappe à nos oreilles !",
+    "🧾 On transforme le bavardage en texte soigné...",
+    "📚 On met l’audio au propre, comme un bon élève en fin de cours !",
+    "🕵️‍♂️ On enquête sur les accents comme un détective linguistique !",
+    "⏳ On capte chaque seconde comme si c’était de l’or !"
   ];
 
   // =========================
@@ -448,7 +448,7 @@
   function mensagemErroTranscricao(data, file){
     const hint = [data.warning, data.error, data.detail].filter(Boolean).join(" ");
     if (/insufficient_quota|exceeded your current quota|sem créditos/i.test(hint)) {
-      return "💳 A conta OpenAI não tem créditos ativos. Adiciona um método de pagamento em https://platform.openai.com/settings/organization/billing et tenta novamente.";
+      return "💳 Le compte OpenAI n’a pas de crédits actifs. Ajoute un moyen de paiement sur https://platform.openai.com/settings/organization/billing puis réessaie.";
     }
     if (/>\s*\d+\s*MB|tamanho|413/i.test(hint)) {
       return mensagemFicheiroGrande(file, hint);
@@ -476,8 +476,8 @@
   function mensagemFicheiroGrande(file, serverHint){
     const limite = getMaxFileMb();
     const tamanho = file ? formatMb(fileSizeMb(file)) : "?";
-    const base = `📦 Ficheiro demasiado grande (${tamanho} MB). O limite é ${limite} MB.`;
-    const dica = " Extrai só o áudio (MP3), comprime o vídeo ou divide em partes mais pequenas.";
+    const base = `📦 Fichier trop volumineux (${tamanho} MB). La limite est de ${limite} MB.`;
+    const dica = " Extrais seulement l’audio (MP3), compresse la vidéo ou découpe-la en parties plus petites.";
     if (serverHint && !/>\s*\d+\s*MB/.test(serverHint)) return base + dica;
     return base + dica;
   }
@@ -573,9 +573,9 @@
       try{
         if (tentativa === 2){
           pararFrasesAnimadas(statusEl);
-          statusEl.textContent = "😓 Está difícil... mas estamos a tentar novamente com toda a força!";
+          statusEl.textContent = "😓 C’est difficile... mais on réessaie de toutes nos forces !";
         } else if (tentativa === 3){
-          statusEl.textContent = "🛠️ Última tentativa — estamos a ajustar os parâmetros...";
+          statusEl.textContent = "🛠️ Dernière tentative — on ajuste les paramètres...";
         }
 
         const controller = new AbortController();
@@ -589,18 +589,18 @@
         clearTimeout(to);
 
         let jsonText = await res.text();
-        try{ data = JSON.parse(jsonText); } catch{ data = { error: `Resposta inválida do servidor (${res.status})` }; }
+        try{ data = JSON.parse(jsonText); } catch{ data = { error: `Réponse invalide du serveur (${res.status})` }; }
         if (!res.ok) {
           if (res.status === 413) {
-            data = { detail: data.detail || data.error || `Ficheiro > ${getMaxFileMb()}MB.` };
+            data = { detail: data.detail || data.error || `Fichier > ${getMaxFileMb()}MB.` };
             break;
           }
-          throw new Error(data.error || data.detail || `Erro ${res.status}`);
+          throw new Error(data.error || data.detail || `Erreur ${res.status}`);
         }
         if (data.job_id && window.OuviescreviJobs) {
           clearInterval(interval);
           pararFrasesAnimadas(statusEl);
-          statusEl.textContent = "✅ Ficheiro enviado — a transcrever no servidor…";
+          statusEl.textContent = "✅ Fichier envoyé — transcription sur le serveur…";
           progressBar.style.width = "45%";
           try {
             data = await OuviescreviJobs.awaitTranscribeResult(data, { statusEl: statusEl, progressBar: progressBar });
@@ -614,7 +614,7 @@
         sucesso = transcricaoRecebidaComSucesso(data);
       }catch(err){
         if (err.name === "AbortError"){
-          data = { error: "Tempo limite atingido. Tentaremos novamente…" };
+          data = { error: "Délai dépassé. Nous allons réessayer…" };
         }
         await new Promise(r => setTimeout(r, 700));
       }
@@ -956,7 +956,7 @@
       pararTimerTranscricao();
 
       if (!res.ok){
-        throw new Error(data.detail || data.error || `Erro ${res.status}`);
+        throw new Error(data.detail || data.error || `Erreur ${res.status}`);
       }
 
       if (data.job_id && window.OuviescreviJobs) {
@@ -982,7 +982,7 @@
 
       document.getElementById("legendasBox").classList.remove("hidden");
       output.classList.remove("hidden");
-      statusEl.textContent = "✅ Legendas geradas com sucesso!";
+      statusEl.textContent = "✅ Sous-titres générés avec succès !";
 		// scroll automático até à secção de legendas
       scrollSeInvisivel("legendasBox");
     } catch(err){
@@ -994,7 +994,7 @@
       output.classList.remove("hidden");
       statusEl.textContent = "❌ Impossible de générer les sous-titres.";
       const warn = document.getElementById("legendasWarn");
-      warn.textContent = "❌ " + (err.message || "Erro inesperado ao comunicar com a API.");
+      warn.textContent = "❌ " + (err.message || "Erreur inattendue lors de la communication avec l’API.");
       warn.classList.remove("hidden");
     } finally{
       setTimeout(() => { loading.classList.add("hidden"); progressBar.style.width = "0%"; }, 800);
@@ -1122,8 +1122,8 @@
     const transcribeBtn = document.getElementById("btnTranscrire");
     const timer = document.getElementById("timerGravacao");
 
-    if (!navigator.mediaDevices?.getUserMedia){ alert("O teu navegador não suporta getUserMedia. Usa Chrome/Edge/Firefox recente et HTTPS."); return; }
-    if (typeof MediaRecorder === "undefined"){ alert("O teu navegador não suporta MediaRecorder."); return; }
+    if (!navigator.mediaDevices?.getUserMedia){ alert("Ton navigateur ne prend pas en charge getUserMedia. Utilise un Chrome/Edge/Firefox récent et HTTPS."); return; }
+    if (typeof MediaRecorder === "undefined"){ alert("Ton navigateur ne prend pas en charge MediaRecorder."); return; }
     if (mediaRecorder && mediaRecorder.state === "recording") return;
 
     let stream;
@@ -1138,7 +1138,7 @@
     audioChunks = [];
 
     mediaRecorder.onstart = () => {
-      status.textContent = "🎙️ A gravar... clique em 'Arrêter l'enregistrement' para terminar.";
+      status.textContent = "🎙️ Enregistrement... clique sur « Arrêter l’enregistrement » pour terminer.";
       stopBtn.classList.remove("hidden");
       startBtn.disabled = true; transcribeBtn.disabled = true;
       startBtn.style.opacity = 0.6; transcribeBtn.style.opacity = 0.6;
@@ -1151,7 +1151,7 @@
     };
 
     mediaRecorder.ondataavailable = et => { if (e.data && e.data.size > 0) audioChunks.push(e.data); };
-    mediaRecorder.onerror = () => { status.textContent = "❌ Erro do gravador. Tenta de novo."; };
+    mediaRecorder.onerror = () => { status.textContent = "❌ Erreur de l’enregistreur. Réessaie."; };
 
     mediaRecorder.onstop = async () => {
       await ensureApi();
@@ -1165,7 +1165,7 @@
 
       const size = audioChunks.reduce((n, b) => n + b.size, 0);
       if (!audioChunks.length || size === 0){
-        status.textContent = "⚠️ Sem áudio (sem chunks). Tenta falar alguns segundos antes de parar.";
+        status.textContent = "⚠️ Aucun audio. Parle quelques secondes avant d’arrêter.";
         return;
       }
 
@@ -1200,11 +1200,11 @@
         let txt = await res.text();
         try{ data = JSON.parse(txt); } catch{ data = { error: `Resposta inválida (${res.status})` }; }
 
-        transcriptionText.value = data.formatted || data.transcription || "⚠️ Erro ao transcrire.";
+        transcriptionText.value = data.formatted || data.transcription || "⚠️ Erreur de transcription.";
         output.classList.remove("hidden");
         status.textContent = "✅ Transcription terminée !";
       }catch(err){
-        status.textContent = err.name === "AbortError" ? "⏰ Tempo limite atingido. Tenta novamente." : "❌ Erro ao processar áudio.";
+        status.textContent = err.name === "AbortError" ? "⏰ Délai dépassé. Réessaie." : "❌ Erreur lors du traitement de l’audio.";
       }finally{
         clearInterval(anim);
         progressBar.style.width = "100%";
@@ -1239,11 +1239,11 @@
       const data = await res.json();
       const box = document.getElementById("classificacaoBox");
       document.getElementById("classificacaoTexto").textContent =
-        data.type ? `🔎 ${data.type}` : (data.error ? `❌ Erro: ${data.error}` : "❌ Erro inesperado.");
+        data.type ? `🔎 ${data.type}` : (data.error ? `❌ Erreur : ${data.error}` : "❌ Erreur inattendue.");
       box.classList.remove("hidden");
     }catch{
       const box = document.getElementById("classificacaoBox");
-      document.getElementById("classificacaoTexto").textContent = "❌ Falha ao comunicar com a API.";
+      document.getElementById("classificacaoTexto").textContent = "❌ Échec de la communication avec l’API.";
       box.classList.remove("hidden");
     }finally{
       
@@ -1261,7 +1261,7 @@
       win.document.write(`
         <!doctype html><html lang="fr"><head>
           <meta charset="utf-8">
-          <title>Correção de Texto</title>
+          <title>Correction du texte</title>
           <style>
             body{font-family:'Segoe UI',sans-serif;margin:0;background:#f6f7fb;color:#222;}
             .box{max-width:760px;margin:24px auto;background:#fff;border-radius:12px;
@@ -1275,9 +1275,9 @@
           </style>
         </head><body>
           <div class="box">
-            <h2>📝 A corrigir…</h2>
-            <p class="muted">Por favor aguarda, estamos a melhorar o teu texto.</p>
-            <textarea readonly>Processando…</textarea>
+            <h2>📝 Correction…</h2>
+            <p class="muted">Patiente un instant, nous améliorons ton texte.</p>
+            <textarea readonly>Traitement…</textarea>
             <div class="row">
               <button onclick="window.close()">Fermer</button>
             </div>
@@ -1301,7 +1301,7 @@
 
         if (win) {
           const doc = win.document;
-          doc.querySelector("h2").textContent = "✅ Texto corrigido";
+          doc.querySelector("h2").textContent = "✅ Texte corrigé";
           doc.querySelector(".muted").textContent = "Podes copiar o texto abaixo.";
           const ta = doc.querySelector("textarea");
           ta.removeAttribute("readonly");
@@ -1309,19 +1309,19 @@
 
           const btnRow = win.document.querySelector(".row");
           const copyBtn = win.document.createElement("button");
-          copyBtn.textContent = "Copiar";
-          copyBtn.onclick = () => { ta.select(); doc.execCommand("copy"); copyBtn.textContent = "Copiado!"; setTimeout(()=>copyBtn.textContent="Copiar",1200); };
+          copyBtn.textContent = "Copier";
+          copyBtn.onclick = () => { ta.select(); doc.execCommand("copy"); copyBtn.textContent = "Copié !"; setTimeout(()=>copyBtn.textContent="Copier",1200); };
           btnRow.prepend(copyBtn);
         } else {
-          alert("✅ Texto corrigido com sucesso!");
+          alert("✅ Texte corrigé avec succès !");
         }
       } else {
         if (win) win.close();
-        alert("❌ Erro: " + (data.error || "resposta inválida"));
+        alert("❌ Erreur : " + (data.error || "réponse invalide"));
       }
     } catch {
       if (win) win.close();
-      alert("❌ Falha ao comunicar com a API.");
+      alert("❌ Échec de la communication avec l’API.");
     } finally{
       
     }
@@ -1339,12 +1339,12 @@
       });
       const data = await res.json();
       const box = document.getElementById("minutaBox");
-      document.getElementById("minutaTexto").textContent = data.summary || "❌ Erro ao gerar minuta.";
+      document.getElementById("minutaTexto").textContent = data.summary || "❌ Erreur lors de la génération du compte rendu.";
       box.classList.remove("hidden");
       scrollSeInvisivel("minutaBox");
     }catch{
       const box = document.getElementById("minutaBox");
-      document.getElementById("minutaTexto").textContent = "❌ Erro inesperado ao comunicar com a API.";
+      document.getElementById("minutaTexto").textContent = "❌ Erreur inattendue lors de la communication avec l’API.";
       box.classList.remove("hidden");
     }finally{
       
@@ -1365,10 +1365,10 @@
       const data = await res.json();
       const box = document.getElementById("resumoBox");
       document.getElementById("resumoTexto").textContent =
-        data.summary || ("❌ Erro ao gerar resumo: " + (data.error || "resposta inválida"));
+        data.summary || ("❌ Erreur lors de la génération du résumé : " + (data.error || "réponse invalide"));
       box.classList.remove("hidden");
       scrollSeInvisivel("resumoBox");
-    }catch{ alert("❌ Erro ao gerar resumo."); }
+    }catch{ alert("❌ Erreur lors de la génération du résumé."); }
     finally{  }
   }
 
@@ -1396,9 +1396,9 @@
         </style>
         </head><body>
           <div class="box">
-            <h2>📧 A gerar email…</h2>
-            <p class="muted">Aguarda um momento.</p>
-            <textarea readonly>Processando…</textarea>
+            <h2>📧 Génération de l’e-mail…</h2>
+            <p class="muted">Patiente un instant.</p>
+            <textarea readonly>Traitement…</textarea>
             <div class="row"><button onclick="window.close()">Fermer</button></div>
           </div>
         </body></html>
@@ -1416,27 +1416,27 @@
       if (data.email){
         if (win){
           const doc = win.document;
-          doc.querySelector("h2").textContent = "✅ Email gerado";
-          doc.querySelector(".muted").textContent = "Revê et copia/cola no teu cliente de email.";
+          doc.querySelector("h2").textContent = "✅ E-mail généré";
+          doc.querySelector(".muted").textContent = "Relis-le et copie-le dans ton client e-mail.";
           const ta = doc.querySelector("textarea");
           ta.removeAttribute("readonly");
           ta.value = data.email;
 
           const row = doc.querySelector(".row");
           const copyBtn = doc.createElement("button");
-          copyBtn.textContent = "Copiar";
-          copyBtn.onclick = () => { ta.select(); doc.execCommand("copy"); copyBtn.textContent = "Copiado!"; setTimeout(()=>copyBtn.textContent="Copiar",1200); };
+          copyBtn.textContent = "Copier";
+          copyBtn.onclick = () => { ta.select(); doc.execCommand("copy"); copyBtn.textContent = "Copié !"; setTimeout(()=>copyBtn.textContent="Copier",1200); };
           row.prepend(copyBtn);
         } else {
-          alert("✅ Email gerado!");
+          alert("✅ E-mail généré !");
         }
       } else {
         if (win) win.close();
-        alert("❌ Erro ao gerar email.");
+        alert("❌ Erreur lors de la génération de l’e-mail.");
       }
     }catch{
       if (win) win.close();
-      alert("❌ Falha ao comunicar com a API.");
+      alert("❌ Échec de la communication avec l’API.");
     }finally{
       
     }
@@ -1465,7 +1465,7 @@
     const progressWrapper = document.getElementById("traducaoProgressWrapper");
 
     status.classList.remove("hidden");
-    status.textContent = "🌍 A traduire... por favor aguarda";
+    status.textContent = "🌍 Traduction en cours... patiente un instant";
     progressWrapper.classList.remove("hidden");
     progressBar.style.width = "0%";
 
@@ -1489,12 +1489,12 @@
         transcriptionText.value = data.translation;
         document.getElementById("traducaoTexto").textContent = data.translation;
         document.getElementById("traducaoBox").classList.remove("hidden");
-        status.textContent = "✅ Tradução concluída com sucesso!";
+        status.textContent = "✅ Traduction terminée avec succès !";
       } else {
-        status.textContent = "❌ Erro: Tradução não recebida.";
+        status.textContent = "❌ Erreur : traduction non reçue.";
       }
     }catch{
-      status.textContent = "❌ Oops! Tivemos um problema ao comunicar com a IA.";
+      status.textContent = "❌ Oups ! Un problème est survenu avec l’IA.";
     }finally{
       setTimeout(() => {
         status.classList.add("hidden");
@@ -1510,14 +1510,14 @@
     const textarea = document.getElementById("transcriptionText");
     textarea.select();
     document.execCommand("copy");
-    const btn = event.target; btn.textContent = "✅ Copiado!";
+    const btn = event.target; btn.textContent = "✅ Copié !";
     setTimeout(() => btn.textContent = "📋 Tout copier", 2000);
   }
   function copiarTextoBox(idTexto, botao){
     const texto = document.getElementById(idTexto).textContent.trim();
     if (!texto) return;
     navigator.clipboard.writeText(texto).then(() => {
-      botao.textContent = "✅ Copiado!";
+      botao.textContent = "✅ Copié !";
       setTimeout(() => botao.textContent = "📋 Tout copier", 2000);
     });
   }
@@ -1631,7 +1631,7 @@
     function handleFileSelected(file, labelEl){
       ensureApi().then(() => {
         const mb = formatMb(fileSizeMb(file));
-        labelEl.textContent = `Ficheiro: ${file.name} (${mb} MB)`;
+        labelEl.textContent = `Fichier : ${file.name} (${mb} MB)`;
         const isVid = isVideoFile(file);
 
         if (isFileTooLarge(file)) {

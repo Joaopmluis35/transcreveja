@@ -1245,6 +1245,28 @@ DEFAULT_SITE_CONTENT: dict[str, str] = {
         "📁 Conversion de fichiers"
     ),
     "fr_seo_closing": "Commence gratuitement. Simple, rapide et fait au Portugal 🇵🇹",
+    "de_seo_title": "🧠 Was ist Ouviescrevi?",
+    "de_seo_p1": (
+        "Ouviescrevi ist ein Online-Tool mit künstlicher Intelligenz (KI), um zu "
+        "<strong>transkribieren, zusammenzufassen, zu übersetzen und zu korrigieren</strong> sowie "
+        "<strong>Inhalte zu klassifizieren</strong>, <strong>E-Mails zu erstellen</strong>, "
+        "<strong>Lernfragen zu erzeugen</strong> und <strong>Videos mit automatischen Untertiteln</strong> zu produzieren."
+    ),
+    "de_seo_p2": (
+        "Ideal für Lehrkräfte, Journalisten, Studierende, Unternehmen und alle, die "
+        "Audio, Video oder Text in nützliches Wissen verwandeln möchten. 🚀"
+    ),
+    "de_seo_features": (
+        "Hauptfunktionen:\n"
+        "🎙️ Audio-/Video-Transkription\n"
+        "🧠 Automatische Zusammenfassungen\n"
+        "🌍 Übersetzung von Texten\n"
+        "✍️ Korrektur und E-Mails mit KI\n"
+        "📚 Lernfragen\n"
+        "💬 Videos mit automatischen Untertiteln\n"
+        "📁 Dateikonvertierung"
+    ),
+    "de_seo_closing": "Starte kostenlos. Einfach, schnell und in Portugal gemacht 🇵🇹",
     "es_resumo_title": "📌 Resumen inteligente",
     "es_resumo_lead": "Pega tu texto o sube un PDF o Word (.docx) y elige el estilo de resumen.",
     "fr_resumo_title": "📌 Résumé intelligent",

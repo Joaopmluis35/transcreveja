@@ -107,6 +107,11 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
 - `scripts/compare_transcribe_models.py áudio.mp3 [pt]`: compara `whisper-1`, `gpt-4o-transcribe` e
   `gpt-4o-mini-transcribe` (custa cêntimos). **Atenção:** o site usa os segmentos com tempos do `whisper-1`
   (legendas, capítulos, filtros de qualidade); os `gpt-4o-*` não os devolvem, por isso trocar não é só mudar o nome.
+- Páginas ES/FR/DE (`frontend/{es,fr,de}/index.html`): ~320 textos que estavam em português traduzidos (painel de
+  legendas, frases de espera, erros, janelas de Corrigir/Email, botões). Ficam em PT de propósito só as linhas da
+  notificação interna «Alguém clicou em Partilhar no WhatsApp» (email para o dono).
+  **Corrigido:** a DE usava as chaves de CMS da PT (`seo_title`…) e mostrava a apresentação em português; agora usa
+  `de_seo_*` (textos alemães acrescentados aos valores por omissão em `backend/cms.py`).
 
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).
