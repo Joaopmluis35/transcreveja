@@ -121,6 +121,9 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   `DELETE /api/share/quiz/{id}/mine` tira-o da lista (o link continua a funcionar). No site, `quiz-game.js?v=6`
   (`syncMyGames`) junta os da conta aos do aparelho e `aula-pronta-ui.js?v=7` chama-o ao abrir a Aula Pronta.
   Jogos partilhados antes disto ou sem sessão continuam só no aparelho.
+- **`backend/share_routes.py`:** as rotas de partilha (`/api/share/transcript`, `/api/share/quiz…`, `/share/{id}`) e os
+  seus modelos saíram do `main.py` (4841 → 4670 linhas). Recebem do main as origens, o limite de pedidos e a sessão
+  por `share_routes.configure(...)`. Próximos candidatos a sair do `main.py`: rotas `/api/auth/*` e de IA.
 
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).
@@ -148,6 +151,6 @@ simulador** (secções 2, 7 e 8). Abrir **essa pasta** no Cursor / Claude Code p
 1. Testar modelo de transcrição mais recente (`gpt-4o-transcribe` / mini) vs `whisper-1`.
 2. Render pago (sem adormecer) e monitorização de erros (Sentry).
 3. Páginas EN/ES/FR/DE sem escolha de trecho (`media-trim-ui.js`, ~1800 linhas só em PT) e sem histórico de transcrições.
-4. Fixar versões em `requirements.txt`; uma só versão de Python; dividir `backend/main.py`.
+4. Uma só versão de Python (Render 3.11, CI 3.12, local 3.14); continuar a dividir `backend/main.py` (auth, IA).
 
 Confirma que leste isto e diz-me o estado atual (`git status`, testes) antes de propor alterações.
