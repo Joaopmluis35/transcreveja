@@ -3802,12 +3802,13 @@ async def transcript_chat(req: TranscriptChatRequest, request: Request):
     if len(transcript) > max_chars:
         transcript = transcript[:max_chars] + "\n\n[…transcrição truncada…]"
 
-    lang = (req.lang or "pt").strip().lower()[:8]
-    if lang == "en":
+    lang = (req.lang or "pt").strip().lower()[:2]
+    reply_in = {"en": "English", "es": "Spanish", "fr": "French", "de": "German"}.get(lang)
+    if reply_in:
         sys = (
             "You answer questions about an audio/video transcript. "
             "Use only the transcript below. If the answer is not there, say you don't know. "
-            "Be concise and clear. Reply in English.\n\n"
+            f"Be concise and clear. Reply in {reply_in}.\n\n"
             f"TRANSCRIPT:\n{transcript}"
         )
     else:

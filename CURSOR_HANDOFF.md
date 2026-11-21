@@ -23,7 +23,7 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
 - **Domínio canónico:** https://www.ouviescrevi.pt (Cloudflare à frente da Vercel).
 - **API:** Render, plano free, https://api.ouviescrevi.pt, base de dados Turso. autoDeploy no push para `main`.
   **O servidor corre nos EUA (Ashburn, Virgínia, rede Amazon)**, não em Frankfurt como diz o `render.yaml`.
-- **Testes:** `cd backend; py -m pytest -q` → 135 testes (usar o Python do sistema; o `backend/venv` antigo está partido;
+- **Testes:** `cd backend; py -m pytest -q` → 139 testes (usar o Python do sistema; o `backend/venv` antigo está partido;
   `backend/.venv` tem uvicorn para correr a API em local). Frontend: `py scripts/frontend_smoke_test.py`.
 - **Cache:** CSS/JS com `?v=N` nos HTML. Ao mudar um ficheiro, sobe o `?v=` em **todas** as páginas que o usam.
   Versões atuais: `ouviescrevi.css?v=44` (importa `ouviescrevi-pro.css?v=4` e `theme-dark.css?v=5`),
@@ -112,6 +112,10 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   notificação interna «Alguém clicou em Partilhar no WhatsApp» (email para o dono).
   **Corrigido:** a DE usava as chaves de CMS da PT (`seo_title`…) e mostrava a apresentação em português; agora usa
   `de_seo_*` (textos alemães acrescentados aos valores por omissão em `backend/cms.py`).
+- **Chat «Perguntar à IA sobre esta transcrição» nas EN/ES/FR/DE:** `js/transcript-chat.js?v=1` (cria o painel
+  debaixo da transcrição, textos na língua da página, estilos próprios). A PT continua com a versão dentro da
+  `index.html`. `/transcript-chat` passou a responder em espanhol/francês/alemão (antes só PT ou EN).
+  Botões que ainda estavam em PT nas ES/FR/DE: Corrigir, Traduzir, Classificar, Exportar e título das legendas.
 
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).
@@ -138,7 +142,7 @@ simulador** (secções 2, 7 e 8). Abrir **essa pasta** no Cursor / Claude Code p
 
 1. Testar modelo de transcrição mais recente (`gpt-4o-transcribe` / mini) vs `whisper-1`.
 2. Render pago (sem adormecer) e monitorização de erros (Sentry).
-3. Páginas EN/ES/FR/DE sem chat, escolha de trecho e histórico; ES/FR/DE ainda com vários botões e textos em português.
+3. Páginas EN/ES/FR/DE sem escolha de trecho (`media-trim-ui.js`, ~1800 linhas só em PT) e sem histórico de transcrições.
 4. Fixar versões em `requirements.txt`; uma só versão de Python; dividir `backend/main.py`.
 5. Os jogos partilhados só ficam guardados no dispositivo; para os ter em qualquer dispositivo, associar à conta.
 

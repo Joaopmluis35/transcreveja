@@ -143,7 +143,7 @@
 
       <!-- Resultados de legendas/vídeo legendado -->
       <div id="legendasBox" class="hidden">
-        <h3>🎞️ Legendas / Vídeo Legendado</h3>
+        <h3>🎞️ Sous-titres / Vidéo sous-titrée</h3>
         <div id="legendasInfo">
           <p id="legendasMsg">C’est prêt ! Choisis ce que tu veux télécharger :</p>
           <div>
@@ -163,19 +163,19 @@
         <button type="button" onclick="abrirDescricaoYoutube()"><span>▶️ YouTube</span></button>
         <button onclick="partilharWhatsapp()"><span>📲 Partager sur WhatsApp</span></button>
         <button onclick="gerarMinuta()"><span>📩 Générer un compte rendu</span></button>
-        <button onclick="corrigirTextoIA()"><span>📝 Corrigir Texto</span></button>
-        <button onclick="abrirModalTraducao()"><span>🌍 Traduzir</span></button>
-        <button onclick="classificarConteudo()"><span>📚 Classificar Tipo</span></button>
+        <button onclick="corrigirTextoIA()"><span>📝 Corriger le texte</span></button>
+        <button onclick="abrirModalTraducao()"><span>🌍 Traduire</span></button>
+        <button onclick="classificarConteudo()"><span>📚 Classer le type</span></button>
         <button onclick="gerarEmailIA()"><span>📧 Générer un e-mail</span></button>
 
         <div class="dropdown-export" id="exportDropdown">
-          <button id="exportBtn" aria-haspopup="true" aria-expanded="false"><span>📁 Exportar ▼</span></button>
+          <button id="exportBtn" aria-haspopup="true" aria-expanded="false"><span>📁 Exporter ▼</span></button>
           <div class="dropdown-content" id="exportOptions">
-            <button data-export="pdf"><span>📄 Exportar PDF</span></button>
-            <button data-export="doc"><span>📝 Exportar DOC</span></button>
-            <button data-export="txt"><span>📃 Exportar TXT</span></button>
-            <button data-export="srt"><span>🎞️ Exportar SRT</span></button>
-            <button data-export="json"><span>🔢 Exportar JSON</span></button>
+            <button data-export="pdf"><span>📄 Exporter PDF</span></button>
+            <button data-export="doc"><span>📝 Exporter DOC</span></button>
+            <button data-export="txt"><span>📃 Exporter TXT</span></button>
+            <button data-export="srt"><span>🎞️ Exporter SRT</span></button>
+            <button data-export="json"><span>🔢 Exporter JSON</span></button>
           </div>
         </div>
       </div>
@@ -338,6 +338,7 @@
 <script src="../js/docx-export.js?v=25"></script>
 <script src="../js/ouviescrevi-ui.js?v=30"></script>
 <script src="../js/ouviescrevi-api.js?v=27"></script>
+<script src="../js/transcript-chat.js?v=1" defer></script>
 <script src="/js/suggestion-fab.js?v=25" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>

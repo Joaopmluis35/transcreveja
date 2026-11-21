@@ -176,3 +176,15 @@ def test_generate_email_uses_requested_language(mock_create, client):
     res = client.post("/generate-email", json={"text": LONG_TEXT, "token": API_TOKEN, "lang": "fr"})
     assert res.status_code == 200, res.text
     assert "francês" in mock_create.call_args.kwargs["messages"][1]["content"]
+
+
+@pytest.mark.parametrize("lang,expected", [("es", "Spanish"), ("fr", "French"), ("de", "German"), ("en", "English")])
+@patch("main.client.chat.completions.create")
+def test_transcript_chat_replies_in_page_language(mock_create, client, lang, expected):
+    mock_create.return_value = _mock_completion("ok")
+    res = client.post(
+        "/transcript-chat",
+        json={"text": LONG_TEXT, "question": "?", "token": API_TOKEN, "lang": lang},
+    )
+    assert res.status_code == 200, res.text
+    assert f"Reply in {expected}" in mock_create.call_args.kwargs["messages"][0]["content"]
