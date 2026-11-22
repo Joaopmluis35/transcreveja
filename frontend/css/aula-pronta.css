@@ -51,8 +51,8 @@ body.oe-page--aula-pronta .oe-ap-hero .oe-lead {
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #6d28d9;
-  background: rgba(124, 58, 237, 0.1);
+  color: #9c4607;
+  background: rgba(181, 82, 10, 0.1);
 }
 
 .oe-ap-form__title {
@@ -88,8 +88,8 @@ body.oe-page--aula-pronta .oe-ap-hero .oe-lead {
 
 .oe-ap-form textarea:focus {
   outline: none;
-  border-color: #7c3aed;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+  border-color: #b5520a;
+  box-shadow: 0 0 0 3px rgba(181, 82, 10, 0.15);
   background: #fff;
 }
 
@@ -134,7 +134,7 @@ body.oe-page--aula-pronta .oe-ap-hero .oe-lead {
   font-weight: 700;
   cursor: pointer;
   color: #fff;
-  background: linear-gradient(135deg, #7c3aed, #6366f1);
+  background: linear-gradient(135deg, #b5520a, #6366f1);
   box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
 }
 
@@ -164,7 +164,7 @@ body.oe-page--aula-pronta .oe-ap-hero .oe-lead {
   gap: 12px;
   padding: 18px 20px;
   border-bottom: 1px solid var(--pro-border, #e2e8f0);
-  background: linear-gradient(180deg, rgba(124, 58, 237, 0.06), transparent);
+  background: linear-gradient(180deg, rgba(181, 82, 10, 0.06), transparent);
 }
 
 .oe-ap-pack__title {
@@ -192,13 +192,13 @@ body.oe-page--aula-pronta .oe-ap-hero .oe-lead {
 }
 
 .oe-ap-pack__btn:hover {
-  border-color: #c4b5fd;
-  background: #f5f3ff;
+  border-color: #9fb7d6;
+  background: #f4f9ff;
 }
 
 .oe-ap-pack__btn--primary {
-  border-color: #7c3aed;
-  background: #7c3aed;
+  border-color: #b5520a;
+  background: #b5520a;
   color: #fff;
 }
 
@@ -245,7 +245,7 @@ body.oe-page--aula-pronta .oe-ap-hero .oe-lead {
   margin: 0 0 10px;
   font-size: 0.95rem;
   font-weight: 700;
-  color: #6d28d9;
+  color: #9c4607;
 }
 
 .oe-ap-section p,
@@ -293,7 +293,7 @@ body.oe-page--aula-pronta .oe-ap-hero .oe-lead {
 .oe-ap-question__num {
   font-size: 0.75rem;
   font-weight: 800;
-  color: #7c3aed;
+  color: #b5520a;
   text-transform: uppercase;
 }
 
@@ -409,7 +409,7 @@ body.oe-page--aula-pronta .oe-ap-hero .oe-lead {
 
 .oe-ap-mygames__stats {
   font-weight: 600;
-  color: #7c3aed;
+  color: #b5520a;
 }
 
 .oe-ap-mygames__actions {

@@ -52,9 +52,9 @@ body.oe-page--podcast-youtube .oe-pw-hero .oe-lead {
 }
 
 .oe-pw-steps li.is-active {
-  color: #6d28d9;
-  border-color: #c4b5fd;
-  background: rgba(124, 58, 237, 0.08);
+  color: #9c4607;
+  border-color: #9fb7d6;
+  background: rgba(181, 82, 10, 0.08);
 }
 
 .oe-pw-steps li.is-done {
@@ -137,7 +137,7 @@ body.oe-page--podcast-youtube .oe-pw-hero .oe-lead {
 }
 
 .oe-pw-btn--purple {
-  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  background: linear-gradient(135deg, #b5520a, #9c4607);
 }
 
 .oe-pw-chapters-preview {

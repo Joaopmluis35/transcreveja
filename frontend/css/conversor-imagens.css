@@ -50,9 +50,9 @@ body.oe-page--conversor-imagens .oe-cimg-hero .oe-lead {
   min-height: 140px;
   margin-bottom: 16px;
   padding: 24px 16px;
-  border: 2px dashed #c4b5fd;
+  border: 2px dashed #9fb7d6;
   border-radius: 14px;
-  background: linear-gradient(180deg, rgba(124, 58, 237, 0.04), transparent);
+  background: linear-gradient(180deg, rgba(181, 82, 10, 0.04), transparent);
   cursor: pointer;
   text-align: center;
   transition: border-color 0.15s, background 0.15s;
@@ -60,8 +60,8 @@ body.oe-page--conversor-imagens .oe-cimg-hero .oe-lead {
 
 .oe-cimg-drop:hover,
 .oe-cimg-drop.is-dragover {
-  border-color: #7c3aed;
-  background: rgba(124, 58, 237, 0.08);
+  border-color: #b5520a;
+  background: rgba(181, 82, 10, 0.08);
 }
 
 .oe-cimg-drop__icon {
@@ -127,7 +127,7 @@ body.oe-page--conversor-imagens .oe-cimg-hero .oe-lead {
   min-width: 2.5rem;
   font-size: 0.85rem;
   font-weight: 700;
-  color: #7c3aed;
+  color: #b5520a;
 }
 
 .oe-cimg-actions {
@@ -145,7 +145,7 @@ body.oe-page--conversor-imagens .oe-cimg-hero .oe-lead {
   font-weight: 700;
   cursor: pointer;
   color: #fff;
-  background: linear-gradient(135deg, #7c3aed, #6366f1);
+  background: linear-gradient(135deg, #b5520a, #6366f1);
   box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
 }
 
@@ -179,7 +179,7 @@ body.oe-page--conversor-imagens .oe-cimg-hero .oe-lead {
 .oe-cimg-preview h3 {
   margin: 0 0 10px;
   font-size: 0.9rem;
-  color: #6d28d9;
+  color: #9c4607;
 }
 
 .oe-cimg-preview img {
@@ -227,7 +227,7 @@ body.oe-page--conversor-imagens .oe-cimg-hero .oe-lead {
 
 .oe-cimg-mode.is-active {
   background: #fff;
-  color: #6d28d9;
+  color: #9c4607;
   box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
 }
 

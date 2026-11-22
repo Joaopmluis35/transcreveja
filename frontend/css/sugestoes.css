@@ -27,8 +27,8 @@ body.oe-pro.oe-page--suggestions main.oe-suggestions {
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #6d28d9;
-  background: rgba(124, 58, 237, 0.1);
+  color: #9c4607;
+  background: rgba(181, 82, 10, 0.1);
 }
 
 .oe-suggestions__hero h1 {
@@ -95,9 +95,9 @@ body.oe-pro.oe-page--suggestions main.oe-suggestions {
 
 .oe-suggestions__field input[type="text"]:focus,
 .oe-suggestions__field textarea:focus {
-  outline: 2px solid rgba(109, 40, 217, 0.35);
+  outline: 2px solid rgba(196, 89, 10, 0.35);
   outline-offset: 1px;
-  border-color: #a78bfa;
+  border-color: #7f9cc4;
   background: #fff;
 }
 
@@ -138,14 +138,14 @@ body.oe-pro.oe-page--suggestions main.oe-suggestions {
 }
 
 .oe-suggestions__cat input:focus-visible + span {
-  outline: 2px solid rgba(109, 40, 217, 0.45);
+  outline: 2px solid rgba(196, 89, 10, 0.45);
   outline-offset: 2px;
 }
 
 .oe-suggestions__cat input:checked + span {
-  background: rgba(109, 40, 217, 0.12);
-  border-color: #a78bfa;
-  color: #5b21b6;
+  background: rgba(196, 89, 10, 0.12);
+  border-color: #7f9cc4;
+  color: #a94c06;
 }
 
 .oe-suggestions__meta {
@@ -205,7 +205,7 @@ body.oe-pro.oe-page--suggestions main.oe-suggestions {
 }
 
 .oe-suggestions__footer a {
-  color: #6d28d9;
+  color: #9c4607;
   font-weight: 600;
   text-decoration: none;
 }
@@ -245,11 +245,11 @@ html.oe-theme-dark .oe-suggestions__cat span {
 
 html.oe-theme-dark .oe-suggestions__cat input:checked + span {
   background: rgba(167, 139, 250, 0.18);
-  border-color: #7c3aed;
-  color: #e9d5ff;
+  border-color: #b5520a;
+  color: #d9e8f8;
 }
 
 html.oe-theme-dark .oe-suggestions__eyebrow {
-  color: #c4b5fd;
-  background: rgba(124, 58, 237, 0.22);
+  color: #9fb7d6;
+  background: rgba(181, 82, 10, 0.22);
 }

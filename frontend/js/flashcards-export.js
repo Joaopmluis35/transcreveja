@@ -267,13 +267,13 @@
       ".card--study{justify-content:stretch;}" +
       ".card--fold{flex-direction:row;gap:0;padding:0;}" +
       ".card__side{flex:1;min-height:0;padding:16px 18px;display:flex;flex-direction:column;overflow:hidden;gap:14px;}" +
-      ".card__side--back{background:#faf5ff;}" +
+      ".card__side--back{background:#f4f9ff;}" +
       ".card__half{flex:1;padding:16px 18px;display:flex;flex-direction:column;gap:14px;border-right:1px dashed #cbd5e1;overflow:hidden;min-height:0;}" +
       ".card__half:last-child{border-right:none;}" +
       ".card__num{position:absolute;top:8px;right:10px;font-size:9px;color:#94a3b8;font-weight:700;z-index:1;}" +
       ".card__label{display:block;flex-shrink:0;font-size:" +
       fs.label +
-      "px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#6d28d9;margin:0;padding:0;line-height:1.35;}" +
+      "px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#9c4607;margin:0;padding:0;line-height:1.35;}" +
       ".card__text{font-size:" +
       fs.body +
       "px;line-height:1.5;white-space:pre-wrap;word-break:break-word;flex:1;min-height:0;overflow:hidden;margin:0;padding:0;}" +

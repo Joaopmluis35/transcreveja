@@ -26,8 +26,8 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
 - **Testes:** `cd backend; py -m pytest -q` → 141 testes (usar o Python do sistema; o `backend/venv` antigo está partido;
   `backend/.venv` tem uvicorn para correr a API em local). Frontend: `py scripts/frontend_smoke_test.py`.
 - **Cache:** CSS/JS com `?v=N` nos HTML. Ao mudar um ficheiro, sobe o `?v=` em **todas** as páginas que o usam.
-  Versões atuais: `ouviescrevi.css?v=44` (importa `ouviescrevi-pro.css?v=4` e `theme-dark.css?v=5`),
-  `index-home.css?v=59`, `ouviescrevi-ui.js?v=30`, `news-ticker.js?v=4`, `quiz-game.js?v=6`, `quiz-game.css?v=4`,
+  Versões atuais: `ouviescrevi.css?v=48` (importa `ouviescrevi-pro.css?v=8` e `theme-dark.css?v=5`),
+  `index-home.css?v=60`, `ouviescrevi-ui.js?v=31` (cabeçalho/rodapé `LAYOUT_V = "14"`), `theme-ui.js?v=2`, `news-ticker.js?v=4`, `quiz-game.js?v=6`, `quiz-game.css?v=4`,
   `aula-pronta-ui.js?v=7`, `aula-pronta.css?v=6`, `share-ui.js?v=29` (na `index.html` e nas `en|es|fr|de/index.html`).
 - Na máquina do dono há outra app na porta **8000** (“AION”). Para testar a API em local usa outra porta (ex. 8010)
   e no browser força `OuviescreviAPI.getBase = () => "http://127.0.0.1:8010"`.
@@ -170,6 +170,19 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   `frontend/design/assets/troca-design.js` (visível também no telemóvel).
 - Letras alojadas em `frontend/design/assets/fonts/` (Schibsted Grotesk, Shantell Sans, Martian Mono, Courier Prime).
 - Cópia da página inicial antes do redesign: `backups/pagina-inicial-2026-11-22/` (index.html, CSS, logos e capturas).
+
+**22/11 — o design «Mensagens de voz» passa a ser o principal em todo o site**
+- Paleta trocada em todo o `frontend/` (exceto backoffice, `theme-dark.css`, `design/` e `archive/`): o roxo/ciano
+  antigo passou a azul-claro (`#e4f0fc` fundo), azul-escuro (`#0f2a4f` texto) e laranja (`#d4630d` botões).
+  Script usado: troca de cores hex/rgba + gradientes roxo→azul passam a laranja sólido; faixa de novidades azul-escuro.
+- Letra do site: Schibsted Grotesk (alojada em `/design/assets/fonts/`); o Inter do Google deixou de ser carregado.
+- **Tema escuro desligado:** `theme-ui.js` aplica sempre o claro e esconde o botão 🌙.
+- Logótipo novo (`/design/assets/logo-simbolo.svg`) nos cabeçalhos e rodapés das 5 línguas. Os favicons PNG
+  continuam os antigos.
+- **Botão «Design» fora do menu de três riscas** (`<details class="oe-design-troca">` nos 5 `header.html`, estilos
+  no fim de `ouviescrevi-pro.css`): principal + caderno, ardósia, cortiça e folha (só páginas iniciais de teste).
+- A página inicial continua a ser a `index.html` com a ferramenta real, só com as cores novas; a demonstração da
+  conversa está em `frontend/design/inicio-mensagens.html`.
 
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).

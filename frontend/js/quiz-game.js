@@ -274,7 +274,7 @@
     var ctx = canvas.getContext("2d");
     var w = (canvas.width = root.clientWidth);
     var h = (canvas.height = root.clientHeight);
-    var colors = ["#a855f7", "#22c55e", "#facc15", "#3b82f6", "#ef4444", "#f472b6"];
+    var colors = ["#e0761f", "#22c55e", "#facc15", "#3b82f6", "#ef4444", "#f472b6"];
     var parts = [];
     for (var i = 0; i < amount; i++) {
       parts.push({

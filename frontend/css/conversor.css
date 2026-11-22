@@ -93,7 +93,7 @@ body.oe-page--conversor .converter input[type="file"] {
   margin: 0;
   padding: 10px 12px;
   border-radius: 10px;
-  border: 1px dashed #c4b5fd;
+  border: 1px dashed #9fb7d6;
   background: var(--pro-bg, #f8fafc);
   font-size: 0.88rem;
   color: var(--pro-text-secondary, #475569);
@@ -112,7 +112,7 @@ body.oe-page--conversor .converter .btn-main {
   font-weight: 700;
   cursor: pointer;
   color: #fff;
-  background: linear-gradient(135deg, #7c3aed, #6366f1);
+  background: linear-gradient(135deg, #b5520a, #6366f1);
   box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
   transition: transform 0.12s, box-shadow 0.12s;
 }
@@ -123,7 +123,7 @@ body.oe-page--conversor .converter .btn-main:hover:not(:disabled) {
   box-shadow: 0 6px 18px rgba(99, 102, 241, 0.4);
   color: #fff;
   border-color: transparent;
-  background: linear-gradient(135deg, #6d28d9, #4f46e5);
+  background: linear-gradient(135deg, #9c4607, #4f46e5);
 }
 
 body.oe-page--conversor .converter #wordStatus {

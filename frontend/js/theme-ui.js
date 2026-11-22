@@ -23,10 +23,9 @@
     }
   }
 
-  function isDarkTheme(theme) {
-    if (theme === "dark") return true;
-    if (theme === "light") return false;
-    return prefersDark();
+  // Design «Mensagens de voz» (22/11/2026): o tema escuro foi desligado; o site é sempre claro.
+  function isDarkTheme() {
+    return false;
   }
 
   function isBackofficePage() {
@@ -39,7 +38,8 @@
     document.documentElement.classList.toggle("oe-theme-dark", dark);
     document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
     var btn = document.getElementById("oeThemeToggle");
-    if (btn) {
+    if (btn) btn.hidden = true;
+    if (false) {
       btn.textContent = dark ? "☀️" : "🌙";
       btn.title = dark ? "Modo claro" : "Modo escuro";
       btn.setAttribute("aria-label", btn.title);
@@ -79,6 +79,12 @@
       }
     } catch (e) {}
   }
+
+  // Fecha a lista «Design» do cabeçalho ao clicar fora dela.
+  document.addEventListener("click", function (e) {
+    var d = document.querySelector(".oe-design-troca[open]");
+    if (d && !d.contains(e.target)) d.open = false;
+  });
 
   // Aplicar o mais cedo possível (antes do resto da UI).
   if (!isBackofficePage()) {

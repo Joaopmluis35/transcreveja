@@ -81,7 +81,7 @@ body.oe-page--flashcards .oe-fc-hero .oe-lead {
   padding: 12px 20px;
   border: none;
   border-radius: 10px;
-  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  background: linear-gradient(135deg, #b5520a, #9c4607);
   color: #fff;
   font-weight: 700;
   font-size: 0.95rem;
@@ -117,8 +117,8 @@ body.oe-page--flashcards .oe-fc-hero .oe-lead {
 
 .oe-fc-result__btn--secondary {
   background: #fff;
-  color: #6d28d9;
-  border-color: #c4b5fd;
+  color: #9c4607;
+  border-color: #9fb7d6;
 }
 
 .oe-fc-result__title {
@@ -204,7 +204,7 @@ body.oe-page--flashcards .oe-fc-hero .oe-lead {
 }
 
 .oe-fc-card:focus-visible .oe-fc-card__face {
-  outline: 2px solid #7c3aed;
+  outline: 2px solid #b5520a;
   outline-offset: 2px;
 }
 
@@ -237,24 +237,24 @@ body.oe-page--flashcards .oe-fc-hero .oe-lead {
 
 .oe-fc-card:hover .oe-fc-card__face,
 .oe-fc-card:focus-visible .oe-fc-card__face {
-  border-color: #a78bfa;
-  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.12);
+  border-color: #7f9cc4;
+  box-shadow: 0 6px 20px rgba(181, 82, 10, 0.12);
 }
 
 .oe-fc-card__face--back {
   transform: rotateY(180deg);
-  background: #f5f3ff;
-  border-color: #c4b5fd;
+  background: #f4f9ff;
+  border-color: #9fb7d6;
 }
 
 .oe-fc-card__face--back .oe-fc-card__label {
-  color: #6d28d9;
+  color: #9c4607;
 }
 
 .oe-fc-card.is-flipped:hover .oe-fc-card__face--back,
 .oe-fc-card.is-flipped:focus-visible .oe-fc-card__face--back {
-  border-color: #7c3aed;
-  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.18);
+  border-color: #b5520a;
+  box-shadow: 0 6px 20px rgba(181, 82, 10, 0.18);
 }
 
 .oe-fc-card__label {
@@ -280,11 +280,11 @@ html.oe-theme-dark .oe-fc-card__face {
 
 html.oe-theme-dark .oe-fc-card__face--back {
   background: #2e1065;
-  border-color: #7c3aed;
+  border-color: #b5520a;
 }
 
 html.oe-theme-dark .oe-fc-card__face--back .oe-fc-card__label {
-  color: #c4b5fd;
+  color: #9fb7d6;
 }
 
 html.oe-theme-dark .oe-fc-card__face--back .oe-fc-card__text {
@@ -425,15 +425,15 @@ html.oe-theme-dark .oe-fc-card__text {
 }
 
 .oe-fc-export__btn--primary {
-  background: linear-gradient(135deg, #7c3aed, #6d28d9) !important;
+  background: linear-gradient(135deg, #b5520a, #9c4607) !important;
   color: #fff !important;
-  border-color: #6d28d9 !important;
+  border-color: #9c4607 !important;
 }
 
 .oe-fc-export__btn--primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #6d28d9, #5b21b6) !important;
+  background: linear-gradient(135deg, #9c4607, #a94c06) !important;
   color: #fff !important;
-  border-color: #5b21b6 !important;
+  border-color: #a94c06 !important;
   filter: none;
 }
 

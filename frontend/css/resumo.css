@@ -58,7 +58,7 @@ body.oe-page--resumo .container.oe-resumo-page {
 .oe-resumo-drop {
   margin: 0 0 14px;
   padding: 22px 16px;
-  border: 2px dashed #c4b5fd;
+  border: 2px dashed #9fb7d6;
   border-radius: 12px;
   background: var(--pro-bg, #f8fafc);
   color: var(--pro-text-secondary, #475569);
@@ -71,14 +71,14 @@ body.oe-page--resumo .container.oe-resumo-page {
 
 .oe-resumo-drop:hover,
 .oe-resumo-drop:focus-within {
-  border-color: #7c3aed;
-  background: #f5f3ff;
+  border-color: #b5520a;
+  background: #f4f9ff;
 }
 
 .oe-resumo-drop.oe-resumo-drop--dragover {
-  border-color: #7c3aed;
-  background: #ede9fe;
-  box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.12);
+  border-color: #b5520a;
+  background: #e4f0fc;
+  box-shadow: 0 0 0 4px rgba(181, 82, 10, 0.12);
 }
 
 .oe-resumo-text {
@@ -101,8 +101,8 @@ body.oe-page--resumo .container.oe-resumo-page {
 
 .oe-resumo-text:focus {
   outline: none;
-  border-color: #7c3aed;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+  border-color: #b5520a;
+  box-shadow: 0 0 0 3px rgba(181, 82, 10, 0.15);
   background: #fff;
 }
 
@@ -146,7 +146,7 @@ body.oe-page--resumo .container.oe-resumo-page {
   font-weight: 700;
   cursor: pointer;
   color: #fff;
-  background: linear-gradient(135deg, #7c3aed, #6366f1);
+  background: linear-gradient(135deg, #b5520a, #6366f1);
   box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
   transition: transform 0.12s, box-shadow 0.12s;
 }
@@ -182,7 +182,7 @@ body.oe-page--resumo .container.oe-resumo-page {
   gap: 10px;
   padding: 16px 18px;
   border-bottom: 1px solid var(--pro-border, #e2e8f0);
-  background: linear-gradient(180deg, rgba(124, 58, 237, 0.04), transparent);
+  background: linear-gradient(180deg, rgba(181, 82, 10, 0.04), transparent);
 }
 
 .oe-resumo-output.oe-result--error .oe-resumo-output__head {
@@ -209,8 +209,8 @@ body.oe-page--resumo .container.oe-resumo-page {
 }
 
 .oe-resumo-output__btn:hover {
-  border-color: #c4b5fd;
-  background: #f5f3ff;
+  border-color: #9fb7d6;
+  background: #f4f9ff;
 }
 
 .oe-resumo-output__body {

@@ -17,7 +17,7 @@ html.oe-qg-open body {
   box-sizing: border-box;
   color: #fff;
   font-family: var(--oe-font, "Segoe UI", system-ui, sans-serif);
-  background: radial-gradient(circle at 20% 10%, #6d28d9 0%, #3b0764 45%, #1e1b4b 100%);
+  background: radial-gradient(circle at 20% 10%, #9c4607 0%, #3b0764 45%, #0f2a4f 100%);
   animation: oe-qg-fade 0.25s ease-out;
 }
 
@@ -37,7 +37,7 @@ html.oe-qg-open body {
   opacity: 0.35;
   animation: oe-qg-float 14s ease-in-out infinite alternate;
 }
-.oe-qg__bg span:nth-child(1) { background: #a855f7; top: -12vmax; left: -10vmax; }
+.oe-qg__bg span:nth-child(1) { background: #e0761f; top: -12vmax; left: -10vmax; }
 .oe-qg__bg span:nth-child(2) { background: #2563eb; bottom: -16vmax; right: -12vmax; animation-delay: -5s; }
 .oe-qg__bg span:nth-child(3) { background: #ec4899; top: 40%; left: 55%; width: 26vmax; height: 26vmax; animation-delay: -9s; }
 
@@ -120,18 +120,18 @@ html.oe-qg-open body {
 .oe-qg__meta {
   margin: 0 0 8px;
   font-size: 1.02rem;
-  color: #e9d5ff;
+  color: #d9e8f8;
 }
 .oe-qg__rules {
   margin: 0 auto 26px;
   max-width: 30rem;
-  color: #ddd6fe;
+  color: #c9dcf3;
   line-height: 1.5;
 }
 .oe-qg__keys {
   margin-top: 22px;
   font-size: 0.8rem;
-  color: #c4b5fd;
+  color: #9fb7d6;
 }
 
 .oe-qg .oe-qg__btn--go {
@@ -139,7 +139,7 @@ html.oe-qg-open body {
   border-radius: 999px;
   font-size: 1.15rem;
   font-weight: 800;
-  color: #1e1b4b;
+  color: #0f2a4f;
   background: linear-gradient(90deg, #facc15, #fb923c);
   box-shadow: 0 10px 30px rgba(250, 204, 21, 0.35);
   animation: oe-qg-glow 2s ease-in-out infinite;
@@ -202,14 +202,14 @@ html.oe-qg-open body {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #c4b5fd;
+  color: #9fb7d6;
 }
 .oe-qg__prompt {
   margin: 0 0 16px;
   padding: 20px 22px;
   border-radius: 18px;
   background: #fff;
-  color: #1e1b4b;
+  color: #0f2a4f;
   text-align: center;
   font-size: clamp(1.1rem, 3.4vw, 1.45rem);
   font-weight: 800;
@@ -339,14 +339,14 @@ html.oe-qg-open body {
 .oe-qg__expl {
   margin: 0 0 8px;
   line-height: 1.5;
-  color: #ede9fe;
+  color: #e4f0fc;
 }
 .oe-qg .oe-qg__btn--next {
   margin-top: 6px;
   padding: 12px 24px;
   border-radius: 999px;
   font-weight: 800;
-  color: #1e1b4b;
+  color: #0f2a4f;
   background: #fff;
 }
 .oe-qg .oe-qg__btn--next:hover {
@@ -378,7 +378,7 @@ html.oe-qg-open body {
 .oe-qg__big small {
   font-size: 1rem;
   font-weight: 600;
-  color: #c4b5fd;
+  color: #9fb7d6;
 }
 .oe-qg__actions {
   display: flex;
@@ -415,7 +415,7 @@ html.oe-qg-open body {
 .oe-qg__review-a,
 .oe-qg__review-e {
   margin: 0 0 4px;
-  color: #ddd6fe;
+  color: #c9dcf3;
   line-height: 1.45;
 }
 
@@ -468,7 +468,7 @@ html.oe-qg-open body {
   border-radius: 24px;
   text-align: center;
   color: #fff;
-  background: radial-gradient(circle at 20% 10%, #7c3aed 0%, #4c1d95 50%, #1e1b4b 100%);
+  background: radial-gradient(circle at 20% 10%, #b5520a 0%, #24497a 50%, #0f2a4f 100%);
   box-shadow: 0 20px 50px rgba(76, 29, 149, 0.35);
 }
 .oe-qg-landing__logo {
@@ -492,7 +492,7 @@ html.oe-qg-open body {
 }
 .oe-qg-landing__meta {
   margin: 0 0 24px;
-  color: #ddd6fe;
+  color: #c9dcf3;
 }
 .oe-qg-landing .oe-qg-landing__play {
   padding: 16px 40px;
@@ -501,7 +501,7 @@ html.oe-qg-open body {
   font: inherit;
   font-size: 1.15rem;
   font-weight: 800;
-  color: #1e1b4b;
+  color: #0f2a4f;
   cursor: pointer;
   background: linear-gradient(90deg, #facc15, #fb923c);
   box-shadow: 0 10px 30px rgba(250, 204, 21, 0.35);
@@ -528,7 +528,7 @@ html.oe-qg-open body {
 .oe-qg-landing__cta a {
   margin-left: 4px;
   font-weight: 700;
-  color: var(--pro-accent, #7c3aed);
+  color: var(--pro-accent, #b5520a);
 }
 @media (prefers-reduced-motion: reduce) {
   .oe-qg-landing__logo,
@@ -548,7 +548,7 @@ html.oe-qg-open body {
 }
 .oe-qg__name-label {
   font-weight: 700;
-  color: #ede9fe;
+  color: #e4f0fc;
 }
 .oe-qg .oe-qg__name-input {
   width: 100%;
@@ -558,7 +558,7 @@ html.oe-qg-open body {
   border: 2px solid rgba(255, 255, 255, 0.35);
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.95);
-  color: #1e1b4b;
+  color: #0f2a4f;
   font: inherit;
   font-size: 1.1rem;
   font-weight: 700;
@@ -627,7 +627,7 @@ html.oe-qg-open body {
 }
 .oe-qg__rank-hits {
   font-size: 0.85rem;
-  color: #ddd6fe;
+  color: #c9dcf3;
 }
 .oe-qg__rank-score {
   min-width: 3.5em;
@@ -644,7 +644,7 @@ html.oe-qg-open body {
   margin: 8px 0 0;
   text-align: center;
   font-size: 0.88rem;
-  color: #ddd6fe;
+  color: #c9dcf3;
 }
 .oe-qg-landing .oe-qg__ranking {
   margin-top: 26px;

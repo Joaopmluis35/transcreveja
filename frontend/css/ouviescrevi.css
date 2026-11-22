@@ -1,13 +1,13 @@
 /* Ouviescrevi — design system partilhado */
-@import url("ouviescrevi-pro.css?v=4");
+@import url("ouviescrevi-pro.css?v=9");
 @import url("theme-dark.css?v=5");
 
 :root {
-  --oe-purple: #7c3aed;
+  --oe-purple: #b5520a;
   --oe-purple-dark: #6b21a8;
-  --oe-cyan: #06b6d4;
-  --oe-gradient: linear-gradient(135deg, #a550f7 0%, #00c3ff 100%);
-  --oe-gradient-soft: linear-gradient(160deg, #5b4cdb 0%, #0ea5e9 100%);
+  --oe-cyan: #1c3d6b;
+  --oe-gradient: #b5520a;
+  --oe-gradient-soft: #b5520a;
   --oe-surface: #ffffff;
   --oe-text: #1e293b;
   --oe-text-muted: #64748b;
@@ -16,15 +16,15 @@
   --oe-radius-sm: 10px;
   --oe-shadow: 0 10px 40px rgba(15, 23, 42, 0.12);
   --oe-shadow-sm: 0 4px 14px rgba(15, 23, 42, 0.08);
-  --oe-focus: 0 0 0 3px rgba(165, 80, 247, 0.45);
-  --oe-font: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --oe-focus: 0 0 0 3px rgba(181, 82, 10, 0.45);
+  --oe-font: "Schibsted Grotesk", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --oe-max: 880px;
   --oe-header-h: auto;
-  --oe-btn-bg: #ede9fe;
-  --oe-btn-border: #c4b5fd;
+  --oe-btn-bg: #e4f0fc;
+  --oe-btn-border: #9fb7d6;
   --oe-btn-text: #1e293b;
-  --oe-dropzone-bg: #faf5ff;
-  --oe-dropzone-hover-bg: #f3e8ff;
+  --oe-dropzone-bg: #f4f9ff;
+  --oe-dropzone-hover-bg: #e4f0fc;
   --oe-result-bg: #f8fafc;
 }
 
@@ -196,7 +196,7 @@ nav#nichoMenu button:hover,
 nav#nichoMenu button:focus-visible {
   color: #fff;
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
+  box-shadow: 0 6px 20px rgba(181, 82, 10, 0.35);
 }
 nav#nichoMenu button:focus-visible { outline: none; }
 nav#nichoMenu button span { position: relative; z-index: 1; }
@@ -347,7 +347,7 @@ nav#nichoMenu button span { position: relative; z-index: 1; }
 .esquerda img { height: 36px; }
 .esquerda p, .esquerda a { margin: 0; color: white; text-decoration: none; }
 .esquerda a:hover { text-decoration: underline; }
-.link-sugestoes { display: inline-block; margin-top: 4px; color: #e9d5ff !important; font-size: 0.85rem; }
+.link-sugestoes { display: inline-block; margin-top: 4px; color: #d9e8f8 !important; font-size: 0.85rem; }
 .direita { display: flex; align-items: center; gap: 12px; flex-direction: column; }
 .social-icons a {
   display: inline-block;
@@ -471,7 +471,7 @@ nav#nichoMenu button span { position: relative; z-index: 1; }
   color: #fff;
   border-color: transparent;
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.3);
+  box-shadow: 0 6px 20px rgba(181, 82, 10, 0.3);
 }
 .oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card):not(.oe-fc-export__btn):not(.oe-transcript-chat__chip):not(.oe-history-item__open):not(.oe-history-item__share):not(.oe-history-item__rename):not(.oe-history-item__del):not(.oe-history-panel__refresh):not(.oe-history-panel__search-clear):not(.oe-history-tool):not(.oe-account-nav__btn):not(.oe-pro-theme__btn):not(.oe-cookie-banner__btn):not(.oe-qg__btn):not(.oe-ap-pack__btn--play):focus-visible,
 .container button:not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card):not(.oe-fc-export__btn):not(.oe-transcript-chat__chip):not(.oe-history-item__open):not(.oe-history-item__share):not(.oe-history-item__rename):not(.oe-history-item__del):not(.oe-history-panel__refresh):not(.oe-history-panel__search-clear):not(.oe-history-tool):not(.oe-account-nav__btn):not(.oe-pro-theme__btn):not(.oe-cookie-banner__btn):not(.oe-qg__btn):not(.oe-ap-pack__btn--play):focus-visible,
@@ -490,7 +490,7 @@ nav#nichoMenu button span { position: relative; z-index: 1; }
 
 #dropZone,
 .oe-dropzone {
-  border: 2px dashed #c4b5fd;
+  border: 2px dashed #9fb7d6;
   border-radius: var(--oe-radius-sm);
   padding: 28px 16px;
   margin-bottom: 16px;
@@ -570,7 +570,7 @@ pre#resultado,
 .ticker {
   width: 100%;
   overflow: hidden;
-  background: linear-gradient(90deg, #5b21b6 0%, #4338ca 50%, #1d4ed8 100%);
+  background: #0f2a4f;
   color: #fff;
   border-bottom: 1px solid rgba(255, 255, 255, 0.18);
   position: relative;
@@ -596,7 +596,7 @@ pre#resultado,
 .oe-news-ticker__badge {
   display: inline-block;
   background: #fbbf24;
-  color: #1e1b4b;
+  color: #0f2a4f;
   font-size: 0.65rem;
   font-weight: 800;
   letter-spacing: 0.05em;
@@ -1080,7 +1080,7 @@ main.oe-content {
 }
 
 .oe-cookie-banner a {
-  color: #c4b5fd;
+  color: #9fb7d6;
 }
 
 .oe-cookie-banner__btn {
@@ -1116,7 +1116,7 @@ main.oe-content {
 }
 
 .oe-site-banner {
-  background: linear-gradient(90deg, #7c3aed, #2563eb);
+  background: #b5520a;
   color: #fff;
   text-align: center;
   padding: 10px 16px;
@@ -1176,8 +1176,8 @@ main.oe-content {
   font-weight: 700;
   font-family: inherit;
   color: var(--oe-text);
-  background: #ede9fe;
-  border: 2px solid #c4b5fd;
+  background: #e4f0fc;
+  border: 2px solid #9fb7d6;
   border-radius: var(--oe-radius-sm);
   cursor: pointer;
   transition: background 0.2s, color 0.2s, transform 0.15s;
@@ -1244,9 +1244,9 @@ main.oe-content {
 
 .oe-admin-traffic-pill__btn,
 .oe-admin-traffic-pill__link {
-  border: 1px solid rgba(109, 40, 217, 0.35);
+  border: 1px solid rgba(196, 89, 10, 0.35);
   background: rgba(255, 255, 255, 0.96);
-  color: #5b21b6;
+  color: #a94c06;
   border-radius: 10px;
   padding: 8px 12px;
   font-size: 0.8125rem;
@@ -1259,7 +1259,7 @@ main.oe-content {
 
 .oe-admin-traffic-pill__btn:hover,
 .oe-admin-traffic-pill__link:hover {
-  background: #f5f3ff;
+  background: #f4f9ff;
 }
 
 .oe-admin-traffic-pill__btn:disabled {

@@ -1,23 +1,24 @@
 /* Ouviescrevi Pro — interface profissional (preview / futuro design system) */
 @import url("pricing-visibility.css");
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@font-face{font-family:"Schibsted Grotesk";font-style:normal;font-weight:400 900;font-display:swap;src:url("/design/assets/fonts/schibsted-grotesk-latin-ext.woff2") format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"Schibsted Grotesk";font-style:normal;font-weight:400 900;font-display:swap;src:url("/design/assets/fonts/schibsted-grotesk-latin.woff2") format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 
 :root {
-  --pro-font: "Inter", system-ui, -apple-system, sans-serif;
-  --pro-bg: #f6f7fb;
+  --pro-font: "Schibsted Grotesk", system-ui, -apple-system, sans-serif;
+  --pro-bg: #e4f0fc;
   --pro-surface: #ffffff;
-  --pro-text: #0f172a;
-  --pro-text-secondary: #475569;
-  --pro-text-muted: #64748b;
+  --pro-text: #0f2a4f;
+  --pro-text-secondary: #3d5677;
+  --pro-text-muted: #55657a;
   --pro-border: #e2e8f0;
   --pro-border-strong: #cbd5e1;
-  --pro-accent: #6d28d9;
-  --pro-accent-hover: #5b21b6;
-  --pro-accent-soft: #ede9fe;
-  --pro-accent-muted: #f5f3ff;
-  --pro-cyan: #0891b2;
-  --pro-radius: 12px;
-  --pro-radius-lg: 20px;
+  --pro-accent: #9c4607;
+  --pro-accent-hover: #a94c06;
+  --pro-accent-soft: #e4f0fc;
+  --pro-accent-muted: #f4f9ff;
+  --pro-cyan: #1c3d6b;
+  --pro-radius: 16px;
+  --pro-radius-lg: 26px;
   --pro-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
   --pro-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
   --pro-max: 1120px;
@@ -95,7 +96,7 @@ body.oe-pro {
   border-radius: 10px;
   overflow: hidden;
   flex-shrink: 0;
-  background: #6d28d9;
+  background: #9c4607;
   line-height: 0;
 }
 .oe-pro-brand__icon-wrap--footer {
@@ -887,7 +888,7 @@ a.oe-pro-btn.oe-pro-btn--ghost:hover {
   max-width: calc(var(--pro-max) - 0px);
   margin-left: auto;
   margin-right: auto;
-  background: linear-gradient(135deg, #5b21b6 0%, #6d28d9 50%, #7c3aed 100%);
+  background: linear-gradient(135deg, #a94c06 0%, #9c4607 50%, #b5520a 100%);
   border-radius: var(--pro-radius-lg);
   padding: 48px 32px;
   text-align: center;
@@ -911,7 +912,7 @@ a.oe-pro-btn.oe-pro-btn--ghost:hover {
   color: var(--pro-accent) !important;
 }
 .oe-pro-cta-band a.oe-pro-btn--secondary:hover {
-  background: #f5f3ff;
+  background: #f4f9ff;
   color: var(--pro-accent) !important;
 }
 
@@ -921,7 +922,7 @@ a.oe-pro-btn.oe-pro-btn--ghost:hover {
   position: relative;
   overflow: hidden;
   border-top: none;
-  background: linear-gradient(145deg, #1e1b4b 0%, #312e81 42%, #4c1d95 100%);
+  background: linear-gradient(145deg, #0f2a4f 0%, #1c3d6b 42%, #24497a 100%);
   color: #c7d2fe;
   padding: 0;
   margin-top: 48px;
@@ -932,7 +933,7 @@ a.oe-pro-btn.oe-pro-btn--ghost:hover {
   right: -80px;
   width: 320px;
   height: 320px;
-  background: radial-gradient(circle, rgba(167, 139, 250, 0.35) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(91, 143, 208, 0.35) 0%, transparent 70%);
   pointer-events: none;
 }
 .oe-pro-footer__inner {
@@ -972,7 +973,7 @@ a.oe-pro-btn.oe-pro-btn--ghost:hover {
   color: #a5b4fc;
 }
 .oe-pro-footer__email {
-  color: #e9d5ff !important;
+  color: #d9e8f8 !important;
   font-size: 0.875rem;
   font-weight: 500;
   text-decoration: none;
@@ -1071,15 +1072,15 @@ a.oe-pro-btn.oe-pro-btn--ghost:hover {
 }
 #rodapeOuviescrevi.oe-pro-footer .oe-pro-footer__social--copy {
   background: #fff !important;
-  color: #312e81 !important;
+  color: #1c3d6b !important;
   border: 1px solid rgba(255, 255, 255, 0.6) !important;
 }
 #rodapeOuviescrevi.oe-pro-footer .oe-pro-footer__social--copy svg {
-  stroke: #312e81;
+  stroke: #1c3d6b;
 }
 #rodapeOuviescrevi.oe-pro-footer .oe-pro-footer__social--copy:hover {
-  background: #f5f3ff !important;
-  color: #1e1b4b !important;
+  background: #f4f9ff !important;
+  color: #0f2a4f !important;
   border-color: #fff !important;
 }
 
@@ -1353,8 +1354,8 @@ body.oe-pro.oe-page--home #uploadForm .oe-upload-actions__secondary button {
   box-shadow: none !important;
 }
 body.oe-pro.oe-page--home #uploadForm .oe-upload-actions__secondary button:hover:not(:disabled) {
-  background: var(--pro-accent-muted, #f5f3ff) !important;
-  border-color: #c4b5fd !important;
+  background: var(--pro-accent-muted, #f4f9ff) !important;
+  border-color: #9fb7d6 !important;
   color: var(--pro-text) !important;
 }
 body.oe-pro.oe-page--home #uploadForm .oe-upload-actions__secondary button:disabled {
@@ -1394,7 +1395,7 @@ body.oe-pro.oe-page--home .oe-output__toolbar h3 {
 }
 body.oe-pro.oe-page--home #transcriptionText {
   background: var(--pro-bg, #f8fafc);
-  border-color: var(--pro-border-strong, #c4b5fd);
+  border-color: var(--pro-border-strong, #9fb7d6);
   color: var(--pro-text);
 }
 body.oe-pro.oe-page--home .oe-output__actions.btn-group button {
@@ -1417,7 +1418,7 @@ body.oe-pro.oe-page--home #uploadForm {
   margin-top: 24px;
 }
 body.oe-pro.oe-page--home #uploadForm #dropZone {
-  border: 2px dashed var(--pro-border-strong, #c4b5fd);
+  border: 2px dashed var(--pro-border-strong, #9fb7d6);
   border-radius: 12px;
   padding: 28px 20px;
   margin: 0;
@@ -1473,21 +1474,21 @@ body.oe-pro.oe-page--home #uploadForm #btnTranskribieren {
   min-height: 52px !important;
   font-size: 1.05rem !important;
   letter-spacing: 0.01em;
-  background: linear-gradient(135deg, #7c3aed, #2563eb) !important;
+  background: #b5520a !important;
   color: #fff !important;
   border: none !important;
-  box-shadow: 0 6px 22px rgba(124, 58, 237, 0.38) !important;
+  box-shadow: 0 6px 22px rgba(181, 82, 10, 0.38) !important;
 }
 body.oe-pro.oe-page--home #uploadForm #btnTranscrever:hover:not(:disabled),
 body.oe-pro.oe-page--home #uploadForm #btnTranscribe:hover:not(:disabled),
 body.oe-pro.oe-page--home #uploadForm #btnTranscribir:hover:not(:disabled),
 body.oe-pro.oe-page--home #uploadForm #btnTranscrire:hover:not(:disabled),
 body.oe-pro.oe-page--home #uploadForm #btnTranskribieren:hover:not(:disabled) {
-  background: linear-gradient(135deg, #6d28d9, #1d4ed8) !important;
+  background: #a94c06 !important;
   border: none !important;
   color: #fff !important;
   transform: translateY(-1px) !important;
-  box-shadow: 0 8px 26px rgba(124, 58, 237, 0.45) !important;
+  box-shadow: 0 8px 26px rgba(181, 82, 10, 0.45) !important;
 }
 body.oe-pro.oe-page--home #uploadForm button:hover:not(:disabled):not(#btnTranscrever):not(#btnTranscribe) {
   background: var(--pro-accent-muted) !important;
@@ -1838,7 +1839,7 @@ body.oe-auth-modal-open {
 }
 .oe-auth-tabs__btn:hover {
   background: var(--pro-accent-soft);
-  border-color: #c4b5fd;
+  border-color: #9fb7d6;
   color: var(--pro-accent);
 }
 .oe-auth-tabs__btn--active {
@@ -1876,7 +1877,7 @@ body.oe-auth-modal-open {
   background: var(--pro-accent);
   border-color: var(--pro-accent);
   color: #fff !important;
-  box-shadow: 0 4px 14px rgba(109, 40, 217, 0.28);
+  box-shadow: 0 4px 14px rgba(196, 89, 10, 0.28);
 }
 .oe-auth-modal .oe-pro-btn--primary:hover,
 .oe-auth-modal button.oe-pro-btn--primary:hover {
@@ -1884,7 +1885,7 @@ body.oe-auth-modal-open {
   border-color: var(--pro-accent-hover);
   color: #fff !important;
   transform: none;
-  box-shadow: 0 6px 18px rgba(91, 33, 182, 0.35);
+  box-shadow: 0 6px 18px rgba(169, 76, 6, 0.35);
 }
 .oe-auth-modal__close {
   position: absolute;
@@ -1921,3 +1922,24 @@ body.oe-auth-modal-open {
   color: #b91c1c;
 }
 
+
+/* Logótipo novo e escolha de design fora do menu de três riscas (design «Mensagens de voz», 22/11/2026) */
+.oe-pro-brand__icon-wrap { background: transparent; border-radius: 0; width: 34px; height: 40px; }
+.oe-pro-brand__icon { width: 100%; height: 100%; object-fit: contain; }
+.oe-pro-theme__btn, #oeThemeToggle { display: none !important; }
+.oe-design-troca { position: relative; order: 2; margin-left: auto; font-weight: 650; color: var(--pro-text); }
+.oe-design-troca summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: .35rem; min-height: 44px; padding: 0 .7rem; border-radius: 999px; white-space: nowrap; }
+.oe-design-troca summary::-webkit-details-marker { display: none; }
+.oe-design-troca summary::after { content: ""; width: .45em; height: .45em; border: solid currentColor; border-width: 0 2px 2px 0; transform: translateY(-.15em) rotate(45deg); }
+.oe-design-troca summary:hover, .oe-design-troca[open] summary { background: #d3e6fa; }
+.oe-design-troca ul { position: absolute; right: 0; top: calc(100% + 6px); z-index: 300; min-width: 15rem; margin: 0; padding: .4rem; list-style: none; text-align: left;
+  background: #fff; border-radius: 14px; box-shadow: 0 2px 4px rgba(15,42,79,.12), 0 18px 36px -14px rgba(15,42,79,.45); }
+body.oe-pro .oe-design-troca li a { display: block; padding: .65rem .8rem; border-radius: 10px; color: var(--pro-text); text-decoration: none; font-weight: 600; }
+.oe-design-troca li a:hover, .oe-design-troca li a:focus-visible { background: #e4f0fc; }
+.oe-design-troca__nota { padding: .5rem .8rem .3rem; font-size: .8rem; font-weight: 500; color: var(--pro-text-secondary); border-top: 1px solid #dbe6f3; margin-top: .3rem; }
+.oe-pro-nav__mobile-toggle { order: 3; }
+@media (min-width: 900px) {
+  .oe-design-troca { order: 4; margin-left: 0; }
+}
+/* Botões e campos usam a mesma letra do site (alguns ficavam com a letra do browser) */
+body.oe-pro button, body.oe-pro input, body.oe-pro select, body.oe-pro textarea { font-family: inherit; }

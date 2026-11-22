@@ -44,10 +44,10 @@
     ".oe-tchat__row{display:flex;gap:8px;flex-wrap:wrap}" +
     ".oe-tchat__row input{width:auto;margin:0;flex:1 1 220px;min-width:0;padding:10px 12px;border:1px solid #cbd5e1;border-radius:10px;font:inherit}" +
     ".oe-tchat__sugg{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}" +
-    ".oe-tchat__sugg button{width:auto;margin:0;padding:6px 12px;font:inherit;font-size:.85rem;border:1px solid #c4b5fd;border-radius:999px;background:#f5f3ff;color:#5b21b6;cursor:pointer}" +
+    ".oe-tchat__sugg button{width:auto;margin:0;padding:6px 12px;font:inherit;font-size:.85rem;border:1px solid #9fb7d6;border-radius:999px;background:#f4f9ff;color:#a94c06;cursor:pointer}" +
     ".oe-tchat__msgs{display:flex;flex-direction:column;gap:8px;max-height:360px;overflow-y:auto}" +
     ".oe-tchat__b{padding:10px 12px;border-radius:12px;white-space:pre-wrap;max-width:90%}" +
-    ".oe-tchat__b--user{align-self:flex-end;background:#ede9fe;color:#1e1b4b}" +
+    ".oe-tchat__b--user{align-self:flex-end;background:#e4f0fc;color:#0f2a4f}" +
     ".oe-tchat__b--assistant{align-self:flex-start;background:#f1f5f9;color:#0f172a}" +
     ".oe-tchat__status{color:#64748b;font-size:.9rem}" +
     "@media (max-width:600px){.oe-tchat__row button{flex:1 1 100%}}";
