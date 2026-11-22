@@ -7,6 +7,7 @@
   "use strict";
   var DESIGNS = [
     ["/index.html", "Clássico (site atual)"],
+    ["/design/inicio-mensagens.html", "Mensagens de voz"],
     ["/design/inicio-caderno.html", "Caderno quadriculado"],
     ["/design/inicio-ardosia.html", "Quadro de ardósia"],
     ["/design/inicio-cortica.html", "Quadro de cortiça"],

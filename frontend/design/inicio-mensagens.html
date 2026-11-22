@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ouviescrevi — Mensagens de voz, aulas e reuniões passadas a texto</title>
+<meta name="description" content="Passa áudio e vídeo a texto em minutos, em português de Portugal. Grátis para começar, sem registo.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#e4f0fc">
+<link rel="icon" href="assets/logo-simbolo.svg" type="image/svg+xml">
+<style>
+@font-face{font-family:"Schibsted Grotesk";font-style:normal;font-weight:400 900;font-display:swap;src:url("assets/fonts/schibsted-grotesk-latin-ext.woff2") format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"Schibsted Grotesk";font-style:normal;font-weight:400 900;font-display:swap;src:url("assets/fonts/schibsted-grotesk-latin.woff2") format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+
+:root{
+  --fundo:#e4f0fc;
+  --fundo-2:#d3e6fa;
+  --tinta:#0f2a4f;
+  --tinta-suave:#3d5677;
+  --painel:#f4f9ff;
+  --branco:#ffffff;
+  --laranja:#d4630d;
+  --laranja-escuro:#a94c06;
+  --onda:#9ab6dc;
+  --texto-bolha:#fff3e6;
+  --sans:"Schibsted Grotesk",system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0}
+html{background:var(--fundo);color:var(--tinta);font-family:var(--sans);-webkit-text-size-adjust:100%;scroll-behavior:smooth;scrollbar-color:var(--onda) var(--fundo)}
+body{font-size:1.125rem;line-height:1.55;min-height:100vh;overflow-x:clip}
+::selection{background:#ffd2a8;color:var(--tinta)}
+a{color:inherit;text-underline-offset:.22em;text-decoration-thickness:1px}
+a:hover{text-decoration-thickness:2px}
+:focus-visible{outline:3px solid var(--laranja);outline-offset:3px}
+button{font:inherit;color:inherit;cursor:pointer}
+.largura{max-width:78rem;margin:0 auto;padding:0 clamp(1rem,4.5vw,4rem)}
+
+/* Cabeçalho */
+.cabecalho{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1.3rem 0}
+.marca{display:inline-flex;align-items:center;gap:.55rem;text-decoration:none}
+.marca svg.simbolo{width:2rem;height:2.4rem;flex:none;color:var(--tinta)}
+.marca .palavra{font-weight:800;font-size:1.65rem;letter-spacing:-.03em;line-height:1}
+.nav{display:flex;gap:clamp(.9rem,2.5vw,2.25rem);font-weight:650;list-style:none;padding:0;align-items:center}
+.nav a{text-decoration:none;white-space:nowrap}
+.nav a:hover{text-decoration:underline}
+@media (max-width:820px){.nav li:not(.manter){display:none}}
+
+/* Primeiro ecrã: texto e carregar à esquerda, conversa à direita */
+.topo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:clamp(1.5rem,4vw,4rem);align-items:start;padding:1.2rem 0 3rem}
+@media (max-width:920px){.topo{grid-template-columns:1fr}}
+.titulo{font-size:clamp(2.6rem,6.4vw,5.2rem);line-height:1.02;font-weight:850;letter-spacing:-.035em;text-wrap:balance}
+.sub{margin-top:1rem;font-size:clamp(1.1rem,1.8vw,1.3rem);color:var(--tinta-suave);max-width:34ch;text-wrap:pretty}
+.carregar{margin-top:1.8rem;max-width:36rem}
+.zona{display:grid;justify-items:center;gap:.35rem;text-align:center;padding:1.6rem 1rem;background:rgba(255,255,255,.7);border:2px dashed #9fb7d6;border-radius:18px;text-decoration:none;transition:background-color .2s ease-out,border-color .2s ease-out}
+.zona:hover{background:#fff;border-color:var(--tinta-suave)}
+.zona svg{width:2.6rem;height:2.6rem;color:var(--tinta)}
+.zona b{font-size:1.15rem}
+.zona span{font-size:.95rem;color:var(--tinta-suave)}
+.botao{display:flex;align-items:center;justify-content:center;gap:.6rem;width:100%;min-height:3.6rem;margin-top:.8rem;padding:.5rem 1.4rem;background:var(--laranja);color:#fff;font-weight:800;font-size:1.2rem;text-decoration:none;border:0;border-radius:16px;
+  box-shadow:0 2px 0 var(--laranja-escuro),0 12px 22px -14px rgba(201,95,11,.9);transition:background-color .15s ease-out,transform .15s ease-out}
+.botao:hover{background:#b9540a}
+.botao:active{transform:translateY(1px)}
+.botao svg{width:1.1rem;height:1.1rem}
+.condicoes{display:flex;flex-wrap:wrap;gap:.3rem 1.2rem;list-style:none;padding:0;margin-top:1rem;font-weight:650;font-size:1rem}
+.condicoes li{display:flex;align-items:center;gap:.4rem}
+.condicoes svg{width:1rem;height:1rem;color:var(--laranja-escuro)}
+
+/* O painel da conversa */
+.conversa{background:var(--painel);border-radius:26px;box-shadow:0 2px 4px rgba(15,42,79,.06),0 24px 50px -28px rgba(15,42,79,.45);overflow:hidden;display:flex;flex-direction:column}
+.conversa-cab{display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap;padding:.9rem 1.1rem;background:var(--branco);border-bottom:1px solid #dbe6f3}
+.conversa-cab .quem{display:flex;align-items:center;gap:.7rem}
+.avatar{width:2.6rem;height:2.6rem;border-radius:50%;display:grid;place-items:center;background:var(--fundo-2);color:var(--tinta);font-weight:800}
+.conversa-cab strong{display:block;font-size:1.02rem;line-height:1.2}
+.conversa-cab small{font-size:.86rem;color:var(--tinta-suave)}
+.botao-ouvir{display:inline-flex;align-items:center;gap:.5rem;min-height:2.8rem;padding:.3rem 1.1rem;border:0;border-radius:999px;background:var(--tinta);color:#fff;font-weight:750;font-size:1rem;transition:background-color .15s ease-out}
+.botao-ouvir:hover{background:#1c3d6b}
+.botao-ouvir svg{width:.9rem;height:.9rem}
+.mensagens{list-style:none;padding:1.1rem;display:flex;flex-direction:column;gap:.7rem;height:clamp(24rem,58vh,34rem);overflow-y:auto;overscroll-behavior:contain;scroll-behavior:smooth}
+.vazio{margin:auto;max-width:22rem;text-align:center;color:var(--tinta-suave);font-size:1.02rem}
+.vazio svg{width:2.6rem;height:2.6rem;color:var(--laranja);margin-bottom:.4rem}
+.ver-tudo{background:none;border:0;font-weight:700;text-decoration:underline;text-underline-offset:.22em;margin-top:.6rem;color:var(--tinta)}
+
+/* Bolha de voz (à esquerda) e bolha de texto transcrito (à direita) */
+.voz{align-self:flex-start;display:flex;align-items:center;gap:.7rem;max-width:min(22rem,88%);padding:.6rem .9rem .6rem .6rem;background:var(--branco);border-radius:18px 18px 18px 6px;box-shadow:0 1px 2px rgba(15,42,79,.08)}
+.voz .play{flex:none;width:2.5rem;height:2.5rem;border-radius:50%;display:grid;place-items:center;background:var(--laranja);color:#fff}
+.voz .play svg{width:.95rem;height:.95rem;margin-left:2px}
+.voz.a-tocar .play{background:var(--laranja-escuro)}
+.onda{display:flex;align-items:center;gap:2px;height:1.9rem}
+.onda i{display:block;width:3px;border-radius:2px;background:var(--onda);transition:background-color .12s linear}
+.onda i.tocada{background:var(--laranja)}
+.voz.a-tocar .onda i.tocada:last-of-type{transform:scaleY(1.15)}
+.voz .meta{display:grid;font-size:.78rem;color:var(--tinta-suave);line-height:1.2;font-variant-numeric:tabular-nums}
+.voz .meta b{font-weight:650;color:var(--tinta)}
+.texto{align-self:flex-end;max-width:min(26rem,88%);padding:.65rem .95rem .5rem;background:var(--texto-bolha);border-radius:18px 18px 6px 18px;box-shadow:0 1px 2px rgba(15,42,79,.08)}
+.texto .autor{display:block;font-weight:800;font-size:.95rem}
+.texto .frase{display:block;font-size:1.06rem;line-height:1.45}
+.texto .rodape-bolha{display:flex;justify-content:flex-end;align-items:center;gap:.35rem;margin-top:.25rem;font-size:.76rem;color:#8a5a2c;font-variant-numeric:tabular-nums}
+.texto .rodape-bolha svg{width:.85rem;height:.85rem}
+.digitar{align-self:flex-end;display:flex;gap:4px;padding:.8rem 1rem;background:var(--texto-bolha);border-radius:18px 18px 6px 18px}
+.digitar i{width:7px;height:7px;border-radius:50%;background:#c58b52;animation:salta 1s ease-in-out infinite}
+.digitar i:nth-child(2){animation-delay:.15s}.digitar i:nth-child(3){animation-delay:.3s}
+@keyframes salta{0%,60%,100%{transform:none;opacity:.5}30%{transform:translateY(-4px);opacity:1}}
+.entra{animation:entra .35s cubic-bezier(.2,1.3,.4,1) both}
+.voz.entra{transform-origin:0 100%}.texto.entra{transform-origin:100% 100%}
+@keyframes entra{from{opacity:0;transform:scale(.85) translateY(8px)}to{opacity:1;transform:none}}
+.resumo-bolha{align-self:center;width:min(28rem,96%);padding:.9rem 1.1rem;background:var(--branco);border:2px solid var(--laranja);border-radius:16px}
+.resumo-bolha h3{font-size:1rem;font-weight:800;color:var(--laranja-escuro)}
+.resumo-bolha ol{padding-left:1.3rem;margin-top:.3rem;font-size:1rem}
+.aviso{font-size:.9rem;color:var(--tinta-suave);padding:0 1.1rem .9rem;min-height:1.2rem}
+
+/* Segunda parte */
+.secao{padding:3.2rem 0}
+.secao + .secao{padding-top:0}
+.secao h2{font-size:clamp(1.8rem,3.8vw,2.7rem);line-height:1.1;font-weight:850;letter-spacing:-.03em;text-wrap:balance}
+.secao .lead{margin-top:.7rem;max-width:58ch;color:var(--tinta-suave);text-wrap:pretty}
+.acoes{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:1.4rem}
+.chip{min-height:3rem;padding:.4rem 1.2rem;border:2px solid var(--tinta);border-radius:999px;background:var(--branco);font-weight:750;font-size:1rem;transition:background-color .15s ease-out}
+.chip:hover{background:var(--fundo-2)}
+.chip[disabled]{opacity:.45;cursor:not-allowed}
+.chip[aria-pressed="true"]{background:var(--tinta);color:#fff}
+.resultado{margin-top:1.3rem;max-width:46rem;min-height:12rem;padding:1.3rem 1.5rem;background:var(--branco);border-radius:22px 22px 22px 6px;box-shadow:0 2px 4px rgba(15,42,79,.06),0 18px 36px -24px rgba(15,42,79,.4);white-space:pre-wrap;overflow-wrap:anywhere;font-size:1.05rem}
+.resultado.srt{font-family:ui-monospace,Consolas,monospace;font-size:.92rem}
+.resultado .vazio-txt{color:var(--tinta-suave)}
+.cartoes{list-style:none;padding:0;margin-top:1.6rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,14rem),1fr));gap:1rem}
+.cartoes li{background:var(--branco);border-radius:20px;padding:1.2rem 1.2rem 1.3rem;box-shadow:0 1px 2px rgba(15,42,79,.07)}
+.cartoes h3{font-size:1.15rem;font-weight:800}
+.cartoes h3 a{text-decoration-color:var(--laranja)}
+.cartoes p{margin-top:.4rem;font-size:1rem;color:var(--tinta-suave)}
+.garantias{list-style:none;padding:0;margin-top:1.6rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,21rem),1fr));gap:.9rem 2.5rem}
+.garantias li{display:grid;grid-template-columns:2rem minmax(0,1fr)}
+.garantias svg{width:1.35rem;height:1.35rem;color:var(--laranja-escuro);margin-top:.15rem}
+.garantias b{font-weight:800}
+.fecho{display:flex;flex-wrap:wrap;align-items:center;gap:1rem 1.6rem;margin-top:2.2rem}
+.fecho .botao{width:auto;margin-top:0}
+.fecho p{color:var(--tinta-suave);font-size:1rem}
+.fecho p b{color:var(--tinta)}
+.rodape{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.6rem 1.5rem;padding:1.4rem 0 2rem;border-top:1px solid #c5d8ee;font-size:.95rem}
+.rodape ul{display:flex;gap:1.2rem;list-style:none;padding:0;flex-wrap:wrap}
+
+/* Ao fazer scroll: cartões e garantias entram como mensagens */
+.anima .aparece{opacity:0;transform:translateY(14px) scale(.97);transition:opacity .45s ease-out,transform .5s cubic-bezier(.2,1.3,.4,1);transition-delay:calc(var(--i,0) * 90ms)}
+.anima .aparece.visto{opacity:1;transform:none}
+
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="simbolo" viewBox="0 0 56 64"><rect x="14" y="0" width="28" height="38" rx="14" fill="currentColor"/><path d="M20 12h16M20 19h10M20 26h13" stroke="#e4f0fc" stroke-width="2.6" stroke-linecap="round"/><path d="M16 42h24l-9.2 17.5a3 3 0 0 1-5.6 0z" fill="currentColor"/><path d="M28 46v8" stroke="#e4f0fc" stroke-width="2.2" stroke-linecap="round"/><circle cx="28" cy="46" r="2.3" fill="#e4f0fc"/></symbol>
+  <symbol id="nuvem" viewBox="0 0 24 24"><path d="M7 18a5 5 0 0 1-.6-9.96A6 6 0 0 1 17.7 9 4.5 4.5 0 0 1 17.5 18M12 12v8m-3.5-4.5L12 12l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="tick" viewBox="0 0 24 24"><path d="m4.5 12.5 4.5 4.5 10.5-11" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="play" viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z" fill="currentColor"/></symbol>
+  <symbol id="seta" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="caneta" viewBox="0 0 24 24"><path d="M4 20l4-1 10-10-3-3L5 16l-1 4zM14 7l3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</svg>
+
+<div class="largura">
+  <header class="cabecalho">
+    <a class="marca" href="/" aria-label="Ouviescrevi, página inicial"><svg class="simbolo" aria-hidden="true"><use href="#simbolo"/></svg><span class="palavra" aria-hidden="true">ouviescrevi</span></a>
+    <nav aria-label="Principal"><ul class="nav">
+      <li><a href="#seguinte">Ferramentas</a></li>
+      <li><a href="#para-quem">Para quem</a></li>
+      <li><a href="/ajuda.html">Ajuda</a></li>
+      <li class="manter"><a href="/index.html">Entrar</a></li>
+    </ul></nav>
+  </header>
+
+  <main>
+    <section class="topo" aria-labelledby="t1">
+      <div>
+        <h1 class="titulo" id="t1">Ouviste. Nós escrevemos.</h1>
+        <p class="sub">Mensagens de voz, aulas, entrevistas e reuniões passadas a texto em minutos, em português de Portugal.</p>
+        <div class="carregar">
+          <a class="zona" href="/index.html"><svg aria-hidden="true"><use href="#nuvem"/></svg><b>Larga aqui o ficheiro</b><span>Áudio ou vídeo (MP3, MP4, M4A, WAV…) até 500 MB</span></a>
+          <a class="botao" href="/index.html">Transcrever agora <svg aria-hidden="true"><use href="#seta"/></svg></a>
+          <ul class="condicoes">
+            <li><svg aria-hidden="true"><use href="#tick"/></svg>Sem registo</li>
+            <li><svg aria-hidden="true"><use href="#tick"/></svg>Ficheiros temporários apagados</li>
+            <li><svg aria-hidden="true"><use href="#tick"/></svg>Feito em Portugal</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="conversa" aria-labelledby="t-exemplo">
+        <div class="conversa-cab">
+          <div class="quem"><span class="avatar" aria-hidden="true">E</span><div><strong id="t-exemplo">Entrevista na loja da vila</strong><small>Exemplo ilustrativo · 0:40</small></div></div>
+          <button class="botao-ouvir" id="ouvir" type="button"><svg aria-hidden="true"><use href="#play"/></svg><span>Ouvir um exemplo</span></button>
+        </div>
+        <ol class="mensagens" id="mensagens" aria-live="polite">
+          <li class="vazio" id="vazio"><svg aria-hidden="true"><use href="#play"/></svg><br>Carrega em «Ouvir um exemplo»: cada mensagem de voz passa a texto à tua frente.<br><button class="ver-tudo" id="tudo" type="button">Ver o texto todo</button></li>
+        </ol>
+        <p class="aviso" id="aviso"></p>
+      </div>
+    </section>
+
+    <section class="secao" aria-labelledby="seguinte">
+      <h2 id="seguinte" class="aparece">O texto é só o princípio.</h2>
+      <p class="lead aparece">Com a transcrição pronta, pedes o resto no mesmo sítio. Experimenta com a conversa de cima:</p>
+      <div class="acoes" role="group" aria-label="O que fazer com o texto">
+        <button class="chip" type="button" data-fazer="resumo" aria-pressed="false" disabled>Fazer resumo</button>
+        <button class="chip" type="button" data-fazer="perguntas" aria-pressed="false" disabled>Criar perguntas</button>
+        <button class="chip" type="button" data-fazer="legendas" aria-pressed="false" disabled>Gerar legendas</button>
+        <button class="chip" type="button" data-fazer="email" aria-pressed="false" disabled>Escrever email</button>
+      </div>
+      <div class="resultado aparece" id="resultado" aria-live="polite"><span class="vazio-txt">Primeiro ouve o exemplo lá em cima. Depois escolhe o que queres fazer com o texto e o resultado aparece aqui.</span></div>
+    </section>
+
+    <section class="secao" aria-labelledby="para-quem">
+      <h2 id="para-quem" class="aparece">Para quem grava e precisa do texto</h2>
+      <ul class="cartoes">
+        <li class="aparece"><h3><a href="/aulas.html">Estudantes</a></h3><p>Aulas gravadas no telemóvel passam a apontamentos, resumo e perguntas.</p></li>
+        <li class="aparece"><h3><a href="/professores.html">Professores</a></h3><p>Legendas, fichas e quizzes para a turma a partir das aulas.</p></li>
+        <li class="aparece"><h3><a href="/jornalistas.html">Jornalistas</a></h3><p>Entrevistas com quem fala e citações com o minuto certo.</p></li>
+        <li class="aparece"><h3><a href="/reunioes.html">Empresas</a></h3><p>Reuniões do Zoom ou Teams passam a ata, tarefas e email.</p></li>
+        <li class="aparece"><h3><a href="/podcasts.html">Podcasts</a></h3><p>Episódios com texto, capítulos e descrição para o YouTube.</p></li>
+      </ul>
+    </section>
+
+    <section class="secao" aria-labelledby="garantias">
+      <h2 id="garantias" class="aparece">O que garantimos</h2>
+      <ul class="garantias">
+        <li class="aparece"><svg aria-hidden="true"><use href="#tick"/></svg><span><b>Português de Portugal.</b> Sotaques, nomes e expressões de cá, sem passar para o Brasil.</span></li>
+        <li class="aparece"><svg aria-hidden="true"><use href="#tick"/></svg><span><b>Sem registo para começar.</b> Experimentas antes de criar conta.</span></li>
+        <li class="aparece"><svg aria-hidden="true"><use href="#tick"/></svg><span><b>Ficheiros temporários.</b> O áudio é apagado depois de transcrito.</span></li>
+        <li class="aparece"><svg aria-hidden="true"><use href="#tick"/></svg><span><b>Ficheiros até 500 MB.</b> Do telemóvel, do gravador ou do Zoom.</span></li>
+        <li class="aparece"><svg aria-hidden="true"><use href="#tick"/></svg><span><b>Exporta como precisas.</b> Word, PDF, legendas SRT, WhatsApp ou email.</span></li>
+        <li class="aparece"><svg aria-hidden="true"><use href="#tick"/></svg><span><b>Feito em Portugal</b> por um programador independente.</span></li>
+      </ul>
+      <div class="fecho">
+        <a class="botao" href="/index.html">Transcrever o meu ficheiro <svg aria-hidden="true"><use href="#seta"/></svg></a>
+        <p>Grátis para começar · <b>3 transcrições por dia</b> sem conta, 20 com conta</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="rodape">
+    <span><b>Ouviescrevi</b> · Feito em Portugal</span>
+    <ul>
+      <li><a href="/privacidade.html">Privacidade</a></li>
+      <li><a href="/termos.html">Termos</a></li>
+      <li><a href="/cookies.html">Cookies</a></li>
+      <li><a href="/ajuda.html">Ajuda</a></li>
+    </ul>
+  </footer>
+</div>
+
+<script>
+(() => {
+  // Exemplo ilustrativo (não é uma gravação real).
+  const FALAS = [
+    ["00:00", "Jornalista", "Quando é que decidiu abrir a loja aqui na vila?"],
+    ["00:04", "Ana", "Foi em 2019. Já tinha clientes de fora e faltava um sítio para os receber."],
+    ["00:11", "Jornalista", "E o que mudou desde então?"],
+    ["00:14", "Ana", "Começámos só com pão e bolos. Agora fazemos encomendas para casamentos e batizados."],
+    ["00:26", "Ana", "Ao sábado vêm os vizinhos de sempre. No verão, os emigrantes que voltam."],
+    ["00:37", "Ana", "Prefiro fazer bem aqui do que fazer mais em todo o lado."]
+  ];
+  const RESULTADOS = {
+    resumo: "Resumo\n\n• A Ana abriu a loja na vila em 2019, porque já tinha clientes de fora.\n• Começou com pão e bolos; hoje também faz encomendas para casamentos e batizados.\n• Os clientes são vizinhos ao sábado e emigrantes no verão.\n• Não pensa abrir outra loja.",
+    perguntas: "Perguntas sobre a entrevista\n\n1. Em que ano abriu a loja?\n   a) 2017   b) 2019 ✓   c) 2021\n\n2. O que vendia no início?\n   a) Pão e bolos ✓   b) Café   c) Flores\n\n3. Quem aparece mais no verão?\n   a) Turistas   b) Emigrantes que voltam ✓   c) Estudantes",
+    legendas: "1\n00:00:00,000 --> 00:00:03,500\nQuando é que decidiu abrir\na loja aqui na vila?\n\n2\n00:00:04,000 --> 00:00:10,500\nFoi em 2019. Já tinha clientes de fora\ne faltava um sítio para os receber.",
+    email: "Assunto: Entrevista de hoje — obrigado\n\nOlá Ana,\n\nObrigado pelo tempo de hoje. Envio em anexo o texto completo para confirmar as citações antes de publicarmos.\n\nCumprimentos"
+  };
+
+  const $ = s => document.querySelector(s);
+  const lista = $("#mensagens"), vazio = $("#vazio"), ouvir = $("#ouvir"), aviso = $("#aviso"), resultado = $("#resultado");
+  const seguintes = [...document.querySelectorAll("[data-fazer]")];
+  const calmo = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const temFala = "speechSynthesis" in window;
+  let voz = null, corrida = 0, terminado = false;
+
+  const escolherVoz = () => { voz = temFala ? speechSynthesis.getVoices().find(v => /^pt[-_]PT/i.test(v.lang)) || null : null; };
+  if (temFala) { escolherVoz(); speechSynthesis.addEventListener?.("voiceschanged", escolherVoz); }
+  const pausa = ms => new Promise(r => setTimeout(r, ms));
+  const falar = texto => new Promise(r => {
+    if (!voz) return r();
+    const u = new SpeechSynthesisUtterance(texto);
+    u.voice = voz; u.lang = voz.lang; u.rate = 1.02;
+    const fim = setTimeout(r, 15000);
+    u.onend = u.onerror = () => { clearTimeout(fim); r(); };
+    speechSynthesis.speak(u);
+  });
+  const descer = () => { lista.scrollTop = lista.scrollHeight; };
+  const duracao = s => `0:${String(Math.max(2, Math.round(s.length / 14))).padStart(2, "0")}`;
+
+  // Bolha de voz com uma onda de 26 barras (alturas fixas por frase, para não mudarem a cada vez).
+  const bolhaVoz = (t, quem, texto) => {
+    const li = document.createElement("li");
+    li.className = "voz entra";
+    let semente = [...texto].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 9973, 7);
+    const barras = Array.from({ length: 26 }, () => { semente = (semente * 73 + 41) % 997; return `<i style="height:${20 + semente % 80}%"></i>`; }).join("");
+    li.innerHTML = `<span class="play" aria-hidden="true"><svg><use href="#play"/></svg></span><span class="onda" aria-hidden="true">${barras}</span><span class="meta"><b>${quem}</b>${duracao(texto)} · ${t}</span>`;
+    li.setAttribute("aria-label", `Mensagem de voz de ${quem}, ${t}`);
+    lista.appendChild(li);
+    return li;
+  };
+  const bolhaTexto = (t, quem) => {
+    const li = document.createElement("li");
+    li.className = "texto entra";
+    li.innerHTML = `<span class="autor">${quem}</span><span class="frase"></span><span class="rodape-bolha"><svg aria-hidden="true"><use href="#caneta"/></svg>transcrito · ${t}</span>`;
+    lista.appendChild(li);
+    return li.querySelector(".frase");
+  };
+  const resumoFinal = () => {
+    const li = document.createElement("li");
+    li.className = "resumo-bolha entra";
+    li.innerHTML = "<h3>Resumo em 3 pontos</h3><ol><li>A Ana abriu a loja na vila em 2019.</li><li>Hoje também faz encomendas para festas.</li><li>Prefere fazer bem num só sítio.</li></ol>";
+    lista.appendChild(li);
+  };
+
+  const terminar = () => {
+    terminado = true;
+    resumoFinal(); descer();
+    seguintes.forEach(b => b.disabled = false);
+    resultado.innerHTML = '<span class="vazio-txt">Conversa transcrita. Escolhe acima o que queres fazer com o texto.</span>';
+    ouvir.querySelector("span").textContent = "Ouvir outra vez";
+  };
+  const limpar = () => {
+    corrida++; if (temFala) speechSynthesis.cancel();
+    lista.innerHTML = ""; terminado = false;
+  };
+  const mostrarTudo = () => {
+    limpar();
+    FALAS.forEach(([t, q, s]) => {
+      bolhaVoz(t, q, s).querySelectorAll(".onda i").forEach(i => i.classList.add("tocada"));
+      bolhaTexto(t, q).textContent = s;
+    });
+    lista.querySelectorAll(".entra").forEach(e => e.classList.remove("entra"));
+    terminar();
+  };
+  const tocar = async () => {
+    limpar();
+    const esta = corrida;
+    aviso.textContent = voz ? "" : "Este aparelho não tem voz em português de Portugal: o exemplo corre sem som.";
+    for (const [t, quem, texto] of FALAS) {
+      if (esta !== corrida) return;
+      // 1. Chega a mensagem de voz e «toca»: a onda vai ficando laranja.
+      const b = bolhaVoz(t, quem, texto); descer();
+      await pausa(calmo ? 0 : 350);
+      b.classList.add("a-tocar");
+      const fala = falar(texto);
+      const barras = [...b.querySelectorAll(".onda i")];
+      const passo = calmo ? 0 : Math.max(30, Math.min(70, texto.length * 2.4));
+      for (const i of barras) { if (esta !== corrida) return; i.classList.add("tocada"); await pausa(passo); }
+      await fala;
+      b.classList.remove("a-tocar");
+      if (esta !== corrida) return;
+      // 2. «A escrever…» e depois aparece o texto.
+      let pontos = null;
+      if (!calmo) { pontos = document.createElement("li"); pontos.className = "digitar entra"; pontos.innerHTML = "<i></i><i></i><i></i>"; lista.appendChild(pontos); descer(); await pausa(650); pontos.remove(); }
+      if (esta !== corrida) return;
+      const frase = bolhaTexto(t, quem); descer();
+      if (calmo) frase.textContent = texto;
+      else for (let i = 1; i <= texto.length; i += 2) { if (esta !== corrida) return; frase.textContent = texto.slice(0, i); await pausa(14); }
+      frase.textContent = texto; descer();
+      await pausa(calmo ? 0 : 250);
+    }
+    if (esta === corrida) terminar();
+  };
+
+  ouvir.addEventListener("click", tocar);
+  $("#tudo").addEventListener("click", mostrarTudo);
+  seguintes.forEach(b => b.addEventListener("click", async () => {
+    if (!terminado) return;
+    seguintes.forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+    const chave = b.dataset.fazer, texto = RESULTADOS[chave];
+    resultado.classList.toggle("srt", chave === "legendas");
+    const minha = ++corrida;
+    if (calmo) { resultado.textContent = texto; return; }
+    resultado.textContent = "";
+    for (let i = 0; i <= texto.length; i += 3) { if (minha !== corrida) return; resultado.textContent = texto.slice(0, i); await pausa(10); }
+    resultado.textContent = texto;
+  }));
+
+  if (!calmo && "IntersectionObserver" in window) {
+    document.documentElement.classList.add("anima");
+    const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("visto"); io.unobserve(e.target); } }), { rootMargin: "0px 0px -8% 0px" });
+    document.querySelectorAll(".aparece").forEach(el => { el.style.setProperty("--i", el.tagName === "LI" ? [...el.parentElement.children].indexOf(el) : 0); io.observe(el); });
+  }
+  if (location.hash === "#pronto") { mostrarTudo(); seguintes[0].click(); }
+})();
+</script>
+<script src="assets/troca-design.js?v=3" defer></script>
+</body>
+</html>

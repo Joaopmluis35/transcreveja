@@ -163,6 +163,8 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
 - Outra versão a analisar: `frontend/design/inicio-cortica.html` (quadro de cortiça, fichas pregadas com pioneses,
   fio vermelho por trás das fichas a ligá-las; cada fala da entrevista é pregada numa ficha nova; ao fazer scroll as
   fichas da 2.ª parte são pregadas). Letra das fichas: Courier Prime.
+- Outra versão a analisar: `frontend/design/inicio-mensagens.html` (mensagens de voz que passam a texto numa
+  conversa; fundo azul-claro, botão laranja; não imita nenhuma app real).
 - **Menu «Design»** para saltar entre o site clássico e as versões novas: no site atual é um dropdown em
   `frontend/header.html` (depois de «Para quem»); nas páginas `frontend/design/inicio-*.html` é injetado por
   `frontend/design/assets/troca-design.js` (visível também no telemóvel).
