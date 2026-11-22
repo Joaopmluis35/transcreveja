@@ -105,8 +105,8 @@ button{font:inherit;color:inherit;cursor:pointer}
 .condicoes svg{width:1rem;height:1rem;color:#2f7d4f}
 
 .aula-cab{display:flex;align-items:center;justify-content:space-between;gap:.5rem 1rem;flex-wrap:wrap;min-height:calc(var(--l)*1.6)}
-.aula-cab h2{font-family:var(--giz-letra);font-weight:600;font-size:1.15rem;text-decoration:underline;text-decoration-color:rgba(238,241,232,.5);text-underline-offset:.3em}
-.aula-cab h2 small{font-size:.85rem;font-weight:400;color:var(--giz-suave);text-decoration:none;margin-left:.3rem}
+.aula-cab h2{font-family:var(--giz-letra);font-weight:600;font-size:1.15rem;line-height:1.4}
+.aula-cab h2 small{font-size:.85rem;font-weight:400;color:var(--giz-suave);margin-left:.3rem;white-space:nowrap}
 .controlos{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
 .botao-giz{display:inline-flex;align-items:center;gap:.5rem;min-height:2.6rem;padding:.3rem 1rem;background:transparent;border:2px solid rgba(238,241,232,.8);border-radius:4px;font-family:var(--giz-letra);font-weight:600;font-size:1rem;color:var(--giz);transition:background-color .2s ease-out,border-color .2s ease-out}
 .botao-giz:hover{background:rgba(238,241,232,.08);border-color:var(--giz)}
@@ -117,22 +117,37 @@ button{font:inherit;color:inherit;cursor:pointer}
 .estado{font-family:var(--giz-letra);font-weight:600;color:var(--giz-amarelo);transform:rotate(-3deg)}
 .estado[hidden]{display:none}
 
-.area-aula{position:relative;min-height:calc(var(--l)*10)}
+.area-aula{position:relative;min-height:calc(var(--l)*6)}
+@media (max-width:900px){.area-aula{min-height:0}}
 .transcricao{list-style:none;padding:0;font-family:var(--giz-letra);font-size:1.1rem;font-weight:400;line-height:1.55;color:var(--giz)}
 .transcricao li{display:grid;grid-template-columns:3.6rem 6.4rem minmax(0,1fr);padding:.22rem 0}
 .transcricao time{font-size:.9rem;color:var(--giz-suave);font-variant-numeric:tabular-nums;padding-top:.1rem}
 .transcricao b{font-weight:600;color:var(--giz-suave)}
 .transcricao li.agora .txt{text-decoration:underline;text-decoration-color:rgba(242,210,75,.75);text-decoration-thickness:2px;text-underline-offset:.28em}
-@media (max-width:560px){.transcricao li{grid-template-columns:3.2rem minmax(0,1fr)}.transcricao li b{grid-column:2}.transcricao li .txt{grid-column:2}}
-.cursor{display:inline-block;width:.45em;height:.18em;background:var(--giz);vertical-align:-.05em;margin-left:2px;border-radius:2px;animation:pisca 1s steps(1) infinite}
-@keyframes pisca{50%{opacity:0}}
+@media (max-width:560px){.transcricao li{grid-template-columns:3.2rem minmax(0,1fr)}.transcricao li b{grid-column:2}.transcricao li .fala{grid-column:2}}
+.cursor{display:inline-block;width:1px;height:1em;vertical-align:-.15em}
+
+/* Pau de giz que segue a escrita, com pó a cair */
+.pau{position:absolute;left:0;top:0;width:2.8rem;height:.6rem;margin-top:-.3rem;border-radius:.3rem;pointer-events:none;opacity:0;z-index:3;transform-origin:0 50%;
+  background:linear-gradient(#ffffff,#d6dbd0);box-shadow:0 3px 4px rgba(0,0,0,.45);transition:transform 70ms linear,opacity .3s ease-out}
+.pau::before{content:"";position:absolute;left:0;top:0;bottom:0;width:.5rem;border-radius:.3rem 0 0 .3rem;background:#e9ece4}
+.pau.ativo{opacity:1}
+.po{position:absolute;width:3px;height:3px;border-radius:50%;background:var(--giz);pointer-events:none;z-index:2;animation:cai .9s ease-in forwards}
+@keyframes cai{to{transform:translate(var(--dx,4px),28px);opacity:0}}
+
+/* Onda de som enquanto ouve */
+.onda{display:inline-flex;align-items:center;gap:3px;height:1.4rem}
+.onda[hidden]{display:none}
+.onda i{width:3px;height:100%;border-radius:2px;background:var(--giz-amarelo);transform:scaleY(.3);animation:onda .9s ease-in-out infinite}
+.onda i:nth-child(2){animation-delay:-.2s}.onda i:nth-child(3){animation-delay:-.45s}.onda i:nth-child(4){animation-delay:-.1s}.onda i:nth-child(5){animation-delay:-.6s}
+@keyframes onda{50%{transform:scaleY(1)}}
 .vazio{color:var(--giz-suave);font-family:var(--giz-letra);font-size:1.02rem;line-height:1.55}
 .vazio[hidden]{display:none}
 .vazio p{display:grid;grid-template-columns:3.6rem minmax(0,1fr);padding:.22rem 0}
 .vazio .traco{height:1.1rem;border-bottom:2px dotted rgba(238,241,232,.3);width:var(--w,60%)}
 
-.resumo-giz{position:relative;margin-top:calc(var(--l)*.6);padding:1rem 1.3rem 1.1rem;font-family:var(--giz-letra);opacity:0;visibility:hidden}
-.resumo-giz.visivel{opacity:1;visibility:visible}
+.resumo-giz{position:relative;margin-top:calc(var(--l)*.6);padding:1rem 1.3rem 1.1rem;font-family:var(--giz-letra);display:none}
+.resumo-giz.visivel{display:block}
 .resumo-giz svg.caixa{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
 .resumo-giz svg.caixa path{fill:none;stroke:var(--giz-amarelo);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;stroke-dasharray:var(--c,2000);stroke-dashoffset:var(--c,2000)}
 .resumo-giz.visivel svg.caixa path{animation:traco .9s cubic-bezier(.3,.7,.2,1) forwards}
@@ -236,6 +251,7 @@ button{font:inherit;color:inherit;cursor:pointer}
         <div class="aula-cab">
           <h2 id="t-exemplo">Exemplo: aula de História <small>(exemplo ilustrativo)</small></h2>
           <div class="controlos">
+            <span class="onda" id="onda" aria-hidden="true" hidden><i></i><i></i><i></i><i></i><i></i></span>
             <span class="estado" id="estado" hidden></span>
             <button class="botao-giz" id="ouvir" type="button"><svg aria-hidden="true"><use href="#play"/></svg><span>Ouvir um exemplo</span></button>
             <button class="ligacao" id="tudo" type="button">Ver o texto todo</button>
@@ -260,6 +276,7 @@ button{font:inherit;color:inherit;cursor:pointer}
             </ol>
           </div>
           <div class="apagador" id="apagador" aria-hidden="true"></div>
+          <div class="pau" id="pau" aria-hidden="true"></div>
         </div>
         <p class="aviso" id="aviso"></p>
       </div>
@@ -362,7 +379,27 @@ button{font:inherit;color:inherit;cursor:pointer}
   if (temFala) { escolherVoz(); speechSynthesis.addEventListener?.("voiceschanged", escolherVoz); }
 
   const pausa = ms => new Promise(r => setTimeout(r, ms));
-  const mudarEstado = t => { estado.hidden = !t; estado.textContent = t || ""; };
+  const onda = $("#onda"), pau = $("#pau");
+  const mudarEstado = t => { estado.hidden = !t; estado.textContent = t || ""; onda.hidden = !t || calmo; };
+
+  // O pau de giz fica com a ponta no fim do texto que está a ser escrito.
+  let letras = 0;
+  const moverGiz = cursor => {
+    if (calmo) return;
+    const a = area.getBoundingClientRect(), c = cursor.getBoundingClientRect();
+    const x = c.left - a.left, y = c.bottom - a.top - 6;
+    pau.classList.add("ativo");
+    pau.style.transform = `translate(${x}px, ${y}px) rotate(-30deg)`;
+    if (++letras % 5 === 0) {
+      const po = document.createElement("span");
+      po.className = "po";
+      po.style.left = `${x}px`; po.style.top = `${y + 4}px`;
+      po.style.setProperty("--dx", `${(Math.random() * 10 - 3).toFixed(1)}px`);
+      po.addEventListener("animationend", () => po.remove());
+      area.appendChild(po);
+    }
+  };
+  const largarGiz = () => pau.classList.remove("ativo");
   const falar = texto => new Promise(r => {
     if (!voz) return r();
     const u = new SpeechSynthesisUtterance(texto);
@@ -373,7 +410,7 @@ button{font:inherit;color:inherit;cursor:pointer}
   });
   const linha = (t, quem) => {
     const li = document.createElement("li");
-    li.innerHTML = `<time>${t}</time><b>${quem}</b><span class="txt"></span>`;
+    li.innerHTML = `<time>${t}</time><b>${quem}</b><span class="fala"><span class="txt"></span></span>`;
     lista.appendChild(li);
     return li;
   };
@@ -397,7 +434,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 
   const terminar = () => {
     terminado = true; temTexto = true;
-    mudarEstado("");
+    mudarEstado(""); largarGiz();
     lista.querySelectorAll(".agora").forEach(e => e.classList.remove("agora"));
     lista.querySelectorAll(".cursor").forEach(e => e.remove());
     resumo.classList.remove("visivel"); void resumo.offsetWidth; resumo.classList.add("visivel");
@@ -407,7 +444,7 @@ button{font:inherit;color:inherit;cursor:pointer}
   };
   const limpar = () => {
     corrida++; if (temFala) speechSynthesis.cancel();
-    lista.innerHTML = ""; resumo.classList.remove("visivel"); vazio.hidden = true;
+    lista.innerHTML = ""; resumo.classList.remove("visivel"); vazio.hidden = true; largarGiz();
   };
   const mostrarTudo = () => {
     limpar();
@@ -437,6 +474,7 @@ button{font:inherit;color:inherit;cursor:pointer}
       else for (let i = 1; i <= texto.length; i++) {
         if (esta !== corrida) return;
         alvo.textContent = texto.slice(0, i);
+        moverGiz(cursor);
         await pausa(voz ? 38 : 24);
       }
       await fala; cursor.remove();
