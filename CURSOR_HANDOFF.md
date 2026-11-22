@@ -160,7 +160,10 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   animada enquanto «ouve». O giz move-se com `requestAnimationFrame` (sem filtros SVG na lista, para ser fluido
   no telemóvel). Ao fazer scroll: títulos do 2.º quadro escrevem-se a giz, linhas da tabela e vistos aparecem
   em sequência (`IntersectionObserver`, classe `.anima` no `<html>`). Respeita «reduzir movimento». `#pronto` também funciona.
-- Letras alojadas em `frontend/design/assets/fonts/` (Schibsted Grotesk, Shantell Sans, Martian Mono).
+- Outra versão a analisar: `frontend/design/inicio-cortica.html` (quadro de cortiça, fichas pregadas com pioneses,
+  fio vermelho por trás das fichas a ligá-las; cada fala da entrevista é pregada numa ficha nova; ao fazer scroll as
+  fichas da 2.ª parte são pregadas). Letra das fichas: Courier Prime.
+- Letras alojadas em `frontend/design/assets/fonts/` (Schibsted Grotesk, Shantell Sans, Martian Mono, Courier Prime).
 - Cópia da página inicial antes do redesign: `backups/pagina-inicial-2026-11-22/` (index.html, CSS, logos e capturas).
 
 **Simulador (fase 0)**

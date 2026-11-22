@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ouviescrevi — Entrevistas, aulas e reuniões passadas a texto em português de Portugal</title>
+<meta name="description" content="Passa áudio e vídeo a texto em minutos, em português de Portugal. Grátis para começar, sem registo.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#b07a4f">
+<link rel="icon" href="assets/logo-simbolo.svg" type="image/svg+xml">
+<style>
+@font-face{font-family:"Schibsted Grotesk";font-style:normal;font-weight:400 900;font-display:swap;src:url("assets/fonts/schibsted-grotesk-latin-ext.woff2") format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"Schibsted Grotesk";font-style:normal;font-weight:400 900;font-display:swap;src:url("assets/fonts/schibsted-grotesk-latin.woff2") format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Courier Prime";font-style:normal;font-weight:400;font-display:swap;src:url("assets/fonts/courier-prime-400-latin-ext.woff2") format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"Courier Prime";font-style:normal;font-weight:400;font-display:swap;src:url("assets/fonts/courier-prime-400-latin.woff2") format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Courier Prime";font-style:normal;font-weight:700;font-display:swap;src:url("assets/fonts/courier-prime-700-latin-ext.woff2") format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"Courier Prime";font-style:normal;font-weight:700;font-display:swap;src:url("assets/fonts/courier-prime-700-latin.woff2") format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+
+:root{
+  --cortica:#b07a4f;
+  --tinta:#24170d;
+  --tinta-suave:#4a3322;
+  --papel:#fbfaf6;
+  --amarelo:#f6dc6a;
+  --linha-ficha:rgba(70,120,190,.28);
+  --vermelho:#c32f2a;
+  --madeira:#6f4a2c;
+  --sans:"Schibsted Grotesk",system-ui,sans-serif;
+  --maquina:"Courier Prime","Courier New",monospace;
+}
+*{box-sizing:border-box;margin:0}
+html{background:#d7dad3;color:var(--tinta);font-family:var(--sans);-webkit-text-size-adjust:100%;scroll-behavior:smooth;scrollbar-color:var(--madeira) #d7dad3}
+body{font-size:1.0625rem;line-height:1.55;min-height:100vh;padding:clamp(.5rem,2vw,1.5rem) clamp(.4rem,2vw,1.5rem)}
+::selection{background:var(--amarelo);color:var(--tinta)}
+a{color:inherit;text-underline-offset:.22em;text-decoration-thickness:1px}
+a:hover{text-decoration-thickness:2px}
+:focus-visible{outline:3px solid var(--vermelho);outline-offset:3px}
+button{font:inherit;color:inherit;cursor:pointer}
+
+/* O placard de cortiça com moldura */
+.placard{
+  position:relative;max-width:80rem;margin:0 auto;overflow-x:clip;
+  border:clamp(.45rem,1.2vw,.8rem) solid var(--madeira);
+  background-color:var(--cortica);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' seed='2'/%3E%3CfeColorMatrix values='0 0 0 0 .2 0 0 0 0 .12 0 0 0 0 .05 0 0 0 1.6 -.75'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23a)'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='170'%3E%3Cfilter id='b'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.55' numOctaves='2' seed='8'/%3E%3CfeColorMatrix values='0 0 0 0 .96 0 0 0 0 .82 0 0 0 0 .62 0 0 0 1.5 -.8'/%3E%3C/filter%3E%3Crect width='170' height='170' filter='url(%23b)'/%3E%3C/svg%3E");
+  box-shadow:inset 0 0 50px rgba(60,30,10,.35),0 18px 40px -20px rgba(0,0,0,.55);
+}
+.placard + .placard{margin-top:clamp(1rem,3vw,2rem)}
+.corpo{position:relative;padding:0 clamp(.9rem,4vw,3.5rem) clamp(1.5rem,4vw,3rem);display:flow-root}
+
+/* Pioneses e fichas */
+.pino{position:absolute;top:-.55rem;left:50%;width:1.15rem;height:1.15rem;margin-left:-.575rem;border-radius:50%;z-index:2;
+  background:radial-gradient(circle at 34% 30%,#ff8f86 0 12%,#e0453d 30%,#a71f1b 72%,#7c1210);box-shadow:2px 4px 3px rgba(40,10,0,.45)}
+.ficha{position:relative;background:var(--papel);color:var(--tinta);padding:1.1rem 1.2rem 1rem;border-radius:2px;
+  box-shadow:0 1px 1px rgba(40,20,5,.25),0 10px 18px -10px rgba(40,20,5,.6);transform:rotate(var(--r,0deg))}
+.ficha.pautada{background-image:linear-gradient(var(--vermelho),var(--vermelho)),repeating-linear-gradient(transparent 0 1.55em,var(--linha-ficha) 1.55em calc(1.55em + 1px));background-size:100% 1.5px,100% 100%;background-position:0 2.6rem,0 2.65rem;background-repeat:no-repeat,repeat}
+.ficha.amarela{background-color:var(--amarelo)}
+
+/* Logótipo e menu sobre a cortiça */
+.cabecalho{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1.1rem 0 .4rem}
+.marca{display:inline-flex;align-items:center;gap:.55rem;text-decoration:none;color:var(--tinta)}
+.marca svg.simbolo{width:2rem;height:2.4rem;flex:none;color:var(--tinta)}
+.marca .palavra{position:relative;font-weight:800;font-size:1.6rem;letter-spacing:-.03em;line-height:1}
+.marca .palavra i{font-style:normal;position:relative}
+.marca .palavra i svg{position:absolute;left:-.05em;bottom:-.42em;width:calc(100% + .15em);height:.5em;overflow:visible}
+.nav{display:flex;gap:clamp(.9rem,2.5vw,2.25rem);font-weight:700;list-style:none;padding:0}
+.nav a{text-decoration:none;white-space:nowrap;color:var(--tinta)}
+.nav a:hover{text-decoration:underline}
+@media (max-width:820px){.nav li:not(.manter){display:none}}
+
+/* Título numa tira de papel */
+.titulo-tira{margin:1.4rem auto 0;max-width:46rem;text-align:center;--r:-.6deg;padding:1.4rem 1.5rem 1.2rem}
+.titulo-tira h1{font-family:var(--maquina);font-weight:700;font-size:clamp(2rem,5.6vw,3.9rem);line-height:1.08;letter-spacing:-.02em;text-wrap:balance}
+.titulo-tira p{margin-top:.6rem;font-size:clamp(1rem,1.7vw,1.2rem);color:var(--tinta-suave);text-wrap:balance}
+
+/* Mural: ficha amarela + fichas da entrevista ligadas por fio */
+.mural{position:relative;margin-top:2.4rem;display:grid;grid-template-columns:minmax(16rem,22rem) minmax(0,1fr);gap:2.2rem clamp(1.5rem,3.5vw,3rem);align-items:start}
+@media (max-width:900px){.mural{grid-template-columns:1fr}}
+/* O fio passa por trás das fichas (só se vê entre elas), para nunca tapar o texto */
+.fio{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:visible}
+.mural .ficha,.mural .etiqueta,.mural .controlos{position:relative;z-index:1}
+.fio path{fill:none;stroke:var(--vermelho);stroke-width:2;stroke-linecap:round;filter:drop-shadow(1px 3px 1.5px rgba(40,10,0,.35))}
+
+.carregar{--r:-1.2deg}
+.carregar h2{font-family:var(--maquina);font-weight:700;font-size:1.5rem;line-height:1.2}
+.carregar p{font-size:.95rem;margin-top:.45rem;color:#3d2c17}
+.carregar .acoes{display:grid;gap:.6rem;margin-top:1rem}
+.escolher{display:flex;align-items:center;gap:.6rem;min-height:3rem;padding:.5rem .85rem;border:1.5px dashed #6b5320;border-radius:2px;text-decoration:none;font-weight:600;font-size:.95rem;background:rgba(255,255,255,.35);transition:background-color .2s ease-out}
+.escolher:hover{background:rgba(255,255,255,.65)}
+.escolher svg{width:1.15rem;height:1.15rem;flex:none}
+.botao{display:inline-flex;align-items:center;justify-content:center;gap:.55rem;min-height:3rem;padding:.4rem 1.3rem;background:var(--tinta);color:#fff;font-weight:800;font-size:1.05rem;text-decoration:none;border:0;border-radius:2px;line-height:1.2;
+  box-shadow:0 6px 14px -8px rgba(0,0,0,.7);transition:background-color .15s ease-out,transform .15s ease-out}
+.botao:hover{background:#3d2a1a}
+.botao:active{transform:translateY(1px)}
+.botao svg{width:1rem;height:1rem}
+.condicoes{list-style:none;padding:0;margin-top:.9rem;font-size:.9rem;font-weight:600;line-height:1.75}
+.condicoes li{display:flex;align-items:center;gap:.45rem}
+.condicoes svg{width:1rem;height:1rem;color:var(--vermelho)}
+
+.etiqueta{display:inline-flex;flex-wrap:wrap;align-items:center;gap:.6rem 1rem;background:var(--papel);padding:.55rem .9rem;border-radius:2px;box-shadow:0 6px 12px -8px rgba(40,20,5,.6);transform:rotate(.6deg)}
+.etiqueta h2{font-family:var(--maquina);font-weight:700;font-size:1.05rem}
+.etiqueta small{font-size:.82rem;color:var(--tinta-suave);font-weight:500}
+.controlos{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-top:.9rem}
+.botao-claro{display:inline-flex;align-items:center;gap:.5rem;min-height:2.7rem;padding:.3rem 1rem;background:var(--papel);border:0;border-radius:2px;font-weight:700;font-size:.98rem;color:var(--tinta);box-shadow:0 6px 12px -8px rgba(40,20,5,.7);transition:transform .15s ease-out}
+.botao-claro:hover{transform:translateY(-1px)}
+.botao-claro[disabled]{opacity:.55;cursor:not-allowed}
+.botao-claro svg{width:.95rem;height:.95rem;color:var(--vermelho)}
+.botao-claro[aria-pressed="true"]{background:var(--amarelo)}
+.ligacao{background:none;border:0;font-weight:700;font-size:.92rem;text-decoration:underline;text-underline-offset:.22em;color:var(--tinta);padding:.25rem}
+.estado{font-family:var(--maquina);font-weight:700;color:#fff;background:var(--vermelho);padding:.1rem .55rem;border-radius:2px;transform:rotate(-2deg);font-size:.88rem}
+.estado[hidden]{display:none}
+
+.fichas{list-style:none;padding:0;margin-top:1.6rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,15.5rem),1fr));gap:1.6rem 1.2rem}
+.fichas li{min-height:9.5rem}
+.fichas .cab{display:flex;gap:.6rem;font-family:var(--maquina);font-weight:700;font-size:.92rem;line-height:1.55em;height:1.55em;margin-bottom:.45rem}
+.fichas .cab time{color:var(--vermelho);font-variant-numeric:tabular-nums}
+.fichas .txt{font-family:var(--maquina);font-size:1rem;line-height:1.55em}
+.fichas li.agora{outline:3px solid var(--amarelo);outline-offset:3px}
+.cursor{display:inline-block;width:.55em;height:1.05em;background:var(--tinta);vertical-align:-.18em;margin-left:1px;animation:pisca 1s steps(1) infinite}
+@keyframes pisca{50%{opacity:0}}
+.vazio{margin-top:1.6rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,15.5rem),1fr));gap:1.6rem 1.2rem}
+.vazio[hidden]{display:none}
+.vazio div{min-height:9.5rem;border:2px dashed rgba(36,23,13,.45);border-radius:2px;display:grid;place-items:center;text-align:center;padding:1rem;font-weight:600;color:#2a1a0e;background:rgba(255,255,255,.12)}
+
+.extras{display:flex;flex-wrap:wrap;gap:1.6rem;margin-top:1.8rem;align-items:start}
+.extras[hidden]{display:none}
+.polaroide{width:12.5rem;background:#fff;padding:.7rem .7rem 1rem;--r:3deg;border-radius:2px}
+.polaroide .foto{height:8.5rem;background:#2f2a25;display:grid;place-items:center;color:#d8d2c8}
+.polaroide .foto svg{width:3.4rem;height:4rem;color:#e9e3d8}
+.polaroide p{font-family:var(--maquina);font-weight:700;text-align:center;margin-top:.6rem}
+.resumo{flex:1 1 18rem;--r:-1deg}
+.resumo h3{font-family:var(--maquina);font-weight:700;font-size:1.15rem;line-height:1.55em;height:1.55em;margin-bottom:.45rem}
+.resumo ol{font-family:var(--maquina);line-height:1.55em;padding-left:1.4rem}
+.aviso{font-size:.88rem;font-weight:600;color:#2a1a0e;min-height:1.5rem;margin-top:.8rem}
+
+/* Animação de pregar uma ficha: cai, roda e assenta; o pionés espeta-se */
+.pregar{animation:prega .55s cubic-bezier(.25,1.45,.45,1) both}
+.pregar .pino{animation:espeta .35s .3s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes prega{from{opacity:0;transform:translateY(-26px) rotate(calc(var(--r,0deg) - 7deg)) scale(1.04)}to{opacity:1;transform:rotate(var(--r,0deg))}}
+@keyframes espeta{from{transform:scale(1.9) translateY(-8px);opacity:0}to{transform:none;opacity:1}}
+
+/* Segunda parte */
+.tira{display:inline-block;margin-top:2.6rem;padding:.8rem 1.3rem;--r:-.8deg}
+.tira h2{font-family:var(--maquina);font-weight:700;font-size:clamp(1.5rem,3.4vw,2.3rem);line-height:1.15;text-wrap:balance}
+.secao-sub{margin-top:1rem;max-width:60ch;font-weight:600;color:#25170c;background:rgba(251,250,246,.82);display:inline-block;padding:.4rem .7rem;border-radius:2px}
+.seguintes{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:1.3rem}
+.resultado{margin-top:1.6rem;min-height:14rem;font-family:var(--maquina);font-size:1rem;line-height:1.55em;white-space:pre-wrap;overflow-wrap:anywhere;padding-top:3.1rem;--r:.4deg}
+.resultado .vazio-txt{color:#5b4a3b}
+.quem{list-style:none;padding:0;margin-top:1.8rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,14rem),1fr));gap:1.6rem 1.2rem}
+.quem li h3{font-family:var(--maquina);font-weight:700;font-size:1.15rem}
+.quem li h3 a{text-decoration-color:var(--vermelho)}
+.quem li p{margin-top:.4rem;font-size:.95rem}
+.quem li p b{display:block;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:#6a5444;margin-top:.5rem}
+.garantias{margin-top:1.8rem;max-width:52rem;--r:-.5deg;padding:1.4rem 1.5rem}
+.garantias ul{list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,20rem),1fr));gap:.7rem 2rem}
+.garantias li{display:grid;grid-template-columns:1.7rem minmax(0,1fr)}
+.garantias svg{width:1.25rem;height:1.25rem;color:var(--vermelho);margin-top:.15rem}
+.fecho{display:flex;flex-wrap:wrap;align-items:center;gap:1rem 1.5rem;margin-top:2rem}
+.assinatura{font-weight:600;color:#25170c;background:rgba(251,250,246,.82);padding:.35rem .7rem;border-radius:2px;font-size:.92rem}
+.rodape{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.6rem 1.5rem;margin-top:2.2rem;padding:.9rem 1.2rem;background:var(--papel);border-radius:2px;font-size:.9rem;align-items:center;box-shadow:0 6px 12px -8px rgba(40,20,5,.6)}
+.rodape ul{display:flex;gap:1.2rem;list-style:none;padding:0;flex-wrap:wrap}
+
+/* Ao fazer scroll: as fichas são pregadas quando aparecem */
+.anima .aparece{opacity:0}
+.anima .aparece.visto{animation:prega .6s cubic-bezier(.25,1.45,.45,1) both;animation-delay:calc(var(--i,0) * 110ms)}
+.anima .aparece.visto .pino{animation:espeta .35s cubic-bezier(.3,1.6,.5,1) both;animation-delay:calc(var(--i,0) * 110ms + .3s)}
+
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="simbolo" viewBox="0 0 56 64"><rect x="14" y="0" width="28" height="38" rx="14" fill="currentColor"/><path d="M20 12h16M20 19h10M20 26h13" stroke="#b07a4f" stroke-width="2.6" stroke-linecap="round"/><path d="M16 42h24l-9.2 17.5a3 3 0 0 1-5.6 0z" fill="currentColor"/><path d="M28 46v8" stroke="#b07a4f" stroke-width="2.2" stroke-linecap="round"/><circle cx="28" cy="46" r="2.3" fill="#b07a4f"/></symbol>
+  <symbol id="clip" viewBox="0 0 24 24"><path d="M20 11.5 12.4 19a5 5 0 0 1-7.1-7.1L13 4.2a3.3 3.3 0 0 1 4.7 4.7l-7.6 7.6a1.7 1.7 0 0 1-2.4-2.4L14.5 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="tick" viewBox="0 0 24 24"><path d="M3.5 13.2c2 1.4 3.6 3.2 5 5.3 2.8-5.6 6.6-10 11.8-13.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="play" viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z" fill="currentColor"/></symbol>
+  <symbol id="seta" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square"/></symbol>
+  <symbol id="risco" viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M1 6.5C25 3.5 60 2.6 99 5" fill="none" stroke="#c32f2a" stroke-width="3" stroke-linecap="round" vector-effect="non-scaling-stroke"/></symbol>
+  <symbol id="micro" viewBox="0 0 24 28"><rect x="7" y="1" width="10" height="15" rx="5" fill="currentColor"/><path d="M4 12a8 8 0 0 0 16 0M12 20v5M8 26h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+</svg>
+
+<main>
+<section class="placard" id="p1" aria-labelledby="t1">
+  <div class="corpo">
+    <header class="cabecalho">
+      <a class="marca" href="/" aria-label="Ouviescrevi, página inicial"><svg class="simbolo" aria-hidden="true"><use href="#simbolo"/></svg><span class="palavra" aria-hidden="true">ouvi<i>escrevi<svg><use href="#risco"/></svg></i></span></a>
+      <nav aria-label="Principal"><ul class="nav">
+        <li><a href="#seguinte">Ferramentas</a></li>
+        <li><a href="#para-quem">Para quem</a></li>
+        <li><a href="/ajuda.html">Ajuda</a></li>
+        <li class="manter"><a href="/index.html">Entrar</a></li>
+      </ul></nav>
+    </header>
+
+    <div class="ficha titulo-tira pregar">
+      <span class="pino" aria-hidden="true"></span>
+      <h1 id="t1">Ouviste. Nós escrevemos.</h1>
+      <p>Entrevistas, aulas e reuniões passadas a texto em minutos, em português de Portugal. Grátis para começar.</p>
+    </div>
+
+    <div class="mural" id="mural">
+      <svg class="fio" id="fio" aria-hidden="true"><path id="fio-linha" d=""/></svg>
+
+      <div class="ficha amarela carregar pregar" style="animation-delay:.15s">
+        <span class="pino" aria-hidden="true"></span>
+        <h2>Larga aqui o ficheiro</h2>
+        <p>Áudio ou vídeo do telemóvel, do gravador ou do Zoom. MP3, WAV, MP4 e outros, até 500 MB.</p>
+        <div class="acoes">
+          <a class="escolher" href="/index.html"><svg aria-hidden="true"><use href="#clip"/></svg>Escolher ficheiro</a>
+          <a class="botao" href="/index.html">Transcrever agora <svg aria-hidden="true"><use href="#seta"/></svg></a>
+        </div>
+        <ul class="condicoes">
+          <li><svg aria-hidden="true"><use href="#tick"/></svg>Sem registo</li>
+          <li><svg aria-hidden="true"><use href="#tick"/></svg>Ficheiros temporários apagados</li>
+          <li><svg aria-hidden="true"><use href="#tick"/></svg>Feito em Portugal</li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="etiqueta"><h2 id="t-exemplo">Exemplo: entrevista numa loja da vila</h2><small>(exemplo ilustrativo)</small></div>
+        <div class="controlos">
+          <span class="estado" id="estado" hidden></span>
+          <button class="botao-claro" id="ouvir" type="button"><svg aria-hidden="true"><use href="#play"/></svg><span>Ouvir um exemplo</span></button>
+          <button class="ligacao" id="tudo" type="button">Ver o texto todo</button>
+        </div>
+        <ol class="fichas" id="fichas" aria-labelledby="t-exemplo" aria-live="polite"></ol>
+        <div class="vazio" id="vazio" aria-hidden="true">
+          <div>Aqui vão ficar pregadas as fichas da entrevista.</div>
+          <div>Uma por cada vez que alguém fala, com o minuto certo.</div>
+        </div>
+        <div class="extras" id="extras" hidden>
+          <div class="polaroide ficha" id="polaroide"><span class="pino" aria-hidden="true"></span><div class="foto"><svg aria-hidden="true"><use href="#micro"/></svg></div><p>Entrevista · 0:40</p></div>
+          <div class="ficha pautada resumo" id="resumo"><span class="pino" aria-hidden="true"></span>
+            <h3>Resumo em 3 pontos</h3>
+            <ol>
+              <li>A Ana abriu a loja na vila em 2019.</li>
+              <li>Hoje também faz encomendas para festas.</li>
+              <li>Prefere fazer bem num só sítio.</li>
+            </ol>
+          </div>
+        </div>
+        <p class="aviso" id="aviso"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="placard" id="p2" aria-labelledby="seguinte">
+  <div class="corpo">
+    <div class="ficha tira aparece"><span class="pino" aria-hidden="true"></span><h2 id="seguinte">O texto é só o princípio.</h2></div>
+    <div><p class="secao-sub">Com a transcrição pronta, pedes o resto no mesmo sítio. Experimenta com a entrevista de cima:</p></div>
+    <div class="seguintes" role="group" aria-label="O que fazer com o texto">
+      <button class="botao-claro" type="button" data-fazer="resumo" aria-pressed="false" disabled>Fazer resumo</button>
+      <button class="botao-claro" type="button" data-fazer="perguntas" aria-pressed="false" disabled>Criar perguntas</button>
+      <button class="botao-claro" type="button" data-fazer="legendas" aria-pressed="false" disabled>Gerar legendas</button>
+      <button class="botao-claro" type="button" data-fazer="email" aria-pressed="false" disabled>Escrever email</button>
+    </div>
+    <div class="ficha pautada resultado aparece" id="resultado" aria-live="polite"><span class="pino" aria-hidden="true"></span><span class="vazio-txt">Primeiro ouve o exemplo lá em cima. Depois escolhe o que queres fazer com o texto e o resultado aparece nesta ficha.</span></div>
+
+    <div class="ficha tira aparece" style="--r:.7deg"><span class="pino" aria-hidden="true"></span><h2 id="para-quem">Para quem grava e precisa do texto</h2></div>
+    <ul class="quem">
+      <li class="ficha aparece" style="--r:-1.4deg"><span class="pino" aria-hidden="true"></span><h3><a href="/aulas.html">Estudantes</a></h3><p><b>Gravam</b>Aulas no telemóvel<b>Recebem</b>Apontamentos, resumo e perguntas para estudar</p></li>
+      <li class="ficha aparece" style="--r:1deg"><span class="pino" aria-hidden="true"></span><h3><a href="/professores.html">Professores</a></h3><p><b>Gravam</b>Aulas e vídeos<b>Recebem</b>Legendas, fichas e quizzes para a turma</p></li>
+      <li class="ficha aparece" style="--r:-.6deg"><span class="pino" aria-hidden="true"></span><h3><a href="/jornalistas.html">Jornalistas</a></h3><p><b>Gravam</b>Entrevistas<b>Recebem</b>Texto com quem fala e citações com o minuto certo</p></li>
+      <li class="ficha aparece" style="--r:1.5deg"><span class="pino" aria-hidden="true"></span><h3><a href="/reunioes.html">Empresas</a></h3><p><b>Gravam</b>Reuniões no Zoom ou Teams<b>Recebem</b>Ata, tarefas e email de seguimento</p></li>
+      <li class="ficha aparece" style="--r:-1deg"><span class="pino" aria-hidden="true"></span><h3><a href="/podcasts.html">Podcasts</a></h3><p><b>Gravam</b>Episódios<b>Recebem</b>Texto, capítulos e descrição para o YouTube</p></li>
+    </ul>
+
+    <div class="ficha amarela garantias aparece"><span class="pino" aria-hidden="true"></span>
+      <h2 style="font-family:var(--maquina);font-size:1.3rem;margin-bottom:.8rem">O que garantimos</h2>
+      <ul>
+        <li><svg aria-hidden="true"><use href="#tick"/></svg><span><b>Português de Portugal.</b> Sotaques, nomes e expressões de cá, sem passar para o Brasil.</span></li>
+        <li><svg aria-hidden="true"><use href="#tick"/></svg><span><b>Sem registo para começar.</b> Experimentas antes de criar conta.</span></li>
+        <li><svg aria-hidden="true"><use href="#tick"/></svg><span><b>Ficheiros temporários.</b> O áudio é apagado depois de transcrito.</span></li>
+        <li><svg aria-hidden="true"><use href="#tick"/></svg><span><b>Ficheiros até 500 MB.</b> Do telemóvel, do gravador ou do Zoom.</span></li>
+        <li><svg aria-hidden="true"><use href="#tick"/></svg><span><b>Exporta como precisas.</b> Word, PDF, legendas SRT, WhatsApp ou email.</span></li>
+        <li><svg aria-hidden="true"><use href="#tick"/></svg><span><b>Feito em Portugal</b> por um programador independente.</span></li>
+      </ul>
+    </div>
+    <div class="fecho">
+      <a class="botao" href="/index.html">Transcrever o meu ficheiro <svg aria-hidden="true"><use href="#seta"/></svg></a>
+      <p class="assinatura">Grátis para começar · <b>3 transcrições por dia</b> sem conta, 20 com conta</p>
+    </div>
+    <footer class="rodape">
+      <span><b>Ouviescrevi</b> · Feito em Portugal</span>
+      <ul>
+        <li><a href="/privacidade.html">Privacidade</a></li>
+        <li><a href="/termos.html">Termos</a></li>
+        <li><a href="/cookies.html">Cookies</a></li>
+        <li><a href="/ajuda.html">Ajuda</a></li>
+      </ul>
+    </footer>
+  </div>
+</section>
+</main>
+
+<script>
+(() => {
+  // Exemplo ilustrativo (não é uma gravação real).
+  const FALAS = [
+    ["00:00", "Jornalista", "Quando é que decidiu abrir a loja aqui na vila?"],
+    ["00:04", "Ana", "Foi em 2019. Já tinha clientes de fora e faltava um sítio para os receber."],
+    ["00:11", "Jornalista", "E o que mudou desde então?"],
+    ["00:14", "Ana", "Começámos só com pão e bolos. Agora fazemos encomendas para casamentos e batizados."],
+    ["00:26", "Ana", "Ao sábado vêm os vizinhos de sempre. No verão, os emigrantes que voltam."],
+    ["00:37", "Ana", "Prefiro fazer bem aqui do que fazer mais em todo o lado."]
+  ];
+  const RESULTADOS = {
+    resumo: "Resumo\n\n• A Ana abriu a loja na vila em 2019, porque já tinha clientes de fora.\n• Começou com pão e bolos; hoje também faz encomendas para casamentos e batizados.\n• Os clientes são vizinhos ao sábado e emigrantes no verão.\n• Não pensa abrir outra loja.",
+    perguntas: "Perguntas sobre a entrevista\n\n1. Em que ano abriu a loja?\n   a) 2017   b) 2019 ✓   c) 2021\n\n2. O que vendia no início?\n   a) Pão e bolos ✓   b) Café   c) Flores\n\n3. Quem aparece mais no verão?\n   a) Turistas   b) Emigrantes que voltam ✓   c) Estudantes",
+    legendas: "1\n00:00:00,000 --> 00:00:03,500\nQuando é que decidiu abrir\na loja aqui na vila?\n\n2\n00:00:04,000 --> 00:00:10,500\nFoi em 2019. Já tinha clientes de fora\ne faltava um sítio para os receber.",
+    email: "Assunto: Entrevista de hoje — obrigado\n\nOlá Ana,\n\nObrigado pelo tempo de hoje. Envio em anexo o texto completo para confirmar as citações antes de publicarmos.\n\nCumprimentos"
+  };
+
+  const $ = s => document.querySelector(s);
+  const fichas = $("#fichas"), vazio = $("#vazio"), extras = $("#extras"), estado = $("#estado"), mural = $("#mural");
+  const ouvir = $("#ouvir"), tudo = $("#tudo"), aviso = $("#aviso"), resultado = $("#resultado"), linhaFio = $("#fio-linha");
+  const seguintes = [...document.querySelectorAll("[data-fazer]")];
+  const calmo = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const temFala = "speechSynthesis" in window;
+  let voz = null, corrida = 0, terminado = false;
+
+  const escolherVoz = () => { voz = temFala ? speechSynthesis.getVoices().find(v => /^pt[-_]PT/i.test(v.lang)) || null : null; };
+  if (temFala) { escolherVoz(); speechSynthesis.addEventListener?.("voiceschanged", escolherVoz); }
+  const pausa = ms => new Promise(r => setTimeout(r, ms));
+  const mudarEstado = t => { estado.hidden = !t; estado.textContent = t || ""; };
+  const falar = texto => new Promise(r => {
+    if (!voz) return r();
+    const u = new SpeechSynthesisUtterance(texto);
+    u.voice = voz; u.lang = voz.lang; u.rate = 1.02;
+    const fim = setTimeout(r, 15000);
+    u.onend = u.onerror = () => { clearTimeout(fim); r(); };
+    speechSynthesis.speak(u);
+  });
+
+  // O fio vermelho passa por todos os pioneses do mural, com um pouco de folga entre eles.
+  const desenharFio = (animar = true) => {
+    const m = mural.getBoundingClientRect();
+    const pinos = [...mural.querySelectorAll(".pino")].filter(p => p.offsetParent && getComputedStyle(p.closest(".ficha")).opacity !== "0")
+      .map(p => { const r = p.getBoundingClientRect(); return [r.left + r.width / 2 - m.left, r.top + r.height / 2 - m.top]; });
+    if (pinos.length < 2) { linhaFio.setAttribute("d", ""); return; }
+    let d = `M${pinos[0][0]},${pinos[0][1]}`;
+    for (let i = 1; i < pinos.length; i++) {
+      const [x0, y0] = pinos[i - 1], [x1, y1] = pinos[i];
+      const folga = Math.min(40, Math.hypot(x1 - x0, y1 - y0) * .12);
+      d += ` Q${(x0 + x1) / 2},${Math.max(y0, y1) + folga} ${x1},${y1}`;
+    }
+    const antes = linhaFio.getTotalLength ? linhaFio.getTotalLength() : 0;
+    linhaFio.setAttribute("d", d);
+    const total = linhaFio.getTotalLength();
+    linhaFio.style.strokeDasharray = total;
+    if (!animar || calmo) { linhaFio.style.strokeDashoffset = 0; return; }
+    linhaFio.animate([{ strokeDashoffset: total - Math.min(antes, total) }, { strokeDashoffset: 0 }], { duration: 450, easing: "cubic-bezier(.3,.7,.2,1)", fill: "forwards" });
+  };
+  addEventListener("resize", () => desenharFio(false));
+
+  const novaFicha = (t, quem) => {
+    const li = document.createElement("li");
+    li.className = "ficha pautada pregar";
+    li.style.setProperty("--r", `${(Math.random() * 4 - 2).toFixed(1)}deg`);
+    li.innerHTML = `<span class="pino" aria-hidden="true"></span><div class="cab"><time>${t}</time><span>${quem}</span></div><div class="txt"></div>`;
+    fichas.appendChild(li);
+    return li;
+  };
+  const pregarExtras = () => {
+    extras.hidden = false;
+    [$("#polaroide"), $("#resumo")].forEach((el, i) => { el.classList.remove("pregar"); void el.offsetWidth; el.style.animationDelay = `${i * .25}s`; el.classList.add("pregar"); });
+    setTimeout(() => desenharFio(), calmo ? 0 : 650);
+  };
+  const terminar = () => {
+    terminado = true;
+    mudarEstado("");
+    fichas.querySelectorAll(".agora").forEach(e => e.classList.remove("agora"));
+    fichas.querySelectorAll(".cursor").forEach(e => e.remove());
+    pregarExtras();
+    seguintes.forEach(b => b.disabled = false);
+    resultado.innerHTML = '<span class="pino" aria-hidden="true"></span><span class="vazio-txt">Entrevista transcrita. Escolhe acima o que queres fazer com o texto.</span>';
+    ouvir.querySelector("span").textContent = "Ouvir outra vez";
+  };
+  const limpar = () => {
+    corrida++; if (temFala) speechSynthesis.cancel();
+    fichas.innerHTML = ""; extras.hidden = true; vazio.hidden = true; desenharFio(false);
+  };
+  const mostrarTudo = () => {
+    limpar();
+    FALAS.forEach(([t, q, s]) => { const li = novaFicha(t, q); li.classList.remove("pregar"); li.querySelector(".txt").textContent = s; });
+    terminar();
+    desenharFio(false);
+  };
+  const tocar = async () => {
+    limpar();
+    const esta = corrida;
+    aviso.textContent = voz ? "" : "Este aparelho não tem voz em português de Portugal: o exemplo corre sem som.";
+    mudarEstado("A OUVIR"); await pausa(calmo ? 0 : 600);
+    if (esta !== corrida) return;
+    mudarEstado("A ESCREVER");
+    for (const [t, quem, texto] of FALAS) {
+      if (esta !== corrida) return;
+      fichas.querySelectorAll(".agora").forEach(e => e.classList.remove("agora"));
+      const li = novaFicha(t, quem), alvo = li.querySelector(".txt");
+      li.classList.add("agora");
+      await pausa(calmo ? 0 : 380);
+      desenharFio();
+      const cursor = document.createElement("span"); cursor.className = "cursor"; alvo.after(cursor);
+      const fala = falar(texto);
+      if (calmo) alvo.textContent = texto;
+      else for (let i = 1; i <= texto.length; i++) {
+        if (esta !== corrida) return;
+        alvo.textContent = texto.slice(0, i);
+        await pausa((voz ? 34 : 22) + (/[ .,?!]/.test(texto[i - 1]) ? 30 : 0));
+      }
+      await fala; cursor.remove();
+      await pausa(calmo ? 0 : 200);
+    }
+    if (esta === corrida) terminar();
+  };
+
+  ouvir.addEventListener("click", tocar);
+  tudo.addEventListener("click", mostrarTudo);
+  seguintes.forEach(b => b.addEventListener("click", async () => {
+    if (!terminado) return;
+    seguintes.forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+    const texto = RESULTADOS[b.dataset.fazer];
+    const caixa = document.createElement("span");
+    resultado.innerHTML = '<span class="pino" aria-hidden="true"></span>'; resultado.appendChild(caixa);
+    const minha = ++corrida;
+    if (calmo) { caixa.textContent = texto; return; }
+    for (let i = 0; i <= texto.length; i += 3) {
+      if (minha !== corrida) return;
+      caixa.textContent = texto.slice(0, i);
+      await pausa(10);
+    }
+    caixa.textContent = texto;
+  }));
+
+  // Ao fazer scroll, as fichas da segunda parte são pregadas quando aparecem.
+  if (!calmo && "IntersectionObserver" in window) {
+    document.documentElement.classList.add("anima");
+    const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add("visto"); io.unobserve(e.target); } }), { rootMargin: "0px 0px -8% 0px" });
+    document.querySelectorAll(".aparece").forEach(el => { el.style.setProperty("--i", el.parentElement.classList.contains("quem") ? [...el.parentElement.children].indexOf(el) : 0); io.observe(el); });
+  }
+  if (document.fonts) document.fonts.ready.then(() => desenharFio(false));
+  if (location.hash === "#pronto") { mostrarTudo(); seguintes[0].click(); }
+})();
+</script>
+</body>
+</html>
