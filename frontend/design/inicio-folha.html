@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ouviescrevi — Áudio e vídeo passados a texto em português de Portugal</title>
+<meta name="description" content="Passa áudio e vídeo a texto em minutos, em português de Portugal. Grátis para começar, sem registo.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
+<style>
+@font-face{font-family:"Schibsted Grotesk";font-style:normal;font-weight:400 900;font-display:swap;src:url("assets/fonts/schibsted-grotesk-latin-ext.woff2") format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"Schibsted Grotesk";font-style:normal;font-weight:400 900;font-display:swap;src:url("assets/fonts/schibsted-grotesk-latin.woff2") format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Martian Mono";font-style:normal;font-weight:100 800;font-display:swap;src:url("assets/fonts/martian-mono-latin-ext.woff2") format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"Martian Mono";font-style:normal;font-weight:100 800;font-display:swap;src:url("assets/fonts/martian-mono-latin.woff2") format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+
+:root{
+  --papel:#f5f7fb;
+  --papel-campo:#ffffff;
+  --mesa:#dfe5ef;
+  --tinta:#1b4597;
+  --tinta-forte:#11306e;
+  --tinta-suave:#3c5f9f;
+  --pauta:rgba(27,69,151,.2);
+  --pauta-forte:rgba(27,69,151,.55);
+  --realce:rgba(27,69,151,.08);
+  --carimbo:#c22f2c;
+  --l:2.4rem;
+  --margem:3.5rem;
+  --sans:"Schibsted Grotesk",system-ui,sans-serif;
+  --mono:"Martian Mono",ui-monospace,monospace;
+}
+@media (max-width:720px){:root{--l:2rem;--margem:2.25rem}}
+
+*{box-sizing:border-box;margin:0}
+html{background:var(--mesa);color:var(--tinta);font-family:var(--sans);font-size:100%;-webkit-text-size-adjust:100%;scrollbar-color:var(--tinta-suave) var(--mesa);scroll-behavior:smooth}
+body{line-height:var(--l);font-size:1.0625rem;min-height:100vh;caret-color:var(--carimbo)}
+::selection{background:var(--tinta);color:var(--papel)}
+a{color:inherit;text-underline-offset:.22em;text-decoration-thickness:1px}
+a:hover{text-decoration-thickness:2px}
+:focus-visible{outline:3px solid var(--carimbo);outline-offset:3px}
+button{font:inherit;color:inherit;cursor:pointer}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* A folha */
+.folha{
+  position:relative;max-width:76rem;margin:0 auto;background:var(--papel);
+  background-image:linear-gradient(to bottom,transparent calc(var(--l) - 1px),var(--pauta) calc(var(--l) - 1px));
+  background-size:100% var(--l);
+  box-shadow:0 1px 2px rgba(17,48,110,.12),0 18px 40px -18px rgba(17,48,110,.35);
+  padding-left:var(--margem);
+}
+.folha + .folha{margin-top:var(--l)}
+.margem{
+  position:absolute;top:0;bottom:0;left:0;width:var(--margem);border-right:1px solid var(--pauta-forte);
+  font-family:var(--mono);font-size:.72rem;color:var(--tinta-suave);text-align:right;padding-right:.7rem;
+  font-variant-numeric:tabular-nums;user-select:none;overflow:hidden;
+}
+.margem span{display:block;height:var(--l)}
+.corpo{padding:0 clamp(1rem,4vw,3.5rem);min-width:0}
+
+/* Cabeçalho do impresso */
+.cabecalho{display:flex;align-items:center;justify-content:space-between;gap:1rem;height:calc(var(--l)*2);box-shadow:inset 0 -2px 0 var(--tinta)}
+.marca{display:flex;align-items:center;gap:.55rem;font-weight:800;font-size:1.45rem;letter-spacing:-.02em;text-decoration:none}
+.marca svg{width:1.6rem;height:1.6rem}
+.nav{display:flex;gap:clamp(.9rem,2.5vw,2.25rem);font-weight:600;font-size:1rem;list-style:none;padding:0}
+.nav a{text-decoration:none;white-space:nowrap}
+.nav a:hover{text-decoration:underline}
+.ref{font-family:var(--mono);font-size:.68rem;color:var(--tinta-suave);white-space:nowrap}
+@media (max-width:1080px){.ref{display:none}}
+@media (max-width:820px){.nav li:not(.manter){display:none}}
+
+/* Título nas linhas 3–6 */
+.titulo{margin-top:var(--l);font-size:clamp(2.35rem,6.2vw,4.75rem);line-height:calc(var(--l)*2);font-weight:800;letter-spacing:-.035em;color:var(--tinta-forte);text-wrap:balance}
+.sub{font-size:clamp(1.05rem,1.7vw,1.3rem);font-weight:500;max-width:46ch;text-wrap:pretty}
+.sub strong{font-weight:700}
+
+/* Campos de impresso */
+.campo-rotulo{display:block;font-weight:700;font-size:.95rem;margin-top:var(--l)}
+.campo-rotulo small{font-weight:500;color:var(--tinta-suave);font-size:.85rem;margin-left:.4rem}
+.pedido{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.75rem;align-items:center;min-height:calc(var(--l)*2)}
+.ficheiro{
+  display:flex;align-items:center;gap:.7rem;height:calc(var(--l)*1.5);padding:0 1rem;background:var(--papel-campo);
+  box-shadow:inset 0 0 0 1.5px var(--tinta);text-decoration:none;color:var(--tinta-suave);font-weight:500;min-width:0;
+  transition:box-shadow .2s ease-out,background-color .2s ease-out;
+}
+.ficheiro:hover{box-shadow:inset 0 0 0 2.5px var(--tinta);color:var(--tinta)}
+.ficheiro svg{flex:none;width:1.2rem;height:1.2rem;color:var(--tinta)}
+.ficheiro span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.botao{
+  display:inline-flex;align-items:center;justify-content:center;gap:.55rem;height:calc(var(--l)*1.5);padding:0 1.4rem;
+  background:var(--tinta);color:var(--papel);font-weight:700;font-size:1.05rem;text-decoration:none;border:0;white-space:nowrap;
+  box-shadow:0 1px 0 var(--tinta-forte),0 6px 14px -8px rgba(17,48,110,.7);transition:background-color .15s ease-out,transform .15s ease-out;
+}
+.botao:hover{background:var(--tinta-forte)}
+.botao:active{transform:translateY(1px)}
+.botao--linha{background:transparent;color:var(--tinta);box-shadow:inset 0 0 0 1.5px var(--tinta)}
+.botao--linha:hover{background:var(--realce)}
+.botao[disabled]{opacity:.45;cursor:not-allowed}
+.botao svg{width:1rem;height:1rem}
+.garantias{display:flex;flex-wrap:wrap;gap:0 1.6rem;font-size:.92rem;font-weight:600;list-style:none;padding:0;min-height:var(--l)}
+.garantias li{display:flex;align-items:center;gap:.45rem}
+.visto{width:.95rem;height:.95rem;flex:none;box-shadow:inset 0 0 0 1.5px var(--tinta);display:grid;place-items:center}
+.visto svg{width:.8rem;height:.8rem}
+@media (max-width:720px){.pedido{grid-template-columns:1fr;gap:0}.pedido .botao{width:100%}}
+
+/* Exemplo que se escreve */
+.exemplo-cab{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-top:var(--l);min-height:calc(var(--l)*2)}
+.exemplo-cab h2{font-size:.95rem;font-weight:700}
+.exemplo-cab h2 small{font-weight:500;color:var(--tinta-suave);font-size:.85rem;margin-left:.35rem}
+.controlos{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
+.controlos .botao{height:calc(var(--l)*1.2);font-size:.95rem;padding:0 1rem}
+.som{font-size:.85rem;font-weight:600;background:none;border:0;text-decoration:underline;text-underline-offset:.22em;padding:.2rem}
+.estado{font-family:var(--mono);font-size:.68rem;font-weight:700;letter-spacing:.12em;color:var(--carimbo);box-shadow:inset 0 0 0 1.5px var(--carimbo);padding:0 .5rem;line-height:1.6rem;transform:rotate(-2deg);mix-blend-mode:multiply}
+.estado[hidden]{display:none}
+
+.transcricao{position:relative;list-style:none;padding:0;min-height:calc(var(--l)*9);font-size:1rem}
+.transcricao li{display:grid;grid-template-columns:5.2rem minmax(0,1fr);transition:background-color .3s ease-out}
+.transcricao li.agora{background:var(--realce)}
+.transcricao time{font-family:var(--mono);font-size:.74rem;color:var(--tinta-suave);font-variant-numeric:tabular-nums}
+.transcricao b{font-weight:700}
+.transcricao .cursor{display:inline-block;width:.5ch;background:var(--carimbo);height:1.05em;vertical-align:-.15em;margin-left:1px;animation:pisca 1s steps(1) infinite}
+@keyframes pisca{50%{opacity:0}}
+.vazio{position:absolute;inset:0;display:grid;align-content:start;color:var(--tinta-suave);font-size:.95rem}
+.vazio[hidden]{display:none}
+.vazio p{display:grid;grid-template-columns:5.2rem minmax(0,1fr)}
+.vazio i{font-style:normal;font-family:var(--mono);font-size:.74rem}
+.vazio span.traco{border-bottom:1.5px dotted var(--pauta-forte);height:calc(var(--l)*.62);width:var(--w,60%)}
+.aviso{font-size:.82rem;color:var(--tinta-suave);min-height:var(--l)}
+
+/* O carimbo */
+.carimbo{
+  position:absolute;right:clamp(.5rem,4vw,3rem);bottom:calc(var(--l)*.2);pointer-events:none;
+  color:var(--carimbo);font-family:var(--sans);text-transform:uppercase;text-align:center;mix-blend-mode:multiply;
+  padding:.5rem 1.1rem .6rem;box-shadow:inset 0 0 0 4px var(--carimbo),inset 0 0 0 7px var(--papel),inset 0 0 0 9px var(--carimbo);
+  filter:url(#tinta);opacity:0;transform:rotate(-9deg) scale(1.6);
+}
+.carimbo strong{display:block;font-size:clamp(1.7rem,3.4vw,2.6rem);font-weight:900;letter-spacing:.08em;line-height:1.05}
+.carimbo span{display:block;font-family:var(--mono);font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:none;line-height:1.4}
+.carimbo.batido{animation:bate .42s cubic-bezier(.2,1.4,.4,1) forwards}
+@keyframes bate{0%{opacity:0;transform:rotate(-14deg) scale(1.7);filter:url(#tinta) blur(6px)}60%{opacity:.95}100%{opacity:.9;transform:rotate(-9deg) scale(1);filter:url(#tinta) blur(0)}}
+.folha.abanada{animation:abana .3s ease-out}
+@keyframes abana{30%{transform:translateY(2px)}100%{transform:none}}
+
+/* Folha 2: o que vem a seguir */
+.secao-titulo{margin-top:var(--l);font-size:clamp(1.6rem,3.4vw,2.4rem);line-height:calc(var(--l)*1.5);font-weight:800;letter-spacing:-.025em;color:var(--tinta-forte);text-wrap:balance}
+.secao-sub{max-width:60ch;color:var(--tinta);text-wrap:pretty}
+.seguintes{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:var(--l);min-height:calc(var(--l)*1.5)}
+.seguintes .botao{height:calc(var(--l)*1.25);font-size:.98rem}
+.seguintes .botao[aria-pressed="true"]{background:var(--tinta);color:var(--papel)}
+.resultado{margin-top:calc(var(--l)*.5);min-height:calc(var(--l)*7);background:var(--papel-campo);box-shadow:inset 0 0 0 1.5px var(--tinta);padding:calc(var(--l)*.5) 1.2rem;font-size:1rem;white-space:pre-wrap;overflow-wrap:anywhere}
+.resultado.srt{font-family:var(--mono);font-size:.82rem}
+.resultado .vazio-txt{color:var(--tinta-suave)}
+
+/* Para quem: tabela de impresso */
+.tabela{width:100%;border-collapse:collapse;margin-top:var(--l);font-size:1rem}
+.tabela th,.tabela td{text-align:left;vertical-align:top;padding:0 1rem 0 0;line-height:var(--l)}
+.tabela thead th{font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;color:var(--tinta-suave);font-weight:700;text-transform:uppercase}
+.tabela tbody th{font-weight:800;white-space:nowrap}
+.tabela tbody tr{box-shadow:inset 0 -1px 0 var(--pauta-forte)}
+@media (max-width:720px){.tabela thead{display:none}.tabela tr{display:block;padding-bottom:var(--l)}.tabela th,.tabela td{display:block;padding:0}}
+
+/* Garantias: caixas assinaladas */
+.declaracao{list-style:none;padding:0;margin-top:var(--l);display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,22rem),1fr));gap:0 2.5rem}
+.declaracao li{display:grid;grid-template-columns:1.6rem minmax(0,1fr);align-items:start}
+.declaracao .visto{width:1.15rem;height:1.15rem;margin-top:calc((var(--l) - 1.15rem)/2)}
+.declaracao b{font-weight:700}
+.fecho{display:flex;flex-wrap:wrap;align-items:center;gap:1rem 1.5rem;margin-top:var(--l);min-height:calc(var(--l)*3)}
+.assinatura{font-size:.92rem;color:var(--tinta-suave)}
+.assinatura b{color:var(--tinta);font-weight:700}
+
+.rodape{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.5rem 1.5rem;margin-top:var(--l);box-shadow:inset 0 2px 0 var(--tinta);font-size:.88rem;min-height:calc(var(--l)*2);align-items:center}
+.rodape ul{display:flex;gap:1.2rem;list-style:none;padding:0;flex-wrap:wrap}
+.mesa-fundo{height:var(--l)}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+  .carimbo{transform:rotate(-9deg)}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="tinta" x="-10%" y="-10%" width="120%" height="120%">
+    <feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="7" result="ruido"/>
+    <feColorMatrix in="ruido" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.3 1.55" result="falhas"/>
+    <feComposite in="SourceGraphic" in2="falhas" operator="in" result="gasto"/>
+    <feDisplacementMap in="gasto" in2="ruido" scale="1.6"/>
+  </filter>
+  <symbol id="mic" viewBox="0 0 24 24"><rect x="8.5" y="2.5" width="7" height="12" rx="3.5" fill="currentColor"/><path d="M5 11.5a7 7 0 0 0 14 0M12 18.5v3M8.5 21.5h7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="clip" viewBox="0 0 24 24"><path d="M20 11.5 12.4 19a5 5 0 0 1-7.1-7.1L13 4.2a3.3 3.3 0 0 1 4.7 4.7l-7.6 7.6a1.7 1.7 0 0 1-2.4-2.4L14.5 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="ok" viewBox="0 0 24 24"><path d="m4.5 12.5 4.5 4.5 10.5-11" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="square"/></symbol>
+  <symbol id="play" viewBox="0 0 24 24"><path d="M7 4.5v15l12-7.5z" fill="currentColor"/></symbol>
+  <symbol id="seta" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="square"/></symbol>
+</svg>
+
+<main>
+<!-- Folha 1 -->
+<section class="folha" id="folha1" aria-labelledby="t1">
+  <div class="margem" aria-hidden="true"></div>
+  <div class="corpo">
+    <header class="cabecalho">
+      <a class="marca" href="/"><svg aria-hidden="true"><use href="#mic"/></svg>Ouviescrevi</a>
+      <nav aria-label="Principal"><ul class="nav">
+        <li><a href="#seguinte">Ferramentas</a></li>
+        <li><a href="#para-quem">Para quem</a></li>
+        <li><a href="/ajuda.html">Ajuda</a></li>
+        <li class="manter"><a href="/index.html">Entrar</a></li>
+      </ul></nav>
+      <span class="ref">Folha 1 de 2</span>
+    </header>
+
+    <h1 class="titulo" id="t1">Ouviste. Nós escrevemos.</h1>
+    <p class="sub">Áudio ou vídeo passado a texto em minutos, <strong>em português de Portugal</strong>, com quem fala e quando. Grátis para começar.</p>
+
+    <label class="campo-rotulo" for="ficheiro">Ficheiro de áudio ou vídeo <small>MP3, WAV, MP4 e outros · até 500 MB</small></label>
+    <div class="pedido">
+      <a class="ficheiro" id="ficheiro" href="/index.html"><svg aria-hidden="true"><use href="#clip"/></svg><span>Escolhe um ficheiro do computador ou do telemóvel</span></a>
+      <a class="botao" href="/index.html">Transcrever agora <svg aria-hidden="true"><use href="#seta"/></svg></a>
+    </div>
+    <ul class="garantias" aria-label="Condições">
+      <li><span class="visto"><svg aria-hidden="true"><use href="#ok"/></svg></span>Sem registo</li>
+      <li><span class="visto"><svg aria-hidden="true"><use href="#ok"/></svg></span>Ficheiros temporários apagados</li>
+      <li><span class="visto"><svg aria-hidden="true"><use href="#ok"/></svg></span>Feito em Portugal</li>
+    </ul>
+
+    <div class="exemplo-cab">
+      <h2 id="t-exemplo">Exemplo: entrevista numa loja da vila <small>(exemplo ilustrativo)</small></h2>
+      <div class="controlos">
+        <span class="estado" id="estado" hidden></span>
+        <button class="botao botao--linha" id="ouvir" type="button"><svg aria-hidden="true"><use href="#play"/></svg><span>Ouvir um exemplo</span></button>
+        <button class="som" id="tudo" type="button">Ver o texto todo</button>
+      </div>
+    </div>
+    <div style="position:relative;padding-bottom:calc(var(--l)*3)">
+      <ol class="transcricao" id="transcricao" aria-labelledby="t-exemplo" aria-live="polite"></ol>
+      <div class="vazio" id="vazio" aria-hidden="true">
+        <p><i>[00:00]</i><span class="traco" style="--w:62%"></span></p>
+        <p><i>[00:00]</i><span class="traco" style="--w:78%"></span></p>
+        <p><i>[00:00]</i><span class="traco" style="--w:45%"></span></p>
+        <p><i>[00:00]</i><span class="traco" style="--w:70%"></span></p>
+        <p><i></i><span>Carrega em «Ouvir um exemplo» e vê o texto a escrever-se aqui.</span></p>
+      </div>
+      <div class="carimbo" id="carimbo" aria-hidden="true"><strong>Transcrito</strong><span>Entrada n.º 004812</span></div>
+    </div>
+    <p class="aviso" id="aviso"></p>
+  </div>
+</section>
+
+<!-- Folha 2 -->
+<section class="folha" id="folha2" aria-labelledby="seguinte">
+  <div class="margem" aria-hidden="true"></div>
+  <div class="corpo">
+    <header class="cabecalho"><span class="marca" aria-hidden="true"><svg><use href="#mic"/></svg>Ouviescrevi</span><span class="ref">Folha 2 de 2</span></header>
+
+    <h2 class="secao-titulo" id="seguinte">O texto é só o princípio.</h2>
+    <p class="secao-sub">Com a transcrição pronta, pedes o resto no mesmo sítio. Experimenta com o exemplo de cima:</p>
+    <div class="seguintes" role="group" aria-label="O que fazer com o texto">
+      <button class="botao botao--linha" type="button" data-fazer="resumo" aria-pressed="false" disabled>Fazer resumo</button>
+      <button class="botao botao--linha" type="button" data-fazer="perguntas" aria-pressed="false" disabled>Criar perguntas</button>
+      <button class="botao botao--linha" type="button" data-fazer="legendas" aria-pressed="false" disabled>Gerar legendas</button>
+      <button class="botao botao--linha" type="button" data-fazer="email" aria-pressed="false" disabled>Escrever email</button>
+    </div>
+    <div class="resultado" id="resultado" aria-live="polite"><span class="vazio-txt">Primeiro ouve o exemplo na folha 1. Depois escolhe o que queres fazer com o texto e o resultado aparece aqui.</span></div>
+
+    <h2 class="secao-titulo" id="para-quem">Para quem grava e precisa do texto</h2>
+    <table class="tabela">
+      <thead><tr><th scope="col">Quem</th><th scope="col">Grava</th><th scope="col">Recebe</th></tr></thead>
+      <tbody>
+        <tr><th scope="row"><a href="/aulas.html">Estudantes</a></th><td>Aulas no telemóvel</td><td>Apontamentos, resumo e perguntas para estudar</td></tr>
+        <tr><th scope="row"><a href="/professores.html">Professores</a></th><td>Aulas e vídeos</td><td>Legendas, fichas e quizzes para a turma</td></tr>
+        <tr><th scope="row"><a href="/jornalistas.html">Jornalistas</a></th><td>Entrevistas</td><td>Texto com quem fala e citações com o minuto certo</td></tr>
+        <tr><th scope="row"><a href="/reunioes.html">Empresas</a></th><td>Reuniões no Zoom ou Teams</td><td>Ata, tarefas e email de seguimento</td></tr>
+        <tr><th scope="row"><a href="/podcasts.html">Podcasts</a></th><td>Episódios</td><td>Texto, capítulos e descrição para o YouTube</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="secao-titulo">O que garantimos</h2>
+    <ul class="declaracao">
+      <li><span class="visto"><svg aria-hidden="true"><use href="#ok"/></svg></span><span><b>Português de Portugal.</b> Sotaques, nomes e expressões de cá, sem passar para o Brasil.</span></li>
+      <li><span class="visto"><svg aria-hidden="true"><use href="#ok"/></svg></span><span><b>Sem registo para começar.</b> Experimentas antes de criar conta.</span></li>
+      <li><span class="visto"><svg aria-hidden="true"><use href="#ok"/></svg></span><span><b>Ficheiros temporários.</b> O áudio é apagado depois de transcrito.</span></li>
+      <li><span class="visto"><svg aria-hidden="true"><use href="#ok"/></svg></span><span><b>Ficheiros até 500 MB.</b> Do telemóvel, do gravador ou do Zoom.</span></li>
+      <li><span class="visto"><svg aria-hidden="true"><use href="#ok"/></svg></span><span><b>Exporta como precisas.</b> Word, PDF, legendas SRT, WhatsApp ou email.</span></li>
+      <li><span class="visto"><svg aria-hidden="true"><use href="#ok"/></svg></span><span><b>Feito em Portugal</b> por um programador independente.</span></li>
+    </ul>
+    <div class="fecho">
+      <a class="botao" href="/index.html">Transcrever o meu ficheiro <svg aria-hidden="true"><use href="#seta"/></svg></a>
+      <p class="assinatura">Grátis para começar · <b>3 transcrições por dia</b> sem conta, 20 com conta</p>
+    </div>
+
+    <footer class="rodape">
+      <span>Ouviescrevi · Feito em Portugal</span>
+      <ul>
+        <li><a href="/privacidade.html">Privacidade</a></li>
+        <li><a href="/termos.html">Termos</a></li>
+        <li><a href="/cookies.html">Cookies</a></li>
+        <li><a href="/ajuda.html">Ajuda</a></li>
+      </ul>
+    </footer>
+  </div>
+</section>
+<div class="mesa-fundo"></div>
+</main>
+
+<script>
+(() => {
+  // Exemplo ilustrativo (não é uma gravação real).
+  const FALAS = [
+    ["00:00", "Jornalista", "Quando é que decidiu abrir a loja aqui na vila?"],
+    ["00:04", "Ana", "Foi em 2019. Já tinha clientes de fora e faltava um sítio para os receber."],
+    ["00:11", "Jornalista", "E o que mudou desde então?"],
+    ["00:14", "Ana", "Muita coisa. Começámos só com pão e bolos, agora fazemos encomendas para casamentos e batizados."],
+    ["00:23", "Jornalista", "Quem é que vem cá mais?"],
+    ["00:26", "Ana", "Os vizinhos de sempre, ao sábado de manhã. E no verão, os emigrantes que voltam."],
+    ["00:34", "Jornalista", "Pensa em abrir outra loja?"],
+    ["00:37", "Ana", "Para já não. Prefiro fazer bem aqui do que fazer mais em todo o lado."]
+  ];
+  const RESULTADOS = {
+    resumo: "Resumo\n\n• A Ana abriu a loja na vila em 2019, porque já tinha clientes de fora e não havia onde os receber.\n• Começou com pão e bolos; hoje também faz encomendas para casamentos e batizados.\n• Os clientes são sobretudo vizinhos ao sábado e emigrantes no verão.\n• Não pensa abrir outra loja: prefere fazer bem num só sítio.",
+    perguntas: "Perguntas sobre a entrevista\n\n1. Em que ano abriu a loja?\n   a) 2017   b) 2019 ✓   c) 2021\n\n2. O que vendia a loja no início?\n   a) Pão e bolos ✓   b) Café e sandes   c) Flores\n\n3. Quem aparece mais no verão?\n   a) Turistas estrangeiros   b) Estudantes   c) Emigrantes que voltam ✓",
+    legendas: "1\n00:00:00,000 --> 00:00:03,500\nQuando é que decidiu abrir\na loja aqui na vila?\n\n2\n00:00:04,000 --> 00:00:10,500\nFoi em 2019. Já tinha clientes de fora\ne faltava um sítio para os receber.\n\n3\n00:00:11,000 --> 00:00:13,500\nE o que mudou desde então?",
+    email: "Assunto: Entrevista de hoje — obrigado\n\nOlá Ana,\n\nObrigado pelo tempo que nos deu hoje. Ficaram registados os pontos principais: a abertura da loja em 2019, as encomendas para casamentos e batizados e o movimento dos emigrantes no verão.\n\nEnvio o texto completo em anexo para confirmar as citações antes de publicarmos.\n\nCumprimentos"
+  };
+
+  const $ = s => document.querySelector(s);
+  const lista = $("#transcricao"), vazio = $("#vazio"), carimbo = $("#carimbo"), estado = $("#estado");
+  const ouvir = $("#ouvir"), tudo = $("#tudo"), aviso = $("#aviso"), resultado = $("#resultado");
+  const seguintes = [...document.querySelectorAll("[data-fazer]")];
+  const calmo = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const temFala = "speechSynthesis" in window;
+  let voz = null, corrida = 0, terminado = false;
+
+  // Números da margem acompanham a altura de cada folha.
+  const numerar = folha => {
+    const m = folha.querySelector(".margem");
+    const l = parseFloat(getComputedStyle(folha).backgroundSize.split(" ")[1]) || 38;
+    const n = Math.round(folha.querySelector(".corpo").offsetHeight / l);
+    if (m.childElementCount === n) return;
+    m.innerHTML = Array.from({length: n}, (_, i) => `<span>${i + 1}</span>`).join("");
+  };
+  document.querySelectorAll(".folha").forEach(f => { numerar(f); new ResizeObserver(() => numerar(f)).observe(f); });
+
+  // Só uma voz de Portugal; uma voz do Brasil contrariava o que o exemplo quer provar.
+  const escolherVoz = () => { voz = temFala ? speechSynthesis.getVoices().find(v => /^pt[-_]PT/i.test(v.lang)) || null : null; };
+  if (temFala) { escolherVoz(); speechSynthesis.addEventListener?.("voiceschanged", escolherVoz); }
+
+  const pausa = ms => new Promise(r => setTimeout(r, ms));
+  const mudarEstado = t => { estado.hidden = !t; estado.textContent = t || ""; };
+
+  const falar = texto => new Promise(r => {
+    if (!voz) return r();
+    const u = new SpeechSynthesisUtterance(texto);
+    u.voice = voz; u.lang = voz.lang; u.rate = 1.02;
+    const fim = setTimeout(r, 15000);
+    u.onend = u.onerror = () => { clearTimeout(fim); r(); };
+    speechSynthesis.speak(u);
+  });
+
+  const linha = (t, quem) => {
+    const li = document.createElement("li");
+    li.innerHTML = `<time>[${t}]</time><span><b>${quem}:</b> <span class="txt"></span></span>`;
+    lista.appendChild(li);
+    return li;
+  };
+
+  const terminar = () => {
+    terminado = true;
+    mudarEstado("");
+    lista.querySelectorAll(".agora").forEach(e => e.classList.remove("agora"));
+    lista.querySelectorAll(".cursor").forEach(e => e.remove());
+    carimbo.classList.remove("batido"); void carimbo.offsetWidth; carimbo.classList.add("batido");
+    if (!calmo) { const f = $("#folha1"); f.classList.remove("abanada"); setTimeout(() => f.classList.add("abanada"), 260); }
+    seguintes.forEach(b => b.disabled = false);
+    resultado.innerHTML = '<span class="vazio-txt">Texto pronto. Escolhe acima o que queres fazer com ele.</span>';
+    ouvir.querySelector("span").textContent = "Ouvir outra vez";
+  };
+
+  const limpar = () => {
+    corrida++; if (temFala) speechSynthesis.cancel();
+    lista.innerHTML = ""; carimbo.classList.remove("batido"); vazio.hidden = true;
+  };
+
+  const mostrarTudo = () => {
+    limpar();
+    FALAS.forEach(([t, q, s]) => { linha(t, q).querySelector(".txt").textContent = s; });
+    terminar();
+  };
+
+  const tocar = async () => {
+    limpar();
+    const minha = corrida;
+    aviso.textContent = voz ? "" : "Este aparelho não tem voz em português de Portugal: o exemplo corre sem som.";
+    mudarEstado("RECEBIDO"); await pausa(calmo ? 0 : 700);
+    if (minha !== corrida) return;
+    mudarEstado("A TRANSCREVER");
+    for (const [t, quem, texto] of FALAS) {
+      if (minha !== corrida) return;
+      const li = linha(t, quem), alvo = li.querySelector(".txt");
+      lista.querySelectorAll(".agora").forEach(e => e.classList.remove("agora"));
+      li.classList.add("agora");
+      const cursor = document.createElement("span"); cursor.className = "cursor"; alvo.after(cursor);
+      const fala = falar(texto);
+      if (calmo) alvo.textContent = texto;
+      else for (let i = 1; i <= texto.length; i++) {
+        if (minha !== corrida) return;
+        alvo.textContent = texto.slice(0, i);
+        await pausa(voz ? 38 : 26);
+      }
+      await fala; cursor.remove();
+      await pausa(calmo ? 0 : 250);
+    }
+    if (minha === corrida) terminar();
+  };
+
+  ouvir.addEventListener("click", tocar);
+  tudo.addEventListener("click", mostrarTudo);
+
+  seguintes.forEach(b => b.addEventListener("click", async () => {
+    if (!terminado) return;
+    seguintes.forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+    const chave = b.dataset.fazer, texto = RESULTADOS[chave];
+    resultado.classList.toggle("srt", chave === "legendas");
+    const minha = ++corrida;
+    if (calmo) { resultado.textContent = texto; return; }
+    resultado.textContent = "";
+    for (let i = 0; i <= texto.length; i += 4) {
+      if (minha !== corrida) return;
+      resultado.textContent = texto.slice(0, i);
+      await pausa(8);
+    }
+    resultado.textContent = texto;
+  }));
+
+  // #pronto abre a página já com o exemplo transcrito (útil para mostrar e para capturas).
+  if (location.hash === "#pronto") { mostrarTudo(); seguintes[0].click(); }
+})();
+</script>
+</body>
+</html>

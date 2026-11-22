@@ -142,6 +142,20 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   - Não mexido: o aviso «A ligar ao servidor…» já existe em 5 línguas (`ouviescrevi-api.js`) e a API está acordada
     pelo `keep-api-awake.yml`.
 
+**22/11 — proposta de novo design (caderno quadriculado), ainda à parte**
+- `frontend/design/inicio-caderno.html` (escolhida pelo João): nova página inicial em estilo caderno quadriculado,
+  tinta azul, post-it para carregar o ficheiro, exemplo de entrevista que se escreve sozinho (voz do aparelho só se
+  houver voz pt-PT; senão corre sem som) e botões Resumo/Perguntas/Legendas/Email com resultados já preparados.
+  Exemplo e resultados são **ilustrativos**. `#pronto` no URL abre com o exemplo já feito. `noindex`.
+  **Ainda não substitui a `index.html`:** os botões de carregar levam à ferramenta atual (`/index.html`); para a
+  trocar é preciso ligar o carregamento real (API, jobs, recorte) a esta página.
+- Logótipo novo (microfone que termina num aparo de caneta, «escrevi» sublinhado a vermelho):
+  `frontend/design/assets/logo-ouviescrevi.svg`, `logo-simbolo.svg`, folha de apresentação `frontend/design/logo.html`.
+  Ainda só usado na página nova.
+- Alternativa não escolhida: `frontend/design/inicio-folha.html` (folha de 25 linhas com carimbo).
+- Letras alojadas em `frontend/design/assets/fonts/` (Schibsted Grotesk, Shantell Sans, Martian Mono).
+- Cópia da página inicial antes do redesign: `backups/pagina-inicial-2026-11-22/` (index.html, CSS, logos e capturas).
+
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).
 

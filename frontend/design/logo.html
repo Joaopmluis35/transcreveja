@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Logótipo Ouviescrevi</title>
+<meta name="robots" content="noindex">
+<style>
+@font-face{font-family:"Schibsted Grotesk";font-weight:400 900;font-display:swap;src:url("assets/fonts/schibsted-grotesk-latin.woff2") format("woff2")}
+:root{--tinta:#1e3fa8;--vermelho:#d23b35;--papel:#fbfdff;--grelha:rgba(64,128,204,.2)}
+body{margin:0;min-height:100vh;display:grid;place-items:center;gap:3rem;padding:3rem 1rem;font-family:"Schibsted Grotesk",system-ui,sans-serif;color:var(--tinta);
+  background-color:var(--papel);background-image:linear-gradient(var(--grelha) 1px,transparent 1px),linear-gradient(90deg,var(--grelha) 1px,transparent 1px);background-size:1.2rem 1.2rem}
+.marca{display:flex;align-items:center;gap:1.4rem}
+.marca svg.s{width:5.5rem;height:6.6rem}
+.palavra{font-weight:800;font-size:clamp(3rem,9vw,6rem);letter-spacing:-.03em;line-height:1}
+.palavra i{font-style:normal;position:relative}
+.palavra i svg{position:absolute;left:-.05em;bottom:-.42em;width:calc(100% + .15em);height:.5em;overflow:visible}
+.linha{display:flex;gap:2.5rem;align-items:end;flex-wrap:wrap;justify-content:center}
+.linha figure{margin:0;display:grid;justify-items:center;gap:.6rem;font-size:.85rem}
+.inv{background:var(--tinta);padding:1.2rem 1.6rem;color:#fff;display:flex;align-items:center;gap:.8rem}
+.inv .palavra{font-size:2.4rem}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="simbolo" viewBox="0 0 56 64"><rect x="14" y="0" width="28" height="38" rx="14" fill="currentColor"/><path d="M20 12h16M20 19h10M20 26h13" stroke="var(--fundo,#fbfdff)" stroke-width="2.6" stroke-linecap="round"/><path d="M16 42h24l-9.2 17.5a3 3 0 0 1-5.6 0z" fill="currentColor"/><path d="M28 46v8" stroke="var(--fundo,#fbfdff)" stroke-width="2.2" stroke-linecap="round"/><circle cx="28" cy="46" r="2.3" fill="var(--fundo,#fbfdff)"/></symbol>
+  <symbol id="risco" viewBox="0 0 100 10" preserveAspectRatio="none"><path d="M1 6.5C25 3.5 60 2.6 99 5" fill="none" stroke="#d23b35" stroke-width="5" stroke-linecap="round" vector-effect="non-scaling-stroke"/></symbol>
+</svg>
+<div class="marca" role="img" aria-label="Logótipo Ouviescrevi"><svg class="s"><use href="#simbolo"/></svg><span class="palavra">ouvi<i>escrevi<svg><use href="#risco"/></svg></i></span></div>
+<div class="linha">
+  <figure><svg style="width:4rem;height:4.6rem"><use href="#simbolo"/></svg><figcaption>Símbolo</figcaption></figure>
+  <figure><svg style="width:1.6rem;height:1.85rem"><use href="#simbolo"/></svg><figcaption>Tamanho de ícone</figcaption></figure>
+  <figure><div class="inv" style="--fundo:#1e3fa8"><svg style="width:2.2rem;height:2.6rem;color:#fff"><use href="#simbolo"/></svg><span class="palavra">ouviescrevi</span></div><figcaption>Sobre azul</figcaption></figure>
+</div>
+</body>
+</html>

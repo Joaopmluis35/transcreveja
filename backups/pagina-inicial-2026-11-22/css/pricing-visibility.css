@@ -1,0 +1,13 @@
+/* Modo gratuito — esconder preços até o JS confirmar o contrário */
+html.oe-pricing-hidden [data-pricing-only],
+html.oe-pricing-hidden .oe-pricing-only {
+  display: none !important;
+}
+
+html.oe-pricing-hidden [data-pricing-free-only] {
+  display: block;
+}
+
+html:not(.oe-pricing-hidden) [data-pricing-free-only] {
+  display: none !important;
+}
