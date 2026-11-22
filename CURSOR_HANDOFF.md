@@ -153,6 +153,9 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   `frontend/design/assets/logo-ouviescrevi.svg`, `logo-simbolo.svg`, folha de apresentação `frontend/design/logo.html`.
   Ainda só usado na página nova.
 - Alternativa não escolhida: `frontend/design/inicio-folha.html` (folha de 25 linhas com carimbo).
+- Outra versão a analisar: `frontend/design/inicio-ardosia.html` (quadro de ardósia verde, giz, cartão com íman).
+  Animações: título escrito a giz ao abrir, aula de História (Tordesilhas, ilustrativa) a escrever-se, caixa
+  «Resumo em 3 pontos» desenhada no fim, apagador ao repetir. Respeita «reduzir movimento». `#pronto` também funciona.
 - Letras alojadas em `frontend/design/assets/fonts/` (Schibsted Grotesk, Shantell Sans, Martian Mono).
 - Cópia da página inicial antes do redesign: `backups/pagina-inicial-2026-11-22/` (index.html, CSS, logos e capturas).
 
