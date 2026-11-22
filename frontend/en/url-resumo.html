@@ -19,7 +19,7 @@
   <link rel="canonical" href="https://www.ouviescrevi.pt/en/url-resumo.html">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png">
   <link rel="stylesheet" href="../css/ouviescrevi.css?v=49">
-  <link rel="stylesheet" href="../css/url-resumo.css?v=6">
+  <link rel="stylesheet" href="../css/url-resumo.css?v=9">
   <script src="../js/theme-ui.js?v=3"></script>
   <script src="/js/ouviescrevi-seo.js" defer></script>
   <script src="../js/ouviescrevi-ui.js?v=32" defer></script>
@@ -48,6 +48,9 @@
           <select id="urlModo">
             <option value="normal">Classic and direct</option>
             <option value="minuta">Bullet-point minutes</option>
+              <option value="pontos">Pontos-chave</option>
+              <option value="simples">Explicado de forma simples</option>
+              <option value="detalhado">Detalhado com subtítulos</option>
           </select>
         </div>
         <button type="button" class="oe-url-form__submit" id="btnUrlResumo">Generate Summary</button>
@@ -69,7 +72,8 @@
 <div id="footer"></div>
 
 <script src="../js/ouviescrevi-api.js?v=27"></script>
-<script src="../js/url-resumo-ui.js?v=1" defer></script>
+<script src="/js/docx-export.js?v=25" defer></script>
+  <script src="../js/url-resumo-ui.js?v=2" defer></script>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     UrlResumoUI.init({ lang: "en", apiLang: "en" });

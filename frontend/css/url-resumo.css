@@ -304,3 +304,27 @@ body.oe-page--url-resumo .container.oe-url-page {
 /* O estilo geral dos botões da página não se sobrepõe ao botão principal */
 body.oe-pro .oe-url-form .oe-url-form__submit { background: #e46c12 !important; color: #fff !important; border: 0 !important; }
 body.oe-pro .oe-url-form .oe-url-form__submit:hover:not(:disabled) { background: #c95e0d !important; }
+
+/* Campo do link com botão «Colar» */
+.oe-url-campo { display: flex; gap: 8px; align-items: stretch; }
+.oe-url-campo .oe-url-input { flex: 1 1 auto; min-width: 0; }
+body.oe-pro .oe-url-colar { flex: none; width: auto !important; min-width: 0 !important; min-height: 48px; padding: 0 16px !important; border: 1.5px solid var(--pro-border-strong, #cbd5e1) !important; border-radius: 12px;
+  background: #fff !important; color: var(--pro-text) !important; font: inherit; font-weight: 700; cursor: pointer; }
+body.oe-pro .oe-url-colar:hover { background: var(--pro-accent-soft, #e4f0fc) !important; }
+
+/* Ficha do artigo lido (título, site, palavras, tempo poupado) */
+.oe-url-ficha { margin-bottom: 14px; padding: 14px 16px; border-radius: 14px; background: var(--pro-accent-muted, #f4f9ff); border: 1px solid var(--pro-border, #e2e8f0); }
+.oe-url-ficha__titulo { margin: 0; font-weight: 800; font-size: 1.08rem; line-height: 1.35; color: var(--pro-text); }
+.oe-url-ficha__meta { margin: 4px 0 0; font-size: .9rem; color: var(--pro-text-secondary, #475569); }
+.oe-url-ficha__nota { margin: 6px 0 0; font-size: .85rem; color: var(--pro-text-secondary, #475569); }
+.oe-url-output__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* Perguntas sobre o artigo */
+.oe-url-perguntas { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--pro-border, #e2e8f0); }
+.oe-url-perguntas__titulo { margin: 0 0 10px; font-size: 1.05rem; font-weight: 800; color: var(--pro-text); }
+.oe-url-perguntas__form { display: flex; gap: 8px; }
+.oe-url-perguntas__form .oe-url-input { flex: 1 1 auto; min-width: 0; }
+.oe-url-perguntas__item { margin-bottom: 12px; }
+.oe-url-perguntas__q { margin: 0; font-weight: 700; color: var(--pro-text); }
+.oe-url-perguntas__a { margin: 4px 0 0; white-space: pre-wrap; color: var(--pro-text); }
+@media (max-width: 560px) { .oe-url-perguntas__form { flex-direction: column; } }

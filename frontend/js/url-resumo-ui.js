@@ -173,9 +173,42 @@
     },
   };
 
+  // Textos das funções novas (estilos, ficha do artigo, colar, exportar e perguntas).
+  var MAIS = {
+    pt: { modePontos: "Pontos-chave", modeSimples: "Explicado de forma simples", modeDetalhado: "Detalhado com subtítulos",
+      paste: "Colar", pasteFail: "Não foi possível colar. Cola o link à mão.", words: "palavras", readMin: "min de leitura poupados",
+      truncated: "Artigo muito longo: o resumo usa a primeira parte.", word: "Word", pdf: "PDF", whatsapp: "WhatsApp", email: "Email",
+      askTitle: "Perguntar sobre o artigo", askPlaceholder: "Ex.: Quais são as datas mencionadas?", askBtn: "Perguntar",
+      thinking: "A pensar...", askFail: "Não foi possível responder agora.", goSmart: "Abrir o Resumo Inteligente" },
+    en: { modePontos: "Key points", modeSimples: "Explained simply", modeDetalhado: "Detailed with headings",
+      paste: "Paste", pasteFail: "Could not paste. Paste the link manually.", words: "words", readMin: "min of reading saved",
+      truncated: "Very long article: the summary uses the first part.", word: "Word", pdf: "PDF", whatsapp: "WhatsApp", email: "Email",
+      askTitle: "Ask about the article", askPlaceholder: "E.g. Which dates are mentioned?", askBtn: "Ask",
+      thinking: "Thinking...", askFail: "Could not answer right now.", goSmart: "Open Smart Summary" },
+    es: { modePontos: "Puntos clave", modeSimples: "Explicado de forma sencilla", modeDetalhado: "Detallado con subtítulos",
+      paste: "Pegar", pasteFail: "No se pudo pegar. Pega el enlace a mano.", words: "palabras", readMin: "min de lectura ahorrados",
+      truncated: "Artículo muy largo: el resumen usa la primera parte.", word: "Word", pdf: "PDF", whatsapp: "WhatsApp", email: "Email",
+      askTitle: "Preguntar sobre el artículo", askPlaceholder: "Ej.: ¿Qué fechas se mencionan?", askBtn: "Preguntar",
+      thinking: "Pensando...", askFail: "No se pudo responder ahora.", goSmart: "Abrir el Resumen inteligente" },
+    fr: { modePontos: "Points clés", modeSimples: "Expliqué simplement", modeDetalhado: "Détaillé avec intertitres",
+      paste: "Coller", pasteFail: "Impossible de coller. Collez le lien à la main.", words: "mots", readMin: "min de lecture gagnées",
+      truncated: "Article très long : le résumé utilise la première partie.", word: "Word", pdf: "PDF", whatsapp: "WhatsApp", email: "E-mail",
+      askTitle: "Poser une question sur l’article", askPlaceholder: "Ex. : Quelles dates sont citées ?", askBtn: "Demander",
+      thinking: "Réflexion...", askFail: "Impossible de répondre pour l’instant.", goSmart: "Ouvrir le Résumé intelligent" },
+    de: { modePontos: "Kernpunkte", modeSimples: "Einfach erklärt", modeDetalhado: "Ausführlich mit Zwischentiteln",
+      paste: "Einfügen", pasteFail: "Einfügen nicht möglich. Link bitte manuell einfügen.", words: "Wörter", readMin: "Min. Lesezeit gespart",
+      truncated: "Sehr langer Artikel: Die Zusammenfassung nutzt den ersten Teil.", word: "Word", pdf: "PDF", whatsapp: "WhatsApp", email: "E-Mail",
+      askTitle: "Fragen zum Artikel", askPlaceholder: "Z. B.: Welche Daten werden genannt?", askBtn: "Fragen",
+      thinking: "Denke nach...", askFail: "Gerade keine Antwort möglich.", goSmart: "Smarte Zusammenfassung öffnen" },
+  };
+  var lastData = null;
+
   function t(key) {
     var pack = STRINGS[config.lang] || STRINGS.pt;
-    return pack[key] != null ? pack[key] : STRINGS.pt[key];
+    if (pack[key] != null) return pack[key];
+    var mais = MAIS[config.lang] || MAIS.pt;
+    if (mais[key] != null) return mais[key];
+    return STRINGS.pt[key] != null ? STRINGS.pt[key] : MAIS.pt[key];
   }
 
   function applyFormLabels() {
@@ -201,6 +234,9 @@
     if (modo && modo.options.length >= 2) {
       modo.options[0].textContent = t("modeNormal");
       modo.options[1].textContent = t("modeMinuta");
+      ["modePontos", "modeSimples", "modeDetalhado"].forEach(function (k, i) {
+        if (modo.options[i + 2]) modo.options[i + 2].textContent = t(k);
+      });
     }
   }
 
@@ -211,28 +247,110 @@
     out.classList.remove("oe-url-output--error");
   }
 
-  function showSuccess(out, text) {
+  function showSuccess(out, data) {
+    var text = data.summary;
     lastSummary = text;
+    lastData = data;
     out.hidden = false;
     out.classList.remove("oe-url-output--error");
+    var ficha = "";
+    if (data.title || data.site) {
+      ficha =
+        '<div class="oe-url-ficha">' +
+        (data.title ? '<p class="oe-url-ficha__titulo">' + escapeHtml(data.title) + "</p>" : "") +
+        '<p class="oe-url-ficha__meta">' +
+        [data.site, data.words ? data.words + " " + t("words") : "", data.reading_minutes ? data.reading_minutes + " " + t("readMin") : ""]
+          .filter(Boolean).map(escapeHtml).join(" · ") +
+        "</p>" +
+        (data.truncated ? '<p class="oe-url-ficha__nota">' + escapeHtml(t("truncated")) + "</p>" : "") +
+        "</div>";
+    }
+    var botoes = [["copy", "data-url-copy"], ["word", "data-url-word"], ["pdf", "data-url-pdf"], ["whatsapp", "data-url-wa"], ["email", "data-url-email"]]
+      .map(function (b) { return '<button type="button" class="oe-url-output__btn" ' + b[1] + ">" + escapeHtml(t(b[0])) + "</button>"; }).join("");
+    var perguntas = data.text
+      ? '<div class="oe-url-perguntas">' +
+        '<h3 class="oe-url-perguntas__titulo">' + escapeHtml(t("askTitle")) + "</h3>" +
+        '<div class="oe-url-perguntas__lista" aria-live="polite"></div>' +
+        '<form class="oe-url-perguntas__form"><input type="text" class="oe-url-input" maxlength="400" placeholder="' + escapeHtml(t("askPlaceholder")) + '" aria-label="' + escapeHtml(t("askTitle")) + '">' +
+        '<button type="submit" class="oe-url-output__btn oe-url-perguntas__enviar">' + escapeHtml(t("askBtn")) + "</button></form></div>"
+      : "";
     out.innerHTML =
+      ficha +
       '<div class="oe-url-output__head">' +
       '<h2 class="oe-url-output__title">' + escapeHtml(t("resultTitle")) + "</h2>" +
-      '<div class="oe-url-output__actions">' +
-      '<button type="button" class="oe-url-output__btn" data-url-copy>' +
-      escapeHtml(t("copy")) +
-      "</button></div></div>" +
-      '<pre class="oe-url-output__body">' +
-      escapeHtml(text) +
-      "</pre>";
+      '<div class="oe-url-output__actions">' + botoes + "</div></div>" +
+      '<pre class="oe-url-output__body">' + escapeHtml(text) + "</pre>" +
+      perguntas;
 
-    var copyBtn = out.querySelector("[data-url-copy]");
-    if (copyBtn) {
-      copyBtn.addEventListener("click", function () {
-        copySummary(copyBtn);
-      });
-    }
+    var on = function (sel, fn) { var el = out.querySelector(sel); if (el) el.addEventListener("click", function () { fn(el); }); };
+    on("[data-url-copy]", copySummary);
+    on("[data-url-word]", exportWord);
+    on("[data-url-pdf]", exportPdf);
+    on("[data-url-wa]", function () { window.open("https://wa.me/?text=" + encodeURIComponent(textoPartilha()), "_blank", "noopener"); });
+    on("[data-url-email]", function () {
+      window.location.href = "mailto:?subject=" + encodeURIComponent(data.title || t("resultTitle")) + "&body=" + encodeURIComponent(textoPartilha());
+    });
+    var form = out.querySelector(".oe-url-perguntas__form");
+    if (form) form.addEventListener("submit", function (e) { e.preventDefault(); perguntar(form); });
     out.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function textoPartilha() {
+    var d = lastData || {};
+    return (d.title ? d.title + "\n\n" : "") + lastSummary + (d.url ? "\n\n" + d.url : "") + "\n\n— Ouviescrevi";
+  }
+
+  function nomeFicheiro(ext) {
+    var base = ((lastData && lastData.title) || "resumo").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+      .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60) || "resumo";
+    return base + "." + ext;
+  }
+
+  function exportWord() {
+    if (!global.OuviescreviDocx || !lastSummary) return;
+    global.OuviescreviDocx.exportLocalDocx(textoPartilha(), nomeFicheiro("docx"), (lastData && lastData.title) || t("resultTitle"));
+  }
+
+  // PDF: abre uma página simples para imprimir; no telemóvel e no computador dá para «Guardar como PDF».
+  function exportPdf() {
+    if (!lastSummary) return;
+    var d = lastData || {};
+    var w = window.open("", "_blank");
+    if (!w) return;
+    w.document.write('<!doctype html><html lang="' + config.lang + '"><head><meta charset="utf-8"><title>' + escapeHtml(d.title || t("resultTitle")) +
+      '</title><style>body{font:16px/1.6 system-ui,sans-serif;max-width:42rem;margin:2rem auto;padding:0 1rem;color:#0f2a4f}h1{font-size:1.4rem}p.meta{color:#3d5677;font-size:.9rem}pre{white-space:pre-wrap;font:inherit}</style></head><body>' +
+      "<h1>" + escapeHtml(d.title || t("resultTitle")) + "</h1>" +
+      (d.url ? '<p class="meta">' + escapeHtml(d.url) + "</p>" : "") +
+      "<pre>" + escapeHtml(lastSummary) + '</pre><p class="meta">Ouviescrevi</p></body></html>');
+    w.document.close();
+    w.focus();
+    setTimeout(function () { w.print(); }, 300);
+  }
+
+  async function perguntar(form) {
+    var input = form.querySelector("input");
+    var lista = form.parentElement.querySelector(".oe-url-perguntas__lista");
+    var pergunta = (input.value || "").trim();
+    if (!pergunta || !lastData || !lastData.text) return;
+    input.value = "";
+    var item = document.createElement("div");
+    item.className = "oe-url-perguntas__item";
+    var q = document.createElement("p"); q.className = "oe-url-perguntas__q"; q.textContent = pergunta;
+    var a = document.createElement("p"); a.className = "oe-url-perguntas__a"; a.textContent = t("thinking");
+    item.appendChild(q); item.appendChild(a); lista.appendChild(item);
+    try {
+      await global.OuviescreviAPI.init();
+      var res = await fetch(global.OuviescreviAPI.getBase() + "/transcript-chat", {
+        method: "POST",
+        headers: global.OuviescreviAPI.authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify(global.OuviescreviAPI.authJson({ text: lastData.text, question: pergunta, lang: config.apiLang })),
+      });
+      var data = await res.json().catch(function () { return {}; });
+      var resposta = data.answer || data.reply;
+      a.textContent = res.ok && resposta ? resposta : (typeof data.detail === "string" ? data.detail : t("askFail"));
+    } catch (e) {
+      a.textContent = t("askFail");
+    }
   }
 
   function showError(out, message, isExtract) {
@@ -247,6 +365,8 @@
         tipsHtml += "<li>" + escapeHtml(tip) + "</li>";
       });
       tipsHtml += "</ul>";
+      var smart = config.lang === "pt" ? "resumo.html" : "/" + config.lang + "/resumo.html";
+      tipsHtml += '<p><a class="oe-url-output__btn" href="' + smart + '">' + escapeHtml(t("goSmart")) + "</a></p>";
     }
     out.innerHTML =
       '<div class="oe-url-output__head">' +
@@ -363,12 +483,13 @@
       if (loadingPhrase) loadingPhrase.textContent = "";
 
       if (res.ok && data.summary) {
-        showSuccess(out, data.summary);
+        data.url = url;
+        showSuccess(out, data);
       } else {
         var detail = data.detail || data.error || t("unexpected");
         if (Array.isArray(detail)) detail = detail.map(function (d) { return d.msg || d; }).join(" ");
-        var extract = isExtractError(detail);
-        showError(out, extract ? t("extractFail") : String(detail), extract);
+        var extract = res.status === 422 || isExtractError(detail);
+        showError(out, String(detail), extract);
       }
     } catch (err) {
       clearInterval(interval);
@@ -390,6 +511,26 @@
     var btn = document.getElementById("btnUrlResumo");
     if (btn) btn.addEventListener("click", summarizeFromPage);
     var input = document.getElementById("urlInput");
+    if (input && navigator.clipboard && navigator.clipboard.readText) {
+      var colar = document.createElement("button");
+      colar.type = "button";
+      colar.className = "oe-url-colar";
+      colar.textContent = t("paste");
+      colar.addEventListener("click", function () {
+        navigator.clipboard.readText().then(function (txt) {
+          var m = String(txt || "").match(/https?:\/\/\S+/);
+          input.value = m ? m[0] : String(txt || "").trim();
+          input.focus();
+        }).catch(function () {
+          if (global.OuviescreviUI) global.OuviescreviUI.toast(t("pasteFail"), "error");
+        });
+      });
+      var envolve = document.createElement("div");
+      envolve.className = "oe-url-campo";
+      input.parentNode.insertBefore(envolve, input);
+      envolve.appendChild(input);
+      envolve.appendChild(colar);
+    }
     if (input) {
       input.addEventListener("keydown", function (e) {
         if (e.key === "Enter") {

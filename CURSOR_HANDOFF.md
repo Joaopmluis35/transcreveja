@@ -183,6 +183,13 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
 - Menu de três riscas no telemóvel a toda a largura, linhas de 56 px (fim de `ouviescrevi-pro.css`); abrir o
   «Design» fecha o menu.
 - Resumo por URL: no telemóvel o botão e o seletor esticavam (flex-basis em coluna); botão laranja `#e46c12`.
+- **Resumo por URL melhorado** (`/summarize-url` em `backend/main.py`, testes em `backend/tests/test_url_summary.py`):
+  um só pedido à IA com o artigo inteiro (até 12 000 caracteres) em vez de «Parte 1, Parte 2…»; língua via
+  `ai_output_language()` (as páginas ES/FR/DE passavam `apiLang: "pt"` — corrigido); estilos `normal`, `minuta`,
+  `pontos`, `simples`, `detalhado` (novos também em `SUMMARY_STYLES`); devolve `title`, `site`, `words`,
+  `reading_minutes`, `truncated` e `text` (para as perguntas); erros claros nas 5 línguas (422 site bloqueado,
+  502 sem texto técnico). Página (`js/url-resumo-ui.js?v=2`): ficha do artigo, botão «Colar», exportar Word/PDF
+  (imprimir)/WhatsApp/email e «Perguntar sobre o artigo» (usa `/transcript-chat`).
 - Logótipo novo (`/design/assets/logo-simbolo.svg`) nos cabeçalhos e rodapés das 5 línguas. Os favicons PNG
   continuam os antigos.
 - **Botão «Design» fora do menu de três riscas** (`<details class="oe-design-troca">` nos 5 `header.html`, estilos

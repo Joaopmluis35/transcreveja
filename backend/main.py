@@ -19,6 +19,7 @@ import shutil
 import time
 import math
 import re
+from urllib.parse import urlparse
 import threading
 import hashlib
 import hmac
@@ -3607,6 +3608,15 @@ SUMMARY_STYLES = {
         "Escreve um email curto que resuma o texto, com assunto, saudação, "
         "os pontos principais e despedida."
     ),
+    "pontos": "Lista os 5 a 8 pontos-chave do texto, um por linha, cada um a começar por «• ». Sem introdução.",
+    "simples": (
+        "Explica o texto em linguagem muito simples, para quem não conhece o tema, "
+        "em frases curtas e sem termos técnicos."
+    ),
+    "detalhado": (
+        "Faz um resumo detalhado, organizado com pequenos subtítulos, mantendo os factos, números, "
+        "nomes e citações importantes."
+    ),
 }
 
 
@@ -4507,59 +4517,129 @@ def extract_url_article_text(html_bytes: bytes) -> str:
 
     return full_text.strip()
 
+URL_SUMMARY_MODES = ("normal", "minuta", "pontos", "simples", "detalhado")
+URL_TEXT_LIMIT = 12000
+URL_ERRORS = {
+    "pt": {
+        "missing": "Falta o link do artigo.",
+        "open": "Não foi possível abrir este link. Confirma o endereço ou tenta mais tarde.",
+        "blocked": "Este site não deixa ler o artigo automaticamente (pode ter paywall ou login). Copia o texto e usa o Resumo Inteligente.",
+        "empty": "Não encontrámos texto de artigo nesta página. Copia o texto e usa o Resumo Inteligente.",
+        "ai": "O serviço de resumo está ocupado. Tenta outra vez daqui a um minuto.",
+    },
+    "en": {
+        "missing": "The article link is missing.",
+        "open": "We couldn't open this link. Check the address or try again later.",
+        "blocked": "This site doesn't allow automatic reading (it may have a paywall or login). Copy the text and use Smart Summary.",
+        "empty": "We couldn't find article text on this page. Copy the text and use Smart Summary.",
+        "ai": "The summary service is busy. Please try again in a minute.",
+    },
+    "es": {
+        "missing": "Falta el enlace del artículo.",
+        "open": "No se pudo abrir este enlace. Comprueba la dirección o inténtalo más tarde.",
+        "blocked": "Este sitio no permite la lectura automática (puede tener muro de pago o inicio de sesión). Copia el texto y usa el Resumen inteligente.",
+        "empty": "No encontramos texto de artículo en esta página. Copia el texto y usa el Resumen inteligente.",
+        "ai": "El servicio de resumen está ocupado. Inténtalo de nuevo en un minuto.",
+    },
+    "fr": {
+        "missing": "Le lien de l'article manque.",
+        "open": "Impossible d'ouvrir ce lien. Vérifiez l'adresse ou réessayez plus tard.",
+        "blocked": "Ce site ne permet pas la lecture automatique (paywall ou connexion). Copiez le texte et utilisez le Résumé intelligent.",
+        "empty": "Aucun texte d'article trouvé sur cette page. Copiez le texte et utilisez le Résumé intelligent.",
+        "ai": "Le service de résumé est occupé. Réessayez dans une minute.",
+    },
+    "de": {
+        "missing": "Der Link zum Artikel fehlt.",
+        "open": "Dieser Link konnte nicht geöffnet werden. Prüfe die Adresse oder versuche es später.",
+        "blocked": "Diese Website erlaubt kein automatisches Lesen (Paywall oder Login). Kopiere den Text und nutze die Smarte Zusammenfassung.",
+        "empty": "Auf dieser Seite wurde kein Artikeltext gefunden. Kopiere den Text und nutze die Smarte Zusammenfassung.",
+        "ai": "Der Zusammenfassungsdienst ist ausgelastet. Bitte versuche es in einer Minute erneut.",
+    },
+}
+
+
+def url_error(lang: str | None, key: str) -> str:
+    return URL_ERRORS.get((lang or "pt").strip().lower()[:2], URL_ERRORS["pt"])[key]
+
+
+def extract_url_meta(html_bytes: bytes, url: str) -> dict:
+    """Título e nome do site de uma página (para mostrar o que foi lido)."""
+    soup = BeautifulSoup(html_bytes, "html.parser")
+
+    def meta(*names):
+        for n in names:
+            tag = soup.find("meta", attrs={"property": n}) or soup.find("meta", attrs={"name": n})
+            if tag and tag.get("content", "").strip():
+                return tag["content"].strip()
+        return ""
+
+    title = meta("og:title", "twitter:title")
+    if not title and soup.title and soup.title.string:
+        title = soup.title.string.strip()
+    if not title:
+        h1 = soup.find("h1")
+        title = h1.get_text(" ", strip=True) if h1 else ""
+    host = (urlparse(url).hostname or "").lower()
+    site = meta("og:site_name") or (host[4:] if host.startswith("www.") else host)
+    return {"title": re.sub(r"\s+", " ", title)[:200], "site": site[:80]}
+
+
 @app.post("/summarize-url")
 async def summarize_url(req: Request):
     data = await req.json()
-    url = data.get("url")
+    url = (data.get("url") or "").strip()
     token = data.get("token")
     mode = data.get("mode", "normal")
+    if mode not in URL_SUMMARY_MODES:
+        mode = "normal"
     lang = data.get("lang", "pt")
     require_token(token)
     enforce_rate_limit(req, "ai", RATE_LIMIT_AI, RATE_LIMIT_AI_WINDOW)
     if not url:
-        raise HTTPException(status_code=400, detail="URL em falta.")
+        raise HTTPException(status_code=400, detail=url_error(lang, "missing"))
     validate_public_http_url(url)
     try:
         r = safe_http_get(url, timeout=12)
-        full_text = extract_url_article_text(r.content)
-        if not full_text or len(full_text) < 80:
-            if len(r.content) < 8000:
-                raise HTTPException(
-                    status_code=400,
-                    detail="O site pode estar a bloquear leitura automática ou o artigo não está acessível.",
-                )
-            raise HTTPException(status_code=400, detail="Não foi possível extrair conteúdo útil da URL.")
-        chunks = textwrap.wrap(full_text, 3000)
-        summaries = []
-        for i, chunk in enumerate(chunks, start=1):
-            if lang == "en":
-                if mode == "minuta":
-                    prompt = "Generate bullet point minutes from this section:\n\n" + chunk
-                    sys = "You summarize online articles."
-                else:
-                    prompt = "Summarize clearly and concisely:\n\n" + chunk
-                    sys = "You summarize online articles."
-            else:
-                if mode == "minuta":
-                    prompt = "Gera uma minuta em tópicos a partir desta secção:\n\n" + chunk
-                    sys = "És um assistente que resume artigos online."
-                else:
-                    prompt = "Resume de forma clara e concisa:\n\n" + chunk
-                    sys = "És um assistente que resume artigos online."
-            resp = client.chat.completions.create(
-                model=SUM_MODEL,
-                messages=[{"role": "system", "content": sys}, {"role": "user", "content": prompt}],
-                temperature=0.5,
-                max_tokens=800,
-            )
-            summaries.append(f"🧩 Parte {i}:\n{resp.choices[0].message.content.strip()}")
-        final_summary = "\n\n".join(summaries)
-        maybe_notify_activity(req, f"Resumo gerado por URL:\n{url}", "Resumo por URL no Ouviescrevi")
-        return {"summary": final_summary}
     except HTTPException:
         raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erro ao processar URL: {e}")
+    except Exception:
+        logger.exception("summarize-url: falha a abrir %s", url)
+        raise HTTPException(status_code=502, detail=url_error(lang, "open"))
+    full_text = extract_url_article_text(r.content)
+    if not full_text or len(full_text) < 80:
+        key = "blocked" if len(r.content) < 8000 else "empty"
+        raise HTTPException(status_code=422, detail=url_error(lang, key))
+    info = extract_url_meta(r.content, url)
+    words = len(full_text.split())
+    # Um só pedido com o artigo inteiro (até ao limite), para sair um resumo coerente e não «Parte 1, Parte 2…».
+    sys = (
+        "És um assistente que resume artigos online. "
+        f"{SUMMARY_STYLES[mode]} "
+        f"Escreve sempre em {ai_output_language(lang)}, mesmo que o artigo esteja noutra língua. "
+        "Não inventes nada que não esteja no artigo. Devolve só o resultado, sem comentários."
+    )
+    prompt = f"Título: {info['title'] or '(sem título)'}\n\nArtigo:\n{full_text[:URL_TEXT_LIMIT]}"
+    try:
+        resp = client.chat.completions.create(
+            model=SUM_MODEL,
+            messages=[{"role": "system", "content": sys}, {"role": "user", "content": prompt}],
+            temperature=0.4,
+            max_tokens=900,
+        )
+        summary = resp.choices[0].message.content.strip()
+    except Exception:
+        logger.exception("summarize-url: falha na IA")
+        raise HTTPException(status_code=502, detail=url_error(lang, "ai"))
+    maybe_notify_activity(req, f"Resumo gerado por URL:\n{url}", "Resumo por URL no Ouviescrevi")
+    return {
+        "summary": summary,
+        "title": info["title"],
+        "site": info["site"],
+        "words": words,
+        "reading_minutes": max(1, round(words / 200)),
+        "truncated": len(full_text) > URL_TEXT_LIMIT,
+        "text": full_text[:URL_TEXT_LIMIT],
+    }
 
 # ── Notificações: WhatsApp share ──────────────────────────────────────────────
 class WhatsAppNotify(BaseModel):
