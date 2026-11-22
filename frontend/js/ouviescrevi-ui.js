@@ -297,7 +297,7 @@
     });
   }
 
-  var LAYOUT_V = "15";
+  var LAYOUT_V = "16";
   var siteContentCache = null;
 
   function withLayoutVersion(url) {

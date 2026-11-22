@@ -1960,3 +1960,31 @@ body.oe-pro button, body.oe-pro input, body.oe-pro select, body.oe-pro textarea 
 }
 /* As opções do «Design» em azul-escuro (a regra geral das ligações punha-as a laranja) */
 body.oe-pro .oe-design-troca li a { color: var(--pro-text) !important; }
+
+/* Escolha de aspeto discreta: só um ícone de paleta; a lista é uma fila de bolinhas de cor (22/11/2026) */
+body.oe-pro .oe-design-troca summary { width: 40px; height: 40px; min-height: 40px; padding: 0; justify-content: center; border-radius: 50%; color: var(--pro-text-secondary); }
+body.oe-pro .oe-design-troca summary::after { display: none; }
+body.oe-pro .oe-design-troca summary svg { width: 22px; height: 22px; }
+body.oe-pro .oe-design-troca summary:hover, body.oe-pro .oe-design-troca[open] summary { background: var(--pro-accent-soft, #e4f0fc); color: var(--pro-text); }
+body.oe-pro .oe-design-troca ul { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; min-width: 0; width: max-content; max-width: calc(100vw - 24px); padding: 10px 8px 6px; }
+body.oe-pro .oe-design-troca li { list-style: none; }
+body.oe-pro .oe-design-troca button.oe-design-op {
+  all: unset; box-sizing: border-box; display: grid; justify-items: center; gap: 5px; width: 60px; padding: 6px 2px; border-radius: 10px;
+  font: 600 .72rem/1.15 "Schibsted Grotesk", system-ui, sans-serif; color: var(--pro-text-secondary, #3d5677); text-align: center; cursor: pointer; }
+body.oe-pro .oe-design-troca button.oe-design-op:hover { background: #eef4fb; }
+body.oe-pro .oe-design-troca button.oe-design-op:focus-visible { outline: 3px solid #b5520a; outline-offset: 1px; }
+body.oe-pro .oe-design-troca button.oe-design-op[aria-checked="true"] { color: #0f2a4f; font-weight: 800; }
+body.oe-pro .oe-design-troca button.oe-design-op[aria-checked="true"]::after { content: none; }
+body.oe-pro .oe-design-troca .oe-design-cor { width: 30px; height: 30px; box-shadow: inset 0 0 0 2px rgba(15,42,79,.15); }
+body.oe-pro .oe-design-troca button.oe-design-op[aria-checked="true"] .oe-design-cor { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #b5520a; }
+body.oe-pro .oe-design-troca .oe-design-troca__nota { grid-column: 1 / -1; margin-top: 4px; padding: 6px 4px 2px; font-size: .74rem; text-align: center; }
+/* Os estilos gerais dos botões tinham mais força: aqui ganham as bolinhas, e a lista nunca sai do ecrã */
+html body.oe-pro .oe-pro-header .oe-design-troca button.oe-design-op {
+  width: 60px !important; min-width: 0 !important; min-height: 0 !important; height: auto !important; margin: 0 !important; padding: 6px 2px !important;
+  border: 0 !important; background: transparent !important; box-shadow: none !important; transform: none !important;
+  display: grid !important; justify-items: center; font-size: .72rem !important; line-height: 1.15 !important; color: var(--pro-text-secondary, #3d5677) !important; }
+html body.oe-pro .oe-pro-header .oe-design-troca button.oe-design-op:hover { background: #eef4fb !important; }
+html body.oe-pro .oe-pro-header .oe-design-troca button.oe-design-op[aria-checked="true"] { color: #0f2a4f !important; }
+@media (max-width: 899px) {
+  body.oe-pro .oe-design-troca ul { position: fixed; top: calc(var(--pro-header-h) + 6px); left: auto; right: 12px; width: min(360px, calc(100vw - 24px)); max-width: none; justify-items: center; }
+}
