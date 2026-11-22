@@ -36,7 +36,8 @@
       speechSynthesis.speak(u);
     });
   }
-  function descer() { lista.scrollTop = lista.scrollHeight; }
+  // No computador a conversa tem scroll próprio; no telemóvel cresce com a página e não mexemos no scroll.
+  function descer() { if (lista.scrollHeight > lista.clientHeight + 4) lista.scrollTop = lista.scrollHeight; }
   function duracao(s) { var n = Math.max(2, Math.round(s.length / 14)); return "0:" + (n < 10 ? "0" : "") + n; }
 
   function bolhaVoz(t, quem, texto) {

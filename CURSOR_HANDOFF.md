@@ -185,8 +185,9 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   direita (`#homeOutputPlaceholder`, que o JS esconde quando aparece um resultado), a **conversa animada** de
   mensagens de voz: `css/conversa-demo.css?v=2` + `js/conversa-demo.js?v=1` (exemplo ilustrativo, voz pt-PT do
   aparelho se existir). Também aparece no telemóvel. Os cartões «Exemplos de uso» entram ao fazer scroll.
-  **Atenção:** o texto do título está no bloco CMS `home_intro_html`; se o backoffice tiver esse texto guardado, mostra
-  o do backoffice.
+  O título grande é um `<p class="oe-home-hero">` fixo, fora do bloco CMS `home_intro_html` (o backoffice tinha texto
+  próprio guardado e escondia o título); o texto do CMS aparece por baixo. No telemóvel a conversa não tem scroll
+  próprio (prendia o dedo); cresce com a página. Botão «Transcrever agora» em laranja vivo `#e46c12`.
 
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).

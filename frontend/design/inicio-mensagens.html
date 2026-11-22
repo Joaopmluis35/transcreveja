@@ -75,7 +75,8 @@ button{font:inherit;color:inherit;cursor:pointer}
 .botao-ouvir{display:inline-flex;align-items:center;gap:.5rem;min-height:2.8rem;padding:.3rem 1.1rem;border:0;border-radius:999px;background:var(--tinta);color:#fff;font-weight:750;font-size:1rem;transition:background-color .15s ease-out}
 .botao-ouvir:hover{background:#1c3d6b}
 .botao-ouvir svg{width:.9rem;height:.9rem}
-.mensagens{list-style:none;padding:1.1rem;display:flex;flex-direction:column;gap:.7rem;height:clamp(24rem,58vh,34rem);overflow-y:auto;overscroll-behavior:contain;scroll-behavior:smooth}
+.mensagens{list-style:none;padding:1.1rem;display:flex;flex-direction:column;gap:.7rem;height:clamp(24rem,58vh,34rem);overflow-y:auto;overscroll-behavior:auto;scroll-behavior:smooth}
+@media (max-width:920px){.mensagens{height:auto;min-height:15rem;overflow:visible}}
 .vazio{margin:auto;max-width:22rem;text-align:center;color:var(--tinta-suave);font-size:1.02rem}
 .vazio svg{width:2.6rem;height:2.6rem;color:var(--laranja);margin-bottom:.4rem}
 .ver-tudo{background:none;border:0;font-weight:700;text-decoration:underline;text-underline-offset:.22em;margin-top:.6rem;color:var(--tinta)}

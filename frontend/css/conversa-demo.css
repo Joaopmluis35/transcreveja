@@ -1,9 +1,8 @@
 /* Página inicial: título grande e conversa de mensagens de voz que passam a texto (design «Mensagens de voz») */
 
 body.oe-page--home .oe-home-intro { max-width: 46rem; }
-body.oe-page--home .oe-home-hero__titulo { margin: 0; }
-body.oe-page--home .oe-home-intro .oe-home-hero__titulo strong {
-  display: block; font-size: clamp(2.3rem, 6vw, 4.2rem); line-height: 1.03; font-weight: 850;
+body.oe-page--home .oe-home-hero {
+  margin: 8px auto 14px; max-width: 46rem; text-align: center; font-size: clamp(2.3rem, 6vw, 4.2rem); line-height: 1.03; font-weight: 850;
   letter-spacing: -.035em; color: #0f2a4f; text-wrap: balance;
 }
 body.oe-page--home .oe-home-intro .oe-home-intro__sub { margin-top: 12px !important; font-size: clamp(1.05rem, 1.7vw, 1.22rem); color: #3d5677; text-wrap: pretty; }
@@ -71,3 +70,13 @@ body.oe-page--home .oe-home-panel--placeholder.oe-conversa-wrap { padding: 0; ba
 body.oe-page--home .oe-conversa button.oe-conversa__ouvir { background: #0f2a4f !important; color: #fff !important; border: 0 !important; box-shadow: none !important; width: auto !important; }
 body.oe-page--home .oe-conversa button.oe-conversa__ouvir:hover { background: #1c3d6b !important; }
 body.oe-page--home .oe-conversa button.oe-conversa__tudo { background: none !important; border: 0 !important; box-shadow: none !important; padding: .2rem !important; width: auto !important; min-height: 0 !important; color: #0f2a4f !important; }
+
+/* Telemóvel: a conversa cresce com a página em vez de ter scroll próprio (o scroll interno prendia o dedo) */
+.oe-conversa__msgs { overscroll-behavior: auto; }
+@media (max-width: 900px) {
+  .oe-conversa__msgs { height: auto; min-height: 15rem; overflow: visible; }
+}
+
+/* Botão principal com laranja mais vivo, próximo do desenho; as ligações de texto mantêm o laranja escuro (legível) */
+body.oe-pro.oe-page--home #uploadForm #btnTranscrever { background: #e46c12 !important; }
+body.oe-pro.oe-page--home #uploadForm #btnTranscrever:hover:not(:disabled) { background: #c95e0d !important; }
