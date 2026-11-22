@@ -181,8 +181,12 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   continuam os antigos.
 - **Botão «Design» fora do menu de três riscas** (`<details class="oe-design-troca">` nos 5 `header.html`, estilos
   no fim de `ouviescrevi-pro.css`): principal + caderno, ardósia, cortiça e folha (só páginas iniciais de teste).
-- A página inicial continua a ser a `index.html` com a ferramenta real, só com as cores novas; a demonstração da
-  conversa está em `frontend/design/inicio-mensagens.html`.
+- A página inicial (`index.html`, ferramenta real) tem agora o título «Ouviste. Nós escrevemos.» e, no painel da
+  direita (`#homeOutputPlaceholder`, que o JS esconde quando aparece um resultado), a **conversa animada** de
+  mensagens de voz: `css/conversa-demo.css?v=2` + `js/conversa-demo.js?v=1` (exemplo ilustrativo, voz pt-PT do
+  aparelho se existir). Também aparece no telemóvel. Os cartões «Exemplos de uso» entram ao fazer scroll.
+  **Atenção:** o texto do título está no bloco CMS `home_intro_html`; se o backoffice tiver esse texto guardado, mostra
+  o do backoffice.
 
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).

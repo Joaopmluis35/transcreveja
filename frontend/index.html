@@ -6,6 +6,7 @@
   <script>document.documentElement.classList.add("oe-pricing-hidden");</script>
   <link rel="stylesheet" href="css/ouviescrevi.css?v=49">
   <link rel="stylesheet" href="css/index-home.css?v=61">
+<link rel="stylesheet" href="css/conversa-demo.css?v=2">
   <link rel="stylesheet" href="css/pricing-visibility.css?v=2">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
   <link rel="manifest" href="/manifest.webmanifest">
@@ -48,8 +49,8 @@
       </nav>
     </aside>
     <div id="cmsHomeIntro" class="oe-home-intro" data-cms-key="home_intro_html" data-cms-mode="html">
-      <p><strong>Áudio ou vídeo → texto em minutos.</strong></p>
-      <p class="oe-home-intro__sub">Grátis para começar. Escolhe o ficheiro e clica em Transcrever.</p>
+      <p class="oe-home-hero__titulo"><strong>Ouviste. Nós escrevemos.</strong></p>
+      <p class="oe-home-intro__sub">Mensagens de voz, aulas, entrevistas e reuniões passadas a texto em minutos, em português de Portugal. Grátis para começar.</p>
     </div>
 
     <ul class="oe-home-trust-chips" aria-label="Vantagens">
@@ -156,21 +157,18 @@
       </div>
 
       <div class="oe-home-workspace__col oe-home-workspace__col--output" aria-live="polite">
-        <div id="homeOutputPlaceholder" class="oe-home-panel oe-home-panel--placeholder">
-          <h2 class="oe-home-panel__title">Como funciona</h2>
-          <ol class="oe-home-panel__steps">
-            <li><strong>Escolhe</strong> o áudio ou vídeo</li>
-            <li><strong>Clica</strong> em Transcrever agora</li>
-            <li><strong>Copia</strong> ou exporta o texto</li>
-          </ol>
-          <p class="oe-home-panel__hint">O resultado aparece aqui — editável, pronto a usar.</p>
-          <figure class="oe-home-example">
-            <figcaption>Exemplo de resultado (entrevista, com quem fala identificado)</figcaption>
-            <pre>[00:00] Jornalista: Quando é que decidiu abrir a loja aqui na vila?
-[00:04] Ana: Foi em 2019. Já tinha clientes de fora e faltava um sítio para os receber.
-[00:11] Jornalista: E o que mudou desde então?
-[00:14] Ana: Hoje metade das vendas são online, mas a loja continua a ser o coração do negócio.</pre>
-          </figure>
+        <div id="homeOutputPlaceholder" class="oe-home-panel oe-home-panel--placeholder oe-conversa-wrap">
+          <div class="oe-conversa" aria-labelledby="oeConversaTitulo">
+            <div class="oe-conversa__cab">
+              <div class="oe-conversa__quem"><span class="oe-conversa__avatar" aria-hidden="true">E</span><div><strong id="oeConversaTitulo">Entrevista na loja da vila</strong><small>Exemplo ilustrativo · 0:40</small></div></div>
+              <button type="button" class="oe-conversa__ouvir" id="oeConversaOuvir"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z" fill="currentColor"/></svg><span>Ouvir um exemplo</span></button>
+            </div>
+            <ol class="oe-conversa__msgs" id="oeConversaMsgs" aria-live="polite">
+              <li class="oe-conversa__vazio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z" fill="currentColor"/></svg>Carrega em «Ouvir um exemplo»: cada mensagem de voz passa a texto à tua frente.<br><button type="button" class="oe-conversa__tudo" id="oeConversaTudo">Ver o texto todo</button></li>
+            </ol>
+            <p class="oe-conversa__aviso" id="oeConversaAviso"></p>
+          </div>
+          <p class="oe-home-panel__hint">Quando transcreveres o teu ficheiro, o resultado aparece aqui, editável e pronto a usar.</p>
         </div>
 
         <div id="loading" class="oe-loading hidden" aria-live="polite" aria-busy="false">
@@ -3506,5 +3504,6 @@
   })();
 
 </script>
+<script src="js/conversa-demo.js?v=1" defer></script>
 </body>
 </html>
