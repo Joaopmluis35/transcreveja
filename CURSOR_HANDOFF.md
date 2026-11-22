@@ -157,7 +157,9 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   Animações: título escrito a giz ao abrir, aula de História (Tordesilhas, ilustrativa) a escrever-se, caixa
   «Resumo em 3 pontos» desenhada no fim, apagador ao repetir, pau de giz desenhado em SVG que segue a escrita (treme,
   levanta nos espaços, viaja entre linhas, deixa pó no quadro), letras a aparecer como risco de giz e onda de som
-  animada enquanto «ouve». Respeita «reduzir movimento». `#pronto` também funciona.
+  animada enquanto «ouve». O giz move-se com `requestAnimationFrame` (sem filtros SVG na lista, para ser fluido
+  no telemóvel). Ao fazer scroll: títulos do 2.º quadro escrevem-se a giz, linhas da tabela e vistos aparecem
+  em sequência (`IntersectionObserver`, classe `.anima` no `<html>`). Respeita «reduzir movimento». `#pronto` também funciona.
 - Letras alojadas em `frontend/design/assets/fonts/` (Schibsted Grotesk, Shantell Sans, Martian Mono).
 - Cópia da página inicial antes do redesign: `backups/pagina-inicial-2026-11-22/` (index.html, CSS, logos e capturas).
 
