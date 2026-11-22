@@ -53,6 +53,9 @@ button{font:inherit;color:inherit;cursor:pointer}
   box-shadow:inset 0 0 70px rgba(0,0,0,.35),0 24px 50px -24px rgba(0,0,0,.7);
 }
 .quadro + .quadro{margin-top:calc(var(--l)*1.25)}
+/* O giz, o pó e o apagador podem passar da borda do quadro: corta-os ali, sem criar scroll horizontal. */
+.quadro{overflow-x:clip}
+@supports not (overflow-x:clip){body{overflow-x:hidden}}
 .corpo{padding:0 clamp(1rem,4.5vw,4rem);display:flow-root}
 .giz{font-family:var(--giz-letra);filter:url(#gasto)}
 
