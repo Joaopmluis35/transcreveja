@@ -176,7 +176,13 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   antigo passou a azul-claro (`#e4f0fc` fundo), azul-escuro (`#0f2a4f` texto) e laranja (`#d4630d` botões).
   Script usado: troca de cores hex/rgba + gradientes roxo→azul passam a laranja sólido; faixa de novidades azul-escuro.
 - Letra do site: Schibsted Grotesk (alojada em `/design/assets/fonts/`); o Inter do Google deixou de ser carregado.
-- **Tema escuro desligado:** `theme-ui.js` aplica sempre o claro e esconde o botão 🌙.
+- **Designs na própria página:** o botão «Design» do cabeçalho (5 línguas) muda o aspeto sem sair da página —
+  `theme-ui.js?v=3` põe `html[data-design=caderno|ardosia|cortica|folha]` (guardado em `localStorage.oe_design`;
+  sem valor = Mensagens de voz). Cores/fundos em `css/temas.css`; a «Ardósia» reaproveita o antigo modo escuro
+  (`html.oe-theme-dark`) com o `theme-dark.css` recolorido a verde-ardósia. O botão 🌙 foi escondido.
+- Menu de três riscas no telemóvel a toda a largura, linhas de 56 px (fim de `ouviescrevi-pro.css`); abrir o
+  «Design» fecha o menu.
+- Resumo por URL: no telemóvel o botão e o seletor esticavam (flex-basis em coluna); botão laranja `#e46c12`.
 - Logótipo novo (`/design/assets/logo-simbolo.svg`) nos cabeçalhos e rodapés das 5 línguas. Os favicons PNG
   continuam os antigos.
 - **Botão «Design» fora do menu de três riscas** (`<details class="oe-design-troca">` nos 5 `header.html`, estilos

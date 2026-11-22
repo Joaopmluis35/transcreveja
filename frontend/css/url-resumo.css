@@ -154,14 +154,15 @@ body.oe-page--url-resumo .container.oe-url-page {
   font-weight: 700;
   cursor: pointer;
   color: #fff;
-  background: linear-gradient(135deg, #b5520a, #6366f1);
-  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+  background: #e46c12;
+  box-shadow: 0 4px 14px rgba(181, 82, 10, 0.3);
   transition: transform 0.12s, box-shadow 0.12s;
 }
 
 .oe-url-form__submit:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 6px 18px rgba(181, 82, 10, 0.35);
+  background: #c95e0d;
 }
 
 .oe-url-form__submit:disabled {
@@ -288,7 +289,18 @@ body.oe-page--url-resumo .container.oe-url-page {
     align-items: stretch;
   }
 
+  /* Em coluna, a base flexível virava altura (botão com 160 px); aqui cada um fica com a sua altura natural */
+  .oe-url-form__mode,
+  .oe-url-form__submit {
+    flex: 0 0 auto;
+  }
+
   .oe-url-form__submit {
     width: 100%;
+    min-height: 52px;
   }
 }
+
+/* O estilo geral dos botões da página não se sobrepõe ao botão principal */
+body.oe-pro .oe-url-form .oe-url-form__submit { background: #e46c12 !important; color: #fff !important; border: 0 !important; }
+body.oe-pro .oe-url-form .oe-url-form__submit:hover:not(:disabled) { background: #c95e0d !important; }
