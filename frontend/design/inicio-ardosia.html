@@ -128,12 +128,19 @@ button{font:inherit;color:inherit;cursor:pointer}
 .cursor{display:inline-block;width:1px;height:1em;vertical-align:-.15em}
 
 /* Pau de giz que segue a escrita, com pó a cair */
-.pau{position:absolute;left:0;top:0;width:2.8rem;height:.6rem;margin-top:-.3rem;border-radius:.3rem;pointer-events:none;opacity:0;z-index:3;transform-origin:0 50%;
-  background:linear-gradient(#ffffff,#d6dbd0);box-shadow:0 3px 4px rgba(0,0,0,.45);transition:transform 70ms linear,opacity .3s ease-out}
-.pau::before{content:"";position:absolute;left:0;top:0;bottom:0;width:.5rem;border-radius:.3rem 0 0 .3rem;background:#e9ece4}
+.pau{position:absolute;left:0;top:0;width:3.4rem;height:.85rem;margin-top:-.42rem;pointer-events:none;opacity:0;z-index:3;transform-origin:2% 50%;overflow:visible;
+  filter:drop-shadow(3px 6px 3px rgba(0,0,0,.45));transition:transform 60ms linear,opacity .3s ease-out,filter .12s ease-out}
 .pau.ativo{opacity:1}
-.po{position:absolute;width:3px;height:3px;border-radius:50%;background:var(--giz);pointer-events:none;z-index:2;animation:cai .9s ease-in forwards}
-@keyframes cai{to{transform:translate(var(--dx,4px),28px);opacity:0}}
+.pau.levantado{filter:drop-shadow(6px 12px 5px rgba(0,0,0,.32))}
+.pau.salto{transition-duration:260ms,.3s,.12s;transition-timing-function:cubic-bezier(.4,0,.2,1)}
+.po{position:absolute;border-radius:50%;background:var(--giz);pointer-events:none;z-index:2;animation:cai var(--t,.9s) ease-in forwards}
+.po.fica{animation:assenta var(--t,.9s) ease-in forwards}
+@keyframes cai{to{transform:translate(var(--dx,4px),var(--dy,28px));opacity:0}}
+@keyframes assenta{to{transform:translate(var(--dx,4px),var(--dy,18px));opacity:.22}}
+/* Cada letra aparece como um risco de giz: primeiro ténue, depois cheio */
+.transcricao{filter:url(#giz-leve)}
+.l{animation:risca .32s ease-out both}
+@keyframes risca{from{opacity:.1;text-shadow:0 0 6px rgba(238,241,232,.6)}60%{opacity:.85}to{opacity:1;text-shadow:none}}
 
 /* Onda de som enquanto ouve */
 .onda{display:inline-flex;align-items:center;gap:3px;height:1.4rem}
@@ -207,6 +214,23 @@ button{font:inherit;color:inherit;cursor:pointer}
     <feColorMatrix in="r" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.1 1.45" result="falhas"/>
     <feComposite in="SourceGraphic" in2="falhas" operator="in"/>
   </filter>
+  <filter id="giz-leve" x="-2%" y="-2%" width="104%" height="104%">
+    <feTurbulence type="fractalNoise" baseFrequency="1.8" numOctaves="1" seed="11" result="r"/>
+    <feColorMatrix in="r" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -.8 1.5" result="falhas"/>
+    <feComposite in="SourceGraphic" in2="falhas" operator="in"/>
+  </filter>
+  <filter id="po-giz" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="2.2" numOctaves="2" seed="5" result="r"/>
+    <feColorMatrix in="r" type="matrix" values="0 0 0 0 .78  0 0 0 0 .8  0 0 0 0 .76  0 0 0 1.4 -.55" result="grao"/>
+    <feComposite in="grao" in2="SourceGraphic" operator="in" result="grao2"/>
+    <feMerge><feMergeNode in="SourceGraphic"/><feMergeNode in="grao2"/></feMerge>
+  </filter>
+  <linearGradient id="cilindro" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#d9ddd3"/><stop offset=".22" stop-color="#ffffff"/><stop offset=".55" stop-color="#f1f3ec"/><stop offset="1" stop-color="#b9bfb3"/>
+  </linearGradient>
+  <linearGradient id="topo" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#cfd4c9"/><stop offset="1" stop-color="#f4f6f0"/>
+  </linearGradient>
   <symbol id="simbolo" viewBox="0 0 56 64"><rect x="14" y="0" width="28" height="38" rx="14" fill="currentColor"/><path d="M20 12h16M20 19h10M20 26h13" stroke="#24372f" stroke-width="2.6" stroke-linecap="round"/><path d="M16 42h24l-9.2 17.5a3 3 0 0 1-5.6 0z" fill="currentColor"/><path d="M28 46v8" stroke="#24372f" stroke-width="2.2" stroke-linecap="round"/><circle cx="28" cy="46" r="2.3" fill="#24372f"/></symbol>
   <symbol id="clip" viewBox="0 0 24 24"><path d="M20 11.5 12.4 19a5 5 0 0 1-7.1-7.1L13 4.2a3.3 3.3 0 0 1 4.7 4.7l-7.6 7.6a1.7 1.7 0 0 1-2.4-2.4L14.5 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="tick" viewBox="0 0 24 24"><path d="M3.5 13.2c2 1.4 3.6 3.2 5 5.3 2.8-5.6 6.6-10 11.8-13.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
@@ -276,7 +300,13 @@ button{font:inherit;color:inherit;cursor:pointer}
             </ol>
           </div>
           <div class="apagador" id="apagador" aria-hidden="true"></div>
-          <div class="pau" id="pau" aria-hidden="true"></div>
+          <svg class="pau" id="pau" viewBox="0 0 64 16" aria-hidden="true">
+            <!-- corpo cilíndrico com a ponta gasta em bisel à esquerda -->
+            <path d="M9 1.5H58.5a6.5 6.5 0 0 1 0 13H9C5 14.2 1.6 11.6 1 8.6.6 6.2 3.6 2.6 9 1.5Z" fill="url(#cilindro)" filter="url(#po-giz)"/>
+            <ellipse cx="58.5" cy="8" rx="3.2" ry="6.5" fill="url(#topo)"/>
+            <path d="M9 1.5C3.6 2.6.6 6.2 1 8.6c.6 3 4 5.6 8 5.9C7 11.8 6.4 5 9 1.5Z" fill="#e8ebe3" opacity=".9"/>
+            <path d="M12 4.2H55" stroke="#fff" stroke-width="1.2" stroke-linecap="round" opacity=".7"/>
+          </svg>
         </div>
         <p class="aviso" id="aviso"></p>
       </div>
@@ -383,23 +413,34 @@ button{font:inherit;color:inherit;cursor:pointer}
   const mudarEstado = t => { estado.hidden = !t; estado.textContent = t || ""; onda.hidden = !t || calmo; };
 
   // O pau de giz fica com a ponta no fim do texto que está a ser escrito.
-  let letras = 0;
-  const moverGiz = cursor => {
+  // Tremer da mão, levantar o giz entre palavras e pó a cair (algum fica no quadro).
+  let letras = 0, ultimo = null;
+  const sorte = (min, max) => min + Math.random() * (max - min);
+  const largarPo = (x, y) => {
+    const po = document.createElement("span");
+    const fica = Math.random() < .35, tam = sorte(1.5, 3.6);
+    po.className = fica ? "po fica" : "po";
+    po.style.cssText = `left:${x + sorte(-2, 3)}px;top:${y + sorte(0, 4)}px;width:${tam}px;height:${tam}px;--dx:${sorte(-4, 9).toFixed(1)}px;--dy:${sorte(14, 34).toFixed(0)}px;--t:${sorte(.6, 1.2).toFixed(2)}s;opacity:${sorte(.5, .95).toFixed(2)}`;
+    if (!fica) po.addEventListener("animationend", () => po.remove());
+    area.appendChild(po);
+  };
+  const moverGiz = (cursor, letra) => {
     if (calmo) return;
     const a = area.getBoundingClientRect(), c = cursor.getBoundingClientRect();
-    const x = c.left - a.left, y = c.bottom - a.top - 6;
+    letras++;
+    const espaco = letra === " ";
+    const x = c.left - a.left + sorte(-.6, .6);
+    const y = c.bottom - a.top - 7 + Math.sin(letras * 2.3) * 1.3 - (espaco ? 7 : 0);
+    const ang = -30 + Math.sin(letras * 1.7) * 3.5 + (espaco ? -4 : 0);
+    // Mudança de linha: o giz viaja mais devagar até ao início da linha seguinte.
+    pau.classList.toggle("salto", ultimo !== null && (Math.abs(x - ultimo.x) > 60 || Math.abs(y - ultimo.y) > 12));
+    pau.classList.toggle("levantado", espaco);
     pau.classList.add("ativo");
-    pau.style.transform = `translate(${x}px, ${y}px) rotate(-30deg)`;
-    if (++letras % 5 === 0) {
-      const po = document.createElement("span");
-      po.className = "po";
-      po.style.left = `${x}px`; po.style.top = `${y + 4}px`;
-      po.style.setProperty("--dx", `${(Math.random() * 10 - 3).toFixed(1)}px`);
-      po.addEventListener("animationend", () => po.remove());
-      area.appendChild(po);
-    }
+    pau.style.transform = `translate(${x}px, ${y}px) rotate(${ang.toFixed(1)}deg)`;
+    ultimo = { x, y };
+    if (!espaco && letras % 3 === 0) { largarPo(x, y); if (Math.random() < .4) largarPo(x, y); }
   };
-  const largarGiz = () => pau.classList.remove("ativo");
+  const largarGiz = () => { pau.classList.remove("ativo", "levantado", "salto"); ultimo = null; };
   const falar = texto => new Promise(r => {
     if (!voz) return r();
     const u = new SpeechSynthesisUtterance(texto);
@@ -445,6 +486,7 @@ button{font:inherit;color:inherit;cursor:pointer}
   const limpar = () => {
     corrida++; if (temFala) speechSynthesis.cancel();
     lista.innerHTML = ""; resumo.classList.remove("visivel"); vazio.hidden = true; largarGiz();
+    area.querySelectorAll(".po").forEach(p => p.remove());
   };
   const mostrarTudo = () => {
     limpar();
@@ -471,11 +513,18 @@ button{font:inherit;color:inherit;cursor:pointer}
       const cursor = document.createElement("span"); cursor.className = "cursor"; alvo.after(cursor);
       const fala = falar(texto);
       if (calmo) alvo.textContent = texto;
-      else for (let i = 1; i <= texto.length; i++) {
-        if (esta !== corrida) return;
-        alvo.textContent = texto.slice(0, i);
-        moverGiz(cursor);
-        await pausa(voz ? 38 : 24);
+      else {
+        lista.setAttribute("aria-busy", "true");
+        for (const letra of texto) {
+          if (esta !== corrida) return;
+          const s = document.createElement("span"); s.className = "l"; s.textContent = letra;
+          alvo.appendChild(s);
+          moverGiz(cursor, letra);
+          // Mais rápido a meio da palavra, uma pausa curta nos espaços e na pontuação.
+          await pausa((voz ? 34 : 22) + (letra === " " ? 45 : /[.,?!]/.test(letra) ? 90 : sorte(0, 14)));
+        }
+        alvo.textContent = texto;
+        lista.removeAttribute("aria-busy");
       }
       await fala; cursor.remove();
       await pausa(calmo ? 0 : 220);
