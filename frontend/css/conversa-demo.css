@@ -80,3 +80,57 @@ body.oe-page--home .oe-conversa button.oe-conversa__tudo { background: none !imp
 /* Botão principal com laranja mais vivo, próximo do desenho; as ligações de texto mantêm o laranja escuro (legível) */
 body.oe-pro.oe-page--home #uploadForm #btnTranscrever { background: #e46c12 !important; }
 body.oe-pro.oe-page--home #uploadForm #btnTranscrever:hover:not(:disabled) { background: #c95e0d !important; }
+
+/* ── A conversa com o aspeto de cada design ─────────────────────────────── */
+.oe-conversa-wrap .oe-home-panel__hint { color: var(--pro-text-secondary, #3d5677); }
+.oe-conversa__msgs { position: relative; }
+
+/* Ardósia: quadro verde, texto a giz */
+html[data-design="ardosia"] .oe-conversa { background: #2d4339; color: #eef1e8; box-shadow: 0 24px 50px -28px rgba(0,0,0,.7); }
+html[data-design="ardosia"] .oe-conversa__cab { background: #1b2a24; border-color: #3b5348; }
+html[data-design="ardosia"] .oe-conversa__avatar { background: #3b5348; color: #f2d24b; }
+html[data-design="ardosia"] .oe-conversa__quem small, html[data-design="ardosia"] .oe-conversa__vazio, html[data-design="ardosia"] .oe-conversa__aviso { color: #c9d2c4; }
+html[data-design="ardosia"] body.oe-page--home #homeOutputPlaceholder .oe-conversa button.oe-conversa__ouvir { background: #f2d24b !important; color: #1b2a24 !important; }
+html[data-design="ardosia"] body.oe-page--home #homeOutputPlaceholder .oe-conversa button.oe-conversa__tudo { color: #f2d24b !important; }
+html[data-design="ardosia"] .oe-voz { background: #3b5348; box-shadow: none; }
+html[data-design="ardosia"] .oe-voz__meta, html[data-design="ardosia"] .oe-voz__meta b { color: #eef1e8; }
+html[data-design="ardosia"] .oe-voz__onda i { background: #6f8a7b; } html[data-design="ardosia"] .oe-voz__onda i.tocada, html[data-design="ardosia"] .oe-voz__play { background: #f2d24b; color: #1b2a24; }
+html[data-design="ardosia"] .oe-texto, html[data-design="ardosia"] .oe-digitar { background: transparent; box-shadow: none; border: 1.5px dashed rgba(238,241,232,.35); }
+html[data-design="ardosia"] .oe-texto__autor, html[data-design="ardosia"] .oe-texto__frase { color: #eef1e8; font-family: "Shantell Sans", sans-serif; }
+html[data-design="ardosia"] .oe-texto__rodape { color: #c9d2c4; }
+html[data-design="ardosia"] .oe-resumo-bolha { background: transparent; border-color: #f2d24b; color: #eef1e8; font-family: "Shantell Sans", sans-serif; }
+html[data-design="ardosia"] .oe-resumo-bolha h3 { color: #f2d24b; }
+
+/* Caderno: papel quadriculado, apontamentos a caneta azul */
+html[data-design="caderno"] .oe-conversa { background-color: #fff; background-image: linear-gradient(rgba(64,128,204,.16) 1px, transparent 1px), linear-gradient(90deg, rgba(64,128,204,.16) 1px, transparent 1px); background-size: 20px 20px; }
+html[data-design="caderno"] body.oe-page--home #homeOutputPlaceholder .oe-conversa button.oe-conversa__ouvir { background: #1e3fa8 !important; }
+html[data-design="caderno"] .oe-texto, html[data-design="caderno"] .oe-digitar { background: transparent; box-shadow: none; }
+html[data-design="caderno"] .oe-texto__autor, html[data-design="caderno"] .oe-texto__frase { color: #1e3fa8; font-family: "Shantell Sans", sans-serif; }
+html[data-design="caderno"] .oe-texto__frase { display: inline; background: linear-gradient(transparent 60%, rgba(255,226,64,.45) 60%); -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+html[data-design="caderno"] .oe-texto__rodape { margin-top: .35rem; }
+html[data-design="caderno"] .oe-voz__play, html[data-design="caderno"] .oe-voz__onda i.tocada { background: #1e3fa8; }
+html[data-design="caderno"] .oe-resumo-bolha { border-color: #d23b35; } html[data-design="caderno"] .oe-resumo-bolha h3 { color: #d23b35; }
+
+/* Cortiça: fichas brancas, letra de máquina de escrever */
+html[data-design="cortica"] .oe-conversa { background: #c99a6d; }
+html[data-design="cortica"] body.oe-page--home #homeOutputPlaceholder .oe-conversa button.oe-conversa__ouvir { background: #a32621 !important; }
+html[data-design="cortica"] .oe-texto { background: #fbfaf6; border-radius: 2px; border-top: 3px solid #c32f2a; box-shadow: 0 6px 12px -8px rgba(40,20,5,.6); }
+html[data-design="cortica"] .oe-texto__autor, html[data-design="cortica"] .oe-texto__frase { font-family: "Courier Prime", "Courier New", monospace; color: #24170d; }
+html[data-design="cortica"] .oe-voz { border-radius: 2px; } html[data-design="cortica"] .oe-voz__play, html[data-design="cortica"] .oe-voz__onda i.tocada { background: #a32621; }
+html[data-design="cortica"] .oe-digitar { background: #fbfaf6; border-radius: 2px; }
+html[data-design="cortica"] .oe-resumo-bolha { border-radius: 2px; border-color: #a32621; } html[data-design="cortica"] .oe-resumo-bolha h3 { color: #a32621; }
+
+/* Folha: papel pautado, tinta azul de formulário */
+html[data-design="folha"] .oe-conversa { background-color: #fff; background-image: linear-gradient(to bottom, transparent 31px, rgba(27,69,151,.16) 31px); background-size: 100% 32px; }
+html[data-design="folha"] body.oe-page--home #homeOutputPlaceholder .oe-conversa button.oe-conversa__ouvir { background: #1b4597 !important; }
+html[data-design="folha"] .oe-texto, html[data-design="folha"] .oe-digitar { background: transparent; box-shadow: none; border-left: 0; }
+html[data-design="folha"] .oe-texto__autor, html[data-design="folha"] .oe-texto__frase { color: #1b4597; }
+html[data-design="folha"] .oe-voz__play, html[data-design="folha"] .oe-voz__onda i.tocada { background: #1b4597; }
+html[data-design="folha"] .oe-resumo-bolha { border-color: #c22f2c; border-radius: 4px; } html[data-design="folha"] .oe-resumo-bolha h3 { color: #c22f2c; }
+
+/* Instrumento que escreve (giz na ardósia, caneta no caderno e na folha) */
+.oe-instrumento { position: absolute; left: 0; top: 0; width: 54px; height: 16px; margin-top: -8px; pointer-events: none; z-index: 3; opacity: 0; transform-origin: 3% 50%; will-change: transform; transition: opacity .25s ease-out; overflow: visible; }
+.oe-instrumento.ativo { opacity: 1; }
+.oe-po { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: #eef1e8; pointer-events: none; animation: oe-cai .9s ease-in forwards; }
+@keyframes oe-cai { to { transform: translate(5px, 24px); opacity: 0; } }
+.oe-texto__frase .oe-cursor { display: inline-block; width: 1px; height: 1em; vertical-align: -.15em; }

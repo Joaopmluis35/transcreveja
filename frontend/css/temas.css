@@ -62,3 +62,16 @@ html[data-design="folha"] body.oe-pro.oe-page--home #uploadForm #btnTranscrever 
 .oe-design-troca button.oe-design-op[aria-checked="true"] { font-weight: 800; }
 .oe-design-troca button.oe-design-op[aria-checked="true"]::after { content: "✓"; margin-left: auto; color: #b5520a; }
 .oe-design-cor { flex: none; width: 1.35rem; height: 1.35rem; border-radius: 50%; box-shadow: inset 0 0 0 2px rgba(15,42,79,.15); }
+
+/* Logótipo claro na ardósia (o azul-escuro não se via no cabeçalho escuro) */
+html[data-design="ardosia"] .oe-pro-brand__icon { content: url("/design/assets/logo-simbolo-giz.svg"); }
+html[data-design="ardosia"] .oe-pro-brand__name { color: #eef1e8; }
+
+/* Lista de cores e menus seguem as cores de cada design */
+html body.oe-pro .oe-design-troca ul { background: var(--pro-surface, #fff); border: 1px solid var(--pro-border, transparent); }
+html body.oe-pro .oe-pro-header .oe-design-troca button.oe-design-op { color: var(--pro-text-secondary, #3d5677) !important; }
+html body.oe-pro .oe-pro-header .oe-design-troca button.oe-design-op[aria-checked="true"] { color: var(--pro-text, #0f2a4f) !important; }
+html body.oe-pro .oe-pro-header .oe-design-troca button.oe-design-op:hover { background: var(--pro-accent-soft, #eef4fb) !important; }
+html[data-design="ardosia"] body.oe-pro .oe-design-troca summary { color: #eef1e8; }
+html[data-design="ardosia"] body.oe-pro .oe-design-troca summary:hover, html[data-design="ardosia"] body.oe-pro .oe-design-troca[open] summary { background: #3b5348; }
+html[data-design="cortica"] .oe-pro-header, html[data-design="caderno"] .oe-pro-header, html[data-design="folha"] .oe-pro-header { background: #fff; }

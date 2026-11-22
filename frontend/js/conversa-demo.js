@@ -72,7 +72,50 @@
     lista.appendChild(li); descer();
     ouvir.querySelector("span").textContent = "Ouvir outra vez";
   }
-  function limpar() { corrida++; if (temFala) speechSynthesis.cancel(); lista.innerHTML = ""; }
+  // Instrumento que escreve a mensagem: giz na ardósia, caneta no caderno e na folha (segue as letras).
+  var GIZ = '<svg viewBox="0 0 64 16"><path d="M9 1.5H58.5a6.5 6.5 0 0 1 0 13H9C5 14.2 1.6 11.6 1 8.6.6 6.2 3.6 2.6 9 1.5Z" transform="translate(2.5 4.5)" fill="#000" opacity=".28"/><path d="M9 1.5H58.5a6.5 6.5 0 0 1 0 13H9C5 14.2 1.6 11.6 1 8.6.6 6.2 3.6 2.6 9 1.5Z" fill="#f4f6f0"/><ellipse cx="58.5" cy="8" rx="3.2" ry="6.5" fill="#d6dbd0"/><path d="M12 4.2H55" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/></svg>';
+  var CANETA = '<svg viewBox="0 0 64 16"><path d="M0 8 9 4.5v7z" fill="#8f9aa6"/><circle cx="1.2" cy="8" r="1.3" fill="#1e3fa8"/><rect x="9" y="3.5" width="44" height="9" rx="2" fill="#eef4fc" stroke="#9fb7d6"/><rect x="12" y="6.6" width="38" height="2.8" rx="1.4" fill="#1e3fa8" opacity=".55"/><rect x="52" y="3" width="11" height="10" rx="2.5" fill="#1e3fa8"/><rect x="30" y="1" width="20" height="2.6" rx="1.2" fill="#1e3fa8"/></svg>';
+  var inst = null, alvo = { x: 0, y: 0, a: -30 }, atual = { x: 0, y: 0, a: -30 }, raf = 0, tAnt = 0, letras = 0;
+  function tipoInstrumento() {
+    var d = document.documentElement.getAttribute("data-design");
+    return d === "ardosia" ? "giz" : (d === "caderno" || d === "folha") ? "caneta" : "";
+  }
+  function passo(t) {
+    var dt = Math.min(64, t - (tAnt || t)); tAnt = t;
+    var k = 1 - Math.exp(-dt / 40);
+    atual.x += (alvo.x - atual.x) * k; atual.y += (alvo.y - atual.y) * k; atual.a += (alvo.a - atual.a) * k;
+    inst.style.transform = "translate3d(" + atual.x.toFixed(1) + "px," + atual.y.toFixed(1) + "px,0) rotate(" + atual.a.toFixed(1) + "deg)";
+    raf = requestAnimationFrame(passo);
+  }
+  function moverInstrumento(cursor) {
+    var tipo = tipoInstrumento();
+    if (calmo || !tipo) return;
+    if (!inst || !inst.isConnected) {
+      inst = document.createElement("li");
+      inst.className = "oe-instrumento"; inst.setAttribute("aria-hidden", "true");
+      lista.appendChild(inst);
+    }
+    if (inst.getAttribute("data-tipo") !== tipo) { inst.innerHTML = tipo === "giz" ? GIZ : CANETA; inst.setAttribute("data-tipo", tipo); }
+    var l = lista.getBoundingClientRect(), c = cursor.getBoundingClientRect();
+    letras++;
+    alvo.x = c.left - l.left + lista.scrollLeft;
+    alvo.y = c.bottom - l.top + lista.scrollTop - 5 + Math.sin(letras * 2.1);
+    alvo.a = (tipo === "giz" ? -30 : -38) + Math.sin(letras * 1.7) * 3;
+    if (!raf) { atual.x = alvo.x; atual.y = alvo.y; atual.a = alvo.a; tAnt = 0; raf = requestAnimationFrame(passo); inst.classList.add("ativo"); }
+    if (tipo === "giz" && letras % 4 === 0) {
+      var po = document.createElement("li"); po.className = "oe-po"; po.setAttribute("aria-hidden", "true");
+      po.style.left = alvo.x + "px"; po.style.top = (alvo.y + 4) + "px";
+      po.addEventListener("animationend", function () { po.remove(); });
+      lista.appendChild(po);
+    }
+  }
+  function largarInstrumento() {
+    if (raf) cancelAnimationFrame(raf);
+    raf = 0;
+    if (inst) inst.classList.remove("ativo");
+  }
+
+  function limpar() { corrida++; if (temFala) speechSynthesis.cancel(); largarInstrumento(); inst = null; lista.innerHTML = ""; }
 
   function mostrarTudo() {
     limpar();
@@ -112,7 +155,19 @@
       if (esta !== corrida) return;
       var frase = bolhaTexto(t, quem); descer();
       if (calmo) frase.textContent = texto;
-      else for (var j = 1; j <= texto.length; j += 2) { if (esta !== corrida) return; frase.textContent = texto.slice(0, j); await pausa(14); }
+      else {
+        // O texto cresce num nó próprio e o cursor (invisível) fica no fim, para o giz/caneta seguir as letras.
+        var no = document.createTextNode(""), cur = document.createElement("span");
+        cur.className = "oe-cursor"; frase.appendChild(no); frase.appendChild(cur);
+        var comInst = !!tipoInstrumento();
+        for (var j = 1; j <= texto.length; j += comInst ? 1 : 2) {
+          if (esta !== corrida) return;
+          no.data = texto.slice(0, j);
+          if (comInst) moverInstrumento(cur);
+          await pausa(comInst ? 24 : 14);
+        }
+        largarInstrumento();
+      }
       frase.textContent = texto; descer();
       await pausa(calmo ? 0 : 250);
     }
