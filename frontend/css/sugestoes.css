@@ -28,7 +28,7 @@ body.oe-pro.oe-page--suggestions main.oe-suggestions {
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--pro-accent, #1d4a8f);
-  background: rgba(181, 82, 10, 0.1);
+  background: rgba(253, 140, 50, 0.1);
 }
 
 .oe-suggestions__hero h1 {
@@ -95,7 +95,7 @@ body.oe-pro.oe-page--suggestions main.oe-suggestions {
 
 .oe-suggestions__field input[type="text"]:focus,
 .oe-suggestions__field textarea:focus {
-  outline: 2px solid rgba(196, 89, 10, 0.35);
+  outline: 2px solid rgba(253, 140, 50, 0.35);
   outline-offset: 1px;
   border-color: #7f9cc4;
   background: #fff;
@@ -138,12 +138,12 @@ body.oe-pro.oe-page--suggestions main.oe-suggestions {
 }
 
 .oe-suggestions__cat input:focus-visible + span {
-  outline: 2px solid rgba(196, 89, 10, 0.45);
+  outline: 2px solid rgba(253, 140, 50, 0.45);
   outline-offset: 2px;
 }
 
 .oe-suggestions__cat input:checked + span {
-  background: rgba(196, 89, 10, 0.12);
+  background: rgba(253, 140, 50, 0.12);
   border-color: #7f9cc4;
   color: var(--pro-accent, #1d4a8f);
 }
@@ -245,11 +245,11 @@ html.oe-theme-dark .oe-suggestions__cat span {
 
 html.oe-theme-dark .oe-suggestions__cat input:checked + span {
   background: rgba(167, 139, 250, 0.18);
-  border-color: #b5520a;
+  border-color: var(--oe-btn, #fd8c32);
   color: #d9e8f8;
 }
 
 html.oe-theme-dark .oe-suggestions__eyebrow {
   color: #9fb7d6;
-  background: rgba(181, 82, 10, 0.22);
+  background: rgba(253, 140, 50, 0.22);
 }

@@ -204,7 +204,7 @@ body.oe-page--flashcards .oe-fc-hero .oe-lead {
 }
 
 .oe-fc-card:focus-visible .oe-fc-card__face {
-  outline: 2px solid #b5520a;
+  outline: 2px solid var(--oe-btn, #fd8c32);
   outline-offset: 2px;
 }
 
@@ -238,7 +238,7 @@ body.oe-page--flashcards .oe-fc-hero .oe-lead {
 .oe-fc-card:hover .oe-fc-card__face,
 .oe-fc-card:focus-visible .oe-fc-card__face {
   border-color: #7f9cc4;
-  box-shadow: 0 6px 20px rgba(181, 82, 10, 0.12);
+  box-shadow: 0 6px 20px rgba(253, 140, 50, 0.12);
 }
 
 .oe-fc-card__face--back {
@@ -253,8 +253,8 @@ body.oe-page--flashcards .oe-fc-hero .oe-lead {
 
 .oe-fc-card.is-flipped:hover .oe-fc-card__face--back,
 .oe-fc-card.is-flipped:focus-visible .oe-fc-card__face--back {
-  border-color: #b5520a;
-  box-shadow: 0 6px 20px rgba(181, 82, 10, 0.18);
+  border-color: var(--oe-btn, #fd8c32);
+  box-shadow: 0 6px 20px rgba(253, 140, 50, 0.18);
 }
 
 .oe-fc-card__label {
@@ -280,7 +280,7 @@ html.oe-theme-dark .oe-fc-card__face {
 
 html.oe-theme-dark .oe-fc-card__face--back {
   background: #2e1065;
-  border-color: #b5520a;
+  border-color: var(--oe-btn, #fd8c32);
 }
 
 html.oe-theme-dark .oe-fc-card__face--back .oe-fc-card__label {
@@ -427,13 +427,13 @@ html.oe-theme-dark .oe-fc-card__text {
 .oe-fc-export__btn--primary {
   background: var(--oe-btn, #fd8c32) !important;
   color: #fff !important;
-  border-color: #9c4607 !important;
+  border-color: var(--oe-btn-hover, #f07a1c) !important;
 }
 
 .oe-fc-export__btn--primary:hover:not(:disabled) {
   background: var(--oe-btn-hover, #f07a1c) !important;
   color: #fff !important;
-  border-color: #a94c06 !important;
+  border-color: var(--oe-btn-hover, #f07a1c) !important;
   filter: none;
 }
 

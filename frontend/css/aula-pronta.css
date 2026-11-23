@@ -52,7 +52,7 @@ body.oe-page--aula-pronta .oe-ap-hero .oe-lead {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--pro-accent, #1d4a8f);
-  background: rgba(181, 82, 10, 0.1);
+  background: rgba(253, 140, 50, 0.1);
 }
 
 .oe-ap-form__title {
@@ -88,8 +88,8 @@ body.oe-page--aula-pronta .oe-ap-hero .oe-lead {
 
 .oe-ap-form textarea:focus {
   outline: none;
-  border-color: #b5520a;
-  box-shadow: 0 0 0 3px rgba(181, 82, 10, 0.15);
+  border-color: var(--oe-btn, #fd8c32);
+  box-shadow: 0 0 0 3px rgba(253, 140, 50, 0.15);
   background: #fff;
 }
 
@@ -164,7 +164,7 @@ body.oe-page--aula-pronta .oe-ap-hero .oe-lead {
   gap: 12px;
   padding: 18px 20px;
   border-bottom: 1px solid var(--pro-border, #e2e8f0);
-  background: linear-gradient(180deg, rgba(181, 82, 10, 0.06), transparent);
+  background: linear-gradient(180deg, rgba(253, 140, 50, 0.06), transparent);
 }
 
 .oe-ap-pack__title {
@@ -197,7 +197,7 @@ body.oe-page--aula-pronta .oe-ap-hero .oe-lead {
 }
 
 .oe-ap-pack__btn--primary {
-  border-color: #b5520a;
+  border-color: var(--oe-btn, #fd8c32);
   background: var(--oe-btn, #fd8c32);
   color: #fff;
 }

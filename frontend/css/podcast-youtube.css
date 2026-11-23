@@ -54,7 +54,7 @@ body.oe-page--podcast-youtube .oe-pw-hero .oe-lead {
 .oe-pw-steps li.is-active {
   color: var(--pro-accent, #1d4a8f);
   border-color: #9fb7d6;
-  background: rgba(181, 82, 10, 0.08);
+  background: rgba(253, 140, 50, 0.08);
 }
 
 .oe-pw-steps li.is-done {

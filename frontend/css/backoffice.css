@@ -3,7 +3,7 @@
   --bo-sidebar: #1e1b4b;
   --bo-sidebar-hover: #312e81;
   --bo-sidebar-active: #4c1d95;
-  --bo-accent: #7c3aed;
+  --bo-accent: #1d4a8f;
   --bo-bg: #f0f0f1;
   --bo-card: #ffffff;
   --bo-border: #dcdcde;
@@ -43,7 +43,7 @@ body.oe-admin {
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 50%, #7c3aed 100%);
+  background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 50%, #1d4a8f 100%);
 }
 
 .oe-admin-login-card {
@@ -132,7 +132,7 @@ body.oe-admin {
 
 body.oe-admin.oe-admin--dark .oe-admin-btn--secondary:hover {
   background: var(--bo-sidebar-hover);
-  border-color: #6366f1;
+  border-color: #1d4a8f;
   color: #f9fafb;
 }
 
@@ -212,7 +212,7 @@ body.oe-admin.oe-admin--dark table.oe-admin-table tbody tr:hover td {
   padding: 12px 16px;
   border: none;
   background: transparent;
-  color: #c7d2fe;
+  color: #c9dcf2;
   font-size: 0.9rem;
   font-weight: 500;
   text-align: left;
@@ -228,7 +228,7 @@ body.oe-admin.oe-admin--dark table.oe-admin-table tbody tr:hover td {
 .oe-admin-nav button.is-active {
   background: var(--bo-sidebar-active);
   color: #fff;
-  border-left-color: #a78bfa;
+  border-left-color: #9fb7d6;
   font-weight: 600;
 }
 
@@ -245,7 +245,7 @@ body.oe-admin.oe-admin--dark table.oe-admin-table tbody tr:hover td {
 }
 
 .oe-admin-sidebar-footer a {
-  color: #a5b4fc;
+  color: #9fb7d6;
   font-size: 0.82rem;
   text-decoration: none;
   display: block;
@@ -345,7 +345,7 @@ body.oe-admin.oe-admin--dark table.oe-admin-table tbody tr:hover td {
   background: var(--card-accent, var(--bo-accent));
 }
 
-.oe-admin-card--purple { --card-accent: #7c3aed; }
+.oe-admin-card--purple { --card-accent: #1d4a8f; }
 .oe-admin-card--blue { --card-accent: #2563eb; }
 .oe-admin-card--green { --card-accent: #059669; }
 .oe-admin-card--amber { --card-accent: #d97706; }
@@ -575,7 +575,7 @@ body.oe-admin.oe-admin--dark table.oe-admin-table tbody tr:hover td {
 }
 
 .oe-admin-visitors-filter.is-active {
-  background: var(--bo-accent-soft, #ede9fe);
+  background: var(--bo-accent-soft, #e4f0fc);
   border-color: var(--bo-accent, #6d28d9);
   color: var(--bo-accent, #6d28d9);
 }
@@ -602,7 +602,7 @@ body.oe-admin.oe-admin--dark table.oe-admin-table tbody tr:hover td {
 
 .oe-admin-visitor-tag--bot {
   background: #fff7ed;
-  color: #c2410c;
+  color: #0f2a4f;
 }
 
 .oe-admin-visitor-tag--legacy {
@@ -935,7 +935,7 @@ table.oe-admin-table td code {
 .oe-admin-save-progress__bar {
   height: 100%;
   width: 0%;
-  background: linear-gradient(90deg, #7c3aed, #6366f1);
+  background: linear-gradient(90deg, #1d4a8f, #1d4a8f);
   border-radius: 999px;
   transition: width 0.25s ease;
 }
@@ -1147,7 +1147,7 @@ table.oe-admin-table td code {
   width: 1.25rem;
   height: 1.25rem;
   margin-top: 2px;
-  color: #7c3aed;
+  color: #1d4a8f;
 }
 
 .oe-admin-ai-loading strong {
@@ -1192,7 +1192,7 @@ table.oe-admin-table td code {
 body.oe-admin.oe-admin--dark .oe-admin-ai-loading {
   background: #1e1b2e;
   border-color: #5b21b6;
-  color: #ede9fe;
+  color: #e4f0fc;
 }
 
 body.oe-admin.oe-admin--dark .oe-admin-ai-loading p {
@@ -1719,12 +1719,12 @@ body.oe-admin.oe-admin--dark .oe-admin-log-view {
 
 body.oe-admin.oe-admin--dark .oe-admin-jobs-box {
   background: #1e1b4b;
-  border-color: #6366f1;
+  border-color: #1d4a8f;
 }
 
 body.oe-admin.oe-admin--dark .oe-admin-jobs-box__title,
 body.oe-admin.oe-admin--dark .oe-admin-jobs-box__item {
-  color: #e0e7ff;
+  color: #e4f0fc;
 }
 
 .oe-admin-nav-section {

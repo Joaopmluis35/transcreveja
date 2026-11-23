@@ -37,7 +37,7 @@ html.oe-qg-open body {
   opacity: 0.35;
   animation: oe-qg-float 14s ease-in-out infinite alternate;
 }
-.oe-qg__bg span:nth-child(1) { background: #e0761f; top: -12vmax; left: -10vmax; }
+.oe-qg__bg span:nth-child(1) { background: var(--oe-btn, #fd8c32); top: -12vmax; left: -10vmax; }
 .oe-qg__bg span:nth-child(2) { background: #2563eb; bottom: -16vmax; right: -12vmax; animation-delay: -5s; }
 .oe-qg__bg span:nth-child(3) { background: #ec4899; top: 40%; left: 55%; width: 26vmax; height: 26vmax; animation-delay: -9s; }
 
@@ -528,7 +528,7 @@ html.oe-qg-open body {
 .oe-qg-landing__cta a {
   margin-left: 4px;
   font-weight: 700;
-  color: var(--pro-accent, #b5520a);
+  color: var(--pro-accent, var(--oe-btn, #fd8c32));
 }
 @media (prefers-reduced-motion: reduce) {
   .oe-qg-landing__logo,

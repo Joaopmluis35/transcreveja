@@ -150,7 +150,7 @@ body.oe-page--corretor .container.oe-cor-page {
   height: 36px;
   margin: 0 auto 14px;
   border: 3px solid #e2e8f0;
-  border-top-color: #b5520a;
+  border-top-color: var(--oe-btn, #fd8c32);
   border-radius: 50%;
   animation: oe-cor-spin 0.75s linear infinite;
 }
@@ -212,7 +212,7 @@ body.oe-page--corretor .container.oe-cor-page {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--pro-accent, #1d4a8f);
-  background: rgba(181, 82, 10, 0.1);
+  background: rgba(253, 140, 50, 0.1);
 }
 
 .oe-cor-form__title {
@@ -250,8 +250,8 @@ body.oe-page--corretor .container.oe-cor-page {
 
 .oe-cor-form textarea:focus {
   outline: none;
-  border-color: #b5520a;
-  box-shadow: 0 0 0 3px rgba(181, 82, 10, 0.15);
+  border-color: var(--oe-btn, #fd8c32);
+  box-shadow: 0 0 0 3px rgba(253, 140, 50, 0.15);
   background: #fff;
 }
 

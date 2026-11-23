@@ -1,11 +1,11 @@
 /* Ouviescrevi — design system partilhado */
-@import url("ouviescrevi-pro.css?v=21");
+@import url("ouviescrevi-pro.css?v=22");
 @import url("theme-dark.css?v=7");
-@import url("temas.css?v=7");
+@import url("temas.css?v=8");
 
 :root {
   --oe-purple: #1d4a8f;
-  --oe-purple-dark: #6b21a8;
+  --oe-purple-dark: #0f2a4f;
   --oe-cyan: #1c3d6b;
   --oe-gradient: #fd8c32;
   --oe-gradient-soft: #fd8c32;
@@ -17,7 +17,7 @@
   --oe-radius-sm: 10px;
   --oe-shadow: 0 10px 40px rgba(15, 23, 42, 0.12);
   --oe-shadow-sm: 0 4px 14px rgba(15, 23, 42, 0.08);
-  --oe-focus: 0 0 0 3px rgba(181, 82, 10, 0.45);
+  --oe-focus: 0 0 0 3px rgba(253, 140, 50, 0.45);
   --oe-font: "Schibsted Grotesk", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --oe-max: 880px;
   --oe-header-h: auto;
@@ -197,7 +197,7 @@ nav#nichoMenu button:hover,
 nav#nichoMenu button:focus-visible {
   color: #fff;
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(181, 82, 10, 0.35);
+  box-shadow: 0 6px 20px rgba(253, 140, 50, 0.35);
 }
 nav#nichoMenu button:focus-visible { outline: none; }
 nav#nichoMenu button span { position: relative; z-index: 1; }
@@ -472,7 +472,7 @@ nav#nichoMenu button span { position: relative; z-index: 1; }
   color: #fff;
   border-color: transparent;
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(181, 82, 10, 0.3);
+  box-shadow: 0 6px 20px rgba(253, 140, 50, 0.3);
 }
 .oe-page button:not(#fabSugestao):not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card):not(.oe-fc-export__btn):not(.oe-transcript-chat__chip):not(.oe-history-item__open):not(.oe-history-item__share):not(.oe-history-item__rename):not(.oe-history-item__del):not(.oe-history-panel__refresh):not(.oe-history-panel__search-clear):not(.oe-history-tool):not(.oe-account-nav__btn):not(.oe-pro-theme__btn):not(.oe-cookie-banner__btn):not(.oe-qg__btn):not(.oe-ap-pack__btn--play):focus-visible,
 .container button:not(.oe-pro-footer__social):not(.oe-pro-nav__trigger):not(#oeLangBtn):not(.oe-pro-nav__mobile-toggle):not(.oe-pro-btn):not(.oe-auth-tabs__btn):not(.oe-auth-modal__close):not(.oe-fc-card):not(.oe-fc-export__btn):not(.oe-transcript-chat__chip):not(.oe-history-item__open):not(.oe-history-item__share):not(.oe-history-item__rename):not(.oe-history-item__del):not(.oe-history-panel__refresh):not(.oe-history-panel__search-clear):not(.oe-history-tool):not(.oe-account-nav__btn):not(.oe-pro-theme__btn):not(.oe-cookie-banner__btn):not(.oe-qg__btn):not(.oe-ap-pack__btn--play):focus-visible,
@@ -1245,7 +1245,7 @@ main.oe-content {
 
 .oe-admin-traffic-pill__btn,
 .oe-admin-traffic-pill__link {
-  border: 1px solid rgba(196, 89, 10, 0.35);
+  border: 1px solid rgba(253, 140, 50, 0.35);
   background: rgba(255, 255, 255, 0.96);
   color: var(--pro-accent, #1d4a8f);
   border-radius: 10px;

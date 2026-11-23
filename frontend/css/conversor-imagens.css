@@ -52,7 +52,7 @@ body.oe-page--conversor-imagens .oe-cimg-hero .oe-lead {
   padding: 24px 16px;
   border: 2px dashed #9fb7d6;
   border-radius: 14px;
-  background: linear-gradient(180deg, rgba(181, 82, 10, 0.04), transparent);
+  background: linear-gradient(180deg, rgba(253, 140, 50, 0.04), transparent);
   cursor: pointer;
   text-align: center;
   transition: border-color 0.15s, background 0.15s;
@@ -60,8 +60,8 @@ body.oe-page--conversor-imagens .oe-cimg-hero .oe-lead {
 
 .oe-cimg-drop:hover,
 .oe-cimg-drop.is-dragover {
-  border-color: #b5520a;
-  background: rgba(181, 82, 10, 0.08);
+  border-color: var(--oe-btn, #fd8c32);
+  background: rgba(253, 140, 50, 0.08);
 }
 
 .oe-cimg-drop__icon {

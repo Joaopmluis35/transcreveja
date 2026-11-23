@@ -252,6 +252,10 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   abrir, anel no ▶, onda a mexer enquanto toca, linhas do «Exemplo de transcrição» a entrar). Correção: no telemóvel o
   `#uploadForm` tinha `height:100%` e o exemplo ficava por baixo da conversa.
 
+- Últimas cores antigas (bordas, contornos, sombras `rgba(181,82,10,…)`, gradientes, roxos `#7c3aed/#6366f1/…`, texto
+  castanho das caixas de aviso) trocadas em 23 ficheiros: laranja → `var(--oe-btn, #fd8c32)`, roxo → azuis da
+  paleta, texto de avisos → `#0f2a4f`. Fica de propósito `#9c4607` no fundo do símbolo do logótipo (não se vê).
+
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).
 

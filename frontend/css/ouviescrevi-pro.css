@@ -923,7 +923,7 @@ a.oe-pro-btn.oe-pro-btn--ghost:hover {
   overflow: hidden;
   border-top: none;
   background: linear-gradient(145deg, #0f2a4f 0%, #1c3d6b 42%, #24497a 100%);
-  color: #c7d2fe;
+  color: #c9dcf2;
   padding: 0;
   margin-top: 48px;
 }
@@ -970,7 +970,7 @@ a.oe-pro-btn.oe-pro-btn--ghost:hover {
   margin: 0 0 12px;
   font-size: 0.9375rem;
   line-height: 1.55;
-  color: #a5b4fc;
+  color: #9fb7d6;
 }
 .oe-pro-footer__email {
   color: #d9e8f8 !important;
@@ -991,13 +991,13 @@ a.oe-pro-btn.oe-pro-btn--ghost:hover {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #a5b4fc;
+  color: #9fb7d6;
 }
 .oe-pro-footer__col a {
   display: block;
   padding: 5px 0;
   font-size: 0.875rem;
-  color: #e0e7ff;
+  color: #e4f0fc;
   text-decoration: none;
 }
 .oe-pro-footer__col a:hover {
@@ -1013,7 +1013,7 @@ a.oe-pro-btn.oe-pro-btn--ghost:hover {
   gap: 16px;
   padding-top: 24px;
   font-size: 0.8125rem;
-  color: #a5b4fc;
+  color: #9fb7d6;
 }
 .oe-pro-footer__bottom p { margin: 0; }
 .oe-pro-footer__bottom-actions {
@@ -1477,7 +1477,7 @@ body.oe-pro.oe-page--home #uploadForm #btnTranskribieren {
   background: var(--oe-btn, #fd8c32) !important;
   color: #fff !important;
   border: none !important;
-  box-shadow: 0 6px 22px rgba(181, 82, 10, 0.38) !important;
+  box-shadow: 0 6px 22px rgba(253, 140, 50, 0.38) !important;
 }
 body.oe-pro.oe-page--home #uploadForm #btnTranscrever:hover:not(:disabled),
 body.oe-pro.oe-page--home #uploadForm #btnTranscribe:hover:not(:disabled),
@@ -1488,7 +1488,7 @@ body.oe-pro.oe-page--home #uploadForm #btnTranskribieren:hover:not(:disabled) {
   border: none !important;
   color: #fff !important;
   transform: translateY(-1px) !important;
-  box-shadow: 0 8px 26px rgba(181, 82, 10, 0.45) !important;
+  box-shadow: 0 8px 26px rgba(253, 140, 50, 0.45) !important;
 }
 body.oe-pro.oe-page--home #uploadForm button:hover:not(:disabled):not(#btnTranscrever):not(#btnTranscribe) {
   background: var(--pro-accent-muted) !important;
@@ -1625,7 +1625,7 @@ body.oe-pro #rodapeOuviescrevi.oe-pro-footer a {
   color: inherit;
 }
 body.oe-pro #rodapeOuviescrevi.oe-pro-footer .oe-pro-footer__col a {
-  color: #e0e7ff;
+  color: #e4f0fc;
 }
 
 body.oe-pro .oe-maintenance-banner {
@@ -1877,7 +1877,7 @@ body.oe-auth-modal-open {
   background: var(--pro-accent);
   border-color: var(--pro-accent);
   color: #fff !important;
-  box-shadow: 0 4px 14px rgba(196, 89, 10, 0.28);
+  box-shadow: 0 4px 14px rgba(253, 140, 50, 0.28);
 }
 .oe-auth-modal .oe-pro-btn--primary:hover,
 .oe-auth-modal button.oe-pro-btn--primary:hover {
@@ -1885,7 +1885,7 @@ body.oe-auth-modal-open {
   border-color: var(--pro-accent-hover);
   color: #fff !important;
   transform: none;
-  box-shadow: 0 6px 18px rgba(169, 76, 6, 0.35);
+  box-shadow: 0 6px 18px rgba(253, 140, 50, 0.35);
 }
 .oe-auth-modal__close {
   position: absolute;
@@ -1972,11 +1972,11 @@ body.oe-pro .oe-design-troca button.oe-design-op {
   all: unset; box-sizing: border-box; display: grid; justify-items: center; gap: 5px; width: 60px; padding: 6px 2px; border-radius: 10px;
   font: 600 .72rem/1.15 "Schibsted Grotesk", system-ui, sans-serif; color: var(--pro-text-secondary, #3d5677); text-align: center; cursor: pointer; }
 body.oe-pro .oe-design-troca button.oe-design-op:hover { background: #eef4fb; }
-body.oe-pro .oe-design-troca button.oe-design-op:focus-visible { outline: 3px solid #b5520a; outline-offset: 1px; }
+body.oe-pro .oe-design-troca button.oe-design-op:focus-visible { outline: 3px solid var(--oe-btn, #fd8c32); outline-offset: 1px; }
 body.oe-pro .oe-design-troca button.oe-design-op[aria-checked="true"] { color: #0f2a4f; font-weight: 800; }
 body.oe-pro .oe-design-troca button.oe-design-op[aria-checked="true"]::after { content: none; }
 body.oe-pro .oe-design-troca .oe-design-cor { width: 30px; height: 30px; box-shadow: inset 0 0 0 2px rgba(15,42,79,.15); }
-body.oe-pro .oe-design-troca button.oe-design-op[aria-checked="true"] .oe-design-cor { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #b5520a; }
+body.oe-pro .oe-design-troca button.oe-design-op[aria-checked="true"] .oe-design-cor { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--oe-btn, #fd8c32); }
 body.oe-pro .oe-design-troca .oe-design-troca__nota { grid-column: 1 / -1; margin-top: 4px; padding: 6px 4px 2px; font-size: .74rem; text-align: center; }
 /* Os estilos gerais dos botões tinham mais força: aqui ganham as bolinhas, e a lista nunca sai do ecrã */
 html body.oe-pro .oe-pro-header .oe-design-troca button.oe-design-op {

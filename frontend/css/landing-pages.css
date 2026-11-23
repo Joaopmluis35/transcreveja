@@ -84,12 +84,12 @@ body.oe-page--landing .oe-lp-btn--primary,
 body.oe-page--landing-pro .oe-lp-btn--primary {
   background: var(--oe-btn, #fd8c32);
   color: #fff !important;
-  box-shadow: 0 6px 20px rgba(181, 82, 10, 0.35);
+  box-shadow: 0 6px 20px rgba(253, 140, 50, 0.35);
 }
 
 body.oe-page--landing .oe-lp-btn--primary:hover,
 body.oe-page--landing-pro .oe-lp-btn--primary:hover {
-  box-shadow: 0 8px 24px rgba(181, 82, 10, 0.45);
+  box-shadow: 0 8px 24px rgba(253, 140, 50, 0.45);
   color: #fff !important;
 }
 
@@ -97,8 +97,8 @@ body.oe-page--landing .oe-lp-btn--ghost,
 body.oe-page--landing-pro .oe-lp-btn--ghost {
   background: #fff;
   color: var(--pro-accent, #1d4a8f) !important;
-  border: 2px solid #b5520a;
-  box-shadow: 0 2px 12px rgba(181, 82, 10, 0.12);
+  border: 2px solid var(--oe-btn, #fd8c32);
+  box-shadow: 0 2px 12px rgba(253, 140, 50, 0.12);
 }
 
 body.oe-page--landing .oe-lp-btn--ghost:hover,
@@ -222,7 +222,7 @@ body.oe-page--landing a.oe-lp-tool:hover,
 body.oe-page--landing-pro a.oe-lp-tool:hover {
   transform: translateY(-2px);
   border-color: #9fb7d6;
-  box-shadow: 0 8px 24px rgba(181, 82, 10, 0.12);
+  box-shadow: 0 8px 24px rgba(253, 140, 50, 0.12);
 }
 
 body.oe-page--landing .oe-lp-tool__icon,

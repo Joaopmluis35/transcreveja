@@ -69,7 +69,7 @@ body.oe-page--url-resumo .container.oe-url-page {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--pro-accent, #1d4a8f);
-  background: rgba(181, 82, 10, 0.1);
+  background: rgba(253, 140, 50, 0.1);
 }
 
 .oe-url-form__title {
@@ -109,8 +109,8 @@ body.oe-page--url-resumo .container.oe-url-page {
 
 .oe-url-input:focus {
   outline: none;
-  border-color: #b5520a;
-  box-shadow: 0 0 0 3px rgba(181, 82, 10, 0.15);
+  border-color: var(--oe-btn, #fd8c32);
+  box-shadow: 0 0 0 3px rgba(253, 140, 50, 0.15);
   background: #fff;
 }
 
@@ -155,13 +155,13 @@ body.oe-page--url-resumo .container.oe-url-page {
   cursor: pointer;
   color: #fff;
   background: #e46c12;
-  box-shadow: 0 4px 14px rgba(181, 82, 10, 0.3);
+  box-shadow: 0 4px 14px rgba(253, 140, 50, 0.3);
   transition: transform 0.12s, box-shadow 0.12s;
 }
 
 .oe-url-form__submit:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(181, 82, 10, 0.35);
+  box-shadow: 0 6px 18px rgba(253, 140, 50, 0.35);
   background: #c95e0d;
 }
 
@@ -221,7 +221,7 @@ body.oe-page--url-resumo .container.oe-url-page {
   gap: 10px;
   padding: 16px 18px;
   border-bottom: 1px solid var(--pro-border, #e2e8f0);
-  background: linear-gradient(180deg, rgba(181, 82, 10, 0.04), transparent);
+  background: linear-gradient(180deg, rgba(253, 140, 50, 0.04), transparent);
 }
 
 .oe-url-output--error .oe-url-output__head {
