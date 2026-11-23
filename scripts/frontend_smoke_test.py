@@ -20,6 +20,8 @@ LINK_HREF = re.compile(r'<link[^>]+href=["\']([^"\']+)["\']', re.I)
 
 def path_from_url_path(url_path: str) -> Path:
     p = url_path.strip("/") or "index.html"
+    if url_path.endswith("/") and p != "index.html":
+        p += "/index.html"  # pastas ("/en/") servem o index.html
     return FRONTEND.joinpath(*p.split("/"))
 
 
@@ -75,6 +77,13 @@ def main() -> int:
             if loc in ("es", "fr", "de") or loc in ("pt", "en"):
                 if not page.is_file():
                     errors.append(f"Missing audience landing: {page.relative_to(ROOT)}")
+
+    # A página inicial de cada língua é anunciada ao Google como pasta ("/", "/en/"), não como index.html.
+    for loc in REQUIRED_LOCALES:
+        home = FRONTEND / "index.html" if loc == "pt" else FRONTEND / loc / "index.html"
+        want = "https://www.ouviescrevi.pt/" + ("" if loc == "pt" else loc + "/")
+        if f'<link rel="canonical" href="{want}">' not in home.read_text(encoding="utf-8"):
+            errors.append(f"Home page {home.relative_to(ROOT)}: canonical must be {want}")
 
     for url_path in sitemap_paths():
         file_path = path_from_url_path(url_path)

@@ -363,8 +363,12 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
 
 - SEO (23/11): 20 títulos com mais de 65 caracteres encurtados (PT/EN/ES/FR/DE; `og:title`/`twitter:title` iguais),
   5 descrições curtas completadas (blog reuniões, aulas DE/ES/FR, podcasts DE) e `lastmod` do `sitemap.xml` com a
-  data do último commit de cada página. Por fazer: a página inicial tem canónico `/index.html` (melhor `/`; mexe nos
-  `index.html` das 5 línguas e no sitemap) e não há dados de Search Console para decidir as páginas seguintes.
+  data do último commit de cada página.
+- SEO (23/11, 2.ª parte): a página inicial passa a ser anunciada como pasta (`https://www.ouviescrevi.pt/`, `/en/`,
+  `/es/`, `/fr/`, `/de/`) no canónico, `og:url`, hreflang do sitemap e no `js/ouviescrevi-seo.js` (`cleanUrl`).
+  **Atenção:** o `ouviescrevi-seo.js` reescreve título/descrição a partir da lista `PAGES` — ao mudar o `<title>` de
+  uma página, mudar também lá. Script agora com `?v=2` (127 páginas). O `frontend_smoke_test.py` aceita URLs de pasta
+  no sitemap e verifica o canónico das 5 páginas iniciais.
 
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).

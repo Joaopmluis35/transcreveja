@@ -260,7 +260,7 @@
     },
 
     "/conversor.html": {
-      title: "Conversor de Ficheiros Online Grátis — Word, PDF, Imagem | Ouviescrevi",
+      title: "Conversor de Ficheiros Grátis: Word, PDF, Imagem | Ouviescrevi",
       description:
         "Converte Word para PDF, PDF para texto e imagens para PDF no browser. Rápido, gratuito e sem instalação.",
     },
@@ -271,13 +271,13 @@
       lang: "en",
     },
     "/es/conversor.html": {
-      title: "Conversor de archivos online gratis — Word, PDF e imagen | Ouviescrevi",
+      title: "Conversor de Archivos Gratis: Word, PDF, Imagen | Ouviescrevi",
       description:
         "Convierte Word a PDF, PDF a texto e imágenes a PDF en el navegador. Rápido, gratis y sin instalación.",
       lang: "es",
     },
     "/fr/conversor.html": {
-      title: "Convertisseur de fichiers en ligne gratuit — Word, PDF, Image | Ouviescrevi",
+      title: "Convertisseur de Fichiers Gratuit : Word, PDF | Ouviescrevi",
       description:
         "Convertissez Word en PDF, PDF en texte et images en PDF dans le navigateur. Rapide, gratuit et sans installation.",
       lang: "fr",
@@ -290,7 +290,7 @@
     },
 
     "/conversor-imagens.html": {
-      title: "Conversor de Imagens — Converter, Comprimir e Redimensionar | Ouviescrevi",
+      title: "Converter e Comprimir Imagens Online | Ouviescrevi",
       description:
         "Converte, comprime e redimensiona imagens no browser. PNG, JPEG, WebP, AVIF, BMP e GIF — grátis e privado.",
     },
@@ -492,7 +492,7 @@
       lang: "de",
     },
     "/es/descricao-youtube.html": {
-      title: "Descripción para YouTube con IA — Títulos y Etiquetas | Ouviescrevi",
+      title: "Descripción para YouTube con IA | Ouviescrevi",
       description:
         "Genera título, descripción y etiquetas para YouTube con IA a partir de transcripciones y capítulos.",
       lang: "es",
@@ -510,60 +510,60 @@
       lang: "de",
     },
     "/podcast-youtube.html": {
-      title: "Assistente Podcast & YouTube — Capítulos e Descrição | Ouviescrevi",
+      title: "Capítulos e Descrição para Podcast e YouTube | Ouviescrevi",
       description:
         "Da transcrição aos capítulos e à descrição do YouTube — assistente guiado com IA para podcasts e vídeos.",
     },
     "/en/podcast-youtube.html": {
-      title: "Podcast & YouTube Assistant — Chapters & Description | Ouviescrevi",
+      title: "Podcast & YouTube Chapters and Description | Ouviescrevi",
       description:
         "From transcript to chapters and YouTube description — guided AI workflow for podcasts and videos.",
       lang: "en",
     },
     "/es/podcast-youtube.html": {
-      title: "Asistente Podcast y YouTube — Capítulos y Descripción | Ouviescrevi",
+      title: "Capítulos y Descripción para Podcast y YouTube | Ouviescrevi",
       description:
         "De la transcripción a capítulos y descripción de YouTube — flujo guiado con IA para podcasts y vídeos.",
       lang: "es",
     },
     "/fr/podcast-youtube.html": {
-      title: "Assistant Podcast & YouTube — Chapitres et Description | Ouviescrevi",
+      title: "Chapitres et Description Podcast & YouTube | Ouviescrevi",
       description:
         "De la transcription aux chapitres et à la description YouTube — parcours guidé avec l'IA.",
       lang: "fr",
     },
     "/de/podcast-youtube.html": {
-      title: "Podcast- & YouTube-Assistent — Kapitel & Beschreibung | Ouviescrevi",
+      title: "Podcast & YouTube: Kapitel und Beschreibung | Ouviescrevi",
       description:
         "Vom Transkript zu Kapiteln und YouTube-Beschreibung — geführter KI-Workflow für Podcasts und Videos.",
       lang: "de",
     },
 
     "/aula-completa.html": {
-      title: "Assistente Aula Completa — Resumo, Perguntas e Flashcards | Ouviescrevi",
+      title: "Resumo, Perguntas e Flashcards da Aula | Ouviescrevi",
       description:
         "Da transcrição ao resumo, perguntas e flashcards — assistente guiado com IA para professores e estudantes.",
     },
     "/en/aula-completa.html": {
-      title: "Full Lesson Assistant — Summary, Questions & Flashcards | Ouviescrevi",
+      title: "Lesson Summary, Questions and Flashcards | Ouviescrevi",
       description:
         "From transcript to summary, questions and flashcards — guided AI workflow for teachers and students.",
       lang: "en",
     },
     "/es/aula-completa.html": {
-      title: "Asistente Clase Completa — Resumen, Preguntas y Flashcards | Ouviescrevi",
+      title: "Resumen, Preguntas y Flashcards de Clase | Ouviescrevi",
       description:
         "De la transcripción al resumen, preguntas y flashcards — flujo guiado con IA.",
       lang: "es",
     },
     "/fr/aula-completa.html": {
-      title: "Assistant Cours Complet — Résumé, Questions et Flashcards | Ouviescrevi",
+      title: "Résumé, Questions et Flashcards de Cours | Ouviescrevi",
       description:
         "De la transcription au résumé, questions et flashcards — parcours guidé avec l'IA.",
       lang: "fr",
     },
     "/de/aula-completa.html": {
-      title: "Unterrichts-Assistent — Zusammenfassung, Fragen & Karteikarten | Ouviescrevi",
+      title: "Unterricht: Zusammenfassung, Fragen, Karteikarten | Ouviescrevi",
       description:
         "Vom Transkript zur Zusammenfassung, Fragen und Karteikarten — geführter KI-Ablauf.",
       lang: "de",
@@ -618,7 +618,7 @@
     },
 
     "/aulas.html": {
-      title: "Transcrição de Aulas com IA — Estudantes e Professores | Ouviescrevi",
+      title: "Transcrição de Aulas com IA | Ouviescrevi",
       description:
         "Transforma gravações de aulas em texto editável com IA. Ideal para estudantes, professores e ensino à distância.",
     },
@@ -814,6 +814,11 @@
 
   var FAQ_BY_LANG = { pt: FAQ_PT, en: FAQ_EN, es: FAQ_ES, fr: FAQ_FR, de: FAQ_DE };
 
+  // A página inicial de cada língua é anunciada como pasta ("/", "/en/"), não como index.html.
+  function cleanUrl(p) {
+    return p.replace(/(^|\/)index\.html$/, "$1");
+  }
+
   function pagePath() {
     var p = (global.location.pathname || "/").replace(/\/$/, "");
     if (!p || p === "") return "/index.html";
@@ -855,7 +860,7 @@
 
   function breadcrumb(path, title) {
     var parts = path.split("/").filter(Boolean);
-    var items = [{ "@type": "ListItem", position: 1, name: "Ouviescrevi", item: SITE + "/index.html" }];
+    var items = [{ "@type": "ListItem", position: 1, name: "Ouviescrevi", item: SITE + "/" }];
     if (parts.length && parts[parts.length - 1] !== "index.html") {
       items.push({
         "@type": "ListItem",
@@ -888,7 +893,7 @@
     }
     var OG_LOCALES = { pt: "pt_PT", en: "en_GB", es: "es_ES", fr: "fr_FR", de: "de_DE" };
     var IN_LANG = { pt: "pt-PT", en: "en", es: "es", fr: "fr", de: "de" };
-    var canonical = SITE + path;
+    var canonical = SITE + cleanUrl(path);
 
     document.title = title;
     upsertMeta("name", "description", desc);
@@ -912,10 +917,10 @@
     var alternates = HREFLANG[path];
     if (alternates) {
       Object.keys(alternates).forEach(function (loc) {
-        upsertLink("alternate", SITE + alternates[loc], { hreflang: loc });
+        upsertLink("alternate", SITE + cleanUrl(alternates[loc]), { hreflang: loc });
       });
       if (alternates.pt) {
-        upsertLink("alternate", SITE + alternates.pt, { hreflang: "x-default" });
+        upsertLink("alternate", SITE + cleanUrl(alternates.pt), { hreflang: "x-default" });
       }
     }
 
