@@ -71,6 +71,7 @@ def test_portuguese_speech_detected_as_english_is_redone_in_portuguese(monkeypat
     assert "olá João" in job["formatted"]
     assert "hello" not in job["formatted"]
     assert job.get("original_formatted") is None
+    assert job.get("original_language") is None
     assert translated == []
 
 
@@ -82,6 +83,7 @@ def test_real_english_audio_stays_in_english(monkeypatch):
     assert "hello João" in job["formatted"] and "olá" not in job["formatted"]
     assert translated == []
     assert job.get("original_formatted") is None
+    assert job.get("original_language") == "english"  # o site mostra «Ver tradução»
     assert not job.get("warning")
 
 
@@ -109,6 +111,7 @@ def test_english_site_keeps_audio_language(monkeypatch):
     assert calls == [None]
     assert "hello João" in job["formatted"]
     assert translated == []
+    assert job.get("original_language") is None
 
 
 def test_translate_keeps_timestamps(monkeypatch):

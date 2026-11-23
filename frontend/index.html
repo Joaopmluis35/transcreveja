@@ -1052,7 +1052,7 @@
   }
   window.definirTranscricao = definirTranscricao;
 
-  // Áudio noutra língua no site PT: o servidor traduz e envia o original em original_formatted.
+  // Áudio noutra língua: mostra-se primeiro o original; «Ver tradução» traduz para português a pedido.
   const NOMES_LINGUAS = {
     english: "inglês", spanish: "espanhol", french: "francês", german: "alemão",
     italian: "italiano", dutch: "neerlandês", russian: "russo", chinese: "chinês",
@@ -1067,24 +1067,44 @@
   }
 
   function mostrarNotaTraducao(data) {
-    const original = (data && data.original_formatted) || "";
-    if (!original.trim()) return;
-    const lingua = NOMES_LINGUAS[(data.original_language || "").toLowerCase()] || data.original_language || "outra língua";
-    versoesTranscricao = { traducao: transcriptionText.value, original: original, aMostrar: "traducao", lingua: lingua };
-    document.getElementById("transcriptTranslatedLabel").textContent = "Traduzido de " + lingua + ".";
-    document.getElementById("transcriptOriginalToggle").textContent = "Ver original";
+    if (!data || !data.original_language) return;
+    const lingua = NOMES_LINGUAS[data.original_language.toLowerCase()] || data.original_language;
+    versoesTranscricao = { original: transcriptionText.value, traducao: "", aMostrar: "original", lingua: lingua };
+    document.getElementById("transcriptTranslatedLabel").textContent = "Texto original (" + lingua + ").";
+    document.getElementById("transcriptOriginalToggle").textContent = "Ver tradução";
     document.getElementById("transcriptTranslatedNote").hidden = false;
   }
 
-  document.getElementById("transcriptOriginalToggle").addEventListener("click", function () {
+  document.getElementById("transcriptOriginalToggle").addEventListener("click", async function () {
     if (!versoesTranscricao) return;
     const v = versoesTranscricao;
+    const btn = this;
     v[v.aMostrar] = transcriptionText.value; // guarda edições feitas na versão visível
+    if (v.aMostrar === "original" && !v.traducao.trim()) {
+      OuviescreviUI.setButtonLoading(btn, true, "A traduzir…");
+      try {
+        await ensureApi();
+        const res = await fetchIA(`${API_BASE}/translate`, {
+          method: "POST",
+          headers: OuviescreviAPI.authHeaders({ "Content-Type": "application/json" }),
+          body: JSON.stringify(OuviescreviAPI.authJson({ text: v.original, language: "português" })),
+        });
+        const data = await res.json();
+        if (!data.translation) throw new Error("sem tradução");
+        v.traducao = data.translation;
+      } catch (e) {
+        OuviescreviUI.setButtonLoading(btn, false);
+        alert("❌ Não foi possível traduzir agora. Tenta outra vez daqui a pouco.");
+        return;
+      }
+      OuviescreviUI.setButtonLoading(btn, false);
+      if (versoesTranscricao !== v) return; // entretanto começou outra transcrição
+    }
     v.aMostrar = v.aMostrar === "traducao" ? "original" : "traducao";
     transcriptionText.value = v[v.aMostrar];
     document.getElementById("transcriptTranslatedLabel").textContent =
       v.aMostrar === "traducao" ? "Traduzido de " + v.lingua + "." : "Texto original (" + v.lingua + ").";
-    this.textContent = v.aMostrar === "traducao" ? "Ver original" : "Ver tradução";
+    btn.textContent = v.aMostrar === "traducao" ? "Ver original" : "Ver tradução";
     atualizarMetaTranscricao();
   });
 

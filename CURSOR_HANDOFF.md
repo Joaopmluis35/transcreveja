@@ -278,6 +278,9 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   atualizada (`news-ticker.js?v=5`). Erro ao transcrever (ex.: servidor reiniciou): deixa de ir para a caixa do texto;
   aparece o cartão `#oeErroTranscricao` com botão «Tentar outra vez» (`index.html`, `.oe-erro-card` em
   `conversa-demo.css`). Menu de idiomas: lista limpa com ✓ na língua atual (`ouviescrevi-pro.css`).
+- «Ver tradução» na caixa da transcrição (site PT): o servidor volta a enviar `original_language` quando o áudio não
+  é português (`original_formatted` continua vazio). O `index.html` mostra «Texto original (inglês).» + «Ver tradução»;
+  o 1.º clique chama `/translate` para português e guarda o resultado; depois alterna original/tradução.
 
 - Faixa de novidades (`news-ticker.js?v=6`): saiu a notícia de 26/10 (tradução automática, já não existe); entram 3
   novidades de 23/11/2026 em PT (novo aspeto, língua original, «Tentar outra vez») e 2 em EN/ES/FR/DE. Nomes dos

@@ -3051,9 +3051,11 @@ def _execute_transcribe_job(
         )
 
         # A transcrição fica sempre na língua original do áudio (pedido do João, 23/11/2026);
-        # quem quiser em português usa o botão «Traduzir». Os campos original_* ficam vazios.
+        # No site PT, original_language diz em que língua veio o áudio para o botão «Ver tradução» (traduz a pedido).
         original_formatted = None
-        original_language = None
+        foreign_languages = [lang for lang in chunk_languages if lang and not _is_portuguese(lang)]
+        pt_site = (ui_locale or "pt").strip().lower()[:2] in ("", "pt")
+        original_language = foreign_languages[0] if pt_site and foreign_languages else None
         translation_warning = None
 
         warning = None
