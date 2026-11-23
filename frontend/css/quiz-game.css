@@ -17,7 +17,7 @@ html.oe-qg-open body {
   box-sizing: border-box;
   color: #fff;
   font-family: var(--oe-font, "Segoe UI", system-ui, sans-serif);
-  background: radial-gradient(circle at 20% 10%, #9c4607 0%, #3b0764 45%, #0f2a4f 100%);
+  background: var(--oe-btn-hover, #f07a1c);
   animation: oe-qg-fade 0.25s ease-out;
 }
 
@@ -468,7 +468,7 @@ html.oe-qg-open body {
   border-radius: 24px;
   text-align: center;
   color: #fff;
-  background: radial-gradient(circle at 20% 10%, #b5520a 0%, #24497a 50%, #0f2a4f 100%);
+  background: var(--oe-btn, #fd8c32);
   box-shadow: 0 20px 50px rgba(76, 29, 149, 0.35);
 }
 .oe-qg-landing__logo {

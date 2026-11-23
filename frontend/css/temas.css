@@ -151,3 +151,12 @@ html[data-design="ardosia"] .oe-pro-brand__name { font-family: "Shantell Sans", 
 html[data-design="ardosia"] .oe-pro-brand__name::after {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 10' preserveAspectRatio='none'%3E%3Cpath d='M1 6.5C25 3.5 60 2.6 99 5' fill='none' stroke='%23f2d24b' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E");
 }
+
+/* Botões das outras páginas com a cor do design (secundários com contorno, como «Ouvir um exemplo") */
+html body.oe-pro .oe-lp-btn.oe-lp-btn--primary { background: var(--oe-btn) !important; color: var(--oe-btn-texto) !important; box-shadow: none !important; }
+html body.oe-pro .oe-lp-btn.oe-lp-btn--primary:hover { background: var(--oe-btn-hover) !important; }
+html body.oe-pro .oe-lp-btn.oe-lp-btn--ghost { background: transparent !important; color: var(--oe-btn2) !important; border: 2px solid var(--oe-btn2) !important; box-shadow: none !important; }
+html body.oe-pro .oe-lp-btn.oe-lp-btn--ghost:hover { background: var(--oe-btn2) !important; color: var(--pro-surface, #fff) !important; }
+html body.oe-pro .oe-pro-nav__link.is-active, html body.oe-pro .oe-pro-nav__trigger.is-active { background: var(--oe-btn); color: var(--oe-btn-texto); }
+html body.oe-pro #fabSugestao { background: var(--oe-btn) !important; color: var(--oe-btn-texto) !important; }
+html body.oe-pro #fabSugestao:hover { background: var(--oe-btn-hover) !important; }

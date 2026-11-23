@@ -232,6 +232,15 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   Caderno; na Ardósia o título escreve-se a giz e é sublinhado a amarelo. Novo `<p class="oe-tema-titulo">` no
   `#uploadForm` (só visível nesses designs). Risco por baixo do nome no logótipo (`temas.css?v=6`).
 
+- «??» em `professores.html`, `podcasts.html` e `corretor.html`: texto gravado em cp1252 (emojis → «?», travessão →
+  U+0097, acentos → «?»). Reposto à mão; `scripts/frontend_smoke_test.py` passa a falhar se voltar a haver «??» em
+  texto ou caracteres C1. Fundos de botões no laranja-escuro antigo (e gradientes com roxo `#6366f1`) passaram a
+  `var(--oe-btn, #fd8c32)` / `var(--oe-btn-hover, #f07a1c)` em 16 ficheiros CSS (as cores de texto ficaram); em
+  `temas.css` os `.oe-lp-btn` (primário cheio, secundário com contorno), o separador ativo do menu e o botão
+  flutuante seguem a cor do design. Mensagens de voz como o desenho: no computador (≥1000px) `#adminContent` passa a
+  grelha de 2 colunas (título em 2 linhas, caixa, «Exemplo de transcrição» e faixa «Sem registo · …» à esquerda;
+  conversa à direita), bolhas de texto verdes com ✓✓ azul, onda azul. Novo bloco `.oe-exemplo-tr` no `index.html`.
+
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).
 

@@ -89,6 +89,9 @@ def main() -> int:
         checked_html += 1
         if "<html" not in text.lower() or "<title" not in text.lower():
             errors.append(f"Invalid HTML skeleton: {html_file.relative_to(ROOT)}")
+        # Texto gravado com a codificação errada: emojis viram «??» e travessões viram U+0097.
+        if re.search(r">[^<]*\?\?[^<]*<", text) or any("\x80" <= c <= "\x9f" for c in text):
+            errors.append(f"Broken characters (?? or C1) in {html_file.relative_to(ROOT)}")
         for pattern in (SCRIPT_SRC, LINK_HREF):
             for ref in pattern.findall(text):
                 if ref.startswith("#"):

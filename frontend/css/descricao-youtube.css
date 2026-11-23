@@ -171,7 +171,7 @@ body.oe-page--youtube-desc .oe-yt-hero .oe-lead {
 }
 
 .oe-yt-result__btn--primary {
-  background: linear-gradient(135deg, #b5520a, #9c4607);
+  background: var(--oe-btn, #fd8c32);
   border-color: transparent;
   color: #fff;
 }

@@ -37,7 +37,7 @@ body.oe-page--home .oe-home-panel--placeholder.oe-conversa-wrap { padding: 0; ba
 .oe-voz.a-tocar .oe-voz__play { background: #8f4007; }
 .oe-voz__onda { display: flex; align-items: center; gap: 2px; height: 1.8rem; }
 .oe-voz__onda i { display: block; width: 3px; border-radius: 2px; background: #9ab6dc; transition: background-color .12s linear; }
-.oe-voz__onda i.tocada { background: #b5520a; }
+.oe-voz__onda i.tocada { background: var(--oe-btn, #fd8c32); }
 .oe-voz__meta { display: grid; font-size: .76rem; color: #3d5677; line-height: 1.2; font-variant-numeric: tabular-nums; }
 .oe-voz__meta b { font-weight: 650; color: #0f2a4f; }
 .oe-texto { align-self: flex-end; max-width: min(25rem, 90%); padding: .6rem .9rem .45rem; background: #fff3e6; border-radius: 18px 18px 6px 18px; box-shadow: 0 1px 2px rgba(15,42,79,.08); }
@@ -260,3 +260,51 @@ html[data-design="ardosia"] body.oe-pro.oe-page--home #uploadForm #btnTranscreve
 /* Mensagens de voz: a onda já ouvida fica no mesmo laranja do botão ▶ (como no desenho). */
 html:not([data-design]) .oe-voz__onda i.tocada { background: #fd8c32; }
 html:not([data-design]) .oe-voz.a-tocar .oe-voz__play { background: #f07a1c; }
+
+/* ══ Mensagens de voz como no desenho: título e caixa à esquerda, conversa à direita ══ */
+.oe-exemplo-tr { display: none; }
+html:not([data-design]) .oe-exemplo-tr { display: block; margin-top: 22px; }
+.oe-exemplo-tr h2 { margin: 0 0 10px; font-size: 1.25rem; font-weight: 800; color: #0f2a4f; }
+.oe-exemplo-tr ol { list-style: none; margin: 0; padding: 14px 18px; background: rgba(255,255,255,.75); border-radius: 16px; }
+.oe-exemplo-tr li { display: grid; grid-template-columns: 3.6rem 6.2rem minmax(0, 1fr); gap: 0 .4rem; padding: .3rem 0; font-size: 1rem; line-height: 1.45; color: #0f2a4f; }
+.oe-exemplo-tr time { color: #55657a; font-variant-numeric: tabular-nums; }
+.oe-exemplo-tr b { font-weight: 750; }
+@media (max-width: 560px) { .oe-exemplo-tr li { grid-template-columns: 3.2rem minmax(0, 1fr); } .oe-exemplo-tr li span { grid-column: 2; } }
+
+/* Faixa simples em vez de etiquetas: «Sem registo · Até 500 MB · …» */
+html:not([data-design]) body.oe-page--home .oe-home-trust-chips li { background: none !important; border: 0 !important; box-shadow: none !important; padding: 0 !important; font-size: .95rem; font-weight: 700; color: #0f2a4f; white-space: nowrap; }
+html:not([data-design]) body.oe-page--home .oe-home-trust-chips li + li::before { content: "·"; margin: 0 .6rem; color: #55657a; }
+html:not([data-design]) body.oe-page--home .oe-home-trust-chips { gap: 0 !important; }
+
+/* Bolhas como no desenho: texto em verde com visto azul, onda azul, ▶ laranja claro */
+html:not([data-design]) .oe-texto, html:not([data-design]) .oe-digitar { background: #dcf3cf; }
+html:not([data-design]) .oe-texto__rodape { color: #55657a; }
+html:not([data-design]) .oe-texto__rodape svg { display: none; }
+html:not([data-design]) .oe-texto__rodape::after { content: "✓✓"; margin-left: .3rem; letter-spacing: -.25em; font-weight: 700; color: #3b82f6; }
+html:not([data-design]) .oe-digitar i { background: #6aa65a; }
+html:not([data-design]) .oe-voz__onda i { background: #a9c4ea; }
+html:not([data-design]) .oe-voz__onda i.tocada { background: #3a6fc4; }
+
+@media (min-width: 1000px) {
+  html:not([data-design]) body.oe-page--home #adminContent { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: clamp(28px, 4vw, 56px); align-items: start; }
+  html:not([data-design]) body.oe-page--home #adminContent > * { grid-column: 1 / -1; }
+  html:not([data-design]) body.oe-page--home .oe-home-workspace { display: contents; }
+  html:not([data-design]) body.oe-page--home #oeAccountNav { grid-row: 1; }
+  html:not([data-design]) body.oe-page--home .oe-home-hero { grid-column: 1; grid-row: 2; text-align: left; margin: 0 0 10px; max-width: none; font-size: clamp(3rem, 5.2vw, 4.6rem); }
+  html:not([data-design]) body.oe-page--home .oe-home-hero__l2 { display: block; }
+  html:not([data-design]) body.oe-page--home .oe-home-intro { grid-column: 1; grid-row: 3; text-align: left; margin: 0 0 18px !important; max-width: none; }
+  html:not([data-design]) body.oe-page--home .oe-home-intro p { text-align: left !important; }
+  html:not([data-design]) body.oe-page--home .oe-home-workspace__col--input { grid-column: 1; grid-row: 4; }
+  html:not([data-design]) body.oe-page--home .oe-home-trust-chips { grid-column: 1; grid-row: 5; justify-content: flex-start; margin: 18px 0 0 !important; }
+  html:not([data-design]) body.oe-page--home .oe-home-workspace__col--output { grid-column: 2; grid-row: 2 / span 4; align-self: stretch; }
+  html:not([data-design]) body.oe-page--home #adminContent > :nth-child(6) { grid-row: 6; }
+  html:not([data-design]) body.oe-page--home #adminContent > :nth-child(7) { grid-row: 7; }
+  html:not([data-design]) body.oe-page--home #adminContent > :nth-child(8) { grid-row: 8; }
+  html:not([data-design]) body.oe-page--home #adminContent > :nth-child(9) { grid-row: 9; }
+  html:not([data-design]) body.oe-page--home #adminContent > :nth-child(10) { grid-row: 10; }
+  html:not([data-design]) body.oe-page--home #adminContent > :nth-child(11) { grid-row: 11; }
+  html:not([data-design]) body.oe-page--home #adminContent > :nth-child(12) { grid-row: 12; }
+  html:not([data-design]) body.oe-page--home #adminContent > :nth-child(13) { grid-row: 13; }
+  html:not([data-design]) body.oe-page--home #uploadForm { max-width: none; }
+  html:not([data-design]) .oe-conversa__msgs { height: clamp(26rem, 70vh, 44rem); }
+}

@@ -134,7 +134,7 @@ body.oe-page--aula-pronta .oe-ap-hero .oe-lead {
   font-weight: 700;
   cursor: pointer;
   color: #fff;
-  background: linear-gradient(135deg, #b5520a, #6366f1);
+  background: var(--oe-btn, #fd8c32);
   box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
 }
 
@@ -198,7 +198,7 @@ body.oe-page--aula-pronta .oe-ap-hero .oe-lead {
 
 .oe-ap-pack__btn--primary {
   border-color: #b5520a;
-  background: #b5520a;
+  background: var(--oe-btn, #fd8c32);
   color: #fff;
 }
 

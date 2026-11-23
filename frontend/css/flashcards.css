@@ -81,7 +81,7 @@ body.oe-page--flashcards .oe-fc-hero .oe-lead {
   padding: 12px 20px;
   border: none;
   border-radius: 10px;
-  background: linear-gradient(135deg, #b5520a, #9c4607);
+  background: var(--oe-btn, #fd8c32);
   color: #fff;
   font-weight: 700;
   font-size: 0.95rem;
@@ -425,13 +425,13 @@ html.oe-theme-dark .oe-fc-card__text {
 }
 
 .oe-fc-export__btn--primary {
-  background: linear-gradient(135deg, #b5520a, #9c4607) !important;
+  background: var(--oe-btn, #fd8c32) !important;
   color: #fff !important;
   border-color: #9c4607 !important;
 }
 
 .oe-fc-export__btn--primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #9c4607, #a94c06) !important;
+  background: var(--oe-btn-hover, #f07a1c) !important;
   color: #fff !important;
   border-color: #a94c06 !important;
   filter: none;

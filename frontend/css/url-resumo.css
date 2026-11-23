@@ -189,7 +189,7 @@ body.oe-page--url-resumo .container.oe-url-page {
   height: 100%;
   width: 0%;
   border-radius: 999px;
-  background: linear-gradient(90deg, #b5520a, #1c3d6b);
+  background: var(--oe-btn, #fd8c32);
   transition: width 0.35s ease;
 }
 

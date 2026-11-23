@@ -888,7 +888,7 @@ a.oe-pro-btn.oe-pro-btn--ghost:hover {
   max-width: calc(var(--pro-max) - 0px);
   margin-left: auto;
   margin-right: auto;
-  background: linear-gradient(135deg, #a94c06 0%, #9c4607 50%, #b5520a 100%);
+  background: var(--oe-btn-hover, #f07a1c);
   border-radius: var(--pro-radius-lg);
   padding: 48px 32px;
   text-align: center;
@@ -1474,7 +1474,7 @@ body.oe-pro.oe-page--home #uploadForm #btnTranskribieren {
   min-height: 52px !important;
   font-size: 1.05rem !important;
   letter-spacing: 0.01em;
-  background: #b5520a !important;
+  background: var(--oe-btn, #fd8c32) !important;
   color: #fff !important;
   border: none !important;
   box-shadow: 0 6px 22px rgba(181, 82, 10, 0.38) !important;
@@ -1484,7 +1484,7 @@ body.oe-pro.oe-page--home #uploadForm #btnTranscribe:hover:not(:disabled),
 body.oe-pro.oe-page--home #uploadForm #btnTranscribir:hover:not(:disabled),
 body.oe-pro.oe-page--home #uploadForm #btnTranscrire:hover:not(:disabled),
 body.oe-pro.oe-page--home #uploadForm #btnTranskribieren:hover:not(:disabled) {
-  background: #a94c06 !important;
+  background: var(--oe-btn-hover, #f07a1c) !important;
   border: none !important;
   color: #fff !important;
   transform: translateY(-1px) !important;

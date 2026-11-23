@@ -99,7 +99,7 @@ body.oe-page--home .oe-home-panel__steps li::before {
   width: 22px;
   height: 22px;
   border-radius: 999px;
-  background: #b5520a;
+  background: var(--oe-btn, #fd8c32);
   color: #fff;
   font-size: 0.75rem;
   font-weight: 700;
@@ -337,7 +337,7 @@ body.oe-page--home .oe-home-workspace__col--output #loading #progressWrap {
 
 body.oe-page--home .oe-home-workspace__col--output #loading #progressBar {
   border-radius: 999px;
-  background: linear-gradient(90deg, #b5520a, #e0761f);
+  background: var(--oe-btn, #fd8c32);
 }
 
 body.oe-page--home .oe-home-workspace__col--output #loading .oe-loading__hint {
@@ -793,7 +793,7 @@ body.oe-page--home .oe-subtitle-panel__badge {
   margin-bottom: 6px;
   padding: 3px 10px;
   border-radius: 999px;
-  background: #b5520a;
+  background: var(--oe-btn, #fd8c32);
   color: #fff;
   font-size: 0.72rem;
   font-weight: 700;
@@ -1498,7 +1498,7 @@ body.oe-page--home .oe-transcript-chat__bubble {
 
 body.oe-page--home .oe-transcript-chat__bubble--user {
   align-self: flex-end;
-  background: #b5520a;
+  background: var(--oe-btn, #fd8c32);
   color: #fff;
   border-bottom-right-radius: 4px;
 }
@@ -1567,7 +1567,7 @@ body.oe-page--home .oe-transcript-chat__send {
   border: none;
   border-radius: 10px;
   padding: 10px 16px;
-  background: #b5520a;
+  background: var(--oe-btn, #fd8c32);
   color: #fff;
   font-weight: 600;
   font-size: 0.9375rem;
@@ -1576,7 +1576,7 @@ body.oe-page--home .oe-transcript-chat__send {
 }
 
 body.oe-page--home .oe-transcript-chat__send:hover:not(:disabled) {
-  background: #9c4607;
+  background: var(--oe-btn-hover, #f07a1c);
 }
 
 body.oe-page--home .oe-transcript-chat__send:disabled {
@@ -2043,7 +2043,7 @@ body.oe-page--home #traducaoProgressWrapper {
 body.oe-page--home #traducaoProgressBar {
   height: 100%;
   width: 0%;
-  background: #b5520a;
+  background: var(--oe-btn, #fd8c32);
   border-radius: 8px;
 }
 
@@ -2279,7 +2279,7 @@ body.oe-page--home #fabSugestao {
   min-width: 0 !important;
   max-width: none;
   border-radius: 50% !important;
-  background: var(--pro-accent, #9c4607);
+  background: var(--oe-btn-hover, #f07a1c);
   color: #fff;
   border: none !important;
   cursor: pointer;
@@ -2295,7 +2295,7 @@ body.oe-page--home #fabSugestao {
 }
 
 body.oe-page--home #fabSugestao:hover {
-  background: #a94c06 !important;
+  background: var(--oe-btn-hover, #f07a1c) !important;
   color: #fff !important;
   border: none !important;
   transform: scale(1.06);
@@ -2360,7 +2360,7 @@ body.oe-page--home #sugestaoPanel .sug-card button {
 }
 
 body.oe-page--home #enviarSugestao {
-  background: #b5520a;
+  background: var(--oe-btn, #fd8c32);
   color: #fff;
   font-weight: bold;
 }
@@ -2900,7 +2900,7 @@ body.oe-page--home .oe-pro-tag {
   font-size: 0.95rem;
 }
 .oe-upsell-btn--primary {
-  background: linear-gradient(135deg, #b5520a, #f08a3c);
+  background: var(--oe-btn, #fd8c32);
   color: #fff;
 }
 .oe-upsell-btn--ghost {
@@ -3025,7 +3025,7 @@ body.oe-page--home .oe-trim-timeline__fill {
   left: 0;
   width: 100%;
   border-radius: 999px;
-  background: #b5520a;
+  background: var(--oe-btn, #fd8c32);
   pointer-events: none;
 }
 body.oe-page--home .oe-trim-timeline__range {
@@ -3195,7 +3195,7 @@ body.oe-page--home .oe-csat__btn {
 }
 
 body.oe-page--home .oe-csat__btn--primary {
-  background: #9c4607 !important;
+  background: var(--oe-btn-hover, #f07a1c) !important;
   color: #fff !important;
   border: none !important;
 }

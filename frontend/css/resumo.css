@@ -146,7 +146,7 @@ body.oe-page--resumo .container.oe-resumo-page {
   font-weight: 700;
   cursor: pointer;
   color: #fff;
-  background: linear-gradient(135deg, #b5520a, #6366f1);
+  background: var(--oe-btn, #fd8c32);
   box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
   transition: transform 0.12s, box-shadow 0.12s;
 }

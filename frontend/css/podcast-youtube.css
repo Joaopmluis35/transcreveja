@@ -137,7 +137,7 @@ body.oe-page--podcast-youtube .oe-pw-hero .oe-lead {
 }
 
 .oe-pw-btn--purple {
-  background: linear-gradient(135deg, #b5520a, #9c4607);
+  background: var(--oe-btn, #fd8c32);
 }
 
 .oe-pw-chapters-preview {
