@@ -117,6 +117,34 @@ html body.oe-pro.oe-page--home #uploadForm :is(#btnTranscrever, #btnTranscribe, 
 html body.oe-pro .oe-pro-header a.oe-pro-btn.oe-pro-btn--primary:hover,
 html body.oe-pro.oe-page--home #uploadForm :is(#btnTranscrever, #btnTranscribe, #btnTranscribir, #btnTranscrire, #btnTranskribieren):hover:not(:disabled) { background: var(--oe-btn-hover) !important; border-color: var(--oe-btn-hover) !important; }
 html body.oe-pro.oe-page--home #uploadForm :is(#btnTranscrever, #btnTranscribe, #btnTranscribir, #btnTranscrire, #btnTranskribieren) * { color: inherit !important; }
+/* Botão principal de cada ferramenta (Gerar Resumo, Enviar sugestão…) cheio com a cor do design: na Ardósia era
+   verde-escuro com contorno laranja (quase não se via) e o «Enviar sugestão» tinha texto branco sobre amarelo. */
+html body.oe-pro :is(.oe-ap-form__submit, .oe-cap-form__submit, .oe-conversor-form__submit, .oe-cor-form__submit, .oe-fc-form__submit, .oe-quiz-form__submit, .oe-resumo-form__submit, .oe-url-form__submit, .oe-yt-form__submit, .oe-pro-btn--primary) {
+  /* o theme-dark.css pinta os botões com --oe-btn-bg/-border/-text e !important (com um id na regra) */
+  --oe-btn-bg: var(--oe-btn); --oe-btn-border: var(--oe-btn); --oe-btn-text: var(--oe-btn-texto);
+  background: var(--oe-btn) !important; border: 2px solid var(--oe-btn) !important; color: var(--oe-btn-texto) !important; box-shadow: 0 10px 20px -14px rgba(0,0,0,.6) !important; min-height: 52px; font-weight: 800; }
+html body.oe-pro :is(.oe-ap-form__submit, .oe-cap-form__submit, .oe-conversor-form__submit, .oe-cor-form__submit, .oe-fc-form__submit, .oe-quiz-form__submit, .oe-resumo-form__submit, .oe-url-form__submit, .oe-yt-form__submit, .oe-pro-btn--primary):hover:not(:disabled) { --oe-btn-bg: var(--oe-btn-hover); --oe-btn-border: var(--oe-btn-hover); background: var(--oe-btn-hover) !important; border-color: var(--oe-btn-hover) !important; }
+html body.oe-pro :is(.oe-ap-form__submit, .oe-cap-form__submit, .oe-conversor-form__submit, .oe-cor-form__submit, .oe-fc-form__submit, .oe-quiz-form__submit, .oe-resumo-form__submit, .oe-url-form__submit, .oe-yt-form__submit, .oe-pro-btn--primary) * { color: inherit !important; }
+html[data-design="caderno"] body.oe-pro :is(.oe-ap-form__submit, .oe-cap-form__submit, .oe-conversor-form__submit, .oe-cor-form__submit, .oe-fc-form__submit, .oe-quiz-form__submit, .oe-resumo-form__submit, .oe-url-form__submit, .oe-yt-form__submit, .oe-pro-btn--primary) { border-radius: 3px !important; }
+/* No telemóvel o rodapé do formulário fica em coluna e «flex: 1 1 160px/200px» virava ALTURA: o botão tinha 160 px e
+   a escolha do estilo deixava um espaço vazio por cima dele. */
+@media (max-width: 640px) {
+  html body.oe-pro :is(.oe-cor-form__footer, .oe-quiz-form__footer, .oe-resumo-form__footer, .oe-url-form__footer) > *,
+  html body.oe-pro :is(.oe-ap-form__submit, .oe-cap-form__submit, .oe-conversor-form__submit, .oe-cor-form__submit, .oe-fc-form__submit, .oe-quiz-form__submit, .oe-resumo-form__submit, .oe-url-form__submit, .oe-yt-form__submit) { flex-basis: auto !important; }
+}
+
+/* «--pro-muted» é usado em várias páginas mas não estava definido (ficava cinzento-azulado, ilegível na Ardósia). */
+html body.oe-pro { --pro-muted: var(--pro-text-muted); }
+/* Tabelas (privacidade, termos…): cabeçalho com o tom do design; na Ardósia o cabeçalho era claro com texto claro. */
+html body.oe-pro .oe-legal-table th { background: var(--pro-accent-soft, #e4f0fc); color: var(--pro-text); }
+html body.oe-pro .oe-legal-table :is(th, td) { border-color: var(--pro-border); }
+html[data-design="ardosia"] body.oe-pro .oe-legal-table th { background: rgba(242,210,75,.14); color: #f2d24b; }
+html[data-design="ardosia"] body.oe-pro .oe-legal-table :is(th, td) { border-color: rgba(238,241,232,.22); }
+/* Ardósia: campos de escrever em verde-quadro mais escuro (vinham do antigo modo escuro em azul-marinho). */
+html[data-design="ardosia"] body.oe-pro :is(input[type="text"], input[type="email"], input[type="url"], input[type="search"], input[type="password"], input:not([type]), textarea, select):not(#uploadForm *) {
+  background: #1b2722 !important; color: #eef1e8 !important; border: 1.5px solid rgba(238,241,232,.28) !important; }
+html[data-design="ardosia"] body.oe-pro :is(input, textarea):not(#uploadForm *)::placeholder { color: #a9b5a4 !important; opacity: 1; }
+html[data-design="ardosia"] body.oe-pro :is(input, textarea, select):not(#uploadForm *):focus { border-color: #f2d24b !important; outline: 2px solid rgba(242,210,75,.35); outline-offset: 1px; }
 html body.oe-pro.oe-page--home #homeOutputPlaceholder .oe-conversa button.oe-conversa__ouvir {
   background: transparent !important; color: var(--oe-btn2) !important; border: 2px solid var(--oe-btn2) !important;
 }

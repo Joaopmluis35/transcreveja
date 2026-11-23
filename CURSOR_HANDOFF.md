@@ -314,6 +314,13 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
 - Blocos do fim da página inicial com aspeto por design (`conversa-demo.css?v=30`): «Exemplos de uso» com «Ver como →»
   (traduzido por `html[lang]`), contador de transcrições e «O que é o Ouviescrevi?». Mensagens de voz = balões;
   Caderno = fichas pautadas, nota amarela e folha com margem; Ardósia = contornos a giz.
+- Outras páginas nos 3 designs (`temas.css?v=15`, `ouviescrevi.css?v=68`): botão principal de cada ferramenta
+  (`.oe-*-form__submit` e `.oe-pro-btn--primary`) cheio com a cor do design — na Ardósia redefine `--oe-btn-bg/-border/-text`
+  porque o `theme-dark.css` os pinta com `!important` e um id; no telemóvel os rodapés dos formulários em coluna tinham
+  `flex: 1 1 160px/200px` a virar altura (botão com 160 px e espaço vazio) → `flex-basis:auto`. `--pro-muted` (usado
+  em várias páginas e nunca definido) = `--pro-text-muted`. Cabeçalho das `.oe-legal-table` com o tom do design (na
+  Ardósia era claro com texto claro). Ardósia: campos de escrever em verde-escuro em vez de azul-marinho.
+  `sugestoes.css?v=6`: opções «Tipo» com a cor do design.
 
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).

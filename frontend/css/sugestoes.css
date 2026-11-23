@@ -143,9 +143,9 @@ body.oe-pro.oe-page--suggestions main.oe-suggestions {
 }
 
 .oe-suggestions__cat input:checked + span {
-  background: rgba(253, 140, 50, 0.12);
-  border-color: #7f9cc4;
-  color: var(--pro-accent, #1d4a8f);
+  background: var(--pro-accent-soft, #e4f0fc);
+  border: 2px solid var(--oe-btn, #fd8c32);
+  color: var(--pro-text, #0f2a4f);
 }
 
 .oe-suggestions__meta {
@@ -238,15 +238,15 @@ html.oe-theme-dark .oe-suggestions__field textarea:focus {
 }
 
 html.oe-theme-dark .oe-suggestions__cat span {
-  background: #0f172a;
+  background: #1b2722;
   border-color: var(--pro-border);
   color: var(--pro-muted);
 }
 
 html.oe-theme-dark .oe-suggestions__cat input:checked + span {
-  background: rgba(167, 139, 250, 0.18);
-  border-color: var(--oe-btn, #fd8c32);
-  color: #d9e8f8;
+  background: var(--oe-btn, #f2d24b);
+  border-color: var(--oe-btn, #f2d24b);
+  color: var(--oe-btn-texto, #1b2a24);
 }
 
 html.oe-theme-dark .oe-suggestions__eyebrow {
