@@ -51,9 +51,9 @@ html[data-design="ardosia"] body.oe-pro h1:not(.oe-visually-hidden), html[data-d
 html[data-design="ardosia"] body.oe-page--home .oe-home-hero { font-family: "Shantell Sans", "Schibsted Grotesk", sans-serif; color: #eef1e8; }
 
 /* Botão principal da página inicial na cor de cada design */
-html[data-design="caderno"] body.oe-pro.oe-page--home #uploadForm #btnTranscrever { background: #1e3fa8 !important; }
-html[data-design="cortica"] body.oe-pro.oe-page--home #uploadForm #btnTranscrever { background: #a32621 !important; }
-html[data-design="folha"] body.oe-pro.oe-page--home #uploadForm #btnTranscrever { background: #1b4597 !important; }
+html[data-design="caderno"] body.oe-pro.oe-page--home #uploadForm :is(#btnTranscrever, #btnTranscribe, #btnTranscribir, #btnTranscrire, #btnTranskribieren) { background: #1e3fa8 !important; }
+html[data-design="cortica"] body.oe-pro.oe-page--home #uploadForm :is(#btnTranscrever, #btnTranscribe, #btnTranscribir, #btnTranscrire, #btnTranskribieren) { background: #a32621 !important; }
+html[data-design="folha"] body.oe-pro.oe-page--home #uploadForm :is(#btnTranscrever, #btnTranscribe, #btnTranscribir, #btnTranscrire, #btnTranskribieren) { background: #1b4597 !important; }
 
 /* Escolha de design: bolinhas de cor ao lado de cada nome */
 .oe-design-troca button.oe-design-op { display: flex; align-items: center; gap: .7rem; width: 100%; padding: .65rem .8rem; border: 0; border-radius: 10px; background: none;
@@ -107,12 +107,12 @@ html[data-design="caderno"] body.oe-pro { --oe-btn: #1e3fa8; --oe-btn-hover: #14
 html[data-design="ardosia"] body.oe-pro { --oe-btn: #f2d24b; --oe-btn-hover: #f7e08a; --oe-btn-texto: #1b2a24; --oe-btn2: #e8ecdf; }
 
 html body.oe-pro .oe-pro-header a.oe-pro-btn.oe-pro-btn--primary,
-html body.oe-pro.oe-page--home #uploadForm #btnTranscrever {
+html body.oe-pro.oe-page--home #uploadForm :is(#btnTranscrever, #btnTranscribe, #btnTranscribir, #btnTranscrire, #btnTranskribieren) {
   background: var(--oe-btn) !important; border-color: var(--oe-btn) !important; color: var(--oe-btn-texto) !important; box-shadow: none !important;
 }
 html body.oe-pro .oe-pro-header a.oe-pro-btn.oe-pro-btn--primary:hover,
-html body.oe-pro.oe-page--home #uploadForm #btnTranscrever:hover:not(:disabled) { background: var(--oe-btn-hover) !important; border-color: var(--oe-btn-hover) !important; }
-html body.oe-pro.oe-page--home #uploadForm #btnTranscrever * { color: inherit !important; }
+html body.oe-pro.oe-page--home #uploadForm :is(#btnTranscrever, #btnTranscribe, #btnTranscribir, #btnTranscrire, #btnTranskribieren):hover:not(:disabled) { background: var(--oe-btn-hover) !important; border-color: var(--oe-btn-hover) !important; }
+html body.oe-pro.oe-page--home #uploadForm :is(#btnTranscrever, #btnTranscribe, #btnTranscribir, #btnTranscrire, #btnTranskribieren) * { color: inherit !important; }
 html body.oe-pro.oe-page--home #homeOutputPlaceholder .oe-conversa button.oe-conversa__ouvir {
   background: transparent !important; color: var(--oe-btn2) !important; border: 2px solid var(--oe-btn2) !important;
 }

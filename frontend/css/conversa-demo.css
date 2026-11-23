@@ -78,8 +78,8 @@ body.oe-page--home .oe-conversa button.oe-conversa__tudo { background: none !imp
 }
 
 /* Botão principal com laranja mais vivo, próximo do desenho; as ligações de texto mantêm o laranja escuro (legível) */
-body.oe-pro.oe-page--home #uploadForm #btnTranscrever { background: #fd8c32 !important; }
-body.oe-pro.oe-page--home #uploadForm #btnTranscrever:hover:not(:disabled) { background: #f07a1c !important; }
+body.oe-pro.oe-page--home #uploadForm :is(#btnTranscrever, #btnTranscribe, #btnTranscribir, #btnTranscrire, #btnTranskribieren) { background: #fd8c32 !important; }
+body.oe-pro.oe-page--home #uploadForm :is(#btnTranscrever, #btnTranscribe, #btnTranscribir, #btnTranscrire, #btnTranskribieren):hover:not(:disabled) { background: #f07a1c !important; }
 
 /* ── A conversa com o aspeto de cada design ─────────────────────────────── */
 .oe-conversa-wrap .oe-home-panel__hint { color: var(--pro-text-secondary, #3d5677); }
@@ -154,7 +154,7 @@ html[data-design="caderno"] body.oe-pro.oe-page--home #uploadForm {
 html[data-design="caderno"] body.oe-pro.oe-page--home #uploadForm::before { content: ""; position: absolute; top: -.75rem; left: 50%; width: 6.5rem; height: 1.6rem; transform: translateX(-50%) rotate(2deg); background: rgba(240,244,250,.65); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
 html[data-design="caderno"] body.oe-page--home #uploadForm .oe-tema-titulo { display: block; margin: 0 0 .7rem; font-family: "Shantell Sans", cursive; font-weight: 600; font-size: clamp(1.6rem, 2.4vw, 2rem); line-height: 1.15; color: #142c7a; }
 html[data-design="caderno"] body.oe-pro.oe-page--home #uploadForm #dropZone { background: rgba(255,255,255,.55) !important; border: 1.5px dashed #1e3fa8 !important; border-radius: 2px !important; }
-html[data-design="caderno"] body.oe-pro.oe-page--home #uploadForm #btnTranscrever { border-radius: 2px !important; box-shadow: 0 1px 0 #142c7a, 0 6px 14px -8px rgba(20,44,122,.7) !important; }
+html[data-design="caderno"] body.oe-pro.oe-page--home #uploadForm :is(#btnTranscrever, #btnTranscribe, #btnTranscribir, #btnTranscrire, #btnTranskribieren) { border-radius: 2px !important; box-shadow: 0 1px 0 #142c7a, 0 6px 14px -8px rgba(20,44,122,.7) !important; }
 html[data-design="caderno"] body.oe-pro.oe-page--home #uploadForm .oe-upload-actions__secondary button { background: rgba(255,255,255,.6) !important; border: 1.5px solid #1e3fa8 !important; border-radius: 2px !important; color: #1e3fa8 !important; }
 html[data-design="caderno"] body.oe-pro.oe-page--home #uploadForm .oe-home-facts { color: #2b3c78; }
 
@@ -205,7 +205,7 @@ html[data-design="ardosia"] body.oe-pro.oe-page--home #uploadForm #dropZone *, h
 html[data-design="ardosia"] body.oe-pro.oe-page--home #uploadForm .switch-label { color: #1d2b25 !important; }
 html[data-design="ardosia"] body.oe-pro.oe-page--home #uploadForm .oe-home-facts a { color: #6b4b00 !important; }
 html[data-design="ardosia"] body.oe-pro.oe-page--home #uploadForm .oe-upload-actions__secondary button { background: #fff !important; border: 1.5px solid #6d7f75 !important; color: #1d2b25 !important; border-radius: 3px !important; }
-html[data-design="ardosia"] body.oe-pro.oe-page--home #uploadForm #btnTranscrever { border-radius: 3px !important; box-shadow: 0 1px 0 #b8971c, 0 8px 16px -10px rgba(0,0,0,.6) !important; }
+html[data-design="ardosia"] body.oe-pro.oe-page--home #uploadForm :is(#btnTranscrever, #btnTranscribe, #btnTranscribir, #btnTranscrire, #btnTranskribieren) { border-radius: 3px !important; box-shadow: 0 1px 0 #b8971c, 0 8px 16px -10px rgba(0,0,0,.6) !important; }
 html[data-design="ardosia"] body.oe-pro.oe-page--home #uploadForm select { background: #fff !important; color: #1d2b25 !important; border-color: #c9cfc4 !important; }
 
 html[data-design="ardosia"] .oe-conversa { background: transparent !important; box-shadow: none !important; border-radius: 0; overflow: visible; }
@@ -255,7 +255,7 @@ html[data-design="caderno"] body.oe-page--home .oe-home-intro p { text-align: le
 body.oe-page--home #homeOutputPlaceholder .oe-conversa button.oe-conversa__ouvir * { color: inherit !important; }
 /* Ardósia: os botões gerais do tema escuro usam variáveis; dentro do cartão branco passam a claros, e o principal a giz amarelo. */
 html[data-design="ardosia"] body.oe-pro.oe-page--home #uploadForm { --oe-btn-bg: #fff; --oe-btn-text: #1d2b25; --oe-btn-border: #6d7f75; }
-html[data-design="ardosia"] body.oe-pro.oe-page--home #uploadForm #btnTranscrever { --oe-btn-bg: #f2d24b; --oe-btn-border: #f2d24b; --oe-btn-text: #1b2a24; }
+html[data-design="ardosia"] body.oe-pro.oe-page--home #uploadForm :is(#btnTranscrever, #btnTranscribe, #btnTranscribir, #btnTranscrire, #btnTranskribieren) { --oe-btn-bg: #f2d24b; --oe-btn-border: #f2d24b; --oe-btn-text: #1b2a24; }
 @media (max-width: 900px) { html[data-design="caderno"] body.oe-page--home .oe-conversa-wrap { padding-left: .9rem !important; } }
 /* Mensagens de voz: a onda já ouvida fica no mesmo laranja do botão ▶ (como no desenho). */
 html:not([data-design]) .oe-voz__onda i.tocada { background: #fd8c32; }
@@ -344,3 +344,6 @@ html:not([data-design]) .oe-voz__onda i.tocada { background: #3a6fc4; }
 }
 /* O formulário tinha altura 100% da coluna; com o exemplo por baixo, passa a ter a sua altura (senão sobrepunha-se no telemóvel). */
 html:not([data-design]) body.oe-page--home .oe-home-workspace__col--input #uploadForm { height: auto; }
+/* Páginas EN/ES/FR/DE: a introdução é o próprio <p id="cmsHomeIntro">, com regras antigas que a centravam. */
+html[data-design="caderno"] body.oe-page--home #cmsHomeIntro.oe-home-intro { text-align: left !important; margin-left: 0 !important; }
+@media (min-width: 1000px) { html:not([data-design]) body.oe-page--home #cmsHomeIntro.oe-home-intro { text-align: left !important; } }

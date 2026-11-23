@@ -2000,3 +2000,8 @@ html:not([data-design]) body.oe-pro a.oe-pro-btn.oe-pro-btn--primary:hover { bac
 /* Com sessão iniciada: email com mais espaço e alinhado com «Sair». */
 @media (min-width: 1241px) { body.oe-pro .oe-pro-auth__user { max-width: 190px; } }
 body.oe-pro .oe-pro-auth { align-items: center; }
+/* Páginas antigas (EN/ES/FR/DE) têm «input, button { width:100% }»: no cabeçalho os botões ficam com a sua largura. */
+@media (min-width: 900px) {
+  body.oe-pro .oe-pro-header button, body.oe-pro .oe-pro-header .oe-pro-btn { width: auto; margin: 0; }
+}
+body.oe-pro .oe-pro-header .oe-design-troca button { width: auto; margin: 0; }

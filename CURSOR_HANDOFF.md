@@ -262,6 +262,15 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   (`collapse_word_loops_in_block`). `clean_transcription_text` tira os blocos-loop antes de colapsar. 4 testes novos
   em `tests/test_whisper_filter.py` (refrão de 3 vezes mantém-se).
 
+- Menu nas páginas EN/ES/FR/DE: a regra antiga `input,button{width:100%}` dessas páginas esticava «Log in» e tapava
+  «Sign up»; no cabeçalho os botões passam a `width:auto` (`ouviescrevi-pro.css`). Páginas iniciais EN/ES/FR/DE com o
+  mesmo desenho da PT: `theme-ui.js` (antes a troca de aspeto não funcionava nelas), título grande traduzido,
+  etiquetas, nota/cartão do formulário, «Exemplo de transcrição» e a conversa animada (gerado a partir do painel PT).
+  `conversa-demo.js?v=7` tem a tabela `TEXTOS` por `<html lang>` (falas, botões, resumo, visto, voz do aparelho na
+  língua da página) e esconde o exemplo quando aparecem `#loading`/`#output`. As regras do botão principal usam
+  `:is(#btnTranscrever, #btnTranscribe, #btnTranscribir, #btnTranscrire, #btnTranskribieren)`. Por fazer: as
+  funcionalidades que só a PT tem (histórico, trecho de ficheiro longo, etc.) e as outras páginas traduzidas.
+
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).
 

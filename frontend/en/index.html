@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png?v=2" type="image/png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="../css/ouviescrevi.css?v=62">
+  <script src="../js/theme-ui.js?v=4"></script>
+  <link rel="stylesheet" href="../css/ouviescrevi.css?v=64">
   <script src="/js/ouviescrevi-seo.js" defer></script>
   <script src="../js/transcribe-jobs-ui.js?v=25" defer></script>
   <script src="../js/docx-export.js?v=25" defer></script>
@@ -178,6 +179,8 @@
   </style>
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="theme-color" content="#0f172a">
+  <link rel="stylesheet" href="../css/index-home.css?v=68">
+  <link rel="stylesheet" href="../css/conversa-demo.css?v=24">
 </head>
 <body class="oe-page oe-pro oe-page--home">
 <a class="oe-skip" href="#mainContent">Skip to content</a>
@@ -187,12 +190,22 @@
 <main id="mainContent">
   <h1 class="oe-visually-hidden">Ouviescrevi — Free AI Audio & Video Transcription</h1>
   <div id="adminContent">
-    <p id="cmsHomeIntro" data-cms-key="en_home_intro_html" data-cms-mode="html">
+    <p class="oe-home-hero">You heard it. <span class="oe-home-hero__l2">We write it.</span></p>
+    <p id="cmsHomeIntro" class="oe-home-intro" data-cms-key="en_home_intro_html" data-cms-mode="html">
       <strong>Upload audio or video and get text in minutes.</strong><br>
       Transcribe 🎙️ · Translate 🌍 · Summarise 📌 · Convert files 📄 — simple, fast and free.
     </p>
+    <ul class="oe-home-trust-chips">
+      <li>No sign-up needed</li>
+      <li>Up to 500 MB</li>
+      <li>Temporary files deleted</li>
+      <li>Made in Portugal 🇵🇹</li>
+    </ul>
 
+    <div class="oe-home-workspace">
+    <div class="oe-home-workspace__col oe-home-workspace__col--input">
     <form id="uploadForm">
+      <p class="oe-tema-titulo" aria-hidden="true">Drop your file here</p>
       <div id="dropZone">
         <p class="oe-drop-zone__lead">
           <span class="oe-drop-zone__copy oe-drop-zone__copy--desktop">📁 <strong>Drag your audio or video here</strong> or click to choose</span>
@@ -231,6 +244,34 @@
 
       <p id="recordingStatus"></p>
     </form>
+      <section class="oe-exemplo-tr" aria-labelledby="oeExemploTrTitulo">
+        <h2 id="oeExemploTrTitulo">Transcription example</h2>
+        <ol>
+          <li><time>00:00</time><b>Journalist:</b><span>When did you decide to open the shop here in the village?</span></li>
+          <li><time>00:04</time><b>Ana:</b><span>In 2019. I already had customers from outside and there was nowhere to welcome them.</span></li>
+          <li><time>00:11</time><b>Journalist:</b><span>And what has changed since then?</span></li>
+          <li><time>00:14</time><b>Ana:</b><span>We started with just bread and cakes. Now we take orders for weddings and christenings.</span></li>
+          <li><time>00:37</time><b>Ana:</b><span>I'd rather do things well here than do more everywhere.</span></li>
+        </ol>
+      </section>
+    </div>
+    <div class="oe-home-workspace__col oe-home-workspace__col--output" aria-live="polite">
+        <div id="homeOutputPlaceholder" class="oe-home-panel oe-home-panel--placeholder oe-conversa-wrap">
+          <div class="oe-conversa" aria-labelledby="oeConversaTitulo">
+            <div class="oe-conversa__cab">
+              <div class="oe-conversa__quem"><span class="oe-conversa__avatar" aria-hidden="true">E</span><div><strong id="oeConversaTitulo">Interview at the village shop</strong><small>Illustrative example · 0:40</small></div></div>
+              <button type="button" class="oe-conversa__ouvir" id="oeConversaOuvir"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z" fill="currentColor"/></svg><span>Play an example</span></button>
+            </div>
+            <ol class="oe-conversa__msgs" id="oeConversaMsgs" aria-live="polite">
+              <li class="oe-conversa__vazio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z" fill="currentColor"/></svg>Press «Play an example»: each voice message turns into text in front of you.<br><button type="button" class="oe-conversa__tudo" id="oeConversaTudo">See the full text</button></li>
+            </ol>
+            <p class="oe-conversa__aviso" id="oeConversaAviso"></p>
+          </div>
+          <p class="oe-home-panel__hint">When you transcribe your file, the result appears here, editable and ready to use.</p>
+        </div>
+
+    </div>
+    </div>
 
     <div id="loading" class="hidden">
       <p class="status" id="transcricaoStatus">🔄 Preparing...</p>
@@ -984,5 +1025,6 @@
   }
 })();
 </script>
+<script src="../js/conversa-demo.js?v=7" defer></script>
 </body>
 </html>

@@ -8,21 +8,17 @@
   var ouvir = document.getElementById("oeConversaOuvir");
   if (!lista || !ouvir) return;
   var aviso = document.getElementById("oeConversaAviso");
-  var FALAS = [
-    ["00:00", "Jornalista", "Quando é que decidiu abrir a loja aqui na vila?"],
-    ["00:04", "Ana", "Foi em 2019. Já tinha clientes de fora e faltava um sítio para os receber."],
-    ["00:11", "Jornalista", "E o que mudou desde então?"],
-    ["00:14", "Ana", "Começámos só com pão e bolos. Agora fazemos encomendas para casamentos e batizados."],
-    ["00:26", "Ana", "Ao sábado vêm os vizinhos de sempre. No verão, os emigrantes que voltam."],
-    ["00:37", "Ana", "Prefiro fazer bem aqui do que fazer mais em todo o lado."]
-  ];
+  // Textos por língua da página (<html lang>); exemplo ilustrativo, não é uma gravação real.
+  var TEXTOS = {"pt": {"falas": [["00:00", "Jornalista", "Quando é que decidiu abrir a loja aqui na vila?"], ["00:04", "Ana", "Foi em 2019. Já tinha clientes de fora e faltava um sítio para os receber."], ["00:11", "Jornalista", "E o que mudou desde então?"], ["00:14", "Ana", "Começámos só com pão e bolos. Agora fazemos encomendas para casamentos e batizados."], ["00:26", "Ana", "Ao sábado vêm os vizinhos de sempre. No verão, os emigrantes que voltam."], ["00:37", "Ana", "Prefiro fazer bem aqui do que fazer mais em todo o lado."]], "voz": "^pt[-_]PT", "ouvir": "Ouvir um exemplo", "outra": "Ouvir outra vez", "parar": "Parar", "semVoz": "Este aparelho não tem voz em português de Portugal: o exemplo corre sem som.", "transcrito": "transcrito", "msgVoz": "Mensagem de voz de", "resumoTitulo": "Resumo em 3 pontos", "resumo": ["A Ana abriu a loja na vila em 2019.", "Hoje também faz encomendas para festas.", "Prefere fazer bem num só sítio."], "visto": "Transcrito!"}, "en": {"falas": [["00:00", "Journalist", "When did you decide to open the shop here in the village?"], ["00:04", "Ana", "In 2019. I already had customers from outside and there was nowhere to welcome them."], ["00:11", "Journalist", "And what has changed since then?"], ["00:14", "Ana", "We started with just bread and cakes. Now we take orders for weddings and christenings."], ["00:26", "Ana", "On Saturdays the usual neighbours come by. In summer, the emigrants who come back."], ["00:37", "Ana", "I'd rather do things well here than do more everywhere."]], "voz": "^en", "ouvir": "Play an example", "outra": "Play again", "parar": "Stop", "semVoz": "This device has no English voice: the example runs without sound.", "transcrito": "transcribed", "msgVoz": "Voice message from", "resumoTitulo": "Summary in 3 points", "resumo": ["Ana opened the village shop in 2019.", "She now also takes orders for parties.", "She prefers to do things well in one place."], "visto": "Transcribed!"}, "es": {"falas": [["00:00", "Periodista", "¿Cuándo decidió abrir la tienda aquí en el pueblo?"], ["00:04", "Ana", "En 2019. Ya tenía clientes de fuera y faltaba un sitio para recibirlos."], ["00:11", "Periodista", "¿Y qué ha cambiado desde entonces?"], ["00:14", "Ana", "Empezamos solo con pan y pasteles. Ahora hacemos encargos para bodas y bautizos."], ["00:26", "Ana", "Los sábados vienen los vecinos de siempre. En verano, los emigrantes que vuelven."], ["00:37", "Ana", "Prefiero hacer bien las cosas aquí que hacer más en todas partes."]], "voz": "^es", "ouvir": "Escuchar un ejemplo", "outra": "Escuchar otra vez", "parar": "Detener", "semVoz": "Este dispositivo no tiene voz en español: el ejemplo funciona sin sonido.", "transcrito": "transcrito", "msgVoz": "Mensaje de voz de", "resumoTitulo": "Resumen en 3 puntos", "resumo": ["Ana abrió la tienda del pueblo en 2019.", "Ahora también hace encargos para fiestas.", "Prefiere hacer bien las cosas en un solo sitio."], "visto": "¡Transcrito!"}, "fr": {"falas": [["00:00", "Journaliste", "Quand avez-vous décidé d'ouvrir la boutique ici, au village ?"], ["00:04", "Ana", "En 2019. J'avais déjà des clients de l'extérieur et il manquait un endroit pour les accueillir."], ["00:11", "Journaliste", "Et qu'est-ce qui a changé depuis ?"], ["00:14", "Ana", "On a commencé avec du pain et des gâteaux. Maintenant on prend des commandes pour les mariages et les baptêmes."], ["00:26", "Ana", "Le samedi, les voisins de toujours passent. En été, les émigrés qui reviennent."], ["00:37", "Ana", "Je préfère bien faire ici que faire plus partout."]], "voz": "^fr", "ouvir": "Écouter un exemple", "outra": "Réécouter", "parar": "Arrêter", "semVoz": "Cet appareil n'a pas de voix française : l'exemple fonctionne sans son.", "transcrito": "transcrit", "msgVoz": "Message vocal de", "resumoTitulo": "Résumé en 3 points", "resumo": ["Ana a ouvert la boutique du village en 2019.", "Elle prend aussi des commandes pour les fêtes.", "Elle préfère bien faire en un seul endroit."], "visto": "Transcrit !"}, "de": {"falas": [["00:00", "Journalistin", "Wann haben Sie beschlossen, den Laden hier im Dorf zu eröffnen?"], ["00:04", "Ana", "2019. Ich hatte schon Kunden von außerhalb, und es fehlte ein Ort, um sie zu empfangen."], ["00:11", "Journalistin", "Und was hat sich seitdem geändert?"], ["00:14", "Ana", "Wir haben nur mit Brot und Kuchen angefangen. Jetzt nehmen wir Bestellungen für Hochzeiten und Taufen an."], ["00:26", "Ana", "Samstags kommen die Nachbarn von immer. Im Sommer die Ausgewanderten, die zurückkehren."], ["00:37", "Ana", "Ich mache lieber hier alles gut, als überall mehr zu machen."]], "voz": "^de", "ouvir": "Beispiel anhören", "outra": "Nochmal anhören", "parar": "Stopp", "semVoz": "Dieses Gerät hat keine deutsche Stimme: Das Beispiel läuft ohne Ton.", "transcrito": "transkribiert", "msgVoz": "Sprachnachricht von", "resumoTitulo": "Zusammenfassung in 3 Punkten", "resumo": ["Ana hat den Dorfladen 2019 eröffnet.", "Sie nimmt jetzt auch Bestellungen für Feste an.", "Sie macht lieber an einem Ort alles gut."], "visto": "Transkribiert!"}};
+  var L = TEXTOS[(document.documentElement.lang || "pt").slice(0, 2).toLowerCase()] || TEXTOS.pt;
+  var FALAS = L.falas;
   var calmo = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
   var temFala = "speechSynthesis" in window;
   var voz = null, corrida = 0;
   var vazioHTML = lista.innerHTML;
 
   function escolherVoz() {
-    voz = temFala ? (speechSynthesis.getVoices().filter(function (v) { return /^pt[-_]PT/i.test(v.lang); })[0] || null) : null;
+    voz = temFala ? (speechSynthesis.getVoices().filter(function (v) { return new RegExp(L.voz, "i").test(v.lang); })[0] || null) : null;
   }
   if (temFala) { escolherVoz(); if (speechSynthesis.addEventListener) speechSynthesis.addEventListener("voiceschanged", escolherVoz); }
   function pausa(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
@@ -52,7 +48,7 @@
     var meta = li.querySelector(".oe-voz__meta");
     var nome = document.createElement("b"); nome.textContent = quem;
     meta.appendChild(nome); meta.appendChild(document.createTextNode(duracao(texto) + " · " + t));
-    li.setAttribute("aria-label", "Mensagem de voz de " + quem + ", " + t);
+    li.setAttribute("aria-label", L.msgVoz + " " + quem + ", " + t);
     lista.appendChild(li);
     return li;
   }
@@ -60,7 +56,7 @@
     var li = document.createElement("li");
     li.className = "oe-texto oe-entra";
     li.innerHTML = '<span class="oe-texto__autor"></span><span class="oe-texto__frase"></span>' +
-      '<span class="oe-texto__rodape"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l4-1 10-10-3-3L5 16l-1 4zM14 7l3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>transcrito · ' + t + "</span>";
+      '<span class="oe-texto__rodape"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l4-1 10-10-3-3L5 16l-1 4zM14 7l3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' + L.transcrito + ' · ' + t + "</span>";
     li.querySelector(".oe-texto__autor").textContent = quem;
     lista.appendChild(li);
     return li.querySelector(".oe-texto__frase");
@@ -68,7 +64,9 @@
   function resumoFinal() {
     var li = document.createElement("li");
     li.className = "oe-resumo-bolha oe-entra";
-    li.innerHTML = "<h3>Resumo em 3 pontos</h3><ol><li>A Ana abriu a loja na vila em 2019.</li><li>Hoje também faz encomendas para festas.</li><li>Prefere fazer bem num só sítio.</li></ol>";
+    li.innerHTML = "<h3></h3><ol><li></li><li></li><li></li></ol>";
+    li.querySelector("h3").textContent = L.resumoTitulo;
+    [].forEach.call(li.querySelectorAll("ol li"), function (x, i) { x.textContent = L.resumo[i]; });
     lista.appendChild(li); descer();
     botao("outra");
   }
@@ -118,7 +116,7 @@
   var aTocar = false;
   function botao(estado) {
     aTocar = estado === "parar";
-    ouvir.querySelector("span").textContent = aTocar ? "Parar" : estado === "outra" ? "Ouvir outra vez" : "Ouvir um exemplo";
+    ouvir.querySelector("span").textContent = aTocar ? L.parar : estado === "outra" ? L.outra : L.ouvir;
     var icone = ouvir.querySelector("path");
     if (icone) icone.setAttribute("d", aTocar ? "M6 6h12v12H6z" : "M7 4.5v15l12-7.5z");
     ouvir.setAttribute("aria-pressed", aTocar ? "true" : "false");
@@ -142,11 +140,13 @@
     var li = document.createElement("li");
     if (design() === "caderno") {
       li.className = "oe-visto"; li.setAttribute("aria-hidden", "true");
-      li.innerHTML = '<svg viewBox="0 0 208 90"><path style="--c:560" d="M30 18C70 2 168 4 196 30c14 14-6 40-58 50-50 9-112 2-126-22C2 40 26 22 64 14"/><path class="tick" style="--c:70" d="M170 62c5 4 9 9 12 15 8-16 16-27 24-34"/></svg><span>Transcrito!</span>';
+      li.innerHTML = '<svg viewBox="0 0 208 90"><path style="--c:560" d="M30 18C70 2 168 4 196 30c14 14-6 40-58 50-50 9-112 2-126-22C2 40 26 22 64 14"/><path class="tick" style="--c:70" d="M170 62c5 4 9 9 12 15 8-16 16-27 24-34"/></svg><span>' + L.visto + '</span>';
     } else {
       li.className = "oe-resumo-giz";
       li.innerHTML = '<svg class="caixa" viewBox="0 0 400 120" preserveAspectRatio="none" aria-hidden="true"><path d="M4 8C120 3 290 5 396 6c2 30 1 70-2 108C270 117 130 116 6 113 3 80 2 40 6 4"/></svg>' +
-        "<h3>Resumo em 3 pontos</h3><ol><li>A Ana abriu a loja na vila em 2019.</li><li>Hoje também faz encomendas para festas.</li><li>Prefere fazer bem num só sítio.</li></ol>";
+        "<h3></h3><ol><li></li><li></li><li></li></ol>";
+      li.querySelector("h3").textContent = L.resumoTitulo;
+      [].forEach.call(li.querySelectorAll("ol li"), function (x, i) { x.textContent = L.resumo[i]; });
     }
     lista.appendChild(li); descer();
     void li.offsetWidth; li.classList.add("feito");
@@ -163,7 +163,7 @@
     if (antes !== corrida) return; // carregou em «Parar» enquanto o apagador passava
     limpar();
     var esta = corrida;
-    if (aviso) aviso.textContent = voz ? "" : "Este aparelho não tem voz em português de Portugal: o exemplo corre sem som.";
+    if (aviso) aviso.textContent = voz ? "" : L.semVoz;
     for (var k = 0; k < FALAS.length; k++) {
       if (esta !== corrida) return;
       var li = linha(FALAS[k][0], FALAS[k][1]), alvoTxt = li.querySelector(".oe-linha__txt"), texto = FALAS[k][2];
@@ -209,7 +209,7 @@
     if (emLinhas()) return tocarLinhas();
     limpar();
     var esta = corrida;
-    if (aviso) aviso.textContent = voz ? "" : "Este aparelho não tem voz em português de Portugal: o exemplo corre sem som.";
+    if (aviso) aviso.textContent = voz ? "" : L.semVoz;
     for (var k = 0; k < FALAS.length; k++) {
       var t = FALAS[k][0], quem = FALAS[k][1], texto = FALAS[k][2];
       if (esta !== corrida) return;
@@ -264,6 +264,16 @@
     else { botao("parar"); tocar(); }
   });
   lista.addEventListener("click", function (e) { if (e.target && e.target.id === "oeConversaTudo") mostrarTudo(); });
+  // Quando aparece o progresso ou o resultado real, o exemplo sai (nas páginas EN/ES/FR/DE não há outro código que o esconda).
+  var painel = document.getElementById("homeOutputPlaceholder");
+  if (painel && "MutationObserver" in window) {
+    var vigiar = ["loading", "output"].map(function (id) { return document.getElementById(id); }).filter(Boolean);
+    var ver = function () {
+      var ativo = vigiar.some(function (el) { return !el.classList.contains("hidden") && !el.hidden; });
+      if (ativo && !painel.hidden) { parar(); painel.hidden = true; }
+    };
+    vigiar.forEach(function (el) { new MutationObserver(ver).observe(el, { attributes: true, attributeFilter: ["class", "hidden"] }); });
+  }
   if ("MutationObserver" in window) {
     new MutationObserver(function () {
       limpar(); lista.innerHTML = vazioHTML;
