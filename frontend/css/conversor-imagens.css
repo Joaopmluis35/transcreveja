@@ -144,7 +144,7 @@ body.oe-page--conversor-imagens .oe-cimg-hero .oe-lead {
   font-size: 0.95rem;
   font-weight: 700;
   cursor: pointer;
-  color: #fff;
+  color: var(--oe-btn-texto, #fff);
   background: var(--oe-btn, #fd8c32);
   box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
 }

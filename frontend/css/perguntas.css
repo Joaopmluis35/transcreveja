@@ -215,7 +215,7 @@ body.oe-page--perguntas .container.oe-quiz-page {
   border: none !important;
   border-radius: 12px !important;
   background: var(--oe-btn, #fd8c32) !important;
-  color: #fff !important;
+  color: var(--oe-btn-texto, #fff) !important;
   font-size: 1rem !important;
   font-weight: 700 !important;
   cursor: pointer;
@@ -359,7 +359,7 @@ body.oe-page--perguntas .container.oe-quiz-page {
   padding: 5px 11px;
   border-radius: 999px;
   background: var(--oe-btn, #fd8c32);
-  color: #fff;
+  color: var(--oe-btn-texto, #fff);
   font-size: 0.9rem;
   font-weight: 700;
   text-align: center;
@@ -452,7 +452,7 @@ body.oe-page--perguntas .container.oe-quiz-page {
 .oe-quiz-toolbar .oe-quiz-btn--primary {
   background: var(--oe-btn, #fd8c32);
   border-color: transparent;
-  color: #fff;
+  color: var(--oe-btn-texto, #fff);
 }
 
 .oe-quiz-toolbar .oe-quiz-btn--primary:hover {
@@ -492,7 +492,7 @@ body.oe-page--perguntas .container.oe-quiz-page {
   place-items: center;
   font-size: 0.9rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--oe-btn-texto, #fff);
   background: var(--oe-btn, #fd8c32);
 }
 
@@ -792,7 +792,7 @@ html.oe-theme-dark .oe-quiz-answer {
 
 .oe-test-builder__tab.is-active .oe-test-builder__tab-step {
   background: var(--oe-btn, #fd8c32);
-  color: #fff;
+  color: var(--oe-btn-texto, #fff);
 }
 
 .oe-test-builder__chips {

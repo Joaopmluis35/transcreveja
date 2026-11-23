@@ -4,6 +4,11 @@
  */
 (function () {
   "use strict";
+  // A animação de entrada do Caderno só passa na 1.ª visita da sessão (quem volta lê logo; CSS em conversa-demo.css).
+  try {
+    if (sessionStorage.getItem("oe_intro_vista")) document.documentElement.classList.add("oe-intro-vista");
+    else sessionStorage.setItem("oe_intro_vista", "1");
+  } catch (e) {}
   var lista = document.getElementById("oeConversaMsgs");
   var ouvir = document.getElementById("oeConversaOuvir");
   if (!lista || !ouvir) return;

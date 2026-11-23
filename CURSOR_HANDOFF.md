@@ -327,6 +327,14 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
 - «Ouvir um exemplo» convida ao clique nos 3 designs até ao 1.º clique (`:not([aria-pressed])`, `conversa-demo.css?v=31`):
   duas ondas a sair do botão (`::before/::after`, cor `--oe-btn`, porque o `box-shadow` do botão tem `!important`) e
   um pequeno salto a cada 4 s; só com `prefers-reduced-motion: no-preference`.
+- Correções da revisão de 23/11: o convite pára sozinho (4–5 vezes) e também ao passar o rato; a entrada do Caderno
+  só passa na 1.ª visita da sessão (`conversa-demo.js?v=8` põe `html.oe-intro-vista` via `sessionStorage`); «Ver como →»
+  com texto alternativo vazio (leitores de ecrã). **Texto azul-escuro `#0f2a4f` nos botões laranja** de Mensagens de voz
+  (`--oe-btn-texto`; branco sobre `#fd8c32` dava 2,3:1) e os ~26 `color:#fff` fixos ao lado de `var(--oe-btn)` nos CSS
+  das ferramentas passam a `var(--oe-btn-texto, #fff)`. O CTA do cabeçalho fica fora da regra dos botões principais
+  (tinha crescido para 52 px). Menu do telemóvel: lista de línguas abre para cima; quadrados partem palavras longas (DE).
+  Ardósia: também campos number/tel/date/time. Caderno: padding também em `main.oe-suggestions`. Preços (×5): tirada a
+  segunda cópia antiga `ouviescrevi-pro.css?v=7`.
 
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).

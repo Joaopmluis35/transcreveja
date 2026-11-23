@@ -100,7 +100,7 @@ body.oe-page--home .oe-home-panel__steps li::before {
   height: 22px;
   border-radius: 999px;
   background: var(--oe-btn, #fd8c32);
-  color: #fff;
+  color: var(--oe-btn-texto, #fff);
   font-size: 0.75rem;
   font-weight: 700;
   display: inline-flex;
@@ -800,7 +800,7 @@ body.oe-page--home .oe-subtitle-panel__badge {
   padding: 3px 10px;
   border-radius: 999px;
   background: var(--oe-btn, #fd8c32);
-  color: #fff;
+  color: var(--oe-btn-texto, #fff);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -1505,7 +1505,7 @@ body.oe-page--home .oe-transcript-chat__bubble {
 body.oe-page--home .oe-transcript-chat__bubble--user {
   align-self: flex-end;
   background: var(--oe-btn, #fd8c32);
-  color: #fff;
+  color: var(--oe-btn-texto, #fff);
   border-bottom-right-radius: 4px;
 }
 
@@ -1574,7 +1574,7 @@ body.oe-page--home .oe-transcript-chat__send {
   border-radius: 10px;
   padding: 10px 16px;
   background: var(--oe-btn, #fd8c32);
-  color: #fff;
+  color: var(--oe-btn-texto, #fff);
   font-weight: 600;
   font-size: 0.9375rem;
   cursor: pointer;
@@ -2367,7 +2367,7 @@ body.oe-page--home #sugestaoPanel .sug-card button {
 
 body.oe-page--home #enviarSugestao {
   background: var(--oe-btn, #fd8c32);
-  color: #fff;
+  color: var(--oe-btn-texto, #fff);
   font-weight: bold;
 }
 
@@ -2907,7 +2907,7 @@ body.oe-page--home .oe-pro-tag {
 }
 .oe-upsell-btn--primary {
   background: var(--oe-btn, #fd8c32);
-  color: #fff;
+  color: var(--oe-btn-texto, #fff);
 }
 .oe-upsell-btn--ghost {
   background: transparent;

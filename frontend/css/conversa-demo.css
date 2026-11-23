@@ -267,6 +267,11 @@ html[data-design="ardosia"] .oe-conversa__vazio::before { content: ""; display: 
   html[data-design="caderno"] body.oe-page--home .oe-home-workspace__col--output { animation: oe-aparece .6s .8s ease-out both; }
   html[data-design="caderno"] body.oe-pro.oe-page--home .oe-home-workspace__col--output #loading.oe-loading:not(.hidden) { animation: oe-cola .55s cubic-bezier(.2,1.25,.4,1) both; }
   /* Sem «to»: acaba na rotação que cada elemento já tem (muda no telemóvel). */
+  /* Na mesma sessão a entrada só passa uma vez: depois o texto aparece logo (conversa-demo.js põe .oe-intro-vista). */
+  html.oe-intro-vista[data-design="caderno"] body.oe-page--home :is(.oe-home-hero, .oe-home-intro, .oe-home-trust-chips li, .oe-home-workspace__col--output),
+  html.oe-intro-vista[data-design="caderno"] body.oe-pro.oe-page--home #uploadForm,
+  html.oe-intro-vista[data-design="caderno"] body.oe-pro.oe-page--home #uploadForm::before { animation: none; }
+  html.oe-intro-vista[data-design="caderno"] body.oe-page--home .oe-home-hero__l2 { animation: none; background-size: 100% 100%; }
   @keyframes oe-cola { from { opacity: 0; transform: translateY(-28px) rotate(-6deg) scale(1.03); } }
   @keyframes oe-fita { from { opacity: 0; clip-path: inset(0 100% 0 0); } to { opacity: 1; clip-path: inset(0); } }
   @keyframes oe-marca { to { background-size: 100% 100%; } }
@@ -346,18 +351,20 @@ html:not([data-design]) .oe-voz__onda i.tocada { background: #3a6fc4; }
 
   /* O ▶ do «Ouvir um exemplo» chama a atenção com um anel, até carregarem */
   html:not([data-design]) .oe-conversa__ouvir[aria-pressed="false"]:not(:hover) svg,
-  html:not([data-design]) .oe-conversa__ouvir:not([aria-pressed]) svg { animation: oe-chama 2.4s 1.4s ease-in-out infinite; }
+  html:not([data-design]) .oe-conversa__ouvir:not([aria-pressed]) svg { animation: oe-chama 2.4s 1.4s ease-in-out 4; }
   @keyframes oe-chama { 0%, 70%, 100% { transform: none; } 80% { transform: scale(1.35); } 90% { transform: scale(.95); } }
   /* Convite a carregar (nos 3 designs, até ao 1.º clique): duas ondas saem do botão como de um altifalante e, de
      tempos a tempos, o botão dá um pequeno salto. Anel num ::before porque o box-shadow do botão tem !important. */
-  body.oe-page--home #homeOutputPlaceholder .oe-conversa button.oe-conversa__ouvir:not([aria-pressed]) { position: relative; animation: oe-salto 4s 2s ease-in-out infinite; }
+  body.oe-page--home #homeOutputPlaceholder .oe-conversa button.oe-conversa__ouvir:not([aria-pressed]) { position: relative; animation: oe-salto 4s 2s ease-in-out 4; }
   body.oe-page--home #homeOutputPlaceholder .oe-conversa button.oe-conversa__ouvir:not([aria-pressed])::before,
   body.oe-page--home #homeOutputPlaceholder .oe-conversa button.oe-conversa__ouvir:not([aria-pressed])::after {
     content: ""; position: absolute; inset: -2px; border-radius: inherit; border: 2px solid var(--oe-btn, #fd8c32); pointer-events: none; opacity: 0;
-    animation: oe-onda-btn 2s 1.2s ease-out infinite; }
+    animation: oe-onda-btn 2s 1.2s ease-out 5; }
   body.oe-page--home #homeOutputPlaceholder .oe-conversa button.oe-conversa__ouvir:not([aria-pressed])::after { animation-delay: 1.8s; }
-  body.oe-page--home #homeOutputPlaceholder .oe-conversa button.oe-conversa__ouvir:not([aria-pressed]):hover { animation: none; }
-  html[data-design] .oe-conversa__ouvir:not([aria-pressed]):not(:hover) svg { animation: oe-chama 2.4s 1.4s ease-in-out infinite; }
+  body.oe-page--home #homeOutputPlaceholder .oe-conversa button.oe-conversa__ouvir:not([aria-pressed]):hover,
+  body.oe-page--home #homeOutputPlaceholder .oe-conversa button.oe-conversa__ouvir:not([aria-pressed]):hover::before,
+  body.oe-page--home #homeOutputPlaceholder .oe-conversa button.oe-conversa__ouvir:not([aria-pressed]):hover::after { animation: none; }
+  html[data-design] .oe-conversa__ouvir:not([aria-pressed]):not(:hover) svg { animation: oe-chama 2.4s 1.4s ease-in-out 4; }
   @keyframes oe-onda-btn { 0% { inset: -2px; opacity: .85; } 100% { inset: -11px; opacity: 0; } }
   @keyframes oe-salto { 0%, 82%, 100% { transform: none; } 86% { transform: translateY(-4px) scale(1.04); } 90% { transform: translateY(0) scale(.98); } 94% { transform: translateY(-2px); } }
 
@@ -445,12 +452,12 @@ body.oe-pro.oe-page--home .oe-home-usecases__card { position: relative; gap: 8px
 body.oe-pro.oe-page--home .oe-home-usecases__card strong { font-size: 1.15rem; }
 body.oe-pro.oe-page--home .oe-home-usecases__card span { font-size: .95rem; }
 /* «Ver como →» no fundo de cada cartão: mostra que se pode carregar. */
-body.oe-pro.oe-page--home .oe-home-usecases__card::after { content: "Ver como \2192"; position: absolute; left: 20px; bottom: 16px; font-size: .88rem; font-weight: 750; color: var(--oe-btn2, #0f2a4f); transition: transform .15s ease; }
+body.oe-pro.oe-page--home .oe-home-usecases__card::after { content: "Ver como \2192"; content: "Ver como \2192" / ""; position: absolute; left: 20px; bottom: 16px; font-size: .88rem; font-weight: 750; color: var(--oe-btn2, #0f2a4f); transition: transform .15s ease; }
 body.oe-pro.oe-page--home .oe-home-usecases__card:hover::after { transform: translateX(4px); }
-html[lang="en"] body.oe-pro.oe-page--home .oe-home-usecases__card::after { content: "See how \2192"; }
-html[lang="es"] body.oe-pro.oe-page--home .oe-home-usecases__card::after { content: "Ver cómo \2192"; }
-html[lang="fr"] body.oe-pro.oe-page--home .oe-home-usecases__card::after { content: "Voir comment \2192"; }
-html[lang="de"] body.oe-pro.oe-page--home .oe-home-usecases__card::after { content: "So geht's \2192"; }
+html[lang="en"] body.oe-pro.oe-page--home .oe-home-usecases__card::after { content: "See how \2192"; content: "See how \2192" / ""; }
+html[lang="es"] body.oe-pro.oe-page--home .oe-home-usecases__card::after { content: "Ver cómo \2192"; content: "Ver cómo \2192" / ""; }
+html[lang="fr"] body.oe-pro.oe-page--home .oe-home-usecases__card::after { content: "Voir comment \2192"; content: "Voir comment \2192" / ""; }
+html[lang="de"] body.oe-pro.oe-page--home .oe-home-usecases__card::after { content: "So geht's \2192"; content: "So geht's \2192" / ""; }
 body.oe-pro.oe-page--home .oe-home-trust--footer { font-weight: 600; }
 body.oe-pro.oe-page--home #apresentacaoSEO .oe-seo-features > p:not(:first-child) { display: flex; align-items: center; gap: .5rem; min-height: 48px; font-weight: 600; }
 

@@ -173,7 +173,7 @@ body.oe-page--youtube-desc .oe-yt-hero .oe-lead {
 .oe-yt-result__btn--primary {
   background: var(--oe-btn, #fd8c32);
   border-color: transparent;
-  color: #fff;
+  color: var(--oe-btn-texto, #fff);
 }
 
 .oe-yt-pre {

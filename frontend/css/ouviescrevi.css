@@ -1,7 +1,7 @@
 /* Ouviescrevi — design system partilhado */
-@import url("ouviescrevi-pro.css?v=25");
+@import url("ouviescrevi-pro.css?v=26");
 @import url("theme-dark.css?v=7");
-@import url("temas.css?v=16");
+@import url("temas.css?v=17");
 
 :root {
   --oe-purple: #1d4a8f;
@@ -1118,7 +1118,7 @@ main.oe-content {
 
 .oe-site-banner {
   background: var(--oe-btn, #fd8c32);
-  color: #fff;
+  color: var(--oe-btn-texto, #fff);
   text-align: center;
   padding: 10px 16px;
   font-size: 0.95rem;

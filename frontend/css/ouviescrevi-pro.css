@@ -1475,7 +1475,7 @@ body.oe-pro.oe-page--home #uploadForm #btnTranskribieren {
   font-size: 1.05rem !important;
   letter-spacing: 0.01em;
   background: var(--oe-btn, #fd8c32) !important;
-  color: #fff !important;
+  color: var(--oe-btn-texto, #fff) !important;
   border: none !important;
   box-shadow: 0 6px 22px rgba(253, 140, 50, 0.38) !important;
 }
@@ -1973,11 +1973,14 @@ body.oe-pro button, body.oe-pro input, body.oe-pro select, body.oe-pro textarea 
   .oe-pro-nav__panel .oe-pro-nav__group-label { margin: 0; padding: 10px 2px 8px; border-left: 0; font-size: .7rem; color: var(--pro-text-secondary, #3d5677); }
   .oe-pro-nav__panel .oe-pro-nav__menu a {
     display: flex; align-items: center; min-height: 52px; margin: 0; padding: 8px 12px; border: 1px solid var(--pro-border, #dbe6f3); border-radius: 12px;
-    background: var(--pro-bg, #fff); color: var(--pro-text); font-size: .95rem; font-weight: 600; line-height: 1.2; white-space: normal; }
+    background: var(--pro-bg, #fff); color: var(--pro-text); font-size: .95rem; font-weight: 600; line-height: 1.2; white-space: normal;
+    overflow-wrap: anywhere; hyphens: auto; } /* palavras longas (ex.: «Zusammenfassung» em alemão) partem dentro do quadrado */
   .oe-pro-nav__panel .oe-pro-nav__menu a.is-active { border: 2px solid var(--oe-btn, #fd8c32); background: var(--pro-accent-soft, #e4f0fc); font-weight: 800; }
   .oe-pro-header__actions { position: sticky; bottom: 0; z-index: 1; margin-top: auto; padding: 12px 0 16px; grid-template-columns: 1fr 1fr auto;
     background: var(--pro-surface, #f4f9ff); box-shadow: 0 -12px 16px -14px rgba(15,42,79,.45); }
   .oe-pro-header__actions .oe-pro-lang { grid-column: auto; }
+  /* A barra fica colada ao fundo do ecrã: a lista de línguas abre para cima (para baixo ficava fora do ecrã). */
+  .oe-pro-header__actions .oe-pro-lang__menu { top: auto; bottom: calc(100% + 6px); left: auto; right: 0; }
   .oe-pro-auth .oe-pro-btn { min-height: 46px; }
   .oe-pro-header__actions .oe-pro-btn--primary, .oe-pro-header__actions a.oe-pro-btn:last-child { min-height: 50px; }
 }
@@ -2015,9 +2018,9 @@ html body.oe-pro .oe-pro-header .oe-design-troca button.oe-design-op[aria-checke
 body.oe-pro .oe-pro-brand__icon-wrap { overflow: visible; width: 34px; height: 40px; }
 body.oe-pro .oe-pro-brand__icon-wrap .oe-pro-brand__icon, body.oe-pro .oe-pro-footer .oe-pro-brand__icon { width: 34px !important; height: 40px !important; max-width: none; object-fit: contain; }
 
-/* Mensagens de voz: um só laranja nos botões principais (legível com texto branco, 4.5:1). */
+/* Mensagens de voz: um só laranja nos botões principais, com texto azul-escuro (o branco dava só 2,3:1). */
 html:not([data-design]) body.oe-pro .oe-pro-btn--primary,
-html:not([data-design]) body.oe-pro a.oe-pro-btn.oe-pro-btn--primary { background: #fd8c32; border-color: #fd8c32; }
+html:not([data-design]) body.oe-pro a.oe-pro-btn.oe-pro-btn--primary { background: #fd8c32; border-color: #fd8c32; color: #0f2a4f; }
 html:not([data-design]) body.oe-pro .oe-pro-btn--primary:hover,
 html:not([data-design]) body.oe-pro a.oe-pro-btn.oe-pro-btn--primary:hover { background: #f07a1c; border-color: #f07a1c; }
 /* Com sessão iniciada: email com mais espaço e alinhado com «Sair». */

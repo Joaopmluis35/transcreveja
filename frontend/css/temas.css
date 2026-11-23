@@ -102,11 +102,13 @@ html[data-design="caderno"] body.oe-pro main { background-image: linear-gradient
 /* No telemóvel o texto ficava em cima da linha vermelha: começa um pouco depois dela. */
 @media (max-width: 899px) {
   html[data-design="caderno"] body.oe-pro main { padding-left: 38px; }
+  html[data-design="caderno"] body.oe-pro main.oe-suggestions { padding-left: 38px; } /* a página das Sugestões punha padding:0 */
 }
 
 /* ---- Botões: uma cor principal por design (cheio) e uma secundária (contorno) ----
    Mensagens de voz: laranja · Caderno: azul de caneta · Ardósia: giz amarelo com texto escuro. */
-html body.oe-pro { --oe-btn: #fd8c32; --oe-btn-hover: #f07a1c; --oe-btn-texto: #fff; --oe-btn2: #0f2a4f; }
+/* Texto azul-escuro no laranja: branco sobre #fd8c32 dava 2,3:1 (ilegível ao sol); azul-escuro dá cerca de 6:1. */
+html body.oe-pro { --oe-btn: #fd8c32; --oe-btn-hover: #f07a1c; --oe-btn-texto: #0f2a4f; --oe-btn2: #0f2a4f; }
 html[data-design="caderno"] body.oe-pro { --oe-btn: #1e3fa8; --oe-btn-hover: #142c7a; --oe-btn-texto: #fff; --oe-btn2: #1e3fa8; }
 html[data-design="ardosia"] body.oe-pro { --oe-btn: #f2d24b; --oe-btn-hover: #f7e08a; --oe-btn-texto: #1b2a24; --oe-btn2: #e8ecdf; }
 
@@ -119,13 +121,13 @@ html body.oe-pro.oe-page--home #uploadForm :is(#btnTranscrever, #btnTranscribe, 
 html body.oe-pro.oe-page--home #uploadForm :is(#btnTranscrever, #btnTranscribe, #btnTranscribir, #btnTranscrire, #btnTranskribieren) * { color: inherit !important; }
 /* Botão principal de cada ferramenta (Gerar Resumo, Enviar sugestão…) cheio com a cor do design: na Ardósia era
    verde-escuro com contorno laranja (quase não se via) e o «Enviar sugestão» tinha texto branco sobre amarelo. */
-html body.oe-pro :is(.oe-ap-form__submit, .oe-cap-form__submit, .oe-conversor-form__submit, .oe-cor-form__submit, .oe-fc-form__submit, .oe-quiz-form__submit, .oe-resumo-form__submit, .oe-url-form__submit, .oe-yt-form__submit, .oe-pro-btn--primary) {
+html body.oe-pro :is(.oe-ap-form__submit, .oe-cap-form__submit, .oe-conversor-form__submit, .oe-cor-form__submit, .oe-fc-form__submit, .oe-quiz-form__submit, .oe-resumo-form__submit, .oe-url-form__submit, .oe-yt-form__submit, .oe-pro-btn--primary:not(.oe-pro-nav__cta)) {
   /* o theme-dark.css pinta os botões com --oe-btn-bg/-border/-text e !important (com um id na regra) */
   --oe-btn-bg: var(--oe-btn); --oe-btn-border: var(--oe-btn); --oe-btn-text: var(--oe-btn-texto);
   background: var(--oe-btn) !important; border: 2px solid var(--oe-btn) !important; color: var(--oe-btn-texto) !important; box-shadow: 0 10px 20px -14px rgba(0,0,0,.6) !important; min-height: 52px; font-weight: 800; }
-html body.oe-pro :is(.oe-ap-form__submit, .oe-cap-form__submit, .oe-conversor-form__submit, .oe-cor-form__submit, .oe-fc-form__submit, .oe-quiz-form__submit, .oe-resumo-form__submit, .oe-url-form__submit, .oe-yt-form__submit, .oe-pro-btn--primary):hover:not(:disabled) { --oe-btn-bg: var(--oe-btn-hover); --oe-btn-border: var(--oe-btn-hover); background: var(--oe-btn-hover) !important; border-color: var(--oe-btn-hover) !important; }
-html body.oe-pro :is(.oe-ap-form__submit, .oe-cap-form__submit, .oe-conversor-form__submit, .oe-cor-form__submit, .oe-fc-form__submit, .oe-quiz-form__submit, .oe-resumo-form__submit, .oe-url-form__submit, .oe-yt-form__submit, .oe-pro-btn--primary) * { color: inherit !important; }
-html[data-design="caderno"] body.oe-pro :is(.oe-ap-form__submit, .oe-cap-form__submit, .oe-conversor-form__submit, .oe-cor-form__submit, .oe-fc-form__submit, .oe-quiz-form__submit, .oe-resumo-form__submit, .oe-url-form__submit, .oe-yt-form__submit, .oe-pro-btn--primary) { border-radius: 3px !important; }
+html body.oe-pro :is(.oe-ap-form__submit, .oe-cap-form__submit, .oe-conversor-form__submit, .oe-cor-form__submit, .oe-fc-form__submit, .oe-quiz-form__submit, .oe-resumo-form__submit, .oe-url-form__submit, .oe-yt-form__submit, .oe-pro-btn--primary:not(.oe-pro-nav__cta)):hover:not(:disabled) { --oe-btn-bg: var(--oe-btn-hover); --oe-btn-border: var(--oe-btn-hover); background: var(--oe-btn-hover) !important; border-color: var(--oe-btn-hover) !important; }
+html body.oe-pro :is(.oe-ap-form__submit, .oe-cap-form__submit, .oe-conversor-form__submit, .oe-cor-form__submit, .oe-fc-form__submit, .oe-quiz-form__submit, .oe-resumo-form__submit, .oe-url-form__submit, .oe-yt-form__submit, .oe-pro-btn--primary:not(.oe-pro-nav__cta)) * { color: inherit !important; }
+html[data-design="caderno"] body.oe-pro :is(.oe-ap-form__submit, .oe-cap-form__submit, .oe-conversor-form__submit, .oe-cor-form__submit, .oe-fc-form__submit, .oe-quiz-form__submit, .oe-resumo-form__submit, .oe-url-form__submit, .oe-yt-form__submit, .oe-pro-btn--primary:not(.oe-pro-nav__cta)) { border-radius: 3px !important; }
 /* No telemóvel o rodapé do formulário fica em coluna e «flex: 1 1 160px/200px» virava ALTURA: o botão tinha 160 px e
    a escolha do estilo deixava um espaço vazio por cima dele. */
 @media (max-width: 640px) {
@@ -142,7 +144,7 @@ html[data-design="ardosia"] body.oe-pro .oe-legal-table th { background: rgba(24
 html[data-design="ardosia"] body.oe-pro .oe-legal-table :is(th, td) { border-color: rgba(238,241,232,.22); }
 html[data-design="ardosia"] body.oe-pro code { background: rgba(238,241,232,.12); color: #f2d24b; }
 /* Ardósia: campos de escrever em verde-quadro mais escuro (vinham do antigo modo escuro em azul-marinho). */
-html[data-design="ardosia"] body.oe-pro :is(input[type="text"], input[type="email"], input[type="url"], input[type="search"], input[type="password"], input:not([type]), textarea, select):not(#uploadForm *) {
+html[data-design="ardosia"] body.oe-pro :is(input[type="text"], input[type="email"], input[type="url"], input[type="search"], input[type="password"], input[type="number"], input[type="tel"], input[type="date"], input[type="time"], input:not([type]), textarea, select):not(#uploadForm *) {
   background: #1b2722 !important; color: #eef1e8 !important; border: 1.5px solid rgba(238,241,232,.28) !important; }
 html[data-design="ardosia"] body.oe-pro :is(input, textarea):not(#uploadForm *)::placeholder { color: #a9b5a4 !important; opacity: 1; }
 html[data-design="ardosia"] body.oe-pro :is(input, textarea, select):not(#uploadForm *):focus { border-color: #f2d24b !important; outline: 2px solid rgba(242,210,75,.35); outline-offset: 1px; }

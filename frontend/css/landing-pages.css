@@ -83,7 +83,7 @@ body.oe-page--landing-pro .oe-lp-btn:hover {
 body.oe-page--landing .oe-lp-btn--primary,
 body.oe-page--landing-pro .oe-lp-btn--primary {
   background: var(--oe-btn, #fd8c32);
-  color: #fff !important;
+  color: var(--oe-btn-texto, #fff) !important;
   box-shadow: 0 6px 20px rgba(253, 140, 50, 0.35);
 }
 

@@ -82,7 +82,7 @@ body.oe-page--flashcards .oe-fc-hero .oe-lead {
   border: none;
   border-radius: 10px;
   background: var(--oe-btn, #fd8c32);
-  color: #fff;
+  color: var(--oe-btn-texto, #fff);
   font-weight: 700;
   font-size: 0.95rem;
   cursor: pointer;
@@ -426,7 +426,7 @@ html.oe-theme-dark .oe-fc-card__text {
 
 .oe-fc-export__btn--primary {
   background: var(--oe-btn, #fd8c32) !important;
-  color: #fff !important;
+  color: var(--oe-btn-texto, #fff) !important;
   border-color: var(--oe-btn-hover, #f07a1c) !important;
 }
 
