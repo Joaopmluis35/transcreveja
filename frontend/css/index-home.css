@@ -370,6 +370,12 @@ body.oe-page--home .oe-home-workspace__col--output #output.oe-output {
   overflow: auto;
 }
 
+/* O cartão do resultado acaba no conteúdo: esticado até à altura da coluna da esquerda (vídeo + opções + exemplo)
+   ficava um buraco branco entre o chat e o «Como correu a transcrição?». */
+@media (min-width: 901px) {
+  body.oe-page--home .oe-home-workspace__col--output > #output.oe-output { height: auto; align-self: start; }
+}
+
 body.oe-page--home .oe-home-workspace__col--output #output.oe-output.hidden {
   display: none !important;
 }

@@ -302,6 +302,11 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   escreve-se a caneta (`oe-escreve`), «Nós escrevemos.» leva traço de marcador amarelo (`oe-marca`), a nota amarela cai
   e cola-se (`oe-cola`, sem `to` para manter a rotação de cada largura) com a fita a aparecer, etiquetas e coluna do
   resultado aparecem a seguir; o cartão «A transcrever» também entra com `oe-cola`.
+- Risco por baixo de «escrevi» no logótipo também nas Mensagens de voz (laranja); no rodapé do Caderno (azul-escuro)
+  o símbolo passa ao claro `logo-simbolo-giz.svg` (`temas.css?v=10`, `ouviescrevi.css?v=66` em 138 páginas).
+- Buraco branco entre o chat e «Como correu a transcrição?»: o `#output` esticava até à altura da coluna da esquerda
+  (a caixa do texto tem altura máxima e a grelha `.oe-output__layout` tem `align-content:start`). No computador o
+  `#output` passa a `height:auto; align-self:start` (`index-home.css?v=69`).
 
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).
