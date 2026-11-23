@@ -1988,3 +1988,6 @@ html body.oe-pro .oe-pro-header .oe-design-troca button.oe-design-op[aria-checke
 @media (max-width: 899px) {
   body.oe-pro .oe-design-troca ul { position: fixed; top: calc(var(--pro-header-h) + 6px); left: auto; right: 12px; width: min(360px, calc(100vw - 24px)); max-width: none; justify-items: center; }
 }
+/* O logótipo cabe inteiro na sua caixa (a imagem tinha 40×47 numa caixa de 34×40 e era cortada) */
+body.oe-pro .oe-pro-brand__icon-wrap { overflow: visible; width: 34px; height: 40px; }
+body.oe-pro .oe-pro-brand__icon-wrap .oe-pro-brand__icon, body.oe-pro .oe-pro-footer .oe-pro-brand__icon { width: 34px !important; height: 40px !important; max-width: none; object-fit: contain; }

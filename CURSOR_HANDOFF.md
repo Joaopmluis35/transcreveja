@@ -180,6 +180,8 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   `theme-ui.js?v=3` põe `html[data-design=caderno|ardosia|cortica|folha]` (guardado em `localStorage.oe_design`;
   sem valor = Mensagens de voz). Cores/fundos em `css/temas.css`; a «Ardósia» reaproveita o antigo modo escuro
   (`html.oe-theme-dark`) com o `theme-dark.css` recolorido a verde-ardósia. O botão 🌙 foi escondido.
+- O logótipo do cabeçalho era cortado (imagem 40×47 numa caixa 34×40): agora tem 34×40 fixos. Na ardósia o `main`
+  tem moldura de madeira e parapeito com giz (`temas.css`); cortiça com moldura; caderno com margem vermelha.
 - Em cada design a conversa da página inicial muda de aspeto (`conversa-demo.css`) e há um instrumento a escrever
   as mensagens: **giz** na ardósia, **caneta** no caderno e na folha (`conversa-demo.js`, segue um cursor invisível).
   Logótipo claro na ardósia (`/design/assets/logo-simbolo-giz.svg`); menus e lista de cores usam as variáveis do design;
