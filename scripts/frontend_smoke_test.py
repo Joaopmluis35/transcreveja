@@ -40,6 +40,8 @@ def should_skip_html(path: Path) -> bool:
         return True
     if path.name in ("admin.html", "backoffice.html", "header.html", "footer.html"):
         return True
+    if path.name.startswith("google") and path.parent == FRONTEND:
+        return True  # ficheiro de verificação do Google Search Console (uma linha, não é página)
     return False
 
 

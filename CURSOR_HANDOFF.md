@@ -369,6 +369,8 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   **Atenção:** o `ouviescrevi-seo.js` reescreve título/descrição a partir da lista `PAGES` — ao mudar o `<title>` de
   uma página, mudar também lá. Script agora com `?v=2` (127 páginas). O `frontend_smoke_test.py` aceita URLs de pasta
   no sitemap e verifica o canónico das 5 páginas iniciais.
+- Google Search Console (23/11): propriedade `https://www.ouviescrevi.pt/` validada com o ficheiro
+  `frontend/googled4d64ba426e88117.html` — **não apagar** (o Google volta a verificar). O smoke test ignora-o.
 
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).
