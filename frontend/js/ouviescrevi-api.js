@@ -76,29 +76,40 @@
     return attempt;
   }
 
+  // {s} = segundos passados; o contador mostra que não está parado.
   const WAKE_TEXT = {
-    pt: "A ligar ao servidor… na primeira utilização pode demorar até 1 minuto.",
-    en: "Connecting to the server… the first use can take up to 1 minute.",
-    es: "Conectando con el servidor… la primera vez puede tardar hasta 1 minuto.",
-    fr: "Connexion au serveur… la première utilisation peut prendre jusqu’à 1 minute.",
-    de: "Verbindung zum Server… beim ersten Mal kann es bis zu 1 Minute dauern.",
+    pt: "A acordar o servidor (estava em pausa)… costuma levar até 1 minuto. Podes ir escolhendo o ficheiro. {s} s",
+    en: "Waking up the server (it was paused)… this usually takes up to 1 minute. You can pick your file meanwhile. {s} s",
+    es: "Despertando el servidor (estaba en pausa)… suele tardar hasta 1 minuto. Puedes ir eligiendo el archivo. {s} s",
+    fr: "Réveil du serveur (il était en pause)… cela prend jusqu’à 1 minute. Vous pouvez choisir votre fichier en attendant. {s} s",
+    de: "Server wird geweckt (er war pausiert)… das dauert meist bis zu 1 Minute. Du kannst schon deine Datei wählen. {s} s",
   };
+  let wakeTick = null;
 
   function showWakeNotice() {
     if (!document.body || document.getElementById("oe-wake-notice")) return;
     const lang = (document.documentElement.lang || "pt").slice(0, 2).toLowerCase();
+    const text = WAKE_TEXT[lang] || WAKE_TEXT.pt;
+    const started = Date.now() - 4000;
     const box = document.createElement("div");
     box.id = "oe-wake-notice";
     box.setAttribute("role", "status");
-    box.textContent = WAKE_TEXT[lang] || WAKE_TEXT.pt;
+    // No canto de baixo, para não tapar o menu do cabeçalho.
     box.style.cssText =
-      "position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:9999;max-width:calc(100vw - 24px);" +
-      "padding:10px 16px;border-radius:999px;background:#1f1b3a;color:#fff;border:1px solid #7c5cff;" +
-      "font:600 14px/1.35 system-ui,sans-serif;box-shadow:0 8px 28px rgba(0,0,0,.45);text-align:center";
+      "position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:9999;" +
+      "max-width:min(360px,calc(100vw - 32px));padding:12px 16px;border-radius:14px;background:#1f1b3a;color:#fff;" +
+      "border:1px solid #7c5cff;font:500 14px/1.4 system-ui,sans-serif;box-shadow:0 8px 28px rgba(0,0,0,.35)";
+    const update = function () {
+      box.textContent = text.replace("{s}", String(Math.round((Date.now() - started) / 1000)));
+    };
+    update();
+    wakeTick = setInterval(update, 1000);
     document.body.appendChild(box);
   }
 
   function hideWakeNotice() {
+    clearInterval(wakeTick);
+    wakeTick = null;
     const box = document.getElementById("oe-wake-notice");
     if (box) box.remove();
   }

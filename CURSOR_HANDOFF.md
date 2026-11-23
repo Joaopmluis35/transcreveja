@@ -358,6 +358,9 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   - Sessões: `POST /api/auth/logout` (o «Sair» do `auth-ui.js?v=27` chama-o) e mudar a palavra-passe termina as
     sessões antigas.
 
+- Aviso «servidor a acordar» (`ouviescrevi-api.js?v=28`): passou do topo (tapava o menu) para o canto de baixo,
+  texto mais calmo («estava em pausa… podes ir escolhendo o ficheiro») e contador de segundos a subir.
+
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).
 
