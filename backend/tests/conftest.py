@@ -16,6 +16,7 @@ _TEST_DB = tempfile.mktemp(suffix=".pytest.db")
 
 os.environ["DATABASE_PATH"] = _TEST_DB
 os.environ["OPENAI_API_KEY"] = "sk-test-dummy-key-for-pytest-only"
+os.environ["ANTHROPIC_API_KEY"] = ""  # Claude desligado nos testes (nunca chamar a API real)
 os.environ["ADMIN_TOKEN"] = "test-admin-token"
 os.environ["API_TOKEN"] = "test-api-token"
 os.environ["BACKOFFICE_PASSWORD"] = "TestBackoffice123!"

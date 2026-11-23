@@ -281,6 +281,13 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
 - «Ver tradução» na caixa da transcrição (site PT): o servidor volta a enviar `original_language` quando o áudio não
   é português (`original_formatted` continua vazio). O `index.html` mostra «Texto original (inglês).» + «Ver tradução»;
   o 1.º clique chama `/translate` para português e guarda o resultado; depois alterna original/tradução.
+- **IA de texto com Claude + reserva OpenAI** (`backend/ai_chat.py`): todas as chamadas que eram
+  `client.chat.completions.create` passam por `ai_chat.create(...)` (mesmos argumentos, mesma resposta
+  `resp.choices[0].message.content`). Com `ANTHROPIC_API_KEY` no Render usa o Claude (`CLAUDE_MODEL`, por omissão
+  `claude-opus-5-5`, `CLAUDE_EFFORT=low`); se falhar (sem crédito, chave errada, serviço em baixo) usa a OpenAI com o
+  modelo de sempre. Sem a chave tudo vai para a OpenAI. **O Whisper (transcrição) continua na OpenAI** (`client`).
+  Testes em `tests/test_ai_chat.py`; nos testes `ANTHROPIC_API_KEY=""` (conftest). Backoffice: cartão «Créditos da IA»
+  com links para carregar Anthropic e OpenAI. Nova dependência `anthropic==2.12.0`.
 
 - Faixa de novidades (`news-ticker.js?v=6`): saiu a notícia de 26/10 (tradução automática, já não existe); entram 3
   novidades de 23/11/2026 em PT (novo aspeto, língua original, «Tentar outra vez») e 2 em EN/ES/FR/DE. Nomes dos

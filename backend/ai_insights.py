@@ -125,7 +125,9 @@ def generate_ai_insights(days: int = 7, *, max_suggestions: int = 6) -> dict[str
     if not api_key or api_key.startswith("sk-...") or "placeholder" in api_key.lower():
         raise RuntimeError("OPENAI_API_KEY em falta ou inválida no servidor.")
 
-    client = OpenAI(api_key=api_key, timeout=60)
+    from ai_chat import ChatWithFallback
+
+    client = ChatWithFallback(OpenAI(api_key=api_key, timeout=60))
     snapshot = build_insights_snapshot(days)
     max_n = max(3, min(int(max_suggestions or 6), 10))
     system = (
@@ -153,7 +155,7 @@ def generate_ai_insights(days: int = 7, *, max_suggestions: int = 6) -> dict[str
         f"DADOS:\n{json.dumps(snapshot, ensure_ascii=False, default=str)[:12000]}"
     )
 
-    resp = client.chat.completions.create(
+    resp = client.create(
         model=INSIGHT_MODEL,
         messages=[
             {"role": "system", "content": system},

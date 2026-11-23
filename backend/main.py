@@ -29,6 +29,8 @@ from bs4 import BeautifulSoup
 from gtts import gTTS
 from openai import OpenAI
 
+from ai_chat import ChatWithFallback
+
 from security import (
     RateLimiter,
     client_ip,
@@ -188,6 +190,8 @@ EML_MODEL = os.getenv("EML_MODEL", "gpt-4o-mini")
 
 # OpenAI client
 client = OpenAI(api_key=OPENAI_API_KEY, timeout=WHISPER_TIMEOUT)
+# Funções de texto: Claude primeiro, OpenAI se falhar (ver ai_chat.py). O Whisper usa sempre client.
+ai_chat = ChatWithFallback(client)
 
 # Descobrir ffmpeg
 try:
@@ -1112,7 +1116,7 @@ def translate_formatted_transcript(formatted: str, max_chars: int = 8000) -> str
 
     translated = []
     for batch in batches:
-        resp = client.chat.completions.create(
+        resp = ai_chat.create(
             model=SUM_MODEL,
             messages=[
                 {
@@ -3565,7 +3569,7 @@ async def diarize_speakers(req: DiarizeRequest, request: Request):
             "Não inventes timestamps. Devolve só a transcrição etiquetada."
         )
     try:
-        resp = client.chat.completions.create(
+        resp = ai_chat.create(
             model=SUM_MODEL,
             messages=[
                 {"role": "system", "content": sys},
@@ -3640,7 +3644,7 @@ async def summarize(req: SummarizeRequest, request: Request):
     )
     prompt = f"Texto:\n{req.text}"
     try:
-        resp = client.chat.completions.create(
+        resp = ai_chat.create(
             model=SUM_MODEL,
             messages=[{"role": "system", "content": sys}, {"role": "user", "content": prompt}],
             temperature=0.5,
@@ -3713,7 +3717,7 @@ async def transcript_chat(req: TranscriptChatRequest, request: Request):
     messages.append({"role": "user", "content": question})
 
     try:
-        resp = client.chat.completions.create(
+        resp = ai_chat.create(
             model=SUM_MODEL,
             messages=messages,
             temperature=0.4,
@@ -3738,7 +3742,7 @@ async def translate_text(request: Request):
     if language not in idiomas:
         raise HTTPException(status_code=400, detail=f"Idioma não suportado: {language}")
     try:
-        resp = client.chat.completions.create(
+        resp = ai_chat.create(
             model=SUM_MODEL,
             messages=[{"role": "system", "content": f"Traduz o texto para {idiomas[language]}."}, {"role": "user", "content": text}],
             temperature=0.3,
@@ -3760,7 +3764,7 @@ async def classify_content(req: ClassifyRequest, request: Request):
               "- Entrevista\n- Aula\n- Podcast\n- Reunião\n- Apresentação\n- Testemunho\n- Conversa informal\n\n"
               f"Texto:\n{req.text}\n\nResponde só com uma etiqueta.")
     try:
-        resp = client.chat.completions.create(model=CLS_MODEL, messages=[{"role": "user", "content": prompt}], temperature=0.3, max_tokens=20)
+        resp = ai_chat.create(model=CLS_MODEL, messages=[{"role": "user", "content": prompt}], temperature=0.3, max_tokens=20)
         maybe_notify_activity(request, "Classificação com IA feita", "Classificação feita no Ouviescrevi")
         return {"type": resp.choices[0].message.content.strip()}
     except Exception as e:
@@ -3816,7 +3820,7 @@ async def correct_text(req: Request):
     if mode == "spelling":
         max_out = min(max_out, max(96, int(text_len * 1.08) + 24))
     try:
-        resp = client.chat.completions.create(
+        resp = ai_chat.create(
             model=COR_MODEL,
             messages=[{"role": "system", "content": system},
                       {"role": "user", "content": text}],
@@ -3852,7 +3856,7 @@ async def generate_email(req: EmailRequest, request: Request):
               "O email deve ser claro, direto e adequado para enviar após a reunião. "
               f"Escreve-o em {ai_output_language(req.lang)}.")
     try:
-        resp = client.chat.completions.create(
+        resp = ai_chat.create(
             model=EML_MODEL,
             messages=[{"role": "system", "content": "Escreves emails profissionais a partir de resumos/transcrições."},
                       {"role": "user", "content": prompt}],
@@ -3948,7 +3952,7 @@ async def generate_questions(req: QuestionRequest, request: Request):
     sys, prompt_tpl = _QUESTION_LANG_SPECS[lang]
     prompt = prompt_tpl.format(n=req.num_questions, text=req.text)
     try:
-        resp = client.chat.completions.create(
+        resp = ai_chat.create(
             model=SUM_MODEL,
             messages=[{"role": "system", "content": sys}, {"role": "user", "content": prompt}],
             temperature=0.7,
@@ -4027,7 +4031,7 @@ Texto:
 {source}"""
 
     try:
-        resp = client.chat.completions.create(
+        resp = ai_chat.create(
             model=SUM_MODEL,
             messages=[{"role": "system", "content": sys}, {"role": "user", "content": prompt}],
             temperature=0.55,
@@ -4186,7 +4190,7 @@ Texto completo:
 {source}"""
 
     try:
-        resp = client.chat.completions.create(
+        resp = ai_chat.create(
             model=SUM_MODEL,
             messages=[{"role": "system", "content": sys}, {"role": "user", "content": prompt}],
             temperature=0.45,
@@ -4306,7 +4310,7 @@ Texto:
 {source}"""
 
     try:
-        resp = client.chat.completions.create(
+        resp = ai_chat.create(
             model=SUM_MODEL,
             messages=[{"role": "system", "content": sys}, {"role": "user", "content": prompt}],
             temperature=0.5,
@@ -4411,7 +4415,7 @@ Conteúdo:
 {source}"""
 
     try:
-        resp = client.chat.completions.create(
+        resp = ai_chat.create(
             model=SUM_MODEL,
             messages=[{"role": "system", "content": sys}, {"role": "user", "content": prompt}],
             temperature=0.55,
@@ -4628,7 +4632,7 @@ async def summarize_url(req: Request):
     )
     prompt = f"Título: {info['title'] or '(sem título)'}\n\nArtigo:\n{full_text[:URL_TEXT_LIMIT]}"
     try:
-        resp = client.chat.completions.create(
+        resp = ai_chat.create(
             model=SUM_MODEL,
             messages=[{"role": "system", "content": sys}, {"role": "user", "content": prompt}],
             temperature=0.4,

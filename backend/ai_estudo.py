@@ -215,7 +215,9 @@ def generate_ai_estudo(
     if not api_key or api_key.startswith("sk-...") or "placeholder" in api_key.lower():
         raise RuntimeError("OPENAI_API_KEY em falta ou inválida no servidor.")
 
-    client = OpenAI(api_key=api_key, timeout=60)
+    from ai_chat import ChatWithFallback
+
+    client = ChatWithFallback(OpenAI(api_key=api_key, timeout=60))
     snapshot = build_estudo_snapshot(days, horizon)
     max_n = max(3, min(int(max_suggestions or 6), 10))
 
@@ -249,7 +251,7 @@ def generate_ai_estudo(
         f"DADOS:\n{json.dumps(snapshot, ensure_ascii=False, default=str)[:14000]}"
     )
 
-    resp = client.chat.completions.create(
+    resp = client.create(
         model=ESTUDO_MODEL,
         messages=[
             {"role": "system", "content": system},
