@@ -604,6 +604,10 @@ def criar_base() -> None:
             cur.execute("ALTER TABLE shared_quizzes ADD COLUMN owner TEXT")
         cur.execute("CREATE INDEX IF NOT EXISTS idx_shared_quizzes_owner ON shared_quizzes(owner)")
 
+        # Chave secreta (guardada só em hash) para quem partilhou poder apagar o link.
+        if not _column_exists(cur, "shared_transcripts", "delete_key_hash"):
+            cur.execute("ALTER TABLE shared_transcripts ADD COLUMN delete_key_hash TEXT")
+
         conn.commit()
     finally:
         conn.close()

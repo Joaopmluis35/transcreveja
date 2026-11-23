@@ -133,16 +133,23 @@ def fail_orphaned_processing_jobs() -> int:
         conn.close()
 
 
-def prune_async_jobs(max_age_hours: int = 24) -> int:
+def prune_async_jobs(max_age_hours: int = 24, kind: str | None = None) -> int:
+    """Apaga trabalhos antigos; com ``kind`` só desse tipo (ex.: "transcribe")."""
     cutoff = (datetime.utcnow() - timedelta(hours=max(1, max_age_hours))).isoformat(
         timespec="seconds"
     ) + "Z"
     conn = get_connection()
     try:
-        cur = conn.execute(
-            "DELETE FROM async_jobs WHERE updated_at < ?",
-            (cutoff,),
-        )
+        if kind:
+            cur = conn.execute(
+                "DELETE FROM async_jobs WHERE updated_at < ? AND kind = ?",
+                (cutoff, kind),
+            )
+        else:
+            cur = conn.execute(
+                "DELETE FROM async_jobs WHERE updated_at < ?",
+                (cutoff,),
+            )
         conn.commit()
         return int(cur.rowcount or 0)
     except Exception:

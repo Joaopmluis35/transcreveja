@@ -60,3 +60,46 @@ def test_track_visit_accepts_utm(client):
     )
     # origin may be rejected in tests — accept 200 or 403 depending on ALLOWED_ORIGINS
     assert res.status_code in (200, 403)
+
+
+def test_shared_transcript_can_be_deleted_only_with_key(client):
+    created = store.create_shared_transcript("Texto partilhado de teste com tamanho suficiente.", locale="pt")
+    assert created["delete_key"]
+    assert store.delete_shared_transcript(created["id"], "chave-errada") is False
+    assert store.get_shared_transcript(created["id"]) is not None
+    assert store.delete_shared_transcript(created["id"], created["delete_key"]) is True
+    assert store.get_shared_transcript(created["id"]) is None
+
+
+def test_share_delete_endpoint(client):
+    origin = {"Origin": "http://testserver"}
+    r = client.post("/api/share/transcript", json={"text": "Uma transcrição suficientemente longa para partilhar."}, headers=origin)
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["url"].startswith("http://testserver/s/")
+    assert "30 dias" in body["public_notice"]
+    bad = client.post(f"/api/share/transcript/{body['id']}/delete", json={"delete_key": "x"}, headers=origin)
+    assert bad.status_code == 404
+    ok = client.post(f"/api/share/transcript/{body['id']}/delete", json={"delete_key": body["delete_key"]}, headers=origin)
+    assert ok.status_code == 200
+
+
+def test_logout_ends_session_on_server(client):
+    token = store.create_session("sair@teste.pt", "user", hours=1)
+    assert store.resolve_session(token) is not None
+    r = client.post("/api/auth/logout", headers={"X-Site-Session": token})
+    assert r.status_code == 200
+    assert store.resolve_session(token) is None
+
+
+def test_password_reset_ends_other_sessions(client):
+    email = "reset-sessoes@teste.pt"
+    try:
+        store.register_site_user(email, "palavra-antiga-1")
+    except Exception:
+        pass
+    old = store.create_session(email, "user", hours=1)
+    reset = store.create_password_reset_token(email)
+    assert reset
+    assert store.reset_password_with_token(reset, "palavra-nova-123") is True
+    assert store.resolve_session(old) is None

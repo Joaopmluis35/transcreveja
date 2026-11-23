@@ -76,6 +76,19 @@ def origin_is_allowed(request: Request, allowed_origins: list[str]) -> bool:
     return origin in normalized
 
 
+PUBLIC_SITE_ORIGIN = "https://www.ouviescrevi.pt"
+
+
+def public_site_origin(request: Request, allowed_origins: list[str]) -> str:
+    """Endereço do site para links enviados por email/partilha: só usa a Origin do pedido se estiver na lista.
+
+    A Origin vem do pedido e pode ser falsificada; com ela, um link de recuperação podia levar o token a outro site.
+    """
+    origin = (request.headers.get("origin") or "").rstrip("/")
+    normalized = {o.rstrip("/") for o in allowed_origins if o != "*"}
+    return origin if origin and origin in normalized else PUBLIC_SITE_ORIGIN
+
+
 class RateLimiter:
   def __init__(self) -> None:
       self._hits: dict[tuple[str, str], list[float]] = defaultdict(list)

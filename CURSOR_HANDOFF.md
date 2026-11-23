@@ -335,6 +335,28 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   (tinha crescido para 52 px). Menu do telemóvel: lista de línguas abre para cima; quadrados partem palavras longas (DE).
   Ardósia: também campos number/tel/date/time. Caderno: padding também em `main.oe-suggestions`. Preços (×5): tirada a
   segunda cópia antiga `ouviescrevi-pro.css?v=7`.
+- **Auditoria às funcionalidades (23/11) — servidor** (`backend/`, 182 testes):
+  - Segurança: links do email de recuperação, da partilha e da faturação usam `security.public_site_origin` (só aceita
+    a Origin se estiver em `ALLOWED_ORIGINS`; antes um pedido com Origin falsa levava o token a outro site).
+  - Transcrição: avisos em linguagem simples (sem «insufficient_quota»/«segmentos falharam»); falta de créditos manda
+    email ao dono (`_notify_owner_async`, máx. 1/hora). **Áudio difícil**: `audio_is_low_confidence` (média
+    `avg_logprob` < −0.9 ou `no_speech` > 0.6 nos segmentos que ficaram) acrescenta `LOW_CONFIDENCE_WARNING` e
+    `low_confidence`; o trabalho devolve também `detected_language`. O filtro deita fora segmentos com pouca fala E
+    pouca confiança mesmo que «pareçam frase». Tempos de um trecho contam do início do original (`start_offset`, novo
+    campo `time_offset_sec` para cortes feitos no browser). Sem conta: máx. 60 min por ficheiro (`ANON_MAX_DURATION_SEC`);
+    a quota conta os trabalhos a decorrer (`_count_active_transcribe_jobs`). `speech_*.wav` apagado no fim de cada
+    parte. ffmpeg com tempo limite proporcional à duração (`ffmpeg_timeout_for`). Tempos ≥100 min (`[105:00]`) aceites.
+  - Privacidade: `async_jobs` de transcrição apagados ao fim de 3 h (`ASYNC_JOBS_MAX_AGE_HOURS`, limpeza a cada 10 min;
+    antes só no arranque, 24 h).
+  - IA: `split_text_batches` — Corrigir, Traduzir e Locutores trabalham em partes (antes cortavam textos longos);
+    Locutores com nomes «Pessoa 1/2» e, se a IA perder linhas, fica o bloco original. `require_ai_text` (máx.
+    150 mil caracteres, mensagem clara). `ai_http_error`: visitante vê «serviço de IA temporariamente indisponível»,
+    o detalhe vai para o registo. Resumo com `SUMMARY_MAX_TOKENS` por estilo (600 cortava o detalhado/minuta).
+  - Partilha: `delete_key` (só o hash na BD, coluna nova `shared_transcripts.delete_key_hash`) e
+    `POST /api/share/transcript/{id}/delete`; a resposta traz `public_notice`. **Falta o botão no site** (`share-ui.js`
+    está a ser alterado pelo Cursor — guardar a `delete_key` e mostrar «Apagar link»).
+  - Sessões: `POST /api/auth/logout` (o «Sair» do `auth-ui.js?v=27` chama-o) e mudar a palavra-passe termina as
+    sessões antigas.
 
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).

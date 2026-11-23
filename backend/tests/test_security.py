@@ -119,3 +119,31 @@ def test_ssrf_too_many_redirects(monkeypatch):
     monkeypatch.setattr(security.requests, "get", lambda url, **kw: _FakeResp(302, location="/loop"))
     with pytest.raises(HTTPException):
         safe_http_get("http://public.example/")
+
+
+def test_public_site_origin_ignores_untrusted_origin():
+    """Link de recuperação/partilha: uma Origin falsa nunca entra no link (levaria o token a outro site)."""
+    from security import PUBLIC_SITE_ORIGIN, public_site_origin
+
+    allowed = ["https://www.ouviescrevi.pt", "http://localhost:5500"]
+    fake = SimpleNamespace(headers={"origin": "https://evil.example"})
+    assert public_site_origin(fake, allowed) == PUBLIC_SITE_ORIGIN
+    assert public_site_origin(SimpleNamespace(headers={}), allowed) == PUBLIC_SITE_ORIGIN
+    ok = SimpleNamespace(headers={"origin": "http://localhost:5500/"})
+    assert public_site_origin(ok, allowed) == "http://localhost:5500"
+    # «*» na lista não pode abrir a porta a qualquer site.
+    assert public_site_origin(fake, ["*"]) == PUBLIC_SITE_ORIGIN
+
+
+def test_forgot_password_email_link_uses_trusted_site(client, monkeypatch):
+    import admin_store
+    import email_notify
+
+    sent = {}
+    monkeypatch.setattr(admin_store, "create_password_reset_token", lambda email: "tok123")
+    monkeypatch.setattr(email_notify, "send_password_reset_email", lambda *a, **k: sent.setdefault("args", (a, k)), raising=False)
+    r = client.post("/api/auth/forgot-password", json={"email": "a@b.pt"}, headers={"Origin": "https://evil.example"})
+    assert r.status_code == 200
+    blob = repr(sent.get("args"))
+    assert "evil.example" not in blob
+    assert "https://www.ouviescrevi.pt/index.html?reset=tok123" in blob

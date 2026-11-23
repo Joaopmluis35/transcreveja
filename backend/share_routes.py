@@ -11,7 +11,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
 import admin_store
-from security import origin_is_allowed
+from security import origin_is_allowed, public_site_origin
 
 router = APIRouter()
 
@@ -57,10 +57,32 @@ def share_transcript(req: ShareTranscriptRequest, request: Request):
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
-    origin = (request.headers.get("origin") or "https://www.ouviescrevi.pt").rstrip("/")
+    origin = public_site_origin(request, ALLOWED_ORIGINS)
     # Prefer pretty /s/{id} (proxied to API HTML with OG tags via vercel.json)
     url = f"{origin}/s/{created['id']}"
-    return {"ok": True, "id": created["id"], "url": url, "expires_at": created["expires_at"]}
+    return {
+        "ok": True,
+        "id": created["id"],
+        "url": url,
+        "expires_at": created["expires_at"],
+        "delete_key": created["delete_key"],
+        "public_notice": "Qualquer pessoa com o link pode ler o texto, durante 30 dias ou até o apagares.",
+    }
+
+
+class DeleteShareRequest(BaseModel):
+    delete_key: str
+
+
+@router.post("/api/share/transcript/{share_id}/delete")
+def delete_share_transcript(share_id: str, req: DeleteShareRequest, request: Request):
+    """Apaga um link partilhado (precisa da chave devolvida quando foi criado)."""
+    if not origin_is_allowed(request, ALLOWED_ORIGINS):
+        raise HTTPException(status_code=403, detail="Origem não autorizada.")
+    enforce_rate_limit(request, "share_delete", 30, 3600)
+    if not admin_store.delete_shared_transcript(share_id, req.delete_key):
+        raise HTTPException(status_code=404, detail="Link não encontrado ou chave errada.")
+    return {"ok": True}
 
 
 @router.post("/api/share/quiz")
@@ -79,7 +101,7 @@ def share_quiz(req: ShareQuizRequest, request: Request):
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
-    origin = (request.headers.get("origin") or "https://www.ouviescrevi.pt").rstrip("/")
+    origin = public_site_origin(request, ALLOWED_ORIGINS)
     url = f"{origin}/jogo.html?id={created['id']}"
     return {"ok": True, "id": created["id"], "url": url, "expires_at": created["expires_at"]}
 
@@ -98,7 +120,7 @@ def _quiz_owner_or_401(request: Request) -> str:
 def my_shared_quizzes(request: Request):
     """Jogos partilhados pela conta com sessão iniciada (para os ver em qualquer dispositivo)."""
     owner = _quiz_owner_or_401(request)
-    origin = (request.headers.get("origin") or "https://www.ouviescrevi.pt").rstrip("/")
+    origin = public_site_origin(request, ALLOWED_ORIGINS)
     games = admin_store.list_owner_quizzes(owner)
     for g in games:
         g["url"] = f"{origin}/jogo.html?id={g['id']}"

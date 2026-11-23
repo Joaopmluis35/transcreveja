@@ -49,3 +49,27 @@ def test_fail_orphaned_processing_jobs():
     loaded = async_jobs.load_async_job(job_id)
     assert loaded["status"] == "failed"
     assert "reiniciou" in (loaded.get("error") or "").lower()
+
+
+def test_prune_only_old_transcribe_jobs():
+    """Privacidade: os textos das transcrições saem da base de dados; os trabalhos de vídeo ficam até ao prazo geral."""
+    from database import get_connection
+
+    async_jobs.upsert_async_job("prune-tr-old", "transcribe", {"status": "completed", "transcription": "segredo"})
+    async_jobs.upsert_async_job("prune-vid-old", "video-subs", {"status": "completed"})
+    conn = get_connection()
+    try:
+        # 5 h atrás: mais velho que o prazo das transcrições (3 h), mais novo que o geral (24 h).
+        from datetime import datetime, timedelta
+
+        five_h = (datetime.utcnow() - timedelta(hours=5)).isoformat(timespec="seconds") + "Z"
+        conn.execute(
+            "UPDATE async_jobs SET updated_at = ? WHERE job_id IN (?, ?)",
+            (five_h, "prune-tr-old", "prune-vid-old"),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+    async_jobs.prune_async_jobs(3, kind="transcribe")
+    assert async_jobs.load_async_job("prune-tr-old") is None
+    assert async_jobs.load_async_job("prune-vid-old") is not None

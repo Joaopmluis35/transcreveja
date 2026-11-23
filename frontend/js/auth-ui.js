@@ -332,6 +332,13 @@
     });
     document.getElementById("oeAuthLogout")?.addEventListener("click", function () {
       var s = t();
+      // Termina a sessão também no servidor (sem esperar: sair é imediato mesmo sem rede).
+      var tok = storageGet(SITE_SESSION_KEY);
+      if (tok) {
+        apiBase().then(function (base) {
+          return fetch(base + "/api/auth/logout", { method: "POST", headers: { "X-Site-Session": tok } });
+        }).catch(function () {});
+      }
       clearSession();
       refreshChrome();
       if (global.OuviescreviUI && global.OuviescreviUI.toast) {

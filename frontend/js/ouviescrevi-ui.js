@@ -188,7 +188,7 @@
     }
     return new Promise(function (resolve) {
       var s = document.createElement("script");
-      s.src = "/js/auth-ui.js?v=26";
+      s.src = "/js/auth-ui.js?v=27";
       s.dataset.oeAuth = "1";
       s.onload = function () {
         s.setAttribute("data-ready", "1");

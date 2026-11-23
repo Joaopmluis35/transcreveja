@@ -36,6 +36,7 @@ from security import (
     client_ip,
     origin_is_allowed,
     parse_csv_env,
+    public_site_origin,
     safe_http_get,
     validate_public_http_url,
 )
@@ -169,6 +170,15 @@ WHISPER_PROMPT_OVERRIDE = (os.getenv("WHISPER_PROMPT") or "").strip() or None
 # Margem da repetição em pt (site PT): negativa = a versão em pt tem de ser claramente MELHOR.
 # Com 0.1 (pt podia ser pior) músicas em inglês saíam com frases inventadas em português.
 PT_RETRY_LOGPROB_MARGIN = float(os.getenv("PT_RETRY_LOGPROB_MARGIN", "-0.15"))
+# Áudio difícil (ruído, gritos, música): o Whisper inventa texto com ar normal. Abaixo destes valores avisamos.
+LOW_CONFIDENCE_LOGPROB = float(os.getenv("LOW_CONFIDENCE_LOGPROB", "-0.9"))
+LOW_CONFIDENCE_NO_SPEECH = float(os.getenv("LOW_CONFIDENCE_NO_SPEECH", "0.6"))
+LOW_CONFIDENCE_WARNING = (
+    "Áudio difícil de perceber (ruído, música ou gritos): o texto pode ter erros. "
+    "Se a língua estiver errada, escolhe-a em «Idioma do áudio» e transcreve outra vez."
+)
+# Sem conta, cada ficheiro pode ter no máximo esta duração (evita ficheiros de horas a gastar a quota da OpenAI).
+ANON_MAX_DURATION_SEC = int(os.getenv("ANON_MAX_DURATION_SEC", "3600"))
 FFMPEG_TIMEOUT = int(os.getenv("FFMPEG_TIMEOUT", "60"))
 TOTAL_TRANSCRIBE_TIMEOUT = int(os.getenv("TOTAL_TRANSCRIBE_TIMEOUT", "900"))  # watchdog global
 MAX_FILE_SIZE_MB = int(os.getenv("MAX_FILE_SIZE_MB", "500"))
@@ -431,7 +441,7 @@ def _transcription_has_content(transcription: str, formatted: str) -> bool:
 
 
 _MUSIC_ONLY_LINE = re.compile(
-    r"^(?:\[\d{2}:\d{2}\]\s*)?(?:🎵\s*)?"
+    r"^(?:\[\d{2,}:\d{2}\]\s*)?(?:🎵\s*)?"
     r"(?:\[?\s*(?:música|music|♪+|♫+)"
     r"(?:\s+de\s+[\wáàâãéêíóôõúç]+){0,3}\s*\]?)"
     r"\s*[.!?]*$",
@@ -656,7 +666,7 @@ def _cyrillic_ratio(text: str) -> float:
 
 
 def _normalize_block(text: str) -> str:
-    text = re.sub(r"^\[\d{2}:\d{2}\]\s*", "", text.strip(), flags=re.MULTILINE)
+    text = re.sub(r"^\[\d{2,}:\d{2}\]\s*", "", text.strip(), flags=re.MULTILINE)
     return re.sub(r"\s+", " ", text).strip().lower()
 
 
@@ -815,6 +825,25 @@ def _mean_logprob(segments) -> float | None:
     return sum(vals) / len(vals) if vals else None
 
 
+def audio_is_low_confidence(segments) -> bool:
+    """True quando o Whisper teve pouca confiança no que ficou (média dos segmentos com texto)."""
+    lps, nss = [], []
+    for seg in segments or []:
+        if not (_seg_get(seg, "text", "") or "").strip():
+            continue
+        lp = _seg_get(seg, "avg_logprob")
+        ns = _seg_get(seg, "no_speech_prob")
+        if lp is not None:
+            lps.append(float(lp))
+        if ns is not None:
+            nss.append(float(ns))
+    if not lps and not nss:
+        return False
+    mean_lp = sum(lps) / len(lps) if lps else 0.0
+    mean_ns = sum(nss) / len(nss) if nss else 0.0
+    return mean_lp < LOW_CONFIDENCE_LOGPROB or mean_ns > LOW_CONFIDENCE_NO_SPEECH
+
+
 def _pt_retry_is_better(first_segs, retry_segs) -> bool:
     """Fala em português que o Whisper deteta como inglês sai traduzida; forçada a pt,
     a transcrição real tem mais confiança. Fala mesmo noutra língua forçada a pt
@@ -872,6 +901,10 @@ def filter_whisper_segments(segments, language: str | None = None):
             avg_logprob = float(_seg_get(s, "avg_logprob", 0) or 0)
             compression = float(_seg_get(s, "compression_ratio", 1) or 1)
             realish = _looks_like_real_speech(text, language)
+            # Pouca fala E pouca confiança ao mesmo tempo: é texto inventado (ruído/gritos), mesmo que pareça frase.
+            if no_speech > no_speech_max and avg_logprob < logprob_min:
+                dropped += 1
+                continue
             # Áudio baixo (início de reuniões) sobe no_speech_prob — não descartar fala PT clara
             if no_speech > no_speech_max and not realish:
                 dropped += 1
@@ -989,7 +1022,7 @@ def dedupe_consecutive_blocks(text: str) -> str:
 
 def collapse_word_loops_in_block(block: str) -> str:
     """Colapsa 'ok, ok, ok, …' / 'sim sim sim' dentro do mesmo bloco."""
-    m = re.match(r"^(\[\d{2}:\d{2}\]\s*)(.*)$", block, flags=re.DOTALL)
+    m = re.match(r"^(\[\d{2,}:\d{2}\]\s*)(.*)$", block, flags=re.DOTALL)
     prefix, body = (m.group(1), m.group(2)) if m else ("", block)
     # palavra curta repetida 4+ vezes com vírgulas/espaços
     body = re.sub(
@@ -1100,6 +1133,74 @@ _TIMESTAMP_PREFIX = re.compile(r"^\[\d{2,}:\d{2}\]\s*", re.MULTILINE)
 def plain_from_formatted(formatted: str) -> str:
     lines = (_TIMESTAMP_PREFIX.sub("", line).strip() for line in formatted.splitlines())
     return " ".join(line for line in lines if line)
+
+
+AI_MAX_INPUT_CHARS = int(os.getenv("AI_MAX_INPUT_CHARS", "150000"))  # ~3 h de fala
+AI_FRIENDLY_ERROR = "O serviço de IA está temporariamente indisponível. Tenta daqui a pouco."
+
+
+def split_text_batches(text: str, max_chars: int = 6000) -> list[str]:
+    """Parte um texto longo em blocos de até max_chars sem cortar parágrafos/linhas/frases a meio.
+
+    Juntar os blocos com "\n\n" devolve o texto (só os separadores entre blocos podem mudar).
+    """
+    text = text or ""
+    if len(text) <= max_chars:
+        return [text]
+    units: list[str] = []
+    for para in text.split("\n\n"):
+        if len(para) <= max_chars:
+            units.append(para)
+            continue
+        for line in para.split("\n"):
+            if len(line) <= max_chars:
+                units.append(line)
+                continue
+            for sent in re.split(r"(?<=[.!?…])\s+", line):
+                while len(sent) > max_chars:
+                    units.append(sent[:max_chars])
+                    sent = sent[max_chars:]
+                if sent:
+                    units.append(sent)
+    batches, current = [], ""
+    for unit in units:
+        if current and len(current) + len(unit) + 2 > max_chars:
+            batches.append(current)
+            current = unit
+        else:
+            current = f"{current}\n\n{unit}" if current else unit
+    if current:
+        batches.append(current)
+    return batches
+
+
+def require_ai_text(text: str) -> str:
+    """Valida o texto enviado às ferramentas de IA (vazio ou enorme → mensagem clara)."""
+    text = (text or "").strip()
+    if not text:
+        raise HTTPException(status_code=400, detail="Texto em falta.")
+    if len(text) > AI_MAX_INPUT_CHARS:
+        raise HTTPException(
+            status_code=413,
+            detail=(
+                f"O texto é demasiado longo ({len(text) // 1000} mil caracteres; o máximo é "
+                f"{AI_MAX_INPUT_CHARS // 1000} mil). Divide-o em partes."
+            ),
+        )
+    return text
+
+
+def ai_http_error(exc: Exception) -> HTTPException:
+    """Erro de IA: o detalhe técnico vai para o registo (e ao dono, se for falta de créditos), o visitante
+    vê uma frase simples."""
+    logger.error("Erro na IA: %s", str(exc)[:500])
+    low = str(exc).lower()
+    if "insufficient_quota" in low or "credit balance" in low or "billing" in low:
+        _notify_owner_async(
+            "Ouviescrevi: IA sem créditos",
+            f"Uma ferramenta de IA falhou por falta de créditos/faturação: {str(exc)[:300]}",
+        )
+    return HTTPException(status_code=500, detail=AI_FRIENDLY_ERROR)
 
 
 def translate_formatted_transcript(formatted: str, max_chars: int = 8000) -> str:
@@ -1516,6 +1617,7 @@ def _run_startup_cleanup() -> None:
 
         fail_orphaned_processing_jobs()
         prune_async_jobs(24)
+        prune_async_jobs(ASYNC_JOBS_MAX_AGE_HOURS, kind="transcribe")
     except Exception:
         logger.exception("Startup async_jobs cleanup falhou")
 
@@ -1699,12 +1801,28 @@ def _transcribe_job_get(job_id: str) -> dict | None:
     return out
 
 
+_async_jobs_pruned_at = 0.0
+# Privacidade: o resultado da transcrição fica na base de dados só para sobreviver a um reinício enquanto a página
+# espera. Antes só era apagado no arranque do servidor (podia ficar semanas); agora no máximo umas 3 horas.
+ASYNC_JOBS_MAX_AGE_HOURS = int(os.getenv("ASYNC_JOBS_MAX_AGE_HOURS", "3"))
+
+
 def _prune_transcribe_jobs() -> None:
+    global _async_jobs_pruned_at
     cutoff = time.monotonic() - 3600
     with _transcribe_jobs_lock:
         stale = [jid for jid, j in _transcribe_jobs.items() if j.get("updated_at", 0) < cutoff]
         for jid in stale:
             _transcribe_jobs.pop(jid, None)
+    now = time.monotonic()
+    if now - _async_jobs_pruned_at > 600:
+        _async_jobs_pruned_at = now
+        try:
+            from async_jobs import prune_async_jobs
+
+            prune_async_jobs(ASYNC_JOBS_MAX_AGE_HOURS, kind="transcribe")
+        except Exception:
+            logger.exception("Limpeza periódica de async_jobs falhou")
 
 
 def _quick_content_fingerprint(path: str, size_bytes: int, filename: str) -> str:
@@ -1840,7 +1958,16 @@ def _finish_transcribe_cancelled(job_id: str, rid: str) -> None:
     )
 
 
-def split_audio(input_path, output_dir, segment_duration=SEGMENT_DURATION):
+def ffmpeg_timeout_for(duration_sec) -> int:
+    """Tempo limite do ffmpeg proporcional à duração (60 s fixos falhavam em ficheiros longos no Render grátis)."""
+    try:
+        dur = float(duration_sec or 0)
+    except (TypeError, ValueError):
+        dur = 0.0
+    return int(min(900, max(FFMPEG_TIMEOUT, dur * 0.15 + 30)))
+
+
+def split_audio(input_path, output_dir, segment_duration=SEGMENT_DURATION, timeout: int | None = None):
     os.makedirs(output_dir, exist_ok=True)
     cmd = [
         FFMPEG,
@@ -1854,7 +1981,7 @@ def split_audio(input_path, output_dir, segment_duration=SEGMENT_DURATION):
         os.path.join(output_dir, "segment_%03d.wav"),
         "-y",
     ]
-    safe_run_ffmpeg(cmd, desc="segmentacao", timeout=max(30, min(FFMPEG_TIMEOUT, segment_duration + 30)))
+    safe_run_ffmpeg(cmd, desc="segmentacao", timeout=timeout or max(30, min(FFMPEG_TIMEOUT, segment_duration + 30)))
     segments = sorted(os.path.join(output_dir, f) for f in os.listdir(output_dir) if f.endswith(".wav"))
     return segments
 
@@ -2058,9 +2185,7 @@ def billing_checkout(request: Request, body: BillingCheckoutRequest):
         raise HTTPException(status_code=403, detail="Inicia sessão para subscrever o plano Pro.")
     from billing import create_checkout_session
 
-    origin = request.headers.get("origin") or PUBLIC_API_BASE.replace("api.", "www.").rstrip("/")
-    if "api." in origin:
-        origin = origin.replace("api.", "www.", 1)
+    origin = public_site_origin(request, ALLOWED_ORIGINS)
     # Prefer locale-aware success URL from client; fallback to PT.
     success = body.success_url or f"{origin}/precos.html?ok=1"
     cancel = body.cancel_url or f"{origin}/precos.html?cancel=1"
@@ -2079,9 +2204,7 @@ def billing_portal(request: Request):
         raise HTTPException(status_code=403, detail="Inicia sessão para gerir a subscrição.")
     from billing import create_portal_session
 
-    origin = request.headers.get("origin") or PUBLIC_API_BASE.replace("api.", "www.").rstrip("/")
-    if "api." in origin:
-        origin = origin.replace("api.", "www.", 1)
+    origin = public_site_origin(request, ALLOWED_ORIGINS)
     return_url = f"{origin}/precos.html"
     try:
         session = create_portal_session(actor["email"], return_url=return_url)
@@ -2207,7 +2330,7 @@ def site_forgot_password(req: ForgotPasswordRequest, request: Request):
     email = (req.email or "").strip().lower()
     token = admin_store.create_password_reset_token(email) if email else None
     if token:
-        origin = (request.headers.get("origin") or "https://www.ouviescrevi.pt").rstrip("/")
+        origin = public_site_origin(request, ALLOWED_ORIGINS)
         reset_url = f"{origin}/index.html?reset={token}#reset"
 
         def _send() -> None:
@@ -2283,6 +2406,15 @@ def site_login(req: SiteLoginRequest, request: Request):
         "role": SITE_USER_ROLE,
         "isStaff": False,
     }
+
+
+@app.post("/api/auth/logout")
+def site_logout(request: Request):
+    """«Sair» termina a sessão também no servidor (antes só se apagava no browser e valia 30 dias)."""
+    site_token = (request.headers.get("x-site-session") or "").strip()
+    if site_token and not secret_equals(site_token, ADMIN_TOKEN):
+        admin_store.delete_session(site_token)
+    return {"ok": True}
 
 
 @app.get("/api/auth/me")
@@ -2535,6 +2667,7 @@ async def transcribe(
     ui_locale: str | None = Form(None),
     page_path: str | None = Form(None),
     client_file_fingerprint: str | None = Form(None),
+    time_offset_sec: str | None = Form(None),
 ):
     """
     Upload → job_id imediato → processamento em segundo plano.
@@ -2600,6 +2733,20 @@ async def transcribe(
     notify_email = should_notify_activity(request)
     actor_label = activity_actor_label(request)
     duration_sec = probe_media_duration_sec(tmp_path)
+    if actor.get("type") != "user" and duration_sec and duration_sec > ANON_MAX_DURATION_SEC:
+        try:
+            os.remove(tmp_path)
+        except OSError:
+            pass
+        raise HTTPException(
+            status_code=413,
+            detail=(
+                f"Sem conta, cada ficheiro pode ter até {ANON_MAX_DURATION_SEC // 60} minutos. "
+                "Escolhe só um trecho ou cria uma conta grátis."
+            ),
+        )
+    # Os tempos [mm:ss] contam a partir do início do ficheiro original, mesmo quando só se transcreve um trecho.
+    start_offset = _start_offset_seconds(trim_start, time_offset_sec)
     estimate_sec = _estimate_transcribe_seconds(duration_sec, written)
     locale_norm = _normalize_ui_locale(ui_locale)
     path_norm = (page_path or "").strip()[:500] or None
@@ -2724,6 +2871,18 @@ async def transcribe(
             "repeat_hint": recent_same,
         }
 
+    # A quota só conta no fim; com vários envios ao mesmo tempo passava-se o limite. Conta os que estão a decorrer.
+    quota = admin_store.transcribe_quota_status(request, actor)
+    if not quota.get("unlimited") and _count_active_transcribe_jobs(usage_key) >= quota.get("remaining", 1):
+        try:
+            os.remove(tmp_path)
+        except OSError:
+            pass
+        raise HTTPException(
+            status_code=429,
+            detail="Já tens uma transcrição a decorrer que usa o resto do limite de hoje. Espera que termine.",
+        )
+
     job_id = str(uuid.uuid4())
     _transcribe_job_set(
         job_id,
@@ -2757,6 +2916,7 @@ async def transcribe(
             actor_label,
             locale_norm,
             path_norm,
+            start_offset,
         ),
         daemon=True,
     ).start()
@@ -2813,6 +2973,47 @@ def cancel_transcribe_job(job_id: str, request: Request):
     }
 
 
+def _start_offset_seconds(trim_start, time_offset_sec) -> int:
+    """Início do trecho em segundos (corte no servidor ou no browser), para os tempos baterem com o original."""
+    if trim_start:
+        return max(0, int(trim_start))
+    try:
+        return max(0, int(float(time_offset_sec or 0)))
+    except (TypeError, ValueError):
+        return 0
+
+
+def _count_active_transcribe_jobs(usage_key: str | None) -> int:
+    if not usage_key:
+        return 0
+    with _transcribe_jobs_lock:
+        return sum(
+            1 for j in _transcribe_jobs.values()
+            if j.get("status") == "processing" and j.get("usage_key") == usage_key
+        )
+
+
+_owner_alert_last: dict[str, float] = {}
+
+
+def _notify_owner_async(subject: str, body: str) -> None:
+    """Email ao dono (no máximo 1 por hora por assunto), em vez de mostrar o problema técnico ao visitante."""
+    now = time.monotonic()
+    if now - _owner_alert_last.get(subject, -1e9) < 3600:
+        return
+    _owner_alert_last[subject] = now
+
+    def _send() -> None:
+        try:
+            from email_notify import send_notification_email
+
+            send_notification_email(body, subject, kind="alert")
+        except Exception as exc:
+            logger.warning("Aviso ao dono falhou: %s", exc)
+
+    _run_in_background(_send)
+
+
 def _execute_transcribe_job(
     job_id: str,
     rid: str,
@@ -2826,6 +3027,7 @@ def _execute_transcribe_job(
     actor_label: str,
     ui_locale: str | None = None,
     page_path: str | None = None,
+    start_offset: int = 0,
 ) -> None:
     t_start = time.monotonic()
     audio_wav_path = os.path.join(tempfile.gettempdir(), f"audio_{uuid.uuid4()}.wav")
@@ -2842,7 +3044,8 @@ def _execute_transcribe_job(
                 FFMPEG, "-nostdin", "-hide_banner", "-loglevel", "error", "-y", "-i", tmp_path,
                 "-vn", "-sn", "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", audio_wav_path,
             ]
-            safe_run_ffmpeg(conv, desc="conversao-wav", timeout=FFMPEG_TIMEOUT)
+            job_duration = (_transcribe_job_get(job_id) or {}).get("duration_sec")
+            safe_run_ffmpeg(conv, desc="conversao-wav", timeout=ffmpeg_timeout_for(job_duration))
             converted_ok = True
         except Exception:
             converted_ok = False
@@ -2858,7 +3061,10 @@ def _execute_transcribe_job(
         try:
             _transcribe_job_set(job_id, message="A preparar segmentos de áudio…", progress=20)
             source_for_split = audio_wav_path if converted_ok else tmp_path
-            parts = split_audio(source_for_split, split_dir)
+            parts = split_audio(
+                source_for_split, split_dir,
+                timeout=ffmpeg_timeout_for((_transcribe_job_get(job_id) or {}).get("duration_sec")),
+            )
             used_source = source_for_split
             logger.info("[%s] Segmentos criados: %d", rid, len(parts))
         except Exception as e:
@@ -2875,7 +3081,8 @@ def _execute_transcribe_job(
 
         full_text_chunks, formatted_chunks = [], []
         chunk_languages: list[str] = []
-        offset_seconds = 0
+        offset_seconds = int(start_offset or 0)
+        kept_quality: list = []
         failed_segments = 0
         processed_segments = 0
         quota_exceeded = False
@@ -2980,6 +3187,7 @@ def _execute_transcribe_job(
                 )
                 full_text_chunks.append(text_piece)
                 formatted_chunks.append(formatted_piece)
+                kept_quality.extend(kept_segs or [])
                 if text_piece.strip():
                     chunk_languages.append(chunk_lang)
                 logger.info(
@@ -2994,6 +3202,11 @@ def _execute_transcribe_job(
                 if "insufficient_quota" in err_msg or "exceeded your current quota" in err_msg:
                     quota_exceeded = True
             finally:
+                if part_audio and part_audio != part:
+                    try:
+                        os.remove(part_audio)
+                    except OSError:
+                        pass
                 processed_segments += 1
                 if total_parts > 1:
                     offset_seconds += SEGMENT_DURATION
@@ -3064,12 +3277,27 @@ def _execute_transcribe_job(
 
         warning = None
         if quota_exceeded:
-            warning = "Conta OpenAI sem créditos (insufficient_quota). Adiciona billing em platform.openai.com."
+            logger.error("[%s] OpenAI sem créditos (insufficient_quota) — carregar em platform.openai.com.", rid)
+            _notify_owner_async(
+                "Ouviescrevi: OpenAI sem créditos",
+                "Uma transcrição falhou por falta de créditos na OpenAI (platform.openai.com).",
+            )
+            warning = "Parte do áudio não foi transcrita: o serviço está temporariamente indisponível. Tenta daqui a pouco."
         elif failed_segments > 0:
-            warning = f"{failed_segments} de {processed_segments} segmentos falharam (aplicado retry/fallback)."
+            warning = (
+                f"Uma parte do áudio não foi transcrita ({failed_segments} de {processed_segments} partes). "
+                "O texto pode ter falhas — tenta outra vez esse trecho."
+            )
         if watchdog_hit:
-            extra = "Tempo total excedido (parcial devolvido)."
+            extra = (
+                "O ficheiro era longo demais para o tempo disponível: devolvemos só a primeira parte. "
+                "Escolhe um trecho mais curto."
+            )
             warning = f"{warning} {extra}" if warning else extra
+        low_confidence = audio_is_low_confidence(kept_quality)
+        if low_confidence and _transcription_has_content(transcription_out, formatted_out):
+            warning = f"{warning} {LOW_CONFIDENCE_WARNING}" if warning else LOW_CONFIDENCE_WARNING
+        detected_language = (chunk_languages[0] if chunk_languages else whisper_lang) or None
         if is_music_only_transcript(formatted_out) or is_music_only_transcript(transcription_out):
             warning = f"{warning} {MUSIC_ONLY_WARNING}".strip() if warning else MUSIC_ONLY_WARNING
         if translation_warning:
@@ -3112,6 +3340,8 @@ def _execute_transcribe_job(
             original_formatted=original_formatted,
             original_language=original_language,
             warning=warning,
+            low_confidence=low_confidence,
+            detected_language=detected_language,
             duration_sec=duration_sec,
             processing_ms=int((time.monotonic() - t_start) * 1000),
         )
@@ -3521,12 +3751,10 @@ async def diarize_speakers(req: DiarizeRequest, request: Request):
     """Atribui locutores ao texto com timestamps via GPT (com fallback heurístico)."""
     require_api_token(request, req.token or None)
     enforce_rate_limit(request, "ai", RATE_LIMIT_AI, RATE_LIMIT_AI_WINDOW)
-    text = (req.text or "").strip()
-    if not text:
-        raise HTTPException(status_code=400, detail="Texto em falta.")
+    text = require_ai_text(req.text)
     names = [n.strip() for n in (req.names or []) if n and str(n).strip()]
     if len(names) < 2:
-        names = ["João", "Maria"] if (req.language or "pt").startswith("pt") else ["Speaker 1", "Speaker 2"]
+        names = ["Pessoa 1", "Pessoa 2"] if (req.language or "pt").startswith("pt") else ["Speaker 1", "Speaker 2"]
     names = names[:6]
 
     def _heuristic() -> str:
@@ -3536,7 +3764,7 @@ async def diarize_speakers(req: DiarizeRequest, request: Request):
             line = raw.strip()
             if not line:
                 continue
-            m = re.match(r"^\[(\d{2}:\d{2})\]\s*(.*)$", line)
+            m = re.match(r"^\[(\d{2,}:\d{2})\]\s*(.*)$", line)
             if m:
                 name = names[idx % len(names)]
                 idx += 1
@@ -3569,21 +3797,31 @@ async def diarize_speakers(req: DiarizeRequest, request: Request):
             "Não inventes timestamps. Devolve só a transcrição etiquetada."
         )
     try:
-        resp = ai_chat.create(
-            model=SUM_MODEL,
-            messages=[
-                {"role": "system", "content": sys},
-                {"role": "user", "content": text[:12000]},
-            ],
-            temperature=0.2,
-            max_tokens=min(4000, max(400, len(text) // 2 + 200)),
-        )
-        out = (resp.choices[0].message.content or "").strip()
-        if out and "[" in out:
-            return {"text": out, "method": "llm", "names": names}
+        labeled = []
+        for batch in split_text_batches(text, 9000):
+            resp = ai_chat.create(
+                model=SUM_MODEL,
+                messages=[
+                    {"role": "system", "content": sys},
+                    {"role": "user", "content": batch},
+                ],
+                temperature=0.2,
+                max_tokens=min(6000, max(400, int(len(batch) * 0.6) + 200)),
+            )
+            out = (resp.choices[0].message.content or "").strip()
+            # Se a IA perdeu linhas, fica o bloco original (nada se perde)
+            if not out or len(_TIMESTAMP_PREFIX.findall(out)) < len(_TIMESTAMP_PREFIX.findall(batch)) * 0.8:
+                out = batch
+            labeled.append(out)
+        joined = "\n\n".join(labeled)
+        if joined and "[" in joined:
+            return {"text": joined, "method": "llm", "names": names}
     except Exception as exc:
         logger.warning("Diarização LLM falhou: %s", exc)
     return {"text": _heuristic(), "method": "heuristic", "names": names}
+
+
+SUMMARY_MAX_TOKENS = {"normal": 900, "informal": 600, "pontos": 700, "simples": 900, "minuta": 1600, "email": 1200, "detalhado": 2200}
 
 
 class SummarizeRequest(BaseModel):
@@ -3636,6 +3874,7 @@ SUMMARY_STYLES = {
 async def summarize(req: SummarizeRequest, request: Request):
     require_token(req.token)
     enforce_rate_limit(request, "ai", RATE_LIMIT_AI, RATE_LIMIT_AI_WINDOW)
+    req.text = require_ai_text(req.text)
     style = SUMMARY_STYLES.get(req.mode, SUMMARY_STYLES["normal"])
     sys = (
         "És um assistente que resume textos e transcrições. "
@@ -3648,12 +3887,13 @@ async def summarize(req: SummarizeRequest, request: Request):
             model=SUM_MODEL,
             messages=[{"role": "system", "content": sys}, {"role": "user", "content": prompt}],
             temperature=0.5,
-            max_tokens=600,
+            # 600 cortava o «detalhado», a minuta e o email de textos longos
+            max_tokens=SUMMARY_MAX_TOKENS.get(req.mode, 900),
         )
         maybe_notify_activity(request, "Resumo com IA gerado", "Resumo criado no Ouviescrevi")
         return {"summary": resp.choices[0].message.content.strip()}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise ai_http_error(e) from e
 
 
 class TranscriptChatMessage(BaseModel):
@@ -3727,7 +3967,7 @@ async def transcript_chat(req: TranscriptChatRequest, request: Request):
         maybe_notify_activity(request, "Chat sobre transcrição", "Pergunta à IA no Ouviescrevi")
         return {"answer": answer}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise ai_http_error(e) from e
 
 
 @app.post("/translate")
@@ -3741,16 +3981,30 @@ async def translate_text(request: Request):
     idiomas = {"inglês": "English", "espanhol": "Spanish", "francês": "French", "alemão": "German", "italiano": "Italian", "português": "European Portuguese (Portugal, not Brazilian)"}
     if language not in idiomas:
         raise HTTPException(status_code=400, detail=f"Idioma não suportado: {language}")
+    text = require_ai_text(text)
     try:
-        resp = ai_chat.create(
-            model=SUM_MODEL,
-            messages=[{"role": "system", "content": f"Traduz o texto para {idiomas[language]}."}, {"role": "user", "content": text}],
-            temperature=0.3,
-        )
+        parts = []
+        for batch in split_text_batches(text, 8000):
+            resp = ai_chat.create(
+                model=SUM_MODEL,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            f"Traduz o texto para {idiomas[language]}. Mantém as marcas de tempo [mm:ss] e as "
+                            "quebras de linha. Devolve só a tradução."
+                        ),
+                    },
+                    {"role": "user", "content": batch},
+                ],
+                temperature=0.3,
+                max_tokens=6000,
+            )
+            parts.append((resp.choices[0].message.content or "").strip())
         maybe_notify_activity(request, "Tradução com IA feita", "Tradução realizada no Ouviescrevi")
-        return {"translation": resp.choices[0].message.content.strip()}
+        return {"translation": "\n\n".join(parts)}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise ai_http_error(e) from e
 
 class ClassifyRequest(BaseModel):
     text: str
@@ -3762,13 +4016,13 @@ async def classify_content(req: ClassifyRequest, request: Request):
     enforce_rate_limit(request, "ai", RATE_LIMIT_AI, RATE_LIMIT_AI_WINDOW)
     prompt = ("Classifica o texto como uma das opções:\n"
               "- Entrevista\n- Aula\n- Podcast\n- Reunião\n- Apresentação\n- Testemunho\n- Conversa informal\n\n"
-              f"Texto:\n{req.text}\n\nResponde só com uma etiqueta.")
+              f"Texto:\n{require_ai_text(req.text)[:12000]}\n\nResponde só com uma etiqueta.")
     try:
         resp = ai_chat.create(model=CLS_MODEL, messages=[{"role": "user", "content": prompt}], temperature=0.3, max_tokens=20)
         maybe_notify_activity(request, "Classificação com IA feita", "Classificação feita no Ouviescrevi")
         return {"type": resp.choices[0].message.content.strip()}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise ai_http_error(e) from e
 
 @app.post("/correct")
 async def correct_text(req: Request):
@@ -3779,8 +4033,7 @@ async def correct_text(req: Request):
     lang = data.get("lang", "pt")
     require_token(token)
     enforce_rate_limit(req, "ai", RATE_LIMIT_AI, RATE_LIMIT_AI_WINDOW)
-    if not text or not text.strip():
-        raise HTTPException(status_code=400, detail="Texto em falta.")
+    text = require_ai_text(text)
     prompt_sets = {
         "pt": {
             "normal": "Corrige ortografia e gramática em português europeu, mantendo o sentido e o tom. Devolve apenas o texto corrigido, sem explicações.",
@@ -3815,19 +4068,22 @@ async def correct_text(req: Request):
     }
     prompts = prompt_sets.get(lang, prompt_sets["pt"])
     system = prompts.get(mode, prompts["normal"])
-    text_len = len(text)
-    max_out = min(4096, max(96, int(text_len * 1.15) + 32))
-    if mode == "spelling":
-        max_out = min(max_out, max(96, int(text_len * 1.08) + 24))
     try:
-        resp = ai_chat.create(
-            model=COR_MODEL,
-            messages=[{"role": "system", "content": system},
-                      {"role": "user", "content": text}],
-            temperature=0.2,
-            max_tokens=max_out,
-        )
-        corrected = resp.choices[0].message.content.strip()
+        corrected_parts = []
+        for batch in split_text_batches(text, 6000):
+            text_len = len(batch)
+            max_out = min(4096, max(96, int(text_len * 1.15) + 32))
+            if mode == "spelling":
+                max_out = min(max_out, max(96, int(text_len * 1.08) + 24))
+            resp = ai_chat.create(
+                model=COR_MODEL,
+                messages=[{"role": "system", "content": system},
+                          {"role": "user", "content": batch}],
+                temperature=0.2,
+                max_tokens=max_out,
+            )
+            corrected_parts.append((resp.choices[0].message.content or "").strip())
+        corrected = "\n\n".join(corrected_parts)
         maybe_notify_activity(req, "Correção com IA feita", "Texto corrigido no Ouviescrevi")
         history_id = None
         actor = resolve_site_actor(req)
@@ -3840,7 +4096,7 @@ async def correct_text(req: Request):
             )
         return {"corrected": corrected, "history_id": history_id}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise ai_http_error(e) from e
 
 class EmailRequest(BaseModel):
     text: str
@@ -3866,7 +4122,7 @@ async def generate_email(req: EmailRequest, request: Request):
         maybe_notify_activity(request, "Email com IA gerado", "Email gerado no Ouviescrevi")
         return {"email": resp.choices[0].message.content.strip()}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise ai_http_error(e) from e
 
 @app.get("/api/status")
 def get_status():
@@ -3961,7 +4217,7 @@ async def generate_questions(req: QuestionRequest, request: Request):
         maybe_notify_activity(request, "Perguntas de estudo geradas", "Perguntas geradas no Ouviescrevi")
         return {"questions": resp.choices[0].message.content.strip()}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise ai_http_error(e) from e
 
 _AULA_PRONTA_MAX_CHARS = 14_000
 
@@ -4057,10 +4313,10 @@ Texto:
         raise HTTPException(status_code=500, detail="Resposta inválida do modelo. Tenta novamente.") from e
     except Exception as e:
         logger.exception("Erro em /generate-aula-pronta")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise ai_http_error(e) from e
 
 _CHAPTERS_MAX_CHARS = 16_000
-_TS_BLOCK_RE = re.compile(r"^\[(\d{2}):(\d{2})\]\s*(.*)$", re.DOTALL)
+_TS_BLOCK_RE = re.compile(r"^\[(\d{2,}):(\d{2})\]\s*(.*)$", re.DOTALL)
 
 class ChaptersRequest(BaseModel):
     text: str
@@ -4239,7 +4495,7 @@ Texto completo:
         raise HTTPException(status_code=500, detail="Resposta inválida do modelo. Tenta novamente.") from e
     except Exception as e:
         logger.exception("Erro em /generate-chapters")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise ai_http_error(e) from e
 
 _FLASHCARDS_MAX_CHARS = 14_000
 _YOUTUBE_DESC_MAX_CHARS = 16_000
@@ -4348,7 +4604,7 @@ Texto:
         raise HTTPException(status_code=500, detail="Resposta inválida do modelo. Tenta novamente.") from e
     except Exception as e:
         logger.exception("Erro em /generate-flashcards")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise ai_http_error(e) from e
 
 
 @app.post("/generate-youtube-description")
@@ -4452,7 +4708,7 @@ Conteúdo:
         raise HTTPException(status_code=500, detail="Resposta inválida do modelo. Tenta novamente.") from e
     except Exception as e:
         logger.exception("Erro em /generate-youtube-description")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise ai_http_error(e) from e
 
 def extract_url_article_text(html_bytes: bytes) -> str:
     soup = BeautifulSoup(html_bytes, "html.parser")
@@ -4671,7 +4927,7 @@ async def notify_whatsapp(req: WhatsAppNotify, request: Request):
         return {"ok": True}
     except Exception as e:
         logger.exception("Erro ao notificar WhatsApp share")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise ai_http_error(e) from e
 
 # ── Vídeo (router) existente ─────────────────────────────────────────────────
 router = APIRouter()
@@ -4712,7 +4968,7 @@ async def generate_video(req: VideoRequest, request: Request):
         raise
     except Exception as e:
         logger.exception("Erro ao gerar vídeo")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise ai_http_error(e) from e
 
 app.include_router(router)
 

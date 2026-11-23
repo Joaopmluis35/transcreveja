@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import csv
 import hashlib
+import hmac
 import io
 import json
 import os
@@ -150,6 +151,28 @@ def resolve_session(token: str | None) -> dict[str, str] | None:
             conn.commit()
             return None
         return {"username": row["username"], "role": row["role"]}
+    finally:
+        conn.close()
+
+
+def delete_session(token: str | None) -> None:
+    """Termina uma sessão (botão «Sair»): o token deixa de servir, mesmo que alguém o tenha copiado."""
+    if not token:
+        return
+    conn = get_connection()
+    try:
+        conn.execute("DELETE FROM admin_sessions WHERE token = ?", (token,))
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def delete_user_sessions(username: str, role: str = "user") -> None:
+    """Termina todas as sessões de uma conta do site (ex.: depois de mudar a palavra-passe)."""
+    conn = get_connection()
+    try:
+        conn.execute("DELETE FROM admin_sessions WHERE username = ? AND role = ?", (username, role))
+        conn.commit()
     finally:
         conn.close()
 
@@ -303,6 +326,8 @@ def reset_password_with_token(token: str, new_password: str) -> bool:
             "UPDATE password_reset_tokens SET used_at = ? WHERE token = ?",
             (now, token),
         )
+        # Nova palavra-passe: as sessões abertas noutros aparelhos deixam de valer.
+        conn.execute("DELETE FROM admin_sessions WHERE username = ? AND role = 'user'", (email,))
         conn.commit()
         return True
     finally:
@@ -322,14 +347,15 @@ def create_shared_transcript(
     if len(body) > 100_000:
         body = body[:100_000]
     share_id = secrets.token_urlsafe(10)
+    delete_key = secrets.token_urlsafe(18)
     now = datetime.utcnow()
     expires = (now + timedelta(days=max(1, min(days_valid, 90)))).isoformat(timespec="seconds") + "Z"
     conn = get_connection()
     try:
         conn.execute(
             """
-            INSERT INTO shared_transcripts (id, title, text, locale, created_at, expires_at, view_count)
-            VALUES (?, ?, ?, ?, ?, ?, 0)
+            INSERT INTO shared_transcripts (id, title, text, locale, created_at, expires_at, view_count, delete_key_hash)
+            VALUES (?, ?, ?, ?, ?, ?, 0, ?)
             """,
             (
                 share_id,
@@ -338,12 +364,32 @@ def create_shared_transcript(
                 (locale or "pt")[:8],
                 now.isoformat(timespec="seconds") + "Z",
                 expires,
+                hashlib.sha256(delete_key.encode("utf-8")).hexdigest(),
             ),
         )
         conn.commit()
     finally:
         conn.close()
-    return {"id": share_id, "expires_at": expires}
+    return {"id": share_id, "expires_at": expires, "delete_key": delete_key}
+
+
+def delete_shared_transcript(share_id: str, delete_key: str) -> bool:
+    """Apaga o link partilhado se a chave bater certo (só quem partilhou a recebeu)."""
+    if not share_id or not delete_key:
+        return False
+    key_hash = hashlib.sha256(delete_key.encode("utf-8")).hexdigest()
+    conn = get_connection()
+    try:
+        row = conn.execute(
+            "SELECT delete_key_hash FROM shared_transcripts WHERE id = ?", (share_id,)
+        ).fetchone()
+        if not row or not row["delete_key_hash"] or not hmac.compare_digest(row["delete_key_hash"], key_hash):
+            return False
+        conn.execute("DELETE FROM shared_transcripts WHERE id = ?", (share_id,))
+        conn.commit()
+        return True
+    finally:
+        conn.close()
 
 
 def get_shared_transcript(share_id: str) -> dict | None:
