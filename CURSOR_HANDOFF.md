@@ -384,7 +384,9 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   `analytics.build_marketing_report` + `classify_source`): pessoas (sem bots/equipa) por origem (TikTok, Google,
   ChatGPT, Direto…), campanhas UTM, páginas de entrada, dia a dia com transcrições; links com UTM para as redes
   (bio do TikTok, etc.) e botão «Copiar relatório para o Claude». `backoffice.js?v=33`. Testes em
-  `tests/test_marketing_report.py`.
+  `tests/test_marketing_report.py`. Segurança: páginas, UTM e domínios vêm do visitante — o relatório passa-os por
+  `analytics.safe_label` (só `A-Za-z0-9_./-`) e o texto copiado põe o JSON entre `<dados>…</dados>`, marcado como
+  dados e não instruções (`backoffice-marketing.js?v=2`).
 
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).

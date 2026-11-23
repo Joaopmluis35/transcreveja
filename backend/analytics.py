@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import ipaddress
+import re
 from datetime import date, datetime, timedelta
 from typing import Any
 
@@ -807,6 +808,14 @@ _SOURCE_RULES: tuple[tuple[str, str], ...] = (
     ("reddit", "Reddit"),
 )
 SOURCE_INTERNAL = "Interno"
+_UNSAFE_CHARS = re.compile(r"[^A-Za-z0-9_./-]+")
+
+
+def safe_label(value: str | None, limit: int = 60) -> str:
+    """Texto vindo do visitante (UTM, página, domínio): só letras, números e -_./ — vai para relatórios e para o Claude."""
+    return _UNSAFE_CHARS.sub("", str(value or ""))[:limit]
+
+
 SOURCE_DIRECT = "Direto / apps"
 
 
@@ -817,7 +826,7 @@ def classify_source(referrer: str | None, utm_source: str | None = None) -> str:
         for marker, label in _SOURCE_RULES:
             if marker.rstrip(".") in utm:
                 return label
-        return utm[:40]
+        return safe_label(utm, 40) or SOURCE_DIRECT
     ref = (referrer or "").strip().lower()
     if not ref:
         return SOURCE_DIRECT
@@ -827,7 +836,7 @@ def classify_source(referrer: str | None, utm_source: str | None = None) -> str:
     for marker, label in _SOURCE_RULES:
         if marker in host:
             return label
-    return host.removeprefix("www.")[:60] or SOURCE_DIRECT
+    return safe_label(host.removeprefix("www."), 60) or SOURCE_DIRECT
 
 
 def build_marketing_report(owner_uids: set[str] | None = None, days: int = 14) -> dict[str, Any]:
@@ -890,7 +899,7 @@ def build_marketing_report(owner_uids: set[str] | None = None, days: int = 14) -
         if d not in by_day:
             continue
         vid = uid or r.get("visitor_hash") or ""
-        path = str(r.get("path") or "/")
+        path = safe_label(r.get("path") or "/", 80) or "/"
         day = by_day[d]
         day["pageviews"] += 1
         pages[path] = pages.get(path, 0) + 1
@@ -911,7 +920,7 @@ def build_marketing_report(owner_uids: set[str] | None = None, days: int = 14) -
             s["_v"].add(vid)
         landing[path] = landing.get(path, 0) + 1
         if r.get("utm_source") or r.get("utm_medium") or r.get("utm_campaign"):
-            key = (r.get("utm_source") or "—", r.get("utm_medium") or "—", r.get("utm_campaign") or "—")
+            key = tuple(safe_label(r.get(k), 40) or "—" for k in ("utm_source", "utm_medium", "utm_campaign"))
             utm[key] = utm.get(key, 0) + 1
 
     for d in day_list:
