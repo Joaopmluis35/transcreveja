@@ -298,6 +298,10 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   sonora (máscara SVG `--onda`); Caderno = folha pautada com margem vermelha, fita-cola e marcador amarelo; Ardósia =
   contorno a giz no quadro e risco de giz amarelo. Na Ardósia o botão Cancelar redefine `--oe-btn-bg/-border/-text`
   (o `theme-dark.css` pinta os botões com essas variáveis e `!important`).
+- Animações de entrada no Caderno (`conversa-demo.css?v=29`, só com `prefers-reduced-motion: no-preference`): título
+  escreve-se a caneta (`oe-escreve`), «Nós escrevemos.» leva traço de marcador amarelo (`oe-marca`), a nota amarela cai
+  e cola-se (`oe-cola`, sem `to` para manter a rotação de cada largura) com a fita a aparecer, etiquetas e coluna do
+  resultado aparecem a seguir; o cartão «A transcrever» também entra com `oe-cola`.
 
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).
