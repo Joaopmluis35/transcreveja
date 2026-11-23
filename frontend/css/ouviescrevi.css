@@ -1,7 +1,7 @@
 /* Ouviescrevi — design system partilhado */
 @import url("ouviescrevi-pro.css?v=25");
 @import url("theme-dark.css?v=7");
-@import url("temas.css?v=15");
+@import url("temas.css?v=16");
 
 :root {
   --oe-purple: #1d4a8f;
@@ -1138,6 +1138,10 @@ main.oe-content {
   .oe-legal-table td {
     padding: 8px;
   }
+
+  /* Os nomes técnicos (ex.: ouviescrevi_api_token) não partiam e alargavam a página toda no telemóvel. */
+  .oe-legal-table code { overflow-wrap: anywhere; word-break: break-word; }
+  .oe-legal-table { display: block; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 }
 
 .converter,

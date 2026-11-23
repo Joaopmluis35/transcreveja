@@ -140,6 +140,7 @@ html body.oe-pro .oe-legal-table th { background: var(--pro-accent-soft, #e4f0fc
 html body.oe-pro .oe-legal-table :is(th, td) { border-color: var(--pro-border); }
 html[data-design="ardosia"] body.oe-pro .oe-legal-table th { background: rgba(242,210,75,.14); color: #f2d24b; }
 html[data-design="ardosia"] body.oe-pro .oe-legal-table :is(th, td) { border-color: rgba(238,241,232,.22); }
+html[data-design="ardosia"] body.oe-pro code { background: rgba(238,241,232,.12); color: #f2d24b; }
 /* Ardósia: campos de escrever em verde-quadro mais escuro (vinham do antigo modo escuro em azul-marinho). */
 html[data-design="ardosia"] body.oe-pro :is(input[type="text"], input[type="email"], input[type="url"], input[type="search"], input[type="password"], input:not([type]), textarea, select):not(#uploadForm *) {
   background: #1b2722 !important; color: #eef1e8 !important; border: 1.5px solid rgba(238,241,232,.28) !important; }

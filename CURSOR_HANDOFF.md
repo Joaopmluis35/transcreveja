@@ -321,6 +321,9 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   em várias páginas e nunca definido) = `--pro-text-muted`. Cabeçalho das `.oe-legal-table` com o tom do design (na
   Ardósia era claro com texto claro). Ardósia: campos de escrever em verde-escuro em vez de azul-marinho.
   `sugestoes.css?v=6`: opções «Tipo» com a cor do design.
+- Cookies no telemóvel: a tabela (nomes como `ouviescrevi_api_token` que não partiam) alargava a página toda. Em
+  ≤600px a `.oe-legal-table` desliza só dentro dela e os `code` partem (`ouviescrevi.css?v=69`); na Ardósia os `code`
+  deixam de ter fundo branco (`temas.css?v=16`).
 
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).
