@@ -782,3 +782,163 @@ def build_visit_report(
         "owner_uids_count": len(owner_uids),
         "owner_ip_labels": owner_ip_labels,
     }
+
+
+# --- Marketing: de onde vêm as pessoas ---------------------------------------------------------
+
+_SOURCE_RULES: tuple[tuple[str, str], ...] = (
+    ("tiktok", "TikTok"),
+    ("google.", "Google"),
+    ("bing.", "Bing"),
+    ("duckduckgo", "DuckDuckGo"),
+    ("chatgpt.com", "ChatGPT"),
+    ("openai.com", "ChatGPT"),
+    ("perplexity", "Perplexity"),
+    ("instagram", "Instagram"),
+    ("facebook", "Facebook"),
+    ("fb.", "Facebook"),
+    ("whatsapp", "WhatsApp"),
+    ("wa.me", "WhatsApp"),
+    ("t.co", "X"),
+    ("twitter", "X"),
+    ("x.com", "X"),
+    ("linkedin", "LinkedIn"),
+    ("youtube", "YouTube"),
+    ("reddit", "Reddit"),
+)
+SOURCE_INTERNAL = "Interno"
+SOURCE_DIRECT = "Direto / apps"
+
+
+def classify_source(referrer: str | None, utm_source: str | None = None) -> str:
+    """Origem legível de uma visita. Campanha UTM ganha ao referrer; o próprio site é «Interno»."""
+    utm = (utm_source or "").strip().lower()
+    if utm:
+        for marker, label in _SOURCE_RULES:
+            if marker.rstrip(".") in utm:
+                return label
+        return utm[:40]
+    ref = (referrer or "").strip().lower()
+    if not ref:
+        return SOURCE_DIRECT
+    host = ref.split("//", 1)[-1].split("/", 1)[0].split(":", 1)[0]
+    if host.endswith("ouviescrevi.pt"):
+        return SOURCE_INTERNAL
+    for marker, label in _SOURCE_RULES:
+        if marker in host:
+            return label
+    return host.removeprefix("www.")[:60] or SOURCE_DIRECT
+
+
+def build_marketing_report(owner_uids: set[str] | None = None, days: int = 14) -> dict[str, Any]:
+    """Visitas humanas (sem bots nem a equipa) por origem, campanha e página de entrada, por dia."""
+    owner_uids = owner_uids or set()
+    n_days = max(1, min(int(days or 14), 90))
+    today = date.today()
+    day_list = [(today - timedelta(days=n_days - 1 - i)).isoformat() for i in range(n_days)]
+    placeholders = ",".join("?" for _ in day_list)
+    conn = get_connection()
+    try:
+        rows = [
+            row_to_dict(r)
+            for r in conn.execute(
+                f"""
+                SELECT day, path, referrer, utm_source, utm_medium, utm_campaign,
+                       visitor_uid, visitor_hash, ip_label, user_agent, device_type
+                FROM visitas WHERE day IN ({placeholders})
+                """,
+                tuple(day_list),
+            ).fetchall()
+        ]
+        trans_rows = [
+            row_to_dict(r)
+            for r in conn.execute(
+                f"""
+                SELECT substr(data,1,10) AS day, COUNT(*) AS c FROM transcricoes
+                WHERE substr(data,1,10) IN ({placeholders}) GROUP BY day
+                """,
+                tuple(day_list),
+            ).fetchall()
+        ]
+    finally:
+        conn.close()
+
+    trans_by_day = {str(r.get("day")): int(r.get("c") or 0) for r in trans_rows}
+    by_day = {
+        d: {"day": d, "pageviews": 0, "visitantes": 0, "entradas": 0, "transcricoes": trans_by_day.get(d, 0),
+            "origens": {}}
+        for d in day_list
+    }
+    day_visitors: dict[str, set[str]] = {d: set() for d in day_list}
+    all_visitors: set[str] = set()
+    sources: dict[str, dict[str, Any]] = {}
+    utm: dict[tuple[str, str, str], int] = {}
+    landing: dict[str, int] = {}
+    pages: dict[str, int] = {}
+    devices: dict[str, int] = {}
+    ignored = {"bots": 0, "equipa": 0}
+
+    for r in rows:
+        uid = r.get("visitor_uid") or ""
+        if uid and uid in owner_uids:
+            ignored["equipa"] += 1
+            continue
+        if is_bot_visit(r.get("ip_label"), r.get("user_agent")):
+            ignored["bots"] += 1
+            continue
+        d = str(r.get("day") or "")
+        if d not in by_day:
+            continue
+        vid = uid or r.get("visitor_hash") or ""
+        path = str(r.get("path") or "/")
+        day = by_day[d]
+        day["pageviews"] += 1
+        pages[path] = pages.get(path, 0) + 1
+        dev = r.get("device_type") or "?"
+        devices[dev] = devices.get(dev, 0) + 1
+        if vid:
+            day_visitors[d].add(vid)
+            all_visitors.add(vid)
+        src = classify_source(r.get("referrer"), r.get("utm_source"))
+        if src == SOURCE_INTERNAL:
+            continue
+        # Entrada = chegada ao site vinda de fora (não conta navegar entre páginas).
+        day["entradas"] += 1
+        day["origens"][src] = day["origens"].get(src, 0) + 1
+        s = sources.setdefault(src, {"origem": src, "entradas": 0, "_v": set()})
+        s["entradas"] += 1
+        if vid:
+            s["_v"].add(vid)
+        landing[path] = landing.get(path, 0) + 1
+        if r.get("utm_source") or r.get("utm_medium") or r.get("utm_campaign"):
+            key = (r.get("utm_source") or "—", r.get("utm_medium") or "—", r.get("utm_campaign") or "—")
+            utm[key] = utm.get(key, 0) + 1
+
+    for d in day_list:
+        by_day[d]["visitantes"] = len(day_visitors[d])
+    source_list = sorted(
+        ({"origem": s["origem"], "entradas": s["entradas"], "visitantes": len(s["_v"])} for s in sources.values()),
+        key=lambda s: -s["entradas"],
+    )
+
+    def top(counter: dict, n: int = 15) -> list[tuple]:
+        return sorted(counter.items(), key=lambda kv: -kv[1])[:n]
+
+    return {
+        "exported_at": datetime.utcnow().isoformat(timespec="seconds") + "Z",
+        "range": {"days": n_days, "from": day_list[0], "to": day_list[-1]},
+        "nota": "Só pessoas (sem bots nem a equipa). Origem das entradas diretas fiável a partir de 2026-11-23.",
+        "totais": {
+            "visitantes": len(all_visitors),
+            "paginas_vistas": sum(v["pageviews"] for v in by_day.values()),
+            "entradas": sum(v["entradas"] for v in by_day.values()),
+            "transcricoes": sum(v["transcricoes"] for v in by_day.values()),
+            "ignoradas": ignored,
+        },
+        "origens": source_list,
+        "por_dia": [by_day[d] for d in day_list],
+        "campanhas_utm": [{"source": k[0], "medium": k[1], "campaign": k[2], "entradas": c} for k, c in top(utm)],
+        "paginas_de_entrada": [{"pagina": p, "entradas": c} for p, c in top(landing)],
+        "paginas_vistas": [{"pagina": p, "visitas": c} for p, c in top(pages)],
+        "dispositivos": [{"tipo": k, "visitas": c} for k, c in top(devices, 5)],
+    }

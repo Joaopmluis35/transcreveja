@@ -163,7 +163,7 @@
     document.querySelectorAll("[data-panel]").forEach(function (panel) {
       panel.classList.toggle("hidden", panel.dataset.panel !== tab);
     });
-    var titles = { dashboard: "Painel", conteudo: "Conteúdo do site", nav: "Menu & Rodapé", seo: "SEO", transcricoes: "Transcrições", logs: "Logs", sugestoes: "Sugestões", "ai-insights": "Sugestões AI", "estudo-ai": "Estudo AI", emails: "Emails", planos: "Planos Pro", sistema: "Sistema" };
+    var titles = { dashboard: "Painel", conteudo: "Conteúdo do site", nav: "Menu & Rodapé", seo: "SEO", transcricoes: "Transcrições", logs: "Logs", sugestoes: "Sugestões", marketing: "Marketing", "ai-insights": "Sugestões AI", "estudo-ai": "Estudo AI", emails: "Emails", planos: "Planos Pro", sistema: "Sistema" };
     if (tab !== "conteudo") {
       setPageTitle(titles[tab] || "Backoffice");
     } else if (cmsCurrentPage) {
@@ -176,6 +176,7 @@
     if (tab === "conteudo" || tab === "seo") ensureConteudoLoaded();
     if (tab === "nav" && global.OuviescreviAdminNav) global.OuviescreviAdminNav.onTab(tab);
     if (global.OuviescreviAdminExt) global.OuviescreviAdminExt.onTab(tab);
+    if (global.OuviescreviAdminMarketing) global.OuviescreviAdminMarketing.onTab(tab);
   }
 
   function ensureConteudoLoaded() {

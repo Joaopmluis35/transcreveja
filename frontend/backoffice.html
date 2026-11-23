@@ -58,6 +58,9 @@
         <span class="oe-admin-nav-icon">💡</span> Sugestões
         <span id="navBadgeSugestoes" class="oe-admin-nav-badge hidden">0</span>
       </button>
+      <button type="button" data-tab="marketing" aria-selected="false">
+        <span class="oe-admin-nav-icon">📣</span> Marketing
+      </button>
       <button type="button" data-tab="ai-insights" data-min-role="admin" aria-selected="false">
         <span class="oe-admin-nav-icon">✨</span> Sugestões AI
       </button>
@@ -483,6 +486,84 @@
             <h3 id="sugDetailTitle">Sugestão</h3>
             <div id="sugDetailBody" class="oe-admin-modal__body"></div>
             <div class="oe-admin-modal__footer" id="sugDetailActions"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Marketing -->
+      <div data-panel="marketing" class="hidden">
+        <div class="oe-admin-panel oe-admin-panel--compact">
+          <div class="oe-admin-panel__head oe-admin-panel__head--row">
+            <span>De onde vêm as pessoas</span>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+              <select id="mktDays" class="oe-admin-select-inline" aria-label="Período a analisar">
+                <option value="7">7 dias</option>
+                <option value="14" selected>14 dias</option>
+                <option value="30">30 dias</option>
+              </select>
+              <button type="button" id="mktRefresh" class="oe-admin-btn oe-admin-btn--secondary">🔄 Atualizar</button>
+              <button type="button" id="mktCopyClaude" class="oe-admin-btn oe-admin-btn--primary">📋 Copiar relatório para o Claude</button>
+              <button type="button" id="mktDownload" class="oe-admin-btn oe-admin-btn--secondary">⬇ JSON</button>
+            </div>
+          </div>
+          <div class="oe-admin-panel__body">
+            <p class="oe-admin-visitors-meta" id="mktNote">Só pessoas: sem bots nem a equipa. «Entrada» = chegada ao site vinda de fora (navegar entre páginas não conta).</p>
+          </div>
+        </div>
+
+        <div class="oe-admin-cards">
+          <div class="oe-admin-card oe-admin-card--purple">
+            <div class="oe-admin-card__label">Visitantes</div>
+            <div class="oe-admin-card__value" id="mktVisitantes">—</div>
+            <div class="oe-admin-card__sub" id="mktPeriodo">—</div>
+          </div>
+          <div class="oe-admin-card oe-admin-card--blue">
+            <div class="oe-admin-card__label">Entradas no site</div>
+            <div class="oe-admin-card__value" id="mktEntradas">—</div>
+            <div class="oe-admin-card__sub" id="mktTopOrigem">—</div>
+          </div>
+          <div class="oe-admin-card oe-admin-card--green">
+            <div class="oe-admin-card__label">Transcrições</div>
+            <div class="oe-admin-card__value" id="mktTranscricoes">—</div>
+            <div class="oe-admin-card__sub" id="mktConversao">—</div>
+          </div>
+          <div class="oe-admin-card oe-admin-card--amber">
+            <div class="oe-admin-card__label">Vindas do TikTok</div>
+            <div class="oe-admin-card__value" id="mktTiktok">—</div>
+            <div class="oe-admin-card__sub">Link da bio ou vídeos</div>
+          </div>
+        </div>
+
+        <div class="oe-admin-charts oe-admin-charts--compact">
+          <div class="oe-admin-panel oe-admin-panel--compact">
+            <div class="oe-admin-panel__head">Origens</div>
+            <div class="oe-admin-panel__body oe-admin-table-wrap" id="mktOrigens"><p class="oe-admin-empty">A carregar…</p></div>
+          </div>
+          <div class="oe-admin-panel oe-admin-panel--compact">
+            <div class="oe-admin-panel__head">Páginas de entrada</div>
+            <div class="oe-admin-panel__body oe-admin-table-wrap" id="mktEntradasPaginas"><p class="oe-admin-empty">A carregar…</p></div>
+          </div>
+          <div class="oe-admin-panel oe-admin-panel--compact">
+            <div class="oe-admin-panel__head">Campanhas (links com UTM)</div>
+            <div class="oe-admin-panel__body oe-admin-table-wrap" id="mktUtm"><p class="oe-admin-empty">A carregar…</p></div>
+          </div>
+        </div>
+
+        <div class="oe-admin-panel oe-admin-panel--compact">
+          <div class="oe-admin-panel__head">Dia a dia</div>
+          <div class="oe-admin-panel__body oe-admin-table-wrap oe-admin-table-wrap--scroll oe-admin-table-wrap--scroll-sm" id="mktPorDia"><p class="oe-admin-empty">A carregar…</p></div>
+        </div>
+
+        <div class="oe-admin-panel oe-admin-panel--compact">
+          <div class="oe-admin-panel__head">Links para usar nas redes</div>
+          <div class="oe-admin-panel__body">
+            <p class="oe-admin-visitors-meta">Usa estes links em vez do endereço simples: assim o site sabe de onde a pessoa veio.</p>
+            <div id="mktLinks"></div>
+            <p class="oe-admin-visitors-meta" style="margin-top:12px">
+              Ferramentas:
+              <a href="https://search.google.com/search-console?resource_id=https%3A%2F%2Fwww.ouviescrevi.pt%2F" target="_blank" rel="noopener">Google Search Console</a> ·
+              <a href="https://www.tiktok.com/tiktokstudio/content" target="_blank" rel="noopener">TikTok Studio</a>
+            </p>
           </div>
         </div>
       </div>
@@ -933,9 +1014,10 @@
 <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 <script src="js/ouviescrevi-api.js?v=28"></script>
 <script src="js/backoffice-cms-locales.js?v=5"></script>
-<script src="js/backoffice.js?v=32"></script>
+<script src="js/backoffice.js?v=33"></script>
 <script src="js/backoffice-admin.js?v=39"></script>
 <script src="js/backoffice-nav.js?v=2"></script>
 <script src="js/backoffice-billing.js?v=4"></script>
+<script src="js/backoffice-marketing.js?v=1"></script>
 </body>
 </html>

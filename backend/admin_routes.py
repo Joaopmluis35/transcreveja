@@ -15,6 +15,7 @@ from pydantic import BaseModel
 
 import admin_store as store
 from analytics import (
+    build_marketing_report,
     build_visit_report,
     get_daily_transcription_outcomes,
     get_daily_transcription_series,
@@ -588,6 +589,18 @@ def admin_export_visit_report(request: Request, days: int = 2):
             ),
         },
     )
+
+
+@router.get("/marketing")
+def admin_marketing(request: Request, days: int = 14):
+    """Separador Marketing: pessoas por origem (TikTok, Google…), campanha UTM e página de entrada."""
+    store.require_role(getattr(request.state, "admin_session", None), "viewer")
+    try:
+        owner_uids = parse_owner_visitor_uids(store.get_config().get("owner_visitor_uids"))
+        return build_marketing_report(owner_uids, days=days)
+    except Exception as exc:
+        logger.exception("marketing report falhou")
+        raise HTTPException(status_code=500, detail="Não foi possível gerar o relatório de marketing.") from exc
 
 
 @router.get("/export/{table}")

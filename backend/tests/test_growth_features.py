@@ -1,6 +1,8 @@
 """Testes — partilha pública, password reset, UTMs."""
 from __future__ import annotations
 
+import pytest
+
 from analytics import record_visit
 import admin_store as store
 
@@ -60,6 +62,32 @@ def test_track_visit_accepts_utm(client):
     )
     # origin may be rejected in tests — accept 200 or 403 depending on ALLOWED_ORIGINS
     assert res.status_code in (200, 403)
+
+
+def test_track_visit_direct_entry_is_not_recorded_as_own_site(client, origin_headers):
+    """Sem document.referrer (entrada direta, apps como o TikTok) a origem fica vazia.
+
+    Antes usava-se o cabeçalho Referer do próprio pedido, que é sempre o site
+    (https://www.ouviescrevi.pt/) — todas as entradas diretas pareciam navegação interna.
+    """
+    from database import get_connection, row_to_dict
+
+    res = client.post(
+        "/api/track-visit",
+        json={"path": "/teste-direto.html", "referrer": ""},
+        headers={**origin_headers, "Referer": "https://www.ouviescrevi.pt/"},
+    )
+    if res.status_code == 403:
+        pytest.skip("Origem de teste não autorizada neste ambiente.")
+    assert res.status_code == 200
+    conn = get_connection()
+    try:
+        row = row_to_dict(conn.execute(
+            "SELECT referrer FROM visitas WHERE path = ? ORDER BY id DESC LIMIT 1", ("/teste-direto.html",)
+        ).fetchone())
+    finally:
+        conn.close()
+    assert row["referrer"] is None
 
 
 def test_shared_transcript_can_be_deleted_only_with_key(client):

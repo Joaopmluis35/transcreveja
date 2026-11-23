@@ -2568,7 +2568,9 @@ def track_visit(request: Request, body: TrackVisitRequest):
     record_visit(
         path,
         client_ip(request),
-        referrer=body.referrer or request.headers.get("referer"),
+        # Só o document.referrer da página conta: o cabeçalho Referer deste pedido é sempre o próprio site
+        # e fazia todas as entradas diretas (escrever o endereço, apps como o TikTok) parecerem navegação interna.
+        referrer=body.referrer or None,
         user_agent=request.headers.get("user-agent"),
         utm_source=body.utm_source,
         utm_medium=body.utm_medium,

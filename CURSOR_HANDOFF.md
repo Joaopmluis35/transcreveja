@@ -376,6 +376,15 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   própria. No sitemap e ligada a partir do `blog/index.html` e de `blog/transcrever-audio-online.html`.
   O upload aceita `.opus` (o servidor converte tudo com ffmpeg); **por testar num iPhone real** se o Safari deixa
   escolher o `.opus` guardado em Ficheiros.
+- **Bug corrigido (origem das visitas):** `POST /api/track-visit` usava o cabeçalho `Referer` do próprio pedido
+  quando `document.referrer` vinha vazio — e esse cabeçalho é sempre o site. Todas as entradas diretas (escrever o
+  endereço, apps como o TikTok) apareciam como `https://www.ouviescrevi.pt/`. Agora só conta `document.referrer`.
+  Dados de origem fiáveis só a partir de 23/11/2026.
+- Backoffice, separador **Marketing** (`js/backoffice-marketing.js?v=1`, `GET /api/admin/marketing?days=N`,
+  `analytics.build_marketing_report` + `classify_source`): pessoas (sem bots/equipa) por origem (TikTok, Google,
+  ChatGPT, Direto…), campanhas UTM, páginas de entrada, dia a dia com transcrições; links com UTM para as redes
+  (bio do TikTok, etc.) e botão «Copiar relatório para o Claude». `backoffice.js?v=33`. Testes em
+  `tests/test_marketing_report.py`.
 
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).
