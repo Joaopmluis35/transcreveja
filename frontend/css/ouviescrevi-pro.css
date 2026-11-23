@@ -1994,9 +1994,9 @@ body.oe-pro .oe-pro-brand__icon-wrap .oe-pro-brand__icon, body.oe-pro .oe-pro-fo
 
 /* Mensagens de voz: um só laranja nos botões principais (legível com texto branco, 4.5:1). */
 html:not([data-design]) body.oe-pro .oe-pro-btn--primary,
-html:not([data-design]) body.oe-pro a.oe-pro-btn.oe-pro-btn--primary { background: #c2560c; border-color: #c2560c; }
+html:not([data-design]) body.oe-pro a.oe-pro-btn.oe-pro-btn--primary { background: #fd8c32; border-color: #fd8c32; }
 html:not([data-design]) body.oe-pro .oe-pro-btn--primary:hover,
-html:not([data-design]) body.oe-pro a.oe-pro-btn.oe-pro-btn--primary:hover { background: #a94c06; border-color: #a94c06; }
+html:not([data-design]) body.oe-pro a.oe-pro-btn.oe-pro-btn--primary:hover { background: #f07a1c; border-color: #f07a1c; }
 /* Com sessão iniciada: email com mais espaço e alinhado com «Sair». */
 @media (min-width: 1241px) { body.oe-pro .oe-pro-auth__user { max-width: 190px; } }
 body.oe-pro .oe-pro-auth { align-items: center; }

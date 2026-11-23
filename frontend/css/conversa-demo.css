@@ -32,7 +32,7 @@ body.oe-page--home .oe-home-panel--placeholder.oe-conversa-wrap { padding: 0; ba
 .oe-conversa__tudo { background: none; border: 0; font: inherit; font-weight: 700; color: #0f2a4f; text-decoration: underline; text-underline-offset: .22em; margin-top: .5rem; cursor: pointer; }
 
 .oe-voz { align-self: flex-start; display: flex; align-items: center; gap: .65rem; max-width: min(21rem, 90%); padding: .55rem .85rem .55rem .55rem; background: #fff; border-radius: 18px 18px 18px 6px; box-shadow: 0 1px 2px rgba(15,42,79,.08); }
-.oe-voz__play { flex: none; width: 2.4rem; height: 2.4rem; border-radius: 50%; display: grid; place-items: center; background: #b5520a; color: #fff; }
+.oe-voz__play { flex: none; width: 2.4rem; height: 2.4rem; border-radius: 50%; display: grid; place-items: center; background: #fd8c32; color: #fff; }
 .oe-voz__play svg { width: .9rem; height: .9rem; margin-left: 2px; }
 .oe-voz.a-tocar .oe-voz__play { background: #8f4007; }
 .oe-voz__onda { display: flex; align-items: center; gap: 2px; height: 1.8rem; }
@@ -78,8 +78,8 @@ body.oe-page--home .oe-conversa button.oe-conversa__tudo { background: none !imp
 }
 
 /* Botão principal com laranja mais vivo, próximo do desenho; as ligações de texto mantêm o laranja escuro (legível) */
-body.oe-pro.oe-page--home #uploadForm #btnTranscrever { background: #c2560c !important; }
-body.oe-pro.oe-page--home #uploadForm #btnTranscrever:hover:not(:disabled) { background: #a94c06 !important; }
+body.oe-pro.oe-page--home #uploadForm #btnTranscrever { background: #fd8c32 !important; }
+body.oe-pro.oe-page--home #uploadForm #btnTranscrever:hover:not(:disabled) { background: #f07a1c !important; }
 
 /* ── A conversa com o aspeto de cada design ─────────────────────────────── */
 .oe-conversa-wrap .oe-home-panel__hint { color: var(--pro-text-secondary, #3d5677); }

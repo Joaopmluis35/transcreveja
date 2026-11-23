@@ -219,7 +219,7 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
 - Escolha de aspeto só com 3 designs: Mensagens de voz, Caderno e Ardósia (`theme-ui.js?v=4`, cabeçalhos ×5,
   `LAYOUT_V=17`). Cortiça e Folha desativados; o CSS ficou em `temas.css`/`conversa-demo.css` para poder voltar.
   Quem os tinha escolhido volta a Mensagens de voz. Botões por design em `temas.css?v=4` (variáveis `--oe-btn*`):
-  laranja `#c2560c` · azul `#1e3fa8` · giz amarelo `#f2d24b` com texto escuro; «Ouvir um exemplo» passa a botão de
+  laranja claro do mockup `#fd8c32` (hover `#f07a1c`) · azul `#1e3fa8` · giz amarelo `#f2d24b` com texto escuro; «Ouvir um exemplo» passa a botão de
   contorno. Rodapé por design (`--rod-*`): azul-marinho liso, capa azul com grelha, madeira escura na ardósia
   (sem o roxo antigo `#a5b4fc`). `ouviescrevi.css?v=57`, `conversa-demo.css?v=10`.
 

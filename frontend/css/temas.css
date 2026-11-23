@@ -102,7 +102,7 @@ html[data-design="caderno"] body.oe-pro main { background-image: linear-gradient
 
 /* ---- Botões: uma cor principal por design (cheio) e uma secundária (contorno) ----
    Mensagens de voz: laranja · Caderno: azul de caneta · Ardósia: giz amarelo com texto escuro. */
-html body.oe-pro { --oe-btn: #c2560c; --oe-btn-hover: #a94c06; --oe-btn-texto: #fff; --oe-btn2: #0f2a4f; }
+html body.oe-pro { --oe-btn: #fd8c32; --oe-btn-hover: #f07a1c; --oe-btn-texto: #fff; --oe-btn2: #0f2a4f; }
 html[data-design="caderno"] body.oe-pro { --oe-btn: #1e3fa8; --oe-btn-hover: #142c7a; --oe-btn-texto: #fff; --oe-btn2: #1e3fa8; }
 html[data-design="ardosia"] body.oe-pro { --oe-btn: #f2d24b; --oe-btn-hover: #f7e08a; --oe-btn-texto: #1b2a24; --oe-btn2: #e8ecdf; }
 
