@@ -117,8 +117,75 @@
 
   function limpar() { corrida++; if (temFala) speechSynthesis.cancel(); largarInstrumento(); inst = null; lista.innerHTML = ""; }
 
+  // Caderno e Ardósia: em vez de bolhas, apontamentos em linhas (minuto · quem · texto), como nas demos.
+  function design() { return document.documentElement.getAttribute("data-design") || ""; }
+  function emLinhas() { var d = design(); return d === "caderno" || d === "ardosia"; }
+  function linha(t, quem) {
+    var li = document.createElement("li");
+    li.className = "oe-linha";
+    li.innerHTML = '<time></time><span class="oe-linha__fala"><b></b> <span class="oe-linha__txt"></span></span>';
+    li.querySelector("time").textContent = t;
+    li.querySelector("b").textContent = quem + ":";
+    lista.appendChild(li);
+    return li;
+  }
+  // Fim: no caderno o professor circula e dá o visto; na ardósia o resumo aparece numa caixa a giz.
+  function fechoLinhas() {
+    var li = document.createElement("li");
+    if (design() === "caderno") {
+      li.className = "oe-visto"; li.setAttribute("aria-hidden", "true");
+      li.innerHTML = '<svg viewBox="0 0 208 90"><path style="--c:560" d="M30 18C70 2 168 4 196 30c14 14-6 40-58 50-50 9-112 2-126-22C2 40 26 22 64 14"/><path class="tick" style="--c:70" d="M170 62c5 4 9 9 12 15 8-16 16-27 24-34"/></svg><span>Transcrito!</span>';
+    } else {
+      li.className = "oe-resumo-giz";
+      li.innerHTML = '<svg class="caixa" viewBox="0 0 400 120" preserveAspectRatio="none" aria-hidden="true"><path d="M4 8C120 3 290 5 396 6c2 30 1 70-2 108C270 117 130 116 6 113 3 80 2 40 6 4"/></svg>' +
+        "<h3>Resumo em 3 pontos</h3><ol><li>A Ana abriu a loja na vila em 2019.</li><li>Hoje também faz encomendas para festas.</li><li>Prefere fazer bem num só sítio.</li></ol>";
+    }
+    lista.appendChild(li); descer();
+    void li.offsetWidth; li.classList.add("feito");
+    ouvir.querySelector("span").textContent = "Ouvir outra vez";
+  }
+  // Na ardósia, antes de voltar a escrever, o apagador passa pelo quadro.
+  async function apagar() {
+    if (design() !== "ardosia" || calmo || !lista.querySelector(".oe-linha")) return;
+    lista.classList.add("a-apagar"); await pausa(700); lista.classList.remove("a-apagar");
+  }
+  async function tocarLinhas() {
+    await apagar();
+    limpar();
+    var esta = corrida;
+    if (aviso) aviso.textContent = voz ? "" : "Este aparelho não tem voz em português de Portugal: o exemplo corre sem som.";
+    for (var k = 0; k < FALAS.length; k++) {
+      if (esta !== corrida) return;
+      var li = linha(FALAS[k][0], FALAS[k][1]), alvoTxt = li.querySelector(".oe-linha__txt"), texto = FALAS[k][2];
+      [].forEach.call(lista.querySelectorAll(".agora"), function (e) { e.classList.remove("agora"); });
+      li.classList.add("agora"); descer();
+      var fala = falar(texto);
+      if (calmo) alvoTxt.textContent = texto;
+      else {
+        var no = document.createTextNode(""), cur = document.createElement("span");
+        cur.className = "oe-cursor"; alvoTxt.appendChild(no); alvoTxt.appendChild(cur);
+        for (var j = 1; j <= texto.length; j++) {
+          if (esta !== corrida) return;
+          no.data = texto.slice(0, j); moverInstrumento(cur);
+          await pausa(voz ? 34 : 24);
+        }
+        largarInstrumento(); alvoTxt.textContent = texto;
+      }
+      await fala;
+      await pausa(calmo ? 0 : 220);
+    }
+    if (esta !== corrida) return;
+    [].forEach.call(lista.querySelectorAll(".agora"), function (e) { e.classList.remove("agora"); });
+    fechoLinhas();
+  }
+
   function mostrarTudo() {
     limpar();
+    if (emLinhas()) {
+      FALAS.forEach(function (f) { linha(f[0], f[1]).querySelector(".oe-linha__txt").textContent = f[2]; });
+      fechoLinhas();
+      return;
+    }
     FALAS.forEach(function (f) {
       var b = bolhaVoz(f[0], f[1], f[2]);
       [].forEach.call(b.querySelectorAll(".oe-voz__onda i"), function (i) { i.classList.add("tocada"); });
@@ -129,6 +196,7 @@
   }
 
   async function tocar() {
+    if (emLinhas()) return tocarLinhas();
     limpar();
     var esta = corrida;
     if (aviso) aviso.textContent = voz ? "" : "Este aparelho não tem voz em português de Portugal: o exemplo corre sem som.";
@@ -176,7 +244,12 @@
 
   ouvir.addEventListener("click", tocar);
   lista.addEventListener("click", function (e) { if (e.target && e.target.id === "oeConversaTudo") mostrarTudo(); });
-  void vazioHTML;
+  if ("MutationObserver" in window) {
+    new MutationObserver(function () {
+      limpar(); lista.innerHTML = vazioHTML;
+      ouvir.querySelector("span").textContent = "Ouvir um exemplo";
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-design"] });
+  }
 
   // Ao fazer scroll, os cartões de exemplos entram como mensagens.
   if (!calmo && "IntersectionObserver" in window) {

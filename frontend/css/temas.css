@@ -140,3 +140,14 @@ html body.oe-pro #rodapeOuviescrevi .oe-pro-footer__email { color: var(--rod-tex
 html body.oe-pro #rodapeOuviescrevi .oe-pro-footer__top { border-bottom-color: var(--rod-linha); }
 html body.oe-pro #rodapeOuviescrevi.oe-pro-footer .oe-pro-footer__bottom,
 html body.oe-pro #rodapeOuviescrevi.oe-pro-footer .oe-pro-footer__bottom p { color: var(--rod-suave); }
+
+/* Logótipo como nas demos: risco por baixo de «escrevi» (caneta vermelha no caderno, giz amarelo na ardósia) */
+html[data-design="caderno"] .oe-pro-brand__name, html[data-design="ardosia"] .oe-pro-brand__name { position: relative; }
+html[data-design="caderno"] .oe-pro-brand__name::after, html[data-design="ardosia"] .oe-pro-brand__name::after {
+  content: ""; position: absolute; left: 34%; right: -4px; bottom: -.38em; height: .42em; pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 10' preserveAspectRatio='none'%3E%3Cpath d='M1 6.5C25 3.5 60 2.6 99 5' fill='none' stroke='%23d23b35' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center / 100% 100%;
+}
+html[data-design="ardosia"] .oe-pro-brand__name { font-family: "Shantell Sans", cursive; }
+html[data-design="ardosia"] .oe-pro-brand__name::after {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 10' preserveAspectRatio='none'%3E%3Cpath d='M1 6.5C25 3.5 60 2.6 99 5' fill='none' stroke='%23f2d24b' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E");
+}

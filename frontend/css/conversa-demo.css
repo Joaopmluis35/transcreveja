@@ -90,7 +90,6 @@ html[data-design="ardosia"] .oe-conversa { background: #2d4339; color: #eef1e8; 
 html[data-design="ardosia"] .oe-conversa__cab { background: #1b2a24; border-color: #3b5348; }
 html[data-design="ardosia"] .oe-conversa__avatar { background: #3b5348; color: #f2d24b; }
 html[data-design="ardosia"] .oe-conversa__quem small, html[data-design="ardosia"] .oe-conversa__vazio, html[data-design="ardosia"] .oe-conversa__aviso { color: #c9d2c4; }
-html[data-design="ardosia"] body.oe-page--home #homeOutputPlaceholder .oe-conversa button.oe-conversa__ouvir { background: #f2d24b !important; color: #1b2a24 !important; }
 html[data-design="ardosia"] body.oe-page--home #homeOutputPlaceholder .oe-conversa button.oe-conversa__tudo { color: #f2d24b !important; }
 html[data-design="ardosia"] .oe-voz { background: #3b5348; box-shadow: none; }
 html[data-design="ardosia"] .oe-voz__meta, html[data-design="ardosia"] .oe-voz__meta b { color: #eef1e8; }
@@ -103,7 +102,6 @@ html[data-design="ardosia"] .oe-resumo-bolha h3 { color: #f2d24b; }
 
 /* Caderno: papel quadriculado, apontamentos a caneta azul */
 html[data-design="caderno"] .oe-conversa { background-color: #fff; background-image: linear-gradient(rgba(64,128,204,.16) 1px, transparent 1px), linear-gradient(90deg, rgba(64,128,204,.16) 1px, transparent 1px); background-size: 20px 20px; }
-html[data-design="caderno"] body.oe-page--home #homeOutputPlaceholder .oe-conversa button.oe-conversa__ouvir { background: #1e3fa8 !important; }
 html[data-design="caderno"] .oe-texto, html[data-design="caderno"] .oe-digitar { background: transparent; box-shadow: none; }
 html[data-design="caderno"] .oe-texto__autor, html[data-design="caderno"] .oe-texto__frase { color: #1e3fa8; font-family: "Shantell Sans", sans-serif; }
 html[data-design="caderno"] .oe-texto__frase { display: inline; background: linear-gradient(transparent 60%, rgba(255,226,64,.45) 60%); -webkit-box-decoration-break: clone; box-decoration-break: clone; }
@@ -113,7 +111,6 @@ html[data-design="caderno"] .oe-resumo-bolha { border-color: #d23b35; } html[dat
 
 /* Cortiça: fichas brancas, letra de máquina de escrever */
 html[data-design="cortica"] .oe-conversa { background: #c99a6d; }
-html[data-design="cortica"] body.oe-page--home #homeOutputPlaceholder .oe-conversa button.oe-conversa__ouvir { background: #a32621 !important; }
 html[data-design="cortica"] .oe-texto { background: #fbfaf6; border-radius: 2px; border-top: 3px solid #c32f2a; box-shadow: 0 6px 12px -8px rgba(40,20,5,.6); }
 html[data-design="cortica"] .oe-texto__autor, html[data-design="cortica"] .oe-texto__frase { font-family: "Courier Prime", "Courier New", monospace; color: #24170d; }
 html[data-design="cortica"] .oe-voz { border-radius: 2px; } html[data-design="cortica"] .oe-voz__play, html[data-design="cortica"] .oe-voz__onda i.tocada { background: #a32621; }
@@ -122,7 +119,6 @@ html[data-design="cortica"] .oe-resumo-bolha { border-radius: 2px; border-color:
 
 /* Folha: papel pautado, tinta azul de formulário */
 html[data-design="folha"] .oe-conversa { background-color: #fff; background-image: linear-gradient(to bottom, transparent 31px, rgba(27,69,151,.16) 31px); background-size: 100% 32px; }
-html[data-design="folha"] body.oe-page--home #homeOutputPlaceholder .oe-conversa button.oe-conversa__ouvir { background: #1b4597 !important; }
 html[data-design="folha"] .oe-texto, html[data-design="folha"] .oe-digitar { background: transparent; box-shadow: none; border-left: 0; }
 html[data-design="folha"] .oe-texto__autor, html[data-design="folha"] .oe-texto__frase { color: #1b4597; }
 html[data-design="folha"] .oe-voz__play, html[data-design="folha"] .oe-voz__onda i.tocada { background: #1b4597; }
@@ -134,3 +130,133 @@ html[data-design="folha"] .oe-resumo-bolha { border-color: #c22f2c; border-radiu
 .oe-po { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: #eef1e8; pointer-events: none; animation: oe-cai .9s ease-in forwards; }
 @keyframes oe-cai { to { transform: translate(5px, 24px); opacity: 0; } }
 .oe-texto__frase .oe-cursor { display: inline-block; width: 1px; height: 1em; vertical-align: -.15em; }
+
+/* ══ Página inicial como nas demos: Caderno (nota amarela + apontamentos à mão) e Ardósia (cartão com íman + aula a giz) ══ */
+.oe-tema-titulo { display: none; }
+html[data-design="caderno"] .oe-conversa__msgs, html[data-design="ardosia"] .oe-conversa__msgs { height: auto; min-height: 20rem; overflow: visible; gap: 0; }
+
+/* Linhas de apontamentos: minuto · quem · texto */
+.oe-linha { display: grid; grid-template-columns: 4.2rem minmax(0, 1fr); align-items: baseline; animation: oe-linha-entra .3s ease-out both; }
+.oe-linha time { font-size: .85rem; font-variant-numeric: tabular-nums; }
+.oe-linha .oe-cursor { display: inline-block; width: 1px; height: 1em; vertical-align: -.15em; }
+@keyframes oe-linha-entra { from { opacity: 0; } }
+
+/* ── Caderno ── */
+html[data-design="caderno"] body.oe-page--home .oe-home-hero { text-align: left; max-width: none; margin-left: 0; font-family: "Schibsted Grotesk", system-ui, sans-serif; font-weight: 800; color: #142c7a; font-size: clamp(2.3rem, 5.6vw, 4.6rem); }
+html[data-design="caderno"] body.oe-page--home .oe-home-intro { text-align: left; margin-left: 0; max-width: 48ch; }
+html[data-design="caderno"] body.oe-page--home .oe-home-trust-chips { justify-content: flex-start; }
+
+html[data-design="caderno"] body.oe-pro.oe-page--home #uploadForm {
+  position: relative; overflow: visible; border: 0; border-radius: 2px; transform: rotate(-1.4deg); padding: 2.2rem 1.4rem 1.6rem;
+  background: linear-gradient(180deg, rgba(255,255,255,.25), rgba(255,255,255,0) 30%), linear-gradient(0deg, #e9c94a, #ffe57a 12%) !important;
+  box-shadow: 0 2px 2px rgba(110,80,0,.18), 0 16px 22px -12px rgba(110,80,0,.45) !important; color: #142c7a;
+}
+html[data-design="caderno"] body.oe-pro.oe-page--home #uploadForm::before { content: ""; position: absolute; top: -.75rem; left: 50%; width: 6.5rem; height: 1.6rem; transform: translateX(-50%) rotate(2deg); background: rgba(240,244,250,.65); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+html[data-design="caderno"] body.oe-page--home #uploadForm .oe-tema-titulo { display: block; margin: 0 0 .7rem; font-family: "Shantell Sans", cursive; font-weight: 600; font-size: clamp(1.6rem, 2.4vw, 2rem); line-height: 1.15; color: #142c7a; }
+html[data-design="caderno"] body.oe-pro.oe-page--home #uploadForm #dropZone { background: rgba(255,255,255,.55) !important; border: 1.5px dashed #1e3fa8 !important; border-radius: 2px !important; }
+html[data-design="caderno"] body.oe-pro.oe-page--home #uploadForm #btnTranscrever { border-radius: 2px !important; box-shadow: 0 1px 0 #142c7a, 0 6px 14px -8px rgba(20,44,122,.7) !important; }
+html[data-design="caderno"] body.oe-pro.oe-page--home #uploadForm .oe-upload-actions__secondary button { background: rgba(255,255,255,.6) !important; border: 1.5px solid #1e3fa8 !important; border-radius: 2px !important; color: #1e3fa8 !important; }
+html[data-design="caderno"] body.oe-pro.oe-page--home #uploadForm .oe-home-facts { color: #2b3c78; }
+
+html[data-design="caderno"] .oe-conversa { background: transparent !important; background-image: none !important; box-shadow: none; border-radius: 0; overflow: visible; }
+html[data-design="caderno"] .oe-conversa__cab { background: transparent; border-bottom: 0; padding: 0 0 .6rem; }
+html[data-design="caderno"] .oe-conversa__avatar { display: none; }
+html[data-design="caderno"] .oe-conversa__quem strong { display: inline; font-size: .95rem; color: #142c7a; }
+html[data-design="caderno"] .oe-conversa__quem small { margin-left: .35rem; color: #3a55a8; }
+html[data-design="caderno"] body.oe-page--home #homeOutputPlaceholder .oe-conversa button.oe-conversa__ouvir { border-radius: 2px !important; }
+html[data-design="caderno"] .oe-conversa__msgs { padding: .4rem 0 1rem; }
+html[data-design="caderno"] .oe-linha { font-family: "Shantell Sans", cursive; font-size: 1.1rem; line-height: 2.2rem; color: #1e3fa8; }
+html[data-design="caderno"] .oe-linha time { color: #3a55a8; }
+html[data-design="caderno"] .oe-linha b { font-weight: 650; }
+html[data-design="caderno"] .oe-linha.agora .oe-linha__fala { background: linear-gradient(transparent 52%, rgba(255,226,64,.62) 52%, rgba(255,226,64,.62) 92%, transparent 92%); -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+html[data-design="caderno"] .oe-conversa__vazio { margin: 0; max-width: none; text-align: left; font-family: "Shantell Sans", cursive; color: #3a55a8; }
+html[data-design="caderno"] .oe-conversa__vazio svg { display: none; }
+html[data-design="caderno"] .oe-conversa__vazio::before { content: ""; display: block; height: 8.8rem; margin-bottom: .6rem;
+  background: repeating-linear-gradient(transparent 0 calc(2.2rem - 2px), rgba(30,63,168,.3) calc(2.2rem - 2px) 2.2rem);
+  -webkit-mask: linear-gradient(90deg, transparent 4.2rem, #000 4.2rem, #000 82%, transparent 82%); mask: linear-gradient(90deg, transparent 4.2rem, #000 4.2rem, #000 82%, transparent 82%); }
+/* O visto do professor: círculo e visto a caneta vermelha */
+.oe-visto { position: relative; align-self: flex-end; width: 13rem; height: 5.6rem; margin-top: .4rem; color: #d23b35; pointer-events: none; list-style: none; }
+.oe-visto svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.oe-visto path { fill: none; stroke: currentColor; stroke-width: 3.2; stroke-linecap: round; stroke-dasharray: var(--c); stroke-dashoffset: var(--c); }
+.oe-visto span { position: absolute; inset: 0; display: grid; place-items: center; font-family: "Shantell Sans", cursive; font-weight: 700; font-size: 1.65rem; transform: rotate(-6deg); opacity: 0; }
+.oe-visto.feito path { animation: oe-traco .55s cubic-bezier(.3,.7,.2,1) forwards; }
+.oe-visto.feito path.tick { animation-delay: .45s; animation-duration: .25s; }
+.oe-visto.feito span { animation: oe-aparece .3s .35s ease-out both; }
+@keyframes oe-traco { to { stroke-dashoffset: 0; } }
+@keyframes oe-aparece { from { opacity: 0; filter: blur(3px); } to { opacity: 1; filter: none; } }
+
+/* ── Ardósia ── */
+html[data-design="ardosia"] body.oe-page--home .oe-home-hero { display: table; margin-left: auto; margin-right: auto; padding-bottom: .25em;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 20' preserveAspectRatio='none'%3E%3Cpath d='M6 13C160 6 380 4 594 9' fill='none' stroke='%23f2d24b' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat 2% 100% / 0% .3em;
+  animation: oe-escreve 1.5s cubic-bezier(.45,.05,.3,1) both, oe-risca .7s 1.35s cubic-bezier(.3,.7,.2,1) forwards; }
+html[data-design="ardosia"] body.oe-page--home .oe-home-intro { animation: oe-aparece .6s 1.6s ease-out both; }
+@keyframes oe-escreve { from { clip-path: inset(-.2em 100% -.4em 0); } to { clip-path: inset(-.2em 0 -.4em 0); } }
+@keyframes oe-risca { to { background-size: 96% .3em; } }
+
+html[data-design="ardosia"] body.oe-pro.oe-page--home #uploadForm {
+  --pro-text: #1d2b25; --pro-text-secondary: #3a4a42; --pro-text-muted: #3a4a42; --pro-surface: #fbfbf7; --pro-border: #c9cfc4; --oe-text: #1d2b25;
+  position: relative; overflow: visible; background: #fbfbf7 !important; color: #1d2b25 !important; border: 0 !important; border-radius: 3px; transform: rotate(-1deg); padding-top: 2rem;
+  box-shadow: 0 2px 3px rgba(0,0,0,.35), 0 20px 30px -18px rgba(0,0,0,.8) !important;
+}
+html[data-design="ardosia"] body.oe-pro.oe-page--home #uploadForm::before { content: ""; position: absolute; top: -.85rem; left: 50%; width: 1.9rem; height: 1.9rem; margin-left: -.95rem; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffe98a, #f2c623 55%, #c99a0c); box-shadow: 0 3px 5px rgba(0,0,0,.45); }
+html[data-design="ardosia"] body.oe-page--home #uploadForm .oe-tema-titulo { display: block; margin: 0 0 .6rem; font-size: clamp(1.35rem, 2.2vw, 1.6rem); font-weight: 800; letter-spacing: -.02em; color: #1d2b25; }
+html[data-design="ardosia"] body.oe-pro.oe-page--home #uploadForm #dropZone { background: #fff !important; border: 1.5px dashed #6d7f75 !important; border-radius: 3px !important; color: #1d2b25 !important; }
+html[data-design="ardosia"] body.oe-pro.oe-page--home #uploadForm #dropZone *, html[data-design="ardosia"] body.oe-pro.oe-page--home #uploadForm .oe-home-facts,
+html[data-design="ardosia"] body.oe-pro.oe-page--home #uploadForm .switch-label { color: #1d2b25 !important; }
+html[data-design="ardosia"] body.oe-pro.oe-page--home #uploadForm .oe-home-facts a { color: #6b4b00 !important; }
+html[data-design="ardosia"] body.oe-pro.oe-page--home #uploadForm .oe-upload-actions__secondary button { background: #fff !important; border: 1.5px solid #6d7f75 !important; color: #1d2b25 !important; border-radius: 3px !important; }
+html[data-design="ardosia"] body.oe-pro.oe-page--home #uploadForm #btnTranscrever { border-radius: 3px !important; box-shadow: 0 1px 0 #b8971c, 0 8px 16px -10px rgba(0,0,0,.6) !important; }
+html[data-design="ardosia"] body.oe-pro.oe-page--home #uploadForm select { background: #fff !important; color: #1d2b25 !important; border-color: #c9cfc4 !important; }
+
+html[data-design="ardosia"] .oe-conversa { background: transparent !important; box-shadow: none !important; border-radius: 0; overflow: visible; }
+html[data-design="ardosia"] .oe-conversa__cab { background: transparent; border-bottom: 0; padding: 0 0 .6rem; }
+html[data-design="ardosia"] .oe-conversa__avatar { display: none; }
+html[data-design="ardosia"] .oe-conversa__quem strong { display: inline; font-family: "Shantell Sans", cursive; font-weight: 600; font-size: 1.12rem; color: #eef1e8; }
+html[data-design="ardosia"] .oe-conversa__quem small { margin-left: .35rem; }
+html[data-design="ardosia"] body.oe-page--home #homeOutputPlaceholder .oe-conversa button.oe-conversa__ouvir { border-radius: 4px !important; }
+html[data-design="ardosia"] .oe-conversa__msgs { padding: .4rem 0 1rem; }
+html[data-design="ardosia"] .oe-linha { font-size: 1.15rem; line-height: 1.6; padding: .22rem 0; color: #eef1e8; }
+html[data-design="ardosia"] .oe-linha time { color: #c9d2c4; }
+html[data-design="ardosia"] .oe-linha b { font-weight: 600; color: #c9d2c4; }
+html[data-design="ardosia"] .oe-linha.agora .oe-linha__txt { text-decoration: underline; text-decoration-color: rgba(242,210,75,.75); text-decoration-thickness: 2px; text-underline-offset: .28em; }
+html[data-design="ardosia"] .oe-conversa__vazio { margin: 0; max-width: none; text-align: left; }
+html[data-design="ardosia"] .oe-conversa__vazio svg { display: none; }
+html[data-design="ardosia"] .oe-conversa__vazio::before { content: ""; display: block; height: 7.2rem; margin-bottom: .6rem;
+  background: repeating-linear-gradient(transparent 0 calc(1.8rem - 2px), rgba(238,241,232,.28) calc(1.8rem - 2px) 1.8rem);
+  -webkit-mask: linear-gradient(90deg, transparent 4.2rem, #000 4.2rem, #000 78%, transparent 78%); mask: linear-gradient(90deg, transparent 4.2rem, #000 4.2rem, #000 78%, transparent 78%); }
+/* Resumo numa caixa desenhada a giz */
+.oe-resumo-giz { position: relative; list-style: none; margin-top: 1rem; padding: 1rem 1.3rem 1.1rem; font-family: "Shantell Sans", cursive; color: #eef1e8; }
+.oe-resumo-giz svg.caixa { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.oe-resumo-giz svg.caixa path { fill: none; stroke: #f2d24b; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; stroke-dasharray: 2000; stroke-dashoffset: 2000; }
+.oe-resumo-giz.feito svg.caixa path { animation: oe-traco .9s cubic-bezier(.3,.7,.2,1) forwards; }
+.oe-resumo-giz h3 { margin: 0; font-size: 1.25rem; font-weight: 700; color: #f2d24b; }
+.oe-resumo-giz ol { padding-left: 1.4rem; margin: .35rem 0 0; line-height: 1.55; }
+.oe-resumo-giz li { opacity: 0; }
+.oe-resumo-giz.feito li { animation: oe-aparece .45s ease-out both; }
+.oe-resumo-giz.feito li:nth-child(1) { animation-delay: .7s; } .oe-resumo-giz.feito li:nth-child(2) { animation-delay: .95s; } .oe-resumo-giz.feito li:nth-child(3) { animation-delay: 1.2s; }
+/* Apagador: passa pelo quadro antes de voltar a escrever */
+.oe-conversa__msgs.a-apagar { overflow: hidden; }
+.oe-conversa__msgs.a-apagar > li { animation: oe-apaga .6s ease-in forwards; }
+.oe-conversa__msgs.a-apagar::after { content: ""; position: absolute; top: 20%; left: -6rem; width: 5.5rem; height: 2.4rem; border-radius: 4px; z-index: 4;
+  background: linear-gradient(#7a5434 0 55%, #3c3f45 55%); box-shadow: 0 6px 10px rgba(0,0,0,.45); animation: oe-apagador .7s ease-in-out forwards; }
+@keyframes oe-apaga { to { opacity: 0; filter: blur(2px); } }
+@keyframes oe-apagador { 0% { transform: translate(0, 0) rotate(-6deg); } 50% { transform: translate(min(36rem, 70vw), 3rem) rotate(4deg); } 100% { transform: translate(0, 6rem) rotate(-4deg); opacity: 0; } }
+
+@media (max-width: 900px) {
+  html[data-design="caderno"] body.oe-pro.oe-page--home #uploadForm, html[data-design="ardosia"] body.oe-pro.oe-page--home #uploadForm { transform: rotate(-.6deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-design] body.oe-page--home .oe-home-hero, html[data-design] body.oe-page--home .oe-home-intro { animation: none !important; background-size: 96% .3em !important; }
+  .oe-visto path, .oe-resumo-giz svg.caixa path { stroke-dashoffset: 0 !important; animation: none !important; }
+  .oe-visto span, .oe-resumo-giz li { opacity: 1 !important; animation: none !important; }
+}
+html[data-design="caderno"] body.oe-page--home .oe-home-intro, html[data-design="caderno"] body.oe-page--home .oe-home-trust-chips { margin-left: 0 !important; margin-right: auto !important; }
+html[data-design="caderno"] body.oe-page--home .oe-home-intro p { text-align: left !important; }
+body.oe-page--home #homeOutputPlaceholder .oe-conversa button.oe-conversa__ouvir * { color: inherit !important; }
+/* Ardósia: os botões gerais do tema escuro usam variáveis; dentro do cartão branco passam a claros, e o principal a giz amarelo. */
+html[data-design="ardosia"] body.oe-pro.oe-page--home #uploadForm { --oe-btn-bg: #fff; --oe-btn-text: #1d2b25; --oe-btn-border: #6d7f75; }
+html[data-design="ardosia"] body.oe-pro.oe-page--home #uploadForm #btnTranscrever { --oe-btn-bg: #f2d24b; --oe-btn-border: #f2d24b; --oe-btn-text: #1b2a24; }
+@media (max-width: 900px) { html[data-design="caderno"] body.oe-page--home .oe-conversa-wrap { padding-left: .9rem !important; } }
+/* Mensagens de voz: a onda já ouvida fica no mesmo laranja do botão ▶ (como no desenho). */
+html:not([data-design]) .oe-voz__onda i.tocada { background: #fd8c32; }
+html:not([data-design]) .oe-voz.a-tocar .oe-voz__play { background: #f07a1c; }

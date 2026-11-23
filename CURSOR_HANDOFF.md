@@ -223,6 +223,15 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   contorno. Rodapé por design (`--rod-*`): azul-marinho liso, capa azul com grelha, madeira escura na ardósia
   (sem o roxo antigo `#a5b4fc`). `ouviescrevi.css?v=57`, `conversa-demo.css?v=10`.
 
+- Página inicial como nas demos (`design/inicio-caderno.html`, `inicio-ardosia.html`), sem mudar o HTML da ferramenta:
+  `conversa-demo.js?v=4` tem um modo «em linhas» para Caderno e Ardósia (minuto · quem · texto, caneta/giz a seguir as
+  letras); no fim, o Caderno mostra o visto vermelho «Transcrito!» e a Ardósia o resumo numa caixa desenhada a giz; ao
+  repetir, o apagador passa pelo quadro. Ao trocar de design a conversa volta ao início (MutationObserver em
+  `data-design`). CSS em `conversa-demo.css?v=16`: formulário como nota amarela com fita (Caderno) ou cartão branco
+  com íman (Ardósia, com as variáveis `--oe-btn-*` do tema escuro reescritas dentro do cartão); título à esquerda no
+  Caderno; na Ardósia o título escreve-se a giz e é sublinhado a amarelo. Novo `<p class="oe-tema-titulo">` no
+  `#uploadForm` (só visível nesses designs). Risco por baixo do nome no logótipo (`temas.css?v=6`).
+
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).
 
