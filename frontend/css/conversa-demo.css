@@ -348,6 +348,18 @@ html:not([data-design]) .oe-voz__onda i.tocada { background: #3a6fc4; }
   html:not([data-design]) .oe-conversa__ouvir[aria-pressed="false"]:not(:hover) svg,
   html:not([data-design]) .oe-conversa__ouvir:not([aria-pressed]) svg { animation: oe-chama 2.4s 1.4s ease-in-out infinite; }
   @keyframes oe-chama { 0%, 70%, 100% { transform: none; } 80% { transform: scale(1.35); } 90% { transform: scale(.95); } }
+  /* Convite a carregar (nos 3 designs, até ao 1.º clique): duas ondas saem do botão como de um altifalante e, de
+     tempos a tempos, o botão dá um pequeno salto. Anel num ::before porque o box-shadow do botão tem !important. */
+  body.oe-page--home #homeOutputPlaceholder .oe-conversa button.oe-conversa__ouvir:not([aria-pressed]) { position: relative; animation: oe-salto 4s 2s ease-in-out infinite; }
+  body.oe-page--home #homeOutputPlaceholder .oe-conversa button.oe-conversa__ouvir:not([aria-pressed])::before,
+  body.oe-page--home #homeOutputPlaceholder .oe-conversa button.oe-conversa__ouvir:not([aria-pressed])::after {
+    content: ""; position: absolute; inset: -2px; border-radius: inherit; border: 2px solid var(--oe-btn, #fd8c32); pointer-events: none; opacity: 0;
+    animation: oe-onda-btn 2s 1.2s ease-out infinite; }
+  body.oe-page--home #homeOutputPlaceholder .oe-conversa button.oe-conversa__ouvir:not([aria-pressed])::after { animation-delay: 1.8s; }
+  body.oe-page--home #homeOutputPlaceholder .oe-conversa button.oe-conversa__ouvir:not([aria-pressed]):hover { animation: none; }
+  html[data-design] .oe-conversa__ouvir:not([aria-pressed]):not(:hover) svg { animation: oe-chama 2.4s 1.4s ease-in-out infinite; }
+  @keyframes oe-onda-btn { 0% { inset: -2px; opacity: .85; } 100% { inset: -11px; opacity: 0; } }
+  @keyframes oe-salto { 0%, 82%, 100% { transform: none; } 86% { transform: translateY(-4px) scale(1.04); } 90% { transform: translateY(0) scale(.98); } 94% { transform: translateY(-2px); } }
 
   /* Mensagem a tocar: o ▶ pulsa e a parte da onda ainda por ouvir mexe-se */
   html:not([data-design]) .oe-voz.a-tocar .oe-voz__play { animation: oe-anel 1.2s ease-out infinite; }

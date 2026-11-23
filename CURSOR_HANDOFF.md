@@ -324,6 +324,9 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
 - Cookies no telemóvel: a tabela (nomes como `ouviescrevi_api_token` que não partiam) alargava a página toda. Em
   ≤600px a `.oe-legal-table` desliza só dentro dela e os `code` partem (`ouviescrevi.css?v=69`); na Ardósia os `code`
   deixam de ter fundo branco (`temas.css?v=16`).
+- «Ouvir um exemplo» convida ao clique nos 3 designs até ao 1.º clique (`:not([aria-pressed])`, `conversa-demo.css?v=31`):
+  duas ondas a sair do botão (`::before/::after`, cor `--oe-btn`, porque o `box-shadow` do botão tem `!important`) e
+  um pequeno salto a cada 4 s; só com `prefers-reduced-motion: no-preference`.
 
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).
