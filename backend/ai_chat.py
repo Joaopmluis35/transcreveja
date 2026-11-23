@@ -17,6 +17,7 @@ CLAUDE_MODEL = (os.getenv("CLAUDE_MODEL") or "claude-opus-5-5").strip()
 # Tarefas curtas (resumos, traduções): esforço baixo chega e sai mais barato e rápido.
 CLAUDE_EFFORT = (os.getenv("CLAUDE_EFFORT") or "low").strip()
 CLAUDE_TIMEOUT = float(os.getenv("CLAUDE_TIMEOUT", "90"))
+THINKING_HEADROOM = 2048
 
 # Estado do último pedido, para o backoffice mostrar se o Claude está a funcionar.
 last_status: dict = {"provider": None, "claude_error": None}
@@ -50,7 +51,7 @@ class ChatWithFallback:
     def create(self, *, model, messages, temperature=None, max_tokens=None, response_format=None, **kwargs):
         if self._claude is not None:
             try:
-                text = self._ask_claude(messages, json_mode=bool(response_format))
+                text = self._ask_claude(messages, json_mode=bool(response_format), max_tokens=max_tokens)
                 last_status.update(provider="claude", claude_error=None)
                 return _openai_like(text)
             except Exception as e:  # sem crédito, chave inválida, serviço em baixo… → ChatGPT
@@ -67,7 +68,7 @@ class ChatWithFallback:
         last_status["provider"] = "openai"
         return resp
 
-    def _ask_claude(self, messages, *, json_mode: bool) -> str:
+    def _ask_claude(self, messages, *, json_mode: bool, max_tokens=None) -> str:
         system_parts = [m["content"] for m in messages if m["role"] == "system"]
         if json_mode:
             system_parts.append("Responde só com um objeto JSON válido, sem texto antes nem depois.")
@@ -76,8 +77,8 @@ class ChatWithFallback:
             convo.pop(0)
         resp = self._claude.messages.create(
             model=CLAUDE_MODEL,
-            # O pensamento do modelo conta para este limite; o tamanho da resposta é controlado pelo pedido.
-            max_tokens=16000,
+            # O limite de quem chama + folga para o pensamento do modelo (que também conta); sem limite → 16000.
+            max_tokens=min(16000, max_tokens + THINKING_HEADROOM) if max_tokens else 16000,
             system="\n\n".join(system_parts) or anthropic.omit,
             messages=convo,
             output_config={"effort": CLAUDE_EFFORT},

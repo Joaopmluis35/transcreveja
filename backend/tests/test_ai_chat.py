@@ -48,6 +48,7 @@ def test_uses_claude_when_it_works():
     assert sent["system"] == "Resume."
     assert sent["messages"] == [{"role": "user", "content": "texto"}]  # sem system e a começar pelo utilizador
     assert "temperature" not in sent
+    assert sent["max_tokens"] == 20 + ai_chat.THINKING_HEADROOM  # respeita o limite de quem chama
 
 
 def test_falls_back_to_openai_when_claude_fails():
