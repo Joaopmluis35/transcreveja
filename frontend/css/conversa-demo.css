@@ -357,3 +357,49 @@ body.oe-pro .oe-erro-card button.oe-erro-card__btn { display: inline-flex; align
 body.oe-pro .oe-erro-card button.oe-erro-card__btn:hover { background: var(--oe-btn-hover, #f07a1c) !important; }
 .oe-erro-card__dica { margin: 10px 0 0; font-size: .88rem; color: var(--pro-text-secondary, #3d5677); }
 body.oe-page--home .oe-home-workspace__col--output > .oe-erro-card { align-self: start !important; height: auto !important; }
+
+/* ── Cartão «A transcrever» (#loading) com o aspeto de cada design ── */
+/* Mensagens de voz: balão de mensagem de voz; a barra é uma onda sonora que se pinta de laranja. */
+html:not([data-design]) body.oe-pro.oe-page--home .oe-home-workspace__col--output #loading.oe-loading {
+  --onda: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 30'%3E%3Cg fill='%23000'%3E%3Crect x='1' y='10' width='3' height='10' rx='1.5'/%3E%3Crect x='6' y='6' width='3' height='18' rx='1.5'/%3E%3Crect x='11' y='2' width='3' height='26' rx='1.5'/%3E%3Crect x='16' y='8' width='3' height='14' rx='1.5'/%3E%3Crect x='21' y='4' width='3' height='22' rx='1.5'/%3E%3Crect x='26' y='11' width='3' height='8' rx='1.5'/%3E%3Crect x='31' y='5' width='3' height='20' rx='1.5'/%3E%3Crect x='36' y='1' width='3' height='28' rx='1.5'/%3E%3Crect x='41' y='9' width='3' height='12' rx='1.5'/%3E%3Crect x='46' y='3' width='3' height='24' rx='1.5'/%3E%3Crect x='51' y='7' width='3' height='16' rx='1.5'/%3E%3Crect x='56' y='10' width='3' height='10' rx='1.5'/%3E%3C/g%3E%3C/svg%3E");
+  border: 0 !important; border-radius: 22px 22px 22px 6px; padding: 18px 20px 16px; background: var(--pro-surface, #fff) !important;
+  box-shadow: 0 1px 2px rgba(15,42,79,.08), 0 18px 34px -20px rgba(15,42,79,.45) !important; }
+html:not([data-design]) body.oe-pro.oe-page--home .oe-home-workspace__col--output #loading #progressWrap {
+  height: 30px; border-radius: 0; background: #cfe0f4; -webkit-mask: var(--onda) repeat-x 0 50% / 60px 30px; mask: var(--onda) repeat-x 0 50% / 60px 30px; }
+html:not([data-design]) body.oe-pro.oe-page--home .oe-home-workspace__col--output #loading #progressBar { height: 100%; border-radius: 0; background: var(--oe-btn, #fd8c32); }
+html:not([data-design]) body.oe-pro.oe-page--home .oe-home-workspace__col--output #loading button.oe-loading__cancel {
+  min-height: 44px; padding: .5rem 1.3rem !important; border-radius: 999px !important; border: 2px solid var(--oe-btn2, #0f2a4f) !important;
+  background: transparent !important; color: var(--oe-btn2, #0f2a4f) !important; box-shadow: none !important; font-weight: 750; }
+html:not([data-design]) body.oe-pro.oe-page--home .oe-home-workspace__col--output #loading button.oe-loading__cancel:hover { background: var(--oe-btn2, #0f2a4f) !important; color: #fff !important; }
+
+/* Caderno: folha pautada com margem vermelha e fita-cola; a barra é um traço de marcador amarelo. */
+html[data-design="caderno"] body.oe-pro.oe-page--home .oe-home-workspace__col--output #loading.oe-loading {
+  position: relative; overflow: visible; border: 0 !important; border-radius: 2px; padding: 1.5rem 1.2rem 1.2rem 3.4rem; animation: none; transform: rotate(.6deg); color: #142c7a;
+  background: linear-gradient(90deg, transparent 2.5rem, rgba(210,59,53,.6) 2.5rem, rgba(210,59,53,.6) calc(2.5rem + 2px), transparent calc(2.5rem + 2px)),
+    repeating-linear-gradient(#fff 0 calc(1.9rem - 1px), rgba(30,63,168,.2) calc(1.9rem - 1px) 1.9rem) !important;
+  box-shadow: 0 1px 2px rgba(20,44,122,.15), 0 16px 24px -16px rgba(20,44,122,.55) !important; }
+html[data-design="caderno"] body.oe-pro.oe-page--home .oe-home-workspace__col--output #loading.oe-loading::before { content: ""; position: absolute; top: -.7rem; right: 1.4rem; width: 5.5rem; height: 1.5rem; transform: rotate(-3deg); background: rgba(240,244,250,.75); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+html[data-design="caderno"] body.oe-pro.oe-page--home .oe-home-workspace__col--output #loading .oe-loading__eyebrow { color: #d23b35; letter-spacing: .08em; }
+html[data-design="caderno"] body.oe-pro.oe-page--home .oe-home-workspace__col--output #loading #transcricaoStatus { font-family: "Shantell Sans", cursive; font-weight: 600; font-size: 1.2rem; color: #1e3fa8; }
+html[data-design="caderno"] body.oe-pro.oe-page--home .oe-home-workspace__col--output #loading :is(#timerTranscricao, #legendarEta, .oe-loading__hint) { color: #3a55a8; }
+html[data-design="caderno"] body.oe-pro.oe-page--home .oe-home-workspace__col--output #loading #progressWrap { height: 16px; border-radius: 0; overflow: visible; background: linear-gradient(transparent 46%, rgba(30,63,168,.35) 46% 58%, transparent 58%); }
+html[data-design="caderno"] body.oe-pro.oe-page--home .oe-home-workspace__col--output #loading #progressBar { height: 100%; border-radius: 3px 6px 4px 7px; background: rgba(255,214,10,.78); transform: skewX(-8deg); }
+html[data-design="caderno"] body.oe-pro.oe-page--home .oe-home-workspace__col--output #loading button.oe-loading__cancel {
+  min-height: 44px; padding: .45rem 1.1rem !important; border-radius: 2px !important; border: 1.5px solid #1e3fa8 !important; background: rgba(255,255,255,.7) !important; color: #1e3fa8 !important; box-shadow: none !important; }
+html[data-design="caderno"] body.oe-pro.oe-page--home .oe-home-workspace__col--output #loading button.oe-loading__cancel:hover { background: #1e3fa8 !important; color: #fff !important; }
+
+/* Ardósia: escrito a giz no próprio quadro, com contorno desenhado à mão; a barra é um risco de giz amarelo. */
+html[data-design="ardosia"] body.oe-pro.oe-page--home .oe-home-workspace__col--output #loading.oe-loading {
+  border: 2px dashed rgba(238,241,232,.55) !important; border-radius: 255px 18px 225px 18px / 18px 225px 18px 255px; padding: 1.3rem 1.5rem 1.2rem; animation: none;
+  background: rgba(255,255,255,.04) !important; box-shadow: none !important; color: #eef1e8; }
+html[data-design="ardosia"] body.oe-pro.oe-page--home .oe-home-workspace__col--output #loading .oe-loading__eyebrow { color: #f2d24b; letter-spacing: .1em; }
+html[data-design="ardosia"] body.oe-pro.oe-page--home .oe-home-workspace__col--output #loading #transcricaoStatus { font-family: "Shantell Sans", cursive; font-weight: 600; font-size: 1.2rem; color: #eef1e8 !important; }
+html[data-design="ardosia"] body.oe-pro.oe-page--home .oe-home-workspace__col--output #loading :is(#timerTranscricao, #legendarEta, .oe-loading__hint) { color: #c9d3c4 !important; }
+html[data-design="ardosia"] body.oe-pro.oe-page--home .oe-home-workspace__col--output #loading #progressWrap { height: 12px; border-radius: 0; overflow: visible;
+  background: repeating-linear-gradient(90deg, rgba(238,241,232,.35) 0 10px, transparent 10px 16px) no-repeat 0 50% / 100% 2px; }
+html[data-design="ardosia"] body.oe-pro.oe-page--home .oe-home-workspace__col--output #loading #progressBar { height: 100%; border-radius: 6px 3px 7px 2px; background: #f2d24b;
+  -webkit-mask: repeating-linear-gradient(100deg, #000 0 3px, rgba(0,0,0,.55) 3px 5px); mask: repeating-linear-gradient(100deg, #000 0 3px, rgba(0,0,0,.55) 3px 5px); }
+html[data-design="ardosia"] body.oe-pro.oe-page--home .oe-home-workspace__col--output #loading button.oe-loading__cancel {
+  --oe-btn-bg: transparent; --oe-btn-border: rgba(238,241,232,.7); --oe-btn-text: #eef1e8; /* o theme-dark.css pinta os botões com estas variáveis e !important */
+  min-height: 44px; padding: .45rem 1.1rem !important; border-radius: 3px !important; border: 2px solid rgba(238,241,232,.7) !important; background: transparent !important; color: #eef1e8 !important; box-shadow: none !important; font-family: "Shantell Sans", cursive; }
+html[data-design="ardosia"] body.oe-pro.oe-page--home .oe-home-workspace__col--output #loading button.oe-loading__cancel:hover { --oe-btn-bg: #eef1e8; --oe-btn-text: #1b2a24; background: #eef1e8 !important; color: #1b2a24 !important; }

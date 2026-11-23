@@ -293,6 +293,11 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   novidades de 23/11/2026 em PT (novo aspeto, língua original, «Tentar outra vez») e 2 em EN/ES/FR/DE. Nomes dos
   designs traduzidos nos cabeçalhos EN/ES/FR/DE (Notebook/Chalkboard, Cuaderno/Pizarra, Cahier/Ardoise, Heft/Tafel;
   `LAYOUT_V=18`).
+- Cartão «A transcrever» (`#loading`, coluna do resultado) com aspeto próprio em cada design (fim de
+  `conversa-demo.css?v=28`, 5 páginas iniciais): Mensagens de voz = balão de mensagem com a barra em forma de onda
+  sonora (máscara SVG `--onda`); Caderno = folha pautada com margem vermelha, fita-cola e marcador amarelo; Ardósia =
+  contorno a giz no quadro e risco de giz amarelo. Na Ardósia o botão Cancelar redefine `--oe-btn-bg/-border/-text`
+  (o `theme-dark.css` pinta os botões com essas variáveis e `!important`).
 
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).
