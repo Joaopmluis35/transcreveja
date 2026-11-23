@@ -307,6 +307,13 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
 - Buraco branco entre o chat e «Como correu a transcrição?»: o `#output` esticava até à altura da coluna da esquerda
   (a caixa do texto tem altura máxima e a grelha `.oe-output__layout` tem `align-content:start`). No computador o
   `#output` passa a `height:auto; align-self:start` (`index-home.css?v=69`).
+- Menu do telemóvel (`ouviescrevi-pro.css?v=25`, `ouviescrevi-nav.js?v=2` carregado pelo `ouviescrevi-ui.js?v=36`):
+  só uma secção aberta de cada vez; ao abrir o menu, abre logo a secção da página atual; ligações em quadrados de
+  2 colunas com a página atual marcada; Entrar/Registar/bandeira e «Transcrever grátis» fixos no fundo do painel.
+- Caderno no telemóvel: `main` com `padding-left: 38px` para o texto não ficar em cima da linha vermelha (`temas.css?v=11`).
+- Blocos do fim da página inicial com aspeto por design (`conversa-demo.css?v=30`): «Exemplos de uso» com «Ver como →»
+  (traduzido por `html[lang]`), contador de transcrições e «O que é o Ouviescrevi?». Mensagens de voz = balões;
+  Caderno = fichas pautadas, nota amarela e folha com margem; Ardósia = contornos a giz.
 
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).

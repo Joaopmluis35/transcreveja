@@ -66,6 +66,9 @@
     }
     document.body.classList.add("oe-nav-open");
     closeAllDropdowns();
+    // Abre logo a secção da página onde a pessoa está (ex.: «Ferramentas» numa ferramenta), para se situar.
+    var current = header.querySelector(".oe-pro-nav__trigger.is-active");
+    if (current) toggleDropdown(current.closest(".oe-pro-nav__dropdown"));
   }
 
   function toggleMobileNav() {
@@ -159,19 +162,11 @@
       e.preventDefault();
       e.stopPropagation();
       var dropdown = e.target.closest(".oe-pro-nav__dropdown");
-      if (global.innerWidth < 900) {
-        if (dropdown) {
-          dropdown.classList.toggle("is-open");
-          var trigger = dropdown.querySelector(".oe-pro-nav__trigger");
-          if (trigger) {
-            trigger.setAttribute(
-              "aria-expanded",
-              dropdown.classList.contains("is-open") ? "true" : "false"
-            );
-          }
-        }
-      } else {
-        toggleDropdown(dropdown);
+      // Também no telemóvel só fica uma secção aberta de cada vez (com várias abertas as pessoas perdiam-se).
+      toggleDropdown(dropdown);
+      if (global.innerWidth < 900 && dropdown && dropdown.classList.contains("is-open")) {
+        var trig = dropdown.querySelector(".oe-pro-nav__trigger");
+        if (trig && trig.scrollIntoView) trig.scrollIntoView({ block: "nearest" });
       }
       return;
     }

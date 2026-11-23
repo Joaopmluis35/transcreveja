@@ -1,7 +1,7 @@
 /* Ouviescrevi — design system partilhado */
-@import url("ouviescrevi-pro.css?v=24");
+@import url("ouviescrevi-pro.css?v=25");
 @import url("theme-dark.css?v=7");
-@import url("temas.css?v=10");
+@import url("temas.css?v=11");
 
 :root {
   --oe-purple: #1d4a8f;

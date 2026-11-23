@@ -1958,6 +1958,29 @@ body.oe-pro button, body.oe-pro input, body.oe-pro select, body.oe-pro textarea 
   .oe-pro-header__actions .oe-pro-btn--primary, .oe-pro-header__actions a.oe-pro-btn:last-child { grid-column: 1 / -1; min-height: 54px; font-size: 1.08rem; }
   .oe-pro-lang, .oe-pro-header__actions .oe-pro-theme { grid-column: 1 / -1; justify-self: center; }
 }
+/* Menu do telemóvel mais fácil de seguir (23/11/2026): só uma secção aberta de cada vez (ouviescrevi-nav.js), a secção
+   aberta destacada com a seta virada, as ligações em quadrados de 2 colunas (lista muito mais curta), a página atual
+   marcada e Entrar/Registar/«Transcrever grátis» sempre visíveis no fundo do painel. */
+@media (max-width: 899px) {
+  .oe-pro-nav__panel { padding-bottom: 0; }
+  .oe-pro-nav__trigger .oe-pro-nav__chevron { transition: transform .2s ease; }
+  .oe-pro-nav__dropdown.is-open > .oe-pro-nav__trigger { color: var(--pro-accent); background: transparent; border-bottom-color: transparent; }
+  .oe-pro-nav__dropdown.is-open > .oe-pro-nav__trigger .oe-pro-nav__chevron { transform: rotate(180deg); }
+  .oe-pro-nav__panel .oe-pro-nav__dropdown.is-open .oe-pro-nav__menu { margin: 0; padding: 0 0 16px; border-radius: 0; background: transparent; border-bottom: 1px solid var(--pro-border, #dbe6f3); }
+  .oe-pro-nav__panel .oe-pro-nav__dropdown.is-open .oe-pro-nav__menu:not(.oe-pro-nav__menu--grouped),
+  .oe-pro-nav__panel .oe-pro-nav__group { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .oe-pro-nav__panel .oe-pro-nav__mega-col + .oe-pro-nav__mega-col { margin-top: 6px; padding-top: 0; border-top: 0; }
+  .oe-pro-nav__panel .oe-pro-nav__group-label { margin: 0; padding: 10px 2px 8px; border-left: 0; font-size: .7rem; color: var(--pro-text-secondary, #3d5677); }
+  .oe-pro-nav__panel .oe-pro-nav__menu a {
+    display: flex; align-items: center; min-height: 52px; margin: 0; padding: 8px 12px; border: 1px solid var(--pro-border, #dbe6f3); border-radius: 12px;
+    background: var(--pro-bg, #fff); color: var(--pro-text); font-size: .95rem; font-weight: 600; line-height: 1.2; white-space: normal; }
+  .oe-pro-nav__panel .oe-pro-nav__menu a.is-active { border: 2px solid var(--oe-btn, #fd8c32); background: var(--pro-accent-soft, #e4f0fc); font-weight: 800; }
+  .oe-pro-header__actions { position: sticky; bottom: 0; z-index: 1; margin-top: auto; padding: 12px 0 16px; grid-template-columns: 1fr 1fr auto;
+    background: var(--pro-surface, #f4f9ff); box-shadow: 0 -12px 16px -14px rgba(15,42,79,.45); }
+  .oe-pro-header__actions .oe-pro-lang { grid-column: auto; }
+  .oe-pro-auth .oe-pro-btn { min-height: 46px; }
+  .oe-pro-header__actions .oe-pro-btn--primary, .oe-pro-header__actions a.oe-pro-btn:last-child { min-height: 50px; }
+}
 /* As opções do «Design» em azul-escuro (a regra geral das ligações punha-as a laranja) */
 body.oe-pro .oe-design-troca li a { color: var(--pro-text) !important; }
 

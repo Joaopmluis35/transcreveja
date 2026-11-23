@@ -99,6 +99,10 @@ html[data-design="cortica"] body.oe-pro main { box-shadow: inset 0 0 0 10px #6f4
 
 /* Caderno: margem vermelha do lado esquerdo */
 html[data-design="caderno"] body.oe-pro main { background-image: linear-gradient(90deg, transparent 22px, rgba(210,59,53,.6) 22px, rgba(210,59,53,.6) 24px, transparent 24px); }
+/* No telemóvel o texto ficava em cima da linha vermelha: começa um pouco depois dela. */
+@media (max-width: 899px) {
+  html[data-design="caderno"] body.oe-pro main { padding-left: 38px; }
+}
 
 /* ---- Botões: uma cor principal por design (cheio) e uma secundária (contorno) ----
    Mensagens de voz: laranja · Caderno: azul de caneta · Ardósia: giz amarelo com texto escuro. */

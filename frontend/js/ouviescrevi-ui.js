@@ -165,7 +165,7 @@
       }
       return new Promise(function (resolve) {
         var s = document.createElement("script");
-        s.src = "/js/ouviescrevi-nav.js";
+        s.src = "/js/ouviescrevi-nav.js?v=2";
         s.dataset.oeNav = "1";
         s.onload = function () {
           s.setAttribute("data-ready", "1");
