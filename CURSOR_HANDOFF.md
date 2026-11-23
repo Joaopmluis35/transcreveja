@@ -256,6 +256,12 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   castanho das caixas de aviso) trocadas em 23 ficheiros: laranja → `var(--oe-btn, #fd8c32)`, roxo → azuis da
   paleta, texto de avisos → `#0f2a4f`. Fica de propósito `#9c4607` no fundo do símbolo do logótipo (não se vê).
 
+- Transcrição com frase repetida sem fim («o que eu vi, o que eu vi, …», alucinação do Whisper num trecho de vídeo):
+  o filtro só apanhava uma palavra repetida. `main.py`: `_is_phrase_loop` (frase de 2–8 palavras repetida 6+ vezes
+  a cobrir ≥85% do bloco → bloco/segmento deitado fora) e, dentro de fala real, a frase repetida 4+ vezes fica uma vez
+  (`collapse_word_loops_in_block`). `clean_transcription_text` tira os blocos-loop antes de colapsar. 4 testes novos
+  em `tests/test_whisper_filter.py` (refrão de 3 vezes mantém-se).
+
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).
 

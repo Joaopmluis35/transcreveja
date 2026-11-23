@@ -249,3 +249,30 @@ def test_relaxed_keeps_few_narration_segs_when_strict_empty():
     kept = app_main.filter_whisper_segments(segs, language="pt")
     assert len(kept) == 1
     assert "aquecimento" in kept[0]["text"].lower()
+
+
+# Caso real (23/11/2026): trecho de vídeo transcrito como «o que eu vi, o que eu vi, …» durante 30 s.
+_LOOP = ", ".join(["o que eu vi"] * 60)
+
+
+def test_clean_drops_blocks_that_are_a_repeated_phrase():
+    texto = f"[00:00] O que eu vi, {_LOOP}, o que eu\n\n[00:30] vi, {_LOOP}, o que eu"
+    assert app_main.clean_transcription_text(texto, "pt") == ""
+
+
+def test_filter_drops_repeated_phrase_segment():
+    segs = [_seg(_LOOP), _seg("Hoje vamos falar das proteínas e dos suplementos da loja.")]
+    kept = app_main.filter_whisper_segments(segs, language="pt")
+    assert [s["text"] for s in kept] == ["Hoje vamos falar das proteínas e dos suplementos da loja."]
+
+
+def test_clean_collapses_phrase_loop_inside_real_speech():
+    texto = "[00:00] Bom dia a todos. " + ", ".join(["o que eu vi"] * 10) + ". Obrigado pela visita."
+    limpo = app_main.clean_transcription_text(texto, "pt")
+    assert limpo.count("o que eu vi") == 1
+    assert "Bom dia a todos." in limpo and "Obrigado pela visita." in limpo
+
+
+def test_short_refrain_is_kept():
+    texto = "[00:00] É tudo meu, é tudo meu, é tudo meu, e ninguém me tira."
+    assert app_main.clean_transcription_text(texto, "pt") == texto

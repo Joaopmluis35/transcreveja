@@ -674,6 +674,17 @@ _PT_SILENCE_HALLUCINATION = re.compile(
 )
 
 
+def _is_phrase_loop(words: list[str]) -> bool:
+    """O bloco é quase todo a mesma frase curta repetida (6+ vezes seguidas); refrões de 2-3 vezes não contam."""
+    for n in range(2, 9):
+        if len(words) < n * 6:
+            break
+        iguais = sum(1 for i in range(len(words) - n) if words[i] == words[i + n])
+        if iguais / (len(words) - n) >= 0.85:
+            return True
+    return False
+
+
 def _is_hallucination_text(text: str, language: str | None = None) -> bool:
     """
     Deteta padrões típicos de alucinação Whisper em silêncio/ruído de ecrã:
@@ -704,6 +715,9 @@ def _is_hallucination_text(text: str, language: str | None = None) -> bool:
 
         top_word, top_n = Counter(words).most_common(1)[0]
         if top_n / len(words) >= 0.85 and len(top_word) <= 8:
+            return True
+        # Loops de frase: «o que eu vi, o que eu vi, …» (2 a 8 palavras repetidas sem parar)
+        if _is_phrase_loop(words):
             return True
 
     # CJK: sempre suspeito em PT; em auto também (produto PT-first)
@@ -979,6 +993,13 @@ def collapse_word_loops_in_block(block: str) -> str:
         body,
         flags=re.UNICODE,
     )
+    # frase de 2-8 palavras repetida 4+ vezes seguidas («o que eu vi, o que eu vi, …») fica uma vez
+    body = re.sub(
+        r"(?i)\b((?:\w+\W+){1,7}?\w+)(?:\W+\1\b){3,}",
+        r"\1",
+        body,
+        flags=re.UNICODE,
+    )
     return prefix + body
 
 
@@ -1027,6 +1048,8 @@ def clean_transcription_text(text: str, language: str | None = None) -> str:
     if not text:
         return ""
     text = dedupe_consecutive_blocks(text)
+    # Primeiro tira os blocos que são só repetição (senão o colapso deixava «o que eu vi» solto)
+    text = remove_hallucination_blocks(text, language)
     text = collapse_repeated_phrases(text)
     text = remove_hallucination_blocks(text, language)
     lang = (language or "").strip().lower()
