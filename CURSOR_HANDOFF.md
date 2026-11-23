@@ -361,6 +361,11 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
 - Aviso «servidor a acordar» (`ouviescrevi-api.js?v=28`): passou do topo (tapava o menu) para o canto de baixo,
   texto mais calmo («estava em pausa… podes ir escolhendo o ficheiro») e contador de segundos a subir.
 
+- SEO (23/11): 20 títulos com mais de 65 caracteres encurtados (PT/EN/ES/FR/DE; `og:title`/`twitter:title` iguais),
+  5 descrições curtas completadas (blog reuniões, aulas DE/ES/FR, podcasts DE) e `lastmod` do `sitemap.xml` com a
+  data do último commit de cada página. Por fazer: a página inicial tem canónico `/index.html` (melhor `/`; mexe nos
+  `index.html` das 5 línguas e no sitemap) e não há dados de Search Console para decidir as páginas seguintes.
+
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).
 
