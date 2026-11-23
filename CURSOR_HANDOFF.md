@@ -210,6 +210,12 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   próprio guardado e escondia o título); o texto do CMS aparece por baixo. No telemóvel a conversa não tem scroll
   próprio (prendia o dedo); cresce com a página. Botão «Transcrever agora» em laranja vivo `#e46c12`.
 
+- Com sessão iniciada, a «Navegação» (`#oeAccountNav`) deixou de flutuar fixa à esquerda: é uma barra de separadores
+  centrada por cima do título (`index-home.css?v=65`), com as cores de cada design (variáveis `--pro-*`). No
+  telemóvel fica numa linha e esconde «Ajuda» (está no menu de três riscas). As ligações da barra já não herdam o
+  laranja genérico dos links (exclusão em `ouviescrevi-pro.css`). Mensagens de voz: um só laranja nos botões
+  principais, `#c2560c` (contraste 4.5:1 com branco), no cabeçalho e no «Transcrever agora». `ouviescrevi.css?v=56`.
+
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).
 

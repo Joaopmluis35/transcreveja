@@ -78,7 +78,7 @@ body.oe-page--home .oe-conversa button.oe-conversa__tudo { background: none !imp
 }
 
 /* Botão principal com laranja mais vivo, próximo do desenho; as ligações de texto mantêm o laranja escuro (legível) */
-body.oe-pro.oe-page--home #uploadForm #btnTranscrever { background: #e46c12 !important; }
+body.oe-pro.oe-page--home #uploadForm #btnTranscrever { background: #c2560c !important; }
 body.oe-pro.oe-page--home #uploadForm #btnTranscrever:hover:not(:disabled) { background: #c95e0d !important; }
 
 /* ── A conversa com o aspeto de cada design ─────────────────────────────── */

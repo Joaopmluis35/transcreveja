@@ -40,11 +40,11 @@ body.oe-pro {
   text-align: left;
 }
 
-.oe-pro a:not(.oe-pro-btn):not(.oe-pro-brand):not(.oe-pro-nav__link):not(.oe-pro-nav__trigger):not(.oe-pro-nav__menu a):not(.oe-pro-footer__logo):not(.oe-pro-footer__email):not(.oe-pro-footer__social):not(.oe-pro-footer__social-icons a):not(.oe-lp-btn) {
+.oe-pro a:not(.oe-pro-btn):not(.oe-pro-brand):not(.oe-pro-nav__link):not(.oe-pro-nav__trigger):not(.oe-pro-nav__menu a):not(.oe-pro-footer__logo):not(.oe-pro-footer__email):not(.oe-pro-footer__social):not(.oe-pro-footer__social-icons a):not(.oe-lp-btn):not(.oe-account-nav__link) {
   color: var(--pro-accent);
   text-decoration: none;
 }
-.oe-pro a:not(.oe-pro-btn):not(.oe-pro-brand):not(.oe-pro-nav__link):not(.oe-pro-nav__trigger):not(.oe-pro-nav__menu a):not(.oe-pro-footer__logo):not(.oe-pro-footer__email):not(.oe-pro-footer__social):not(.oe-pro-footer__social-icons a):not(.oe-lp-btn):hover {
+.oe-pro a:not(.oe-pro-btn):not(.oe-pro-brand):not(.oe-pro-nav__link):not(.oe-pro-nav__trigger):not(.oe-pro-nav__menu a):not(.oe-pro-footer__logo):not(.oe-pro-footer__email):not(.oe-pro-footer__social):not(.oe-pro-footer__social-icons a):not(.oe-lp-btn):not(.oe-account-nav__link):hover {
   text-decoration: underline;
 }
 
@@ -1991,3 +1991,12 @@ html body.oe-pro .oe-pro-header .oe-design-troca button.oe-design-op[aria-checke
 /* O logótipo cabe inteiro na sua caixa (a imagem tinha 40×47 numa caixa de 34×40 e era cortada) */
 body.oe-pro .oe-pro-brand__icon-wrap { overflow: visible; width: 34px; height: 40px; }
 body.oe-pro .oe-pro-brand__icon-wrap .oe-pro-brand__icon, body.oe-pro .oe-pro-footer .oe-pro-brand__icon { width: 34px !important; height: 40px !important; max-width: none; object-fit: contain; }
+
+/* Mensagens de voz: um só laranja nos botões principais (legível com texto branco, 4.5:1). */
+html:not([data-design]) body.oe-pro .oe-pro-btn--primary,
+html:not([data-design]) body.oe-pro a.oe-pro-btn.oe-pro-btn--primary { background: #c2560c; border-color: #c2560c; }
+html:not([data-design]) body.oe-pro .oe-pro-btn--primary:hover,
+html:not([data-design]) body.oe-pro a.oe-pro-btn.oe-pro-btn--primary:hover { background: #a94c06; border-color: #a94c06; }
+/* Com sessão iniciada: email com mais espaço e alinhado com «Sair». */
+@media (min-width: 1241px) { body.oe-pro .oe-pro-auth__user { max-width: 190px; } }
+body.oe-pro .oe-pro-auth { align-items: center; }

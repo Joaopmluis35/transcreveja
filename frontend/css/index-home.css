@@ -3291,3 +3291,31 @@ body.oe-page--home .oe-output__actions .oe-output__group {
 body.oe-page--home .oe-output__actions .oe-output__group:first-child {
   margin-top: 0;
 }
+
+/* Com sessão iniciada: «Navegação» passa a uma barra de separadores centrada por cima do título,
+   alinhada com o resto da página (antes flutuava fixa à esquerda, fora do alinhamento). */
+body.oe-page--home.oe-logged-in main { padding-left: 20px; align-items: center; }
+body.oe-page--home.oe-logged-in #adminContent { margin: 0 auto; padding-left: 0; }
+body.oe-pro.oe-page--home.oe-logged-in .oe-account-nav {
+  position: static; flex-direction: row; align-items: center; gap: 4px;
+  align-self: center; width: auto; max-width: 100%; margin: 0 auto 28px;
+  padding: 5px; border-radius: 999px; background: var(--pro-surface, #fff);
+  border: 1px solid var(--pro-border, #d3e2f3); box-shadow: 0 2px 10px rgba(15, 42, 79, .06);
+}
+body.oe-pro.oe-page--home .oe-account-nav__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+body.oe-pro.oe-page--home .oe-account-nav .oe-account-nav__list { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 2px; }
+body.oe-pro.oe-page--home .oe-account-nav .oe-account-nav__btn,
+body.oe-pro.oe-page--home .oe-account-nav .oe-account-nav__link {
+  width: auto; padding: 8px 16px; border-radius: 999px; color: var(--pro-text, #0f2a4f); font-size: .92rem; font-weight: 600;
+}
+body.oe-pro.oe-page--home .oe-account-nav .oe-account-nav__btn:hover,
+body.oe-pro.oe-page--home .oe-account-nav .oe-account-nav__link:hover { background: var(--pro-accent-soft, #e4f0fc); color: var(--pro-text, #0f2a4f); }
+body.oe-pro.oe-page--home .oe-account-nav .oe-account-nav__btn.is-active { background: var(--pro-text, #0f2a4f); color: var(--pro-surface, #fff); }
+@media (max-width: 600px) {
+  body.oe-pro.oe-page--home.oe-logged-in .oe-account-nav { margin-bottom: 20px; padding: 4px; }
+  body.oe-pro.oe-page--home .oe-account-nav .oe-account-nav__list { flex-wrap: nowrap; gap: 0; }
+  body.oe-pro.oe-page--home .oe-account-nav .oe-account-nav__btn,
+  body.oe-pro.oe-page--home .oe-account-nav .oe-account-nav__link { padding: 7px 9px; font-size: .8rem; }
+  /* «Ajuda» já está no menu de três riscas; no telemóvel não cabe nesta barra. */
+  body.oe-pro.oe-page--home .oe-account-nav a[href="ajuda.html"] { display: none; }
+}
