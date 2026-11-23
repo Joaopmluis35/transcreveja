@@ -244,6 +244,14 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
 - Exemplo da página inicial com «Parar» (`conversa-demo.js?v=5`): enquanto corre, o botão «Ouvir» passa a «Parar» (ícone
   quadrado, `aria-pressed`); parar cala a voz, larga a caneta/giz e deixa o que já foi escrito («Ouvir outra vez»).
 
+- Letras em castanho-laranja: `--pro-accent` passa a azul `#1d4a8f` (hover `#0f2a4f`) em Mensagens de voz; todas as
+  cores de texto `#b5520a/#9c4607/#a94c06/#8f4007/#7a4a1c` (CSS, `<style>` das páginas e JS) passaram a
+  `var(--pro-accent, #1d4a8f)`, por isso no Caderno/Ardósia seguem o azul/amarelo desses designs. Ícone do separador:
+  `logos/ouviescrevi-icon-pro.png`, `ouviescreviicon.png` e `icon-192.png` redesenhados com o novo símbolo (links com
+  `?v=2`, cache do service worker `oe-shell-v4`). Mensagens de voz com animações (título, caixa e conversa a subir ao
+  abrir, anel no ▶, onda a mexer enquanto toca, linhas do «Exemplo de transcrição» a entrar). Correção: no telemóvel o
+  `#uploadForm` tinha `height:100%` e o exemplo ficava por baixo da conversa.
+
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).
 

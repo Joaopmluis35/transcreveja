@@ -27,7 +27,7 @@ body.oe-pro.oe-page--suggestions main.oe-suggestions {
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: #9c4607;
+  color: var(--pro-accent, #1d4a8f);
   background: rgba(181, 82, 10, 0.1);
 }
 
@@ -145,7 +145,7 @@ body.oe-pro.oe-page--suggestions main.oe-suggestions {
 .oe-suggestions__cat input:checked + span {
   background: rgba(196, 89, 10, 0.12);
   border-color: #7f9cc4;
-  color: #a94c06;
+  color: var(--pro-accent, #1d4a8f);
 }
 
 .oe-suggestions__meta {
@@ -205,7 +205,7 @@ body.oe-pro.oe-page--suggestions main.oe-suggestions {
 }
 
 .oe-suggestions__footer a {
-  color: #9c4607;
+  color: var(--pro-accent, #1d4a8f);
   font-weight: 600;
   text-decoration: none;
 }

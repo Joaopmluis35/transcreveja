@@ -68,7 +68,7 @@ body.oe-page--url-resumo .container.oe-url-page {
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #9c4607;
+  color: var(--pro-accent, #1d4a8f);
   background: rgba(181, 82, 10, 0.1);
 }
 

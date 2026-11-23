@@ -211,7 +211,7 @@ body.oe-page--corretor .container.oe-cor-page {
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #9c4607;
+  color: var(--pro-accent, #1d4a8f);
   background: rgba(181, 82, 10, 0.1);
 }
 
@@ -637,7 +637,7 @@ body.oe-page--corretor .container.oe-cor-page {
 .oe-cor-drop--over {
   border-color: #7f9cc4;
   background: #f4f9ff;
-  color: #a94c06;
+  color: var(--pro-accent, #1d4a8f);
 }
 
 .oe-cor-form__shortcut {

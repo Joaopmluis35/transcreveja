@@ -51,7 +51,7 @@ body.oe-page--aula-pronta .oe-ap-hero .oe-lead {
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #9c4607;
+  color: var(--pro-accent, #1d4a8f);
   background: rgba(181, 82, 10, 0.1);
 }
 
@@ -245,7 +245,7 @@ body.oe-page--aula-pronta .oe-ap-hero .oe-lead {
   margin: 0 0 10px;
   font-size: 0.95rem;
   font-weight: 700;
-  color: #9c4607;
+  color: var(--pro-accent, #1d4a8f);
 }
 
 .oe-ap-section p,
@@ -293,7 +293,7 @@ body.oe-page--aula-pronta .oe-ap-hero .oe-lead {
 .oe-ap-question__num {
   font-size: 0.75rem;
   font-weight: 800;
-  color: #b5520a;
+  color: var(--pro-accent, #1d4a8f);
   text-transform: uppercase;
 }
 
@@ -409,7 +409,7 @@ body.oe-page--aula-pronta .oe-ap-hero .oe-lead {
 
 .oe-ap-mygames__stats {
   font-weight: 600;
-  color: #b5520a;
+  color: var(--pro-accent, #1d4a8f);
 }
 
 .oe-ap-mygames__actions {

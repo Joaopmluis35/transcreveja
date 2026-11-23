@@ -28,7 +28,7 @@ body.oe-page--home .oe-home-panel--placeholder.oe-conversa-wrap { padding: 0; ba
 .oe-conversa__msgs { list-style: none; margin: 0; padding: 1rem; display: flex; flex-direction: column; gap: .65rem;
   height: clamp(22rem, 52vh, 30rem); overflow-y: auto; overscroll-behavior: contain; scroll-behavior: smooth; }
 .oe-conversa__vazio { margin: auto; max-width: 21rem; text-align: center; color: #3d5677; font-size: 1rem; line-height: 1.5; }
-.oe-conversa__vazio svg { width: 2.4rem; height: 2.4rem; color: #b5520a; display: block; margin: 0 auto .4rem; }
+.oe-conversa__vazio svg { width: 2.4rem; height: 2.4rem; color: var(--pro-accent, #1d4a8f); display: block; margin: 0 auto .4rem; }
 .oe-conversa__tudo { background: none; border: 0; font: inherit; font-weight: 700; color: #0f2a4f; text-decoration: underline; text-underline-offset: .22em; margin-top: .5rem; cursor: pointer; }
 
 .oe-voz { align-self: flex-start; display: flex; align-items: center; gap: .65rem; max-width: min(21rem, 90%); padding: .55rem .85rem .55rem .55rem; background: #fff; border-radius: 18px 18px 18px 6px; box-shadow: 0 1px 2px rgba(15,42,79,.08); }
@@ -43,7 +43,7 @@ body.oe-page--home .oe-home-panel--placeholder.oe-conversa-wrap { padding: 0; ba
 .oe-texto { align-self: flex-end; max-width: min(25rem, 90%); padding: .6rem .9rem .45rem; background: #fff3e6; border-radius: 18px 18px 6px 18px; box-shadow: 0 1px 2px rgba(15,42,79,.08); }
 .oe-texto__autor { display: block; font-weight: 800; font-size: .93rem; }
 .oe-texto__frase { display: block; font-size: 1.03rem; line-height: 1.45; }
-.oe-texto__rodape { display: flex; justify-content: flex-end; align-items: center; gap: .3rem; margin-top: .2rem; font-size: .74rem; color: #7a4a1c; font-variant-numeric: tabular-nums; }
+.oe-texto__rodape { display: flex; justify-content: flex-end; align-items: center; gap: .3rem; margin-top: .2rem; font-size: .74rem; color: var(--pro-accent, #1d4a8f); font-variant-numeric: tabular-nums; }
 .oe-texto__rodape svg { width: .8rem; height: .8rem; }
 .oe-digitar { align-self: flex-end; display: flex; gap: 4px; padding: .75rem .95rem; background: #fff3e6; border-radius: 18px 18px 6px 18px; }
 .oe-digitar i { width: 7px; height: 7px; border-radius: 50%; background: #c58b52; animation: oe-salta 1s ease-in-out infinite; }
@@ -53,7 +53,7 @@ body.oe-page--home .oe-home-panel--placeholder.oe-conversa-wrap { padding: 0; ba
 .oe-voz.oe-entra { transform-origin: 0 100%; } .oe-texto.oe-entra { transform-origin: 100% 100%; }
 @keyframes oe-entra { from { opacity: 0; transform: scale(.85) translateY(8px); } to { opacity: 1; transform: none; } }
 .oe-resumo-bolha { align-self: center; width: min(27rem, 96%); padding: .85rem 1.05rem; background: #fff; border: 2px solid #b5520a; border-radius: 16px; }
-.oe-resumo-bolha h3 { margin: 0; font-size: 1rem; font-weight: 800; color: #8f4007; }
+.oe-resumo-bolha h3 { margin: 0; font-size: 1rem; font-weight: 800; color: var(--pro-accent, #1d4a8f); }
 .oe-resumo-bolha ol { padding-left: 1.3rem; margin: .3rem 0 0; font-size: .98rem; }
 .oe-conversa__aviso { margin: 0; font-size: .88rem; color: #3d5677; padding: 0 1rem .8rem; min-height: 1rem; }
 
@@ -308,3 +308,39 @@ html:not([data-design]) .oe-voz__onda i.tocada { background: #3a6fc4; }
   html:not([data-design]) body.oe-page--home #uploadForm { max-width: none; }
   html:not([data-design]) .oe-conversa__msgs { height: clamp(26rem, 70vh, 44rem); }
 }
+
+/* ══ Mensagens de voz: animações (só sem «reduzir movimento») ══ */
+@media (prefers-reduced-motion: no-preference) {
+  /* Ao abrir: o título sobe em duas linhas, depois a caixa e a conversa */
+  html:not([data-design]) body.oe-page--home .oe-home-hero { animation: oe-sobe .6s cubic-bezier(.2,.8,.2,1) both; }
+  html:not([data-design]) body.oe-page--home .oe-home-hero__l2 { animation: oe-sobe .6s .15s cubic-bezier(.2,.8,.2,1) both; }
+  html:not([data-design]) body.oe-page--home .oe-home-intro { animation: oe-sobe .55s .3s ease-out both; }
+  html:not([data-design]) body.oe-page--home #uploadForm { animation: oe-sobe .6s .4s cubic-bezier(.2,.8,.2,1) both; }
+  html:not([data-design]) body.oe-page--home .oe-home-workspace__col--output { animation: oe-sobe .6s .55s cubic-bezier(.2,.8,.2,1) both; }
+  html:not([data-design]) body.oe-page--home .oe-home-trust-chips li { animation: oe-sobe .45s both; animation-delay: calc(.7s + var(--i, 0) * 90ms); }
+  html:not([data-design]) body.oe-page--home .oe-home-trust-chips li:nth-child(2) { --i: 1; }
+  html:not([data-design]) body.oe-page--home .oe-home-trust-chips li:nth-child(3) { --i: 2; }
+  html:not([data-design]) body.oe-page--home .oe-home-trust-chips li:nth-child(4) { --i: 3; }
+  @keyframes oe-sobe { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+
+  /* O ▶ do «Ouvir um exemplo» chama a atenção com um anel, até carregarem */
+  html:not([data-design]) .oe-conversa__ouvir[aria-pressed="false"]:not(:hover) svg,
+  html:not([data-design]) .oe-conversa__ouvir:not([aria-pressed]) svg { animation: oe-chama 2.4s 1.4s ease-in-out infinite; }
+  @keyframes oe-chama { 0%, 70%, 100% { transform: none; } 80% { transform: scale(1.35); } 90% { transform: scale(.95); } }
+
+  /* Mensagem a tocar: o ▶ pulsa e a parte da onda ainda por ouvir mexe-se */
+  html:not([data-design]) .oe-voz.a-tocar .oe-voz__play { animation: oe-anel 1.2s ease-out infinite; }
+  @keyframes oe-anel { from { box-shadow: 0 0 0 0 rgba(253,140,50,.55); } to { box-shadow: 0 0 0 12px rgba(253,140,50,0); } }
+  html:not([data-design]) .oe-voz.a-tocar .oe-voz__onda i { transform-origin: 50% 50%; animation: oe-onda .9s ease-in-out infinite; }
+  html:not([data-design]) .oe-voz.a-tocar .oe-voz__onda i:nth-child(3n) { animation-delay: -.3s; }
+  html:not([data-design]) .oe-voz.a-tocar .oe-voz__onda i:nth-child(3n+1) { animation-delay: -.6s; }
+  @keyframes oe-onda { 50% { transform: scaleY(.55); } }
+
+  /* «Exemplo de transcrição»: as linhas entram uma a uma quando aparecem no ecrã */
+  html.oe-anima:not([data-design]) .oe-exemplo-tr li { opacity: 0; transform: translateX(-10px); transition: opacity .4s ease-out, transform .45s cubic-bezier(.2,.8,.2,1); }
+  html.oe-anima:not([data-design]) .oe-exemplo-tr.visto li { opacity: 1; transform: none; }
+  .oe-exemplo-tr.visto li:nth-child(2) { transition-delay: .12s; } .oe-exemplo-tr.visto li:nth-child(3) { transition-delay: .24s; }
+  .oe-exemplo-tr.visto li:nth-child(4) { transition-delay: .36s; } .oe-exemplo-tr.visto li:nth-child(5) { transition-delay: .48s; }
+}
+/* O formulário tinha altura 100% da coluna; com o exemplo por baixo, passa a ter a sua altura (senão sobrepunha-se no telemóvel). */
+html:not([data-design]) body.oe-page--home .oe-home-workspace__col--input #uploadForm { height: auto; }

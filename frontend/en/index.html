@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" href="/logos/ouviescrevi-icon-pro.png" type="image/png" />
+  <link rel="icon" href="/logos/ouviescrevi-icon-pro.png?v=2" type="image/png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="../css/ouviescrevi.css?v=60">
+  <link rel="stylesheet" href="../css/ouviescrevi.css?v=61">
   <script src="/js/ouviescrevi-seo.js" defer></script>
   <script src="../js/transcribe-jobs-ui.js?v=25" defer></script>
   <script src="../js/docx-export.js?v=25" defer></script>
@@ -111,11 +111,11 @@
     #uploadForm .oe-btn-transcribe{
       display:flex; flex-direction:column; align-items:center; justify-content:center;
       gap:2px; line-height:1.25; padding-top:10px; padding-bottom:10px;
-      background:#b5520a; color:#fff; border:none;
+      background:var(--oe-btn, #fd8c32); color:#fff; border:none;
       font-size:1.05rem; min-height:52px; font-weight:700;
     }
     #uploadForm .oe-btn-transcribe:hover:not(:disabled){
-      background:#a94c06; color:#fff; border:none;
+      background:var(--oe-btn-hover, #f07a1c); color:#fff; border:none;
     }
     #uploadForm .oe-btn-transcribe__hint{ font-size:0.78rem; font-weight:500; opacity:0.92; }
     #uploadForm .oe-btn-transcribe__label{ font-weight:700; }
@@ -357,7 +357,7 @@
 </main>
 
 <script src="../js/ouviescrevi-api.js?v=27"></script>
-<script src="../js/transcript-chat.js?v=2" defer></script>
+<script src="../js/transcript-chat.js?v=3" defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
   const ADMIN_EMAIL = "admin@ouviescrevi.pt";

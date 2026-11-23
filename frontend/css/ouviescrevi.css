@@ -1,14 +1,14 @@
 /* Ouviescrevi — design system partilhado */
-@import url("ouviescrevi-pro.css?v=20");
+@import url("ouviescrevi-pro.css?v=21");
 @import url("theme-dark.css?v=7");
 @import url("temas.css?v=7");
 
 :root {
-  --oe-purple: #b5520a;
+  --oe-purple: #1d4a8f;
   --oe-purple-dark: #6b21a8;
   --oe-cyan: #1c3d6b;
-  --oe-gradient: #b5520a;
-  --oe-gradient-soft: #b5520a;
+  --oe-gradient: #fd8c32;
+  --oe-gradient-soft: #fd8c32;
   --oe-surface: #ffffff;
   --oe-text: #1e293b;
   --oe-text-muted: #64748b;
@@ -1247,7 +1247,7 @@ main.oe-content {
 .oe-admin-traffic-pill__link {
   border: 1px solid rgba(196, 89, 10, 0.35);
   background: rgba(255, 255, 255, 0.96);
-  color: #a94c06;
+  color: var(--pro-accent, #1d4a8f);
   border-radius: 10px;
   padding: 8px 12px;
   font-size: 0.8125rem;

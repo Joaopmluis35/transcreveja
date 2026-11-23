@@ -117,7 +117,7 @@ body.oe-page--flashcards .oe-fc-hero .oe-lead {
 
 .oe-fc-result__btn--secondary {
   background: #fff;
-  color: #9c4607;
+  color: var(--pro-accent, #1d4a8f);
   border-color: #9fb7d6;
 }
 
@@ -248,7 +248,7 @@ body.oe-page--flashcards .oe-fc-hero .oe-lead {
 }
 
 .oe-fc-card__face--back .oe-fc-card__label {
-  color: #9c4607;
+  color: var(--pro-accent, #1d4a8f);
 }
 
 .oe-fc-card.is-flipped:hover .oe-fc-card__face--back,

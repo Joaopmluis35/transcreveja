@@ -273,7 +273,7 @@
 
   // Ao fazer scroll, os cartões de exemplos entram como mensagens.
   if (!calmo && "IntersectionObserver" in window) {
-    var alvos = document.querySelectorAll(".oe-home-usecases__card, .oe-home-usecases__title");
+    var alvos = document.querySelectorAll(".oe-home-usecases__card, .oe-home-usecases__title, .oe-exemplo-tr");
     if (alvos.length) {
       document.documentElement.classList.add("oe-anima");
       var io = new IntersectionObserver(function (es) {
