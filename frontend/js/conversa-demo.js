@@ -70,7 +70,7 @@
     li.className = "oe-resumo-bolha oe-entra";
     li.innerHTML = "<h3>Resumo em 3 pontos</h3><ol><li>A Ana abriu a loja na vila em 2019.</li><li>Hoje também faz encomendas para festas.</li><li>Prefere fazer bem num só sítio.</li></ol>";
     lista.appendChild(li); descer();
-    ouvir.querySelector("span").textContent = "Ouvir outra vez";
+    botao("outra");
   }
   // Instrumento que escreve a mensagem: giz na ardósia, caneta no caderno e na folha (segue as letras).
   var GIZ = '<svg viewBox="0 0 64 16"><path d="M9 1.5H58.5a6.5 6.5 0 0 1 0 13H9C5 14.2 1.6 11.6 1 8.6.6 6.2 3.6 2.6 9 1.5Z" transform="translate(2.5 4.5)" fill="#000" opacity=".28"/><path d="M9 1.5H58.5a6.5 6.5 0 0 1 0 13H9C5 14.2 1.6 11.6 1 8.6.6 6.2 3.6 2.6 9 1.5Z" fill="#f4f6f0"/><ellipse cx="58.5" cy="8" rx="3.2" ry="6.5" fill="#d6dbd0"/><path d="M12 4.2H55" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/></svg>';
@@ -115,6 +115,14 @@
     if (inst) inst.classList.remove("ativo");
   }
 
+  var aTocar = false;
+  function botao(estado) {
+    aTocar = estado === "parar";
+    ouvir.querySelector("span").textContent = aTocar ? "Parar" : estado === "outra" ? "Ouvir outra vez" : "Ouvir um exemplo";
+    var icone = ouvir.querySelector("path");
+    if (icone) icone.setAttribute("d", aTocar ? "M6 6h12v12H6z" : "M7 4.5v15l12-7.5z");
+    ouvir.setAttribute("aria-pressed", aTocar ? "true" : "false");
+  }
   function limpar() { corrida++; if (temFala) speechSynthesis.cancel(); largarInstrumento(); inst = null; lista.innerHTML = ""; }
 
   // Caderno e Ardósia: em vez de bolhas, apontamentos em linhas (minuto · quem · texto), como nas demos.
@@ -142,7 +150,7 @@
     }
     lista.appendChild(li); descer();
     void li.offsetWidth; li.classList.add("feito");
-    ouvir.querySelector("span").textContent = "Ouvir outra vez";
+    botao("outra");
   }
   // Na ardósia, antes de voltar a escrever, o apagador passa pelo quadro.
   async function apagar() {
@@ -150,7 +158,9 @@
     lista.classList.add("a-apagar"); await pausa(700); lista.classList.remove("a-apagar");
   }
   async function tocarLinhas() {
+    var antes = corrida;
     await apagar();
+    if (antes !== corrida) return; // carregou em «Parar» enquanto o apagador passava
     limpar();
     var esta = corrida;
     if (aviso) aviso.textContent = voz ? "" : "Este aparelho não tem voz em português de Portugal: o exemplo corre sem som.";
@@ -242,12 +252,22 @@
     if (esta === corrida) resumoFinal();
   }
 
-  ouvir.addEventListener("click", tocar);
+  // Enquanto o exemplo corre, o botão passa a «Parar»: cala a voz e deixa o que já foi escrito.
+  function parar() {
+    corrida++; if (temFala) speechSynthesis.cancel(); largarInstrumento();
+    [].forEach.call(lista.querySelectorAll(".a-tocar"), function (e) { e.classList.remove("a-tocar"); });
+    [].forEach.call(lista.querySelectorAll(".oe-digitar, .oe-instrumento"), function (e) { e.remove(); });
+    botao(lista.querySelector(".oe-texto, .oe-linha") ? "outra" : "inicio");
+  }
+  ouvir.addEventListener("click", function () {
+    if (aTocar) parar();
+    else { botao("parar"); tocar(); }
+  });
   lista.addEventListener("click", function (e) { if (e.target && e.target.id === "oeConversaTudo") mostrarTudo(); });
   if ("MutationObserver" in window) {
     new MutationObserver(function () {
       limpar(); lista.innerHTML = vazioHTML;
-      ouvir.querySelector("span").textContent = "Ouvir um exemplo";
+      botao("inicio");
     }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-design"] });
   }
 

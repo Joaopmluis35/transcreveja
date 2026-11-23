@@ -241,6 +241,9 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   grelha de 2 colunas (título em 2 linhas, caixa, «Exemplo de transcrição» e faixa «Sem registo · …» à esquerda;
   conversa à direita), bolhas de texto verdes com ✓✓ azul, onda azul. Novo bloco `.oe-exemplo-tr` no `index.html`.
 
+- Exemplo da página inicial com «Parar» (`conversa-demo.js?v=5`): enquanto corre, o botão «Ouvir» passa a «Parar» (ícone
+  quadrado, `aria-pressed`); parar cala a voz, larga a caneta/giz e deixa o que já foi escrito («Ouvir outra vez»).
+
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).
 
