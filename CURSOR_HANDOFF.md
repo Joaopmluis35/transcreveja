@@ -371,6 +371,11 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   no sitemap e verifica o canónico das 5 páginas iniciais.
 - Google Search Console (23/11): propriedade `https://www.ouviescrevi.pt/` validada com o ficheiro
   `frontend/googled4d64ba426e88117.html` — **não apagar** (o Google volta a verificar). O smoke test ignora-o.
+- Página nova `audio-whatsapp-texto.html` (só PT): converter notas de voz do WhatsApp em texto, passo a passo
+  Android/iPhone/computador. Motivo: «converter áudio whatsapp em texto» aparecia no Search Console sem página
+  própria. No sitemap e ligada a partir do `blog/index.html` e de `blog/transcrever-audio-online.html`.
+  O upload aceita `.opus` (o servidor converte tudo com ffmpeg); **por testar num iPhone real** se o Safari deixa
+  escolher o `.opus` guardado em Ficheiros.
 
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).
