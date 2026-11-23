@@ -216,6 +216,13 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   laranja genérico dos links (exclusão em `ouviescrevi-pro.css`). Mensagens de voz: um só laranja nos botões
   principais, `#c2560c` (contraste 4.5:1 com branco), no cabeçalho e no «Transcrever agora». `ouviescrevi.css?v=56`.
 
+- Escolha de aspeto só com 3 designs: Mensagens de voz, Caderno e Ardósia (`theme-ui.js?v=4`, cabeçalhos ×5,
+  `LAYOUT_V=17`). Cortiça e Folha desativados; o CSS ficou em `temas.css`/`conversa-demo.css` para poder voltar.
+  Quem os tinha escolhido volta a Mensagens de voz. Botões por design em `temas.css?v=4` (variáveis `--oe-btn*`):
+  laranja `#c2560c` · azul `#1e3fa8` · giz amarelo `#f2d24b` com texto escuro; «Ouvir um exemplo» passa a botão de
+  contorno. Rodapé por design (`--rod-*`): azul-marinho liso, capa azul com grelha, madeira escura na ardósia
+  (sem o roxo antigo `#a5b4fc`). `ouviescrevi.css?v=57`, `conversa-demo.css?v=10`.
+
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).
 

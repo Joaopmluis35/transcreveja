@@ -7,7 +7,7 @@
   "use strict";
 
   var CHAVE = "oe_design";
-  var DESIGNS = ["mensagens", "caderno", "ardosia", "cortica", "folha"];
+  var DESIGNS = ["mensagens", "caderno", "ardosia"]; // Cortiça e Folha desativados (o CSS ficou em temas.css, para voltar basta acrescentá-los aqui e no cabeçalho).
 
   function isBackofficePage() {
     return (global.location.pathname || "").indexOf("backoffice") !== -1;

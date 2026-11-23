@@ -99,3 +99,44 @@ html[data-design="cortica"] body.oe-pro main { box-shadow: inset 0 0 0 10px #6f4
 
 /* Caderno: margem vermelha do lado esquerdo */
 html[data-design="caderno"] body.oe-pro main { background-image: linear-gradient(90deg, transparent 22px, rgba(210,59,53,.6) 22px, rgba(210,59,53,.6) 24px, transparent 24px); }
+
+/* ---- Botões: uma cor principal por design (cheio) e uma secundária (contorno) ----
+   Mensagens de voz: laranja · Caderno: azul de caneta · Ardósia: giz amarelo com texto escuro. */
+html body.oe-pro { --oe-btn: #c2560c; --oe-btn-hover: #a94c06; --oe-btn-texto: #fff; --oe-btn2: #0f2a4f; }
+html[data-design="caderno"] body.oe-pro { --oe-btn: #1e3fa8; --oe-btn-hover: #142c7a; --oe-btn-texto: #fff; --oe-btn2: #1e3fa8; }
+html[data-design="ardosia"] body.oe-pro { --oe-btn: #f2d24b; --oe-btn-hover: #f7e08a; --oe-btn-texto: #1b2a24; --oe-btn2: #e8ecdf; }
+
+html body.oe-pro .oe-pro-header a.oe-pro-btn.oe-pro-btn--primary,
+html body.oe-pro.oe-page--home #uploadForm #btnTranscrever {
+  background: var(--oe-btn) !important; border-color: var(--oe-btn) !important; color: var(--oe-btn-texto) !important; box-shadow: none !important;
+}
+html body.oe-pro .oe-pro-header a.oe-pro-btn.oe-pro-btn--primary:hover,
+html body.oe-pro.oe-page--home #uploadForm #btnTranscrever:hover:not(:disabled) { background: var(--oe-btn-hover) !important; border-color: var(--oe-btn-hover) !important; }
+html body.oe-pro.oe-page--home #uploadForm #btnTranscrever * { color: inherit !important; }
+html body.oe-pro.oe-page--home #homeOutputPlaceholder .oe-conversa button.oe-conversa__ouvir {
+  background: transparent !important; color: var(--oe-btn2) !important; border: 2px solid var(--oe-btn2) !important;
+}
+html body.oe-pro.oe-page--home #homeOutputPlaceholder .oe-conversa button.oe-conversa__ouvir:hover {
+  background: var(--oe-btn2) !important; color: var(--pro-surface, #fff) !important;
+}
+
+/* ---- Rodapé com o aspeto de cada design ---- */
+html body.oe-pro #rodapeOuviescrevi.oe-pro-footer { --rod-fundo: #0f2a4f; --rod-texto: #e4f0fc; --rod-suave: #b9cbe3; --rod-titulo: #f0a868; --rod-linha: rgba(255,255,255,.14); }
+html[data-design="caderno"] body.oe-pro #rodapeOuviescrevi.oe-pro-footer { --rod-fundo: #142c7a; --rod-texto: #fff; --rod-suave: #c9d6f5; --rod-titulo: #ffe066; --rod-linha: rgba(255,255,255,.18); }
+html[data-design="ardosia"] body.oe-pro #rodapeOuviescrevi.oe-pro-footer { --rod-fundo: #1f1913; --rod-texto: #ecebe2; --rod-suave: #c9c4b4; --rod-titulo: #f2d24b; --rod-linha: rgba(236,235,226,.16); }
+html body.oe-pro #rodapeOuviescrevi.oe-pro-footer { background: var(--rod-fundo); color: var(--rod-suave); }
+html[data-design="ardosia"] body.oe-pro #rodapeOuviescrevi.oe-pro-footer { margin-top: 0; }
+/* Caderno: capa azul com a grelha do papel ao de leve. */
+html[data-design="caderno"] body.oe-pro #rodapeOuviescrevi.oe-pro-footer {
+  background-image: linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+html body.oe-pro #rodapeOuviescrevi .oe-pro-footer__glow { display: none; }
+html body.oe-pro #rodapeOuviescrevi .oe-pro-footer__tagline { color: var(--rod-suave); }
+html body.oe-pro #rodapeOuviescrevi .oe-pro-footer__col h3 { color: var(--rod-titulo); }
+html body.oe-pro #rodapeOuviescrevi.oe-pro-footer .oe-pro-footer__col a,
+html body.oe-pro #rodapeOuviescrevi .oe-pro-footer__logo,
+html body.oe-pro #rodapeOuviescrevi .oe-pro-footer__email { color: var(--rod-texto) !important; }
+html body.oe-pro #rodapeOuviescrevi .oe-pro-footer__top { border-bottom-color: var(--rod-linha); }
+html body.oe-pro #rodapeOuviescrevi.oe-pro-footer .oe-pro-footer__bottom,
+html body.oe-pro #rodapeOuviescrevi.oe-pro-footer .oe-pro-footer__bottom p { color: var(--rod-suave); }

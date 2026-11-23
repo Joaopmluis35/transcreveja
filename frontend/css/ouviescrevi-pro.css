@@ -1966,7 +1966,7 @@ body.oe-pro .oe-design-troca summary { width: 40px; height: 40px; min-height: 40
 body.oe-pro .oe-design-troca summary::after { display: none; }
 body.oe-pro .oe-design-troca summary svg { width: 22px; height: 22px; }
 body.oe-pro .oe-design-troca summary:hover, body.oe-pro .oe-design-troca[open] summary { background: var(--pro-accent-soft, #e4f0fc); color: var(--pro-text); }
-body.oe-pro .oe-design-troca ul { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; min-width: 0; width: max-content; max-width: calc(100vw - 24px); padding: 10px 8px 6px; }
+body.oe-pro .oe-design-troca ul { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; min-width: 0; width: max-content; max-width: calc(100vw - 24px); padding: 10px 8px 6px; }
 body.oe-pro .oe-design-troca li { list-style: none; }
 body.oe-pro .oe-design-troca button.oe-design-op {
   all: unset; box-sizing: border-box; display: grid; justify-items: center; gap: 5px; width: 60px; padding: 6px 2px; border-radius: 10px;
@@ -1986,7 +1986,7 @@ html body.oe-pro .oe-pro-header .oe-design-troca button.oe-design-op {
 html body.oe-pro .oe-pro-header .oe-design-troca button.oe-design-op:hover { background: #eef4fb !important; }
 html body.oe-pro .oe-pro-header .oe-design-troca button.oe-design-op[aria-checked="true"] { color: #0f2a4f !important; }
 @media (max-width: 899px) {
-  body.oe-pro .oe-design-troca ul { position: fixed; top: calc(var(--pro-header-h) + 6px); left: auto; right: 12px; width: min(360px, calc(100vw - 24px)); max-width: none; justify-items: center; }
+  body.oe-pro .oe-design-troca ul { position: fixed; top: calc(var(--pro-header-h) + 6px); left: auto; right: 12px; width: min(270px, calc(100vw - 24px)); max-width: none; justify-items: center; }
 }
 /* O logótipo cabe inteiro na sua caixa (a imagem tinha 40×47 numa caixa de 34×40 e era cortada) */
 body.oe-pro .oe-pro-brand__icon-wrap { overflow: visible; width: 34px; height: 40px; }
