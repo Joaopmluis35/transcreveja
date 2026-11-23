@@ -278,7 +278,7 @@
     }
     return new Promise(function (resolve) {
       var s = document.createElement("script");
-      s.src = "/js/news-ticker.js?v=5";
+      s.src = "/js/news-ticker.js?v=6";
       s.dataset.oeNewsTicker = "1";
       s.onload = function () {
         s.setAttribute("data-ready", "1");
@@ -297,7 +297,7 @@
     });
   }
 
-  var LAYOUT_V = "17";
+  var LAYOUT_V = "18";
   var siteContentCache = null;
 
   function withLayoutVersion(url) {

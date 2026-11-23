@@ -8,7 +8,9 @@
       badge: "NOVO",
       // [data, texto]: novidades com data própria; texto simples usa RELEASE.
       items: [
-        ["26/10/2026", "Áudio noutra língua? A transcrição sai na língua original — e traduzes com um clique"],
+        ["23/11/2026", "Novo aspeto: escolhe Mensagens de voz, Caderno ou Ardósia no ícone da paleta"],
+        ["23/11/2026", "A transcrição fica na língua original do áudio — e traduzes com um clique"],
+        ["23/11/2026", "Se a transcrição falhar, carregas em «Tentar outra vez» sem voltar a escolher o ficheiro"],
         ["28/09/2026", "Chat com IA: faz perguntas sobre a tua transcrição"],
         ["22/09/2026", "Ficheiros longos: escolhe só o trecho que queres transcrever"],
         ["21/09/2026", "Vídeos transcritos mais depressa: o áudio é extraído no teu browser"],
@@ -18,6 +20,8 @@
     en: {
       badge: "NEW",
       items: [
+        ["23/11/2026", "New look: pick Voice messages, Notebook or Chalkboard from the palette icon"],
+        ["23/11/2026", "Transcripts stay in the audio's original language — translate in one click"],
         "AI flashcards — custom PDF export and print",
         "Full Lesson Assistant: transcript to flashcards",
         "AI YouTube descriptions",
@@ -27,6 +31,8 @@
     es: {
       badge: "NUEVO",
       items: [
+        ["23/11/2026", "Nuevo aspecto: elige Mensajes de voz, Cuaderno o Pizarra en el icono de la paleta"],
+        ["23/11/2026", "La transcripción queda en el idioma original del audio — tradúcela con un clic"],
         "Flashcards con IA — PDF e impresión personalizada",
         "Asistente Clase completa: transcripción → flashcards",
         "Descripción YouTube con IA",
@@ -36,6 +42,8 @@
     fr: {
       badge: "NOUVEAU",
       items: [
+        ["23/11/2026", "Nouveau look : choisis Messages vocaux, Cahier ou Ardoise via l'icône palette"],
+        ["23/11/2026", "La transcription reste dans la langue d'origine de l'audio — traduis-la en un clic"],
         "Flashcards IA — PDF et impression personnalisée",
         "Assistant Cours complet : transcription → flashcards",
         "Descriptions YouTube par IA",
@@ -45,6 +53,8 @@
     de: {
       badge: "NEU",
       items: [
+        ["23/11/2026", "Neues Aussehen: Sprachnachrichten, Heft oder Tafel über das Paletten-Symbol wählen"],
+        ["23/11/2026", "Transkripte bleiben in der Originalsprache des Audios — mit einem Klick übersetzen"],
         "KI-Karteikarten — PDF exportieren und drucken",
         "Assistent Vollständige Lektion: Transkript → Karteikarten",
         "YouTube-Beschreibungen mit KI",

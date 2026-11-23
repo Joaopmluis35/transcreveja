@@ -279,6 +279,11 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   aparece o cartão `#oeErroTranscricao` com botão «Tentar outra vez» (`index.html`, `.oe-erro-card` em
   `conversa-demo.css`). Menu de idiomas: lista limpa com ✓ na língua atual (`ouviescrevi-pro.css`).
 
+- Faixa de novidades (`news-ticker.js?v=6`): saiu a notícia de 26/10 (tradução automática, já não existe); entram 3
+  novidades de 23/11/2026 em PT (novo aspeto, língua original, «Tentar outra vez») e 2 em EN/ES/FR/DE. Nomes dos
+  designs traduzidos nos cabeçalhos EN/ES/FR/DE (Notebook/Chalkboard, Cuaderno/Pizarra, Cahier/Ardoise, Heft/Tafel;
+  `LAYOUT_V=18`).
+
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).
 
