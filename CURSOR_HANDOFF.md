@@ -271,6 +271,14 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   `:is(#btnTranscrever, #btnTranscribe, #btnTranscribir, #btnTranscrire, #btnTranskribieren)`. Por fazer: as
   funcionalidades que só a PT tem (histórico, trecho de ficheiro longo, etc.) e as outras páginas traduzidas.
 
+- Língua da transcrição: fica sempre na língua original do áudio (pedido do João). Acabou a tradução automática para
+  pt no site PT (`main.py`, bloco «original_*» fica vazio; traduzir é com o botão «Traduzir»). A repetição forçada em
+  pt só é aceite se for claramente melhor: `PT_RETRY_LOGPROB_MARGIN` passou de 0.1 para -0.15 (músicas em inglês
+  saíam com frases inventadas em português). Testes em `tests/test_pt_language.py`. Notícia de 26/10 na faixa
+  atualizada (`news-ticker.js?v=5`). Erro ao transcrever (ex.: servidor reiniciou): deixa de ir para a caixa do texto;
+  aparece o cartão `#oeErroTranscricao` com botão «Tentar outra vez» (`index.html`, `.oe-erro-card` em
+  `conversa-demo.css`). Menu de idiomas: lista limpa com ✓ na língua atual (`ouviescrevi-pro.css`).
+
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).
 

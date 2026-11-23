@@ -2005,3 +2005,25 @@ body.oe-pro .oe-pro-auth { align-items: center; }
   body.oe-pro .oe-pro-header button, body.oe-pro .oe-pro-header .oe-pro-btn { width: auto; margin: 0; }
 }
 body.oe-pro .oe-pro-header .oe-design-troca button { width: auto; margin: 0; }
+
+/* Menu de idiomas: lista limpa (sem caixas), todas as linhas com a mesma largura e a língua atual marcada. */
+body.oe-pro .oe-pro-header .oe-pro-lang__btn { width: 44px !important; height: 44px; min-width: 44px; padding: 0 !important; }
+body.oe-pro .oe-pro-lang__menu { min-width: 190px; padding: 6px; }
+body.oe-pro .oe-pro-header .oe-pro-lang__menu button {
+  width: 100% !important; min-width: 0 !important; min-height: 44px; margin: 0 !important; padding: 8px 12px !important;
+  justify-content: flex-start !important; gap: 10px; border: 0 !important; border-radius: 10px !important;
+  background: transparent !important; box-shadow: none !important; transform: none !important;
+  color: var(--pro-text) !important; font-size: .95rem !important; font-weight: 600 !important; text-align: left;
+}
+body.oe-pro .oe-pro-header .oe-pro-lang__menu button:hover,
+body.oe-pro .oe-pro-header .oe-pro-lang__menu button:focus-visible { background: var(--pro-accent-muted, #f4f9ff) !important; }
+html[lang^="pt"] body.oe-pro .oe-pro-lang__menu button[data-lang="pt"],
+html[lang^="en"] body.oe-pro .oe-pro-lang__menu button[data-lang="en"],
+html[lang^="es"] body.oe-pro .oe-pro-lang__menu button[data-lang="es"],
+html[lang^="fr"] body.oe-pro .oe-pro-lang__menu button[data-lang="fr"],
+html[lang^="de"] body.oe-pro .oe-pro-lang__menu button[data-lang="de"] { background: var(--pro-accent-soft, #e4f0fc) !important; }
+html[lang^="pt"] body.oe-pro .oe-pro-lang__menu button[data-lang="pt"]::after,
+html[lang^="en"] body.oe-pro .oe-pro-lang__menu button[data-lang="en"]::after,
+html[lang^="es"] body.oe-pro .oe-pro-lang__menu button[data-lang="es"]::after,
+html[lang^="fr"] body.oe-pro .oe-pro-lang__menu button[data-lang="fr"]::after,
+html[lang^="de"] body.oe-pro .oe-pro-lang__menu button[data-lang="de"]::after { content: "✓"; margin-left: auto; color: var(--pro-accent, #1d4a8f); }

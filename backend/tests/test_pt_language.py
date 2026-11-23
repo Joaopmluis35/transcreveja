@@ -1,4 +1,4 @@
-"""Site PT: fala em português detetada como inglês é repetida em pt; áudio noutra língua é traduzido."""
+"""Site PT: fala em português detetada como inglês é repetida em pt; áudio noutra língua fica na língua original."""
 from __future__ import annotations
 
 import os
@@ -74,30 +74,27 @@ def test_portuguese_speech_detected_as_english_is_redone_in_portuguese(monkeypat
     assert translated == []
 
 
-def test_real_english_audio_is_translated_and_original_kept(monkeypatch):
-    def to_pt(formatted):
-        return formatted.replace("hello João, how are you?", "olá João, como estás?").replace(
-            "good morning, can you hear me well?", "bom dia, ouves-me bem?"
-        )
-
-    job, calls, translated = _run_job(monkeypatch, (EN_SEGS_HIGH, "english"), PT_SEGS_LOW, translate=to_pt)
+def test_real_english_audio_stays_in_english(monkeypatch):
+    """Pedido do João (23/11/2026): a transcrição fica na língua original; traduzir é com o botão «Traduzir»."""
+    job, calls, translated = _run_job(monkeypatch, (EN_SEGS_HIGH, "english"), PT_SEGS_LOW)
     assert job["status"] == "completed"
     assert calls == [None, "pt"]
-    assert "olá João" in job["formatted"] and "[00:00]" in job["formatted"]
-    assert "hello João" in job["original_formatted"]
-    assert job["original_language"] == "english"
-    assert "olá João" in job["transcription"] and "[00:00]" not in job["transcription"]
-
-
-def test_translation_failure_keeps_original_with_warning(monkeypatch):
-    def broken(formatted):
-        raise ValueError("falhou")
-
-    job, _, _ = _run_job(monkeypatch, (EN_SEGS_HIGH, "english"), PT_SEGS_LOW, translate=broken)
-    assert job["status"] == "completed"
-    assert "hello João" in job["formatted"]
+    assert "hello João" in job["formatted"] and "olá" not in job["formatted"]
+    assert translated == []
     assert job.get("original_formatted") is None
-    assert "traduzir" in job["warning"]
+    assert not job.get("warning")
+
+
+SONG_EN = [_seg(" I remember, don't worry", 0, -0.6), _seg(" how could I ever forget", 5, -0.65)]
+SONG_FORCED_PT = [_seg(" E eu estou esperando por isso o tempo todo", 0, -0.58), _seg(" por toda a minha vida", 5, -0.62)]
+
+
+def test_english_song_is_not_rewritten_in_portuguese(monkeypatch):
+    """Música em inglês: forçar português dá frases inventadas com confiança parecida — fica o inglês."""
+    job, calls, _ = _run_job(monkeypatch, (SONG_EN, "english"), SONG_FORCED_PT)
+    assert calls == [None, "pt"]
+    assert "I remember" in job["formatted"]
+    assert "esperando" not in job["formatted"]
 
 
 def test_explicit_english_choice_is_respected(monkeypatch):

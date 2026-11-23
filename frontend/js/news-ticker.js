@@ -8,7 +8,7 @@
       badge: "NOVO",
       // [data, texto]: novidades com data própria; texto simples usa RELEASE.
       items: [
-        ["26/10/2026", "Áudio noutra língua? A transcrição chega em português, com o original à mão"],
+        ["26/10/2026", "Áudio noutra língua? A transcrição sai na língua original — e traduzes com um clique"],
         ["28/09/2026", "Chat com IA: faz perguntas sobre a tua transcrição"],
         ["22/09/2026", "Ficheiros longos: escolhe só o trecho que queres transcrever"],
         ["21/09/2026", "Vídeos transcritos mais depressa: o áudio é extraído no teu browser"],

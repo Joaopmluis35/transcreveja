@@ -347,3 +347,13 @@ html:not([data-design]) body.oe-page--home .oe-home-workspace__col--input #uploa
 /* Páginas EN/ES/FR/DE: a introdução é o próprio <p id="cmsHomeIntro">, com regras antigas que a centravam. */
 html[data-design="caderno"] body.oe-page--home #cmsHomeIntro.oe-home-intro { text-align: left !important; margin-left: 0 !important; }
 @media (min-width: 1000px) { html:not([data-design]) body.oe-page--home #cmsHomeIntro.oe-home-intro { text-align: left !important; } }
+/* Cartão de erro ao transcrever (com botão para tentar outra vez) */
+.oe-erro-card { align-self: start; height: auto; margin: 0 0 16px; padding: 22px 22px 18px; border-radius: 20px; background: var(--pro-surface, #fff); border: 2px solid var(--oe-btn, #fd8c32);
+  box-shadow: 0 16px 34px -22px rgba(15,42,79,.45); text-align: left; color: var(--pro-text, #0f2a4f); }
+.oe-erro-card[hidden] { display: none; }
+.oe-erro-card__msg { margin: 0 0 14px; font-size: 1.05rem; font-weight: 650; line-height: 1.45; }
+body.oe-pro .oe-erro-card button.oe-erro-card__btn { display: inline-flex; align-items: center; justify-content: center; gap: .4rem; width: 100% !important; min-height: 52px; margin: 0 !important;
+  border: 0 !important; border-radius: 14px !important; background: var(--oe-btn, #fd8c32) !important; color: var(--oe-btn-texto, #fff) !important; font: inherit; font-size: 1.08rem; font-weight: 800; cursor: pointer; box-shadow: none !important; }
+body.oe-pro .oe-erro-card button.oe-erro-card__btn:hover { background: var(--oe-btn-hover, #f07a1c) !important; }
+.oe-erro-card__dica { margin: 10px 0 0; font-size: .88rem; color: var(--pro-text-secondary, #3d5677); }
+body.oe-page--home .oe-home-workspace__col--output > .oe-erro-card { align-self: start !important; height: auto !important; }

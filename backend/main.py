@@ -164,8 +164,9 @@ WHISPER_TIMEOUT = int(os.getenv("WHISPER_TIMEOUT", "110"))  # por chunk
 WHISPER_LANGUAGE = (os.getenv("WHISPER_LANGUAGE", "") or "").strip().lower() or None
 WHISPER_TEMPERATURE = float(os.getenv("WHISPER_TEMPERATURE", "0"))
 WHISPER_PROMPT_OVERRIDE = (os.getenv("WHISPER_PROMPT") or "").strip() or None
-# Quanto pior pode ser a confiança da repetição em pt para ainda a preferir (site PT).
-PT_RETRY_LOGPROB_MARGIN = float(os.getenv("PT_RETRY_LOGPROB_MARGIN", "0.1"))
+# Margem da repetição em pt (site PT): negativa = a versão em pt tem de ser claramente MELHOR.
+# Com 0.1 (pt podia ser pior) músicas em inglês saíam com frases inventadas em português.
+PT_RETRY_LOGPROB_MARGIN = float(os.getenv("PT_RETRY_LOGPROB_MARGIN", "-0.15"))
 FFMPEG_TIMEOUT = int(os.getenv("FFMPEG_TIMEOUT", "60"))
 TOTAL_TRANSCRIBE_TIMEOUT = int(os.getenv("TOTAL_TRANSCRIBE_TIMEOUT", "900"))  # watchdog global
 MAX_FILE_SIZE_MB = int(os.getenv("MAX_FILE_SIZE_MB", "500"))
@@ -3049,29 +3050,11 @@ def _execute_transcribe_job(
             "\n\n".join(t for t in formatted_chunks if t).strip(), whisper_lang
         )
 
-        # Site PT em modo automático: áudio noutra língua é entregue em português, com o original guardado.
+        # A transcrição fica sempre na língua original do áudio (pedido do João, 23/11/2026);
+        # quem quiser em português usa o botão «Traduzir». Os campos original_* ficam vazios.
         original_formatted = None
         original_language = None
         translation_warning = None
-        foreign_languages = [lang for lang in chunk_languages if lang and not _is_portuguese(lang)]
-        pt_site = (ui_locale or "pt").strip().lower()[:2] in ("", "pt")
-        if (
-            pt_site
-            and not whisper_lang
-            and foreign_languages
-            and formatted_out
-            and not is_music_only_transcript(formatted_out)
-        ):
-            _transcribe_job_set(job_id, message="A traduzir para português…", progress=95)
-            try:
-                translated = translate_formatted_transcript(formatted_out)
-                original_formatted, original_language = formatted_out, foreign_languages[0]
-                formatted_out = translated
-                transcription_out = plain_from_formatted(translated)
-                logger.info("[%s] Transcrição traduzida de %s para pt", rid, original_language)
-            except Exception as e:
-                logger.warning("[%s] Tradução para pt falhou: %s", rid, str(e)[:200])
-                translation_warning = "Não foi possível traduzir para português; mostramos o texto na língua original."
 
         warning = None
         if quota_exceeded:
