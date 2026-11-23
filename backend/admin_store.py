@@ -16,6 +16,8 @@ from typing import Any
 from database import database_backend, db_path, get_connection, row_to_dict, scalar_float, scalar_int, use_turso
 
 ROLE_LEVEL = {"viewer": 1, "editor": 2, "admin": 3}
+# Chave do Claude: fora do ROLE_LEVEL (nível 0), por isso falha em todos os require_role.
+CLAUDE_READ_ROLE = "claude_read"
 
 _QUOTA_CONFIG_KEYS = frozenset({"quota_anonymous_daily", "quota_registered_daily", "pro_quota_daily"})
 

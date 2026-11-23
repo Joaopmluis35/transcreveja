@@ -63,3 +63,34 @@ def test_marketing_endpoint_requires_admin(client):
     body = res.json()
     assert body["range"]["days"] == 7
     assert "origens" in body and "por_dia" in body
+
+
+def test_claude_key_only_opens_marketing(client):
+    """A chave do Claude lê o relatório de marketing e mais nada do backoffice."""
+    admin = {"Authorization": "Bearer test-admin-token"}
+    res = client.post("/api/admin/claude-key", headers=admin)
+    assert res.status_code == 200
+    claude = {"Authorization": "Bearer " + res.json()["key"]}
+    assert client.get("/api/admin/marketing?days=3", headers=claude).status_code == 200
+
+    from main import app
+
+    abertas = []
+    for route in app.routes:
+        path = getattr(route, "path", "")
+        if not path.startswith("/api/admin/") or "GET" not in getattr(route, "methods", set()):
+            continue
+        if path == "/api/admin/marketing":
+            continue
+        url = path.replace("{table}", "visitas").replace("{user_id}", "1")
+        url = __import__("re").sub(r"\{[^}]+\}", "x", url)
+        if client.get(url, headers=claude).status_code < 400:
+            abertas.append(path)
+    assert abertas == []
+    assert client.post("/api/admin/claude-key", headers=claude).status_code == 403
+
+    # Criar outra chave invalida a anterior; revogar invalida a atual.
+    nova = {"Authorization": "Bearer " + client.post("/api/admin/claude-key", headers=admin).json()["key"]}
+    assert client.get("/api/admin/marketing", headers=claude).status_code == 403
+    assert client.delete("/api/admin/claude-key", headers=admin).status_code == 200
+    assert client.get("/api/admin/marketing", headers=nova).status_code == 403

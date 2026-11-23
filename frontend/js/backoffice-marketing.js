@@ -176,13 +176,37 @@
     });
     $("mktDownload").addEventListener("click", function () {
       if (!lastReport) return toast("Ainda a carregar os dados…", "info");
-      var blob = new Blob([JSON.stringify(lastReport, null, 2)], { type: "application/json" });
-      var a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "ouviescrevi-marketing-" + lastReport.range.to + ".json";
-      a.click();
-      setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+      saveFile("ouviescrevi-marketing-" + lastReport.range.to + ".json", JSON.stringify(lastReport, null, 2), "application/json");
     });
+    $("mktClaudeKey").addEventListener("click", function () { claudeKey("POST"); });
+    $("mktClaudeRevoke").addEventListener("click", function () {
+      if (global.confirm("Tirar o acesso do Claude ao relatório de marketing?")) claudeKey("DELETE");
+    });
+  }
+
+  function saveFile(name, text, type) {
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([text], { type: type }));
+    a.download = name;
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  }
+
+  async function claudeKey(method) {
+    try {
+      var res = await fetch(apiBase() + "/api/admin/claude-key", {
+        method: method,
+        headers: global.OuviescreviAPI.adminAuthHeaders(),
+      });
+      var data = await res.json();
+      if (!res.ok) throw new Error((data && data.detail) || "Erro na chave do Claude.");
+      if (method === "DELETE") return toast("Chave revogada: o Claude deixou de ter acesso.", "success");
+      // A chave vai para um ficheiro (não aparece no ecrã nem no chat).
+      saveFile("ouviescrevi-claude.key", data.key, "text/plain");
+      toast("Chave guardada em Transferências (ouviescrevi-claude.key). Diz ao Claude que já está.", "success");
+    } catch (err) {
+      toast(err.message || "Erro na chave do Claude.", "error");
+    }
   }
 
   function onTab(tab) {

@@ -591,10 +591,35 @@ def admin_export_visit_report(request: Request, days: int = 2):
     )
 
 
+# Chave do Claude: sessão com papel próprio (nível 0), que só abre o relatório de marketing.
+CLAUDE_KEY_USER = "claude-leitura"
+CLAUDE_KEY_DAYS = 180
+
+
+@router.post("/claude-key")
+def admin_create_claude_key(request: Request):
+    """Cria (e substitui) a chave só de leitura do relatório de marketing, para análise automática."""
+    store.require_role(getattr(request.state, "admin_session", None), "admin")
+    store.delete_user_sessions(CLAUDE_KEY_USER, store.CLAUDE_READ_ROLE)
+    key = store.create_session(CLAUDE_KEY_USER, store.CLAUDE_READ_ROLE, hours=24 * CLAUDE_KEY_DAYS)
+    store.log_audit(_actor(request), "claude_key_create", f"{CLAUDE_KEY_DAYS} dias")
+    return {"ok": True, "key": key, "days": CLAUDE_KEY_DAYS}
+
+
+@router.delete("/claude-key")
+def admin_revoke_claude_key(request: Request):
+    store.require_role(getattr(request.state, "admin_session", None), "admin")
+    store.delete_user_sessions(CLAUDE_KEY_USER, store.CLAUDE_READ_ROLE)
+    store.log_audit(_actor(request), "claude_key_revoke", "")
+    return {"ok": True}
+
+
 @router.get("/marketing")
 def admin_marketing(request: Request, days: int = 14):
     """Separador Marketing: pessoas por origem (TikTok, Google…), campanha UTM e página de entrada."""
-    store.require_role(getattr(request.state, "admin_session", None), "viewer")
+    session = getattr(request.state, "admin_session", None)
+    if not (session and session.get("role") == store.CLAUDE_READ_ROLE):
+        store.require_role(session, "viewer")
     try:
         owner_uids = parse_owner_visitor_uids(store.get_config().get("owner_visitor_uids"))
         return build_marketing_report(owner_uids, days=days)

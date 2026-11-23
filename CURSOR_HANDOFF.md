@@ -387,6 +387,13 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   `tests/test_marketing_report.py`. Segurança: páginas, UTM e domínios vêm do visitante — o relatório passa-os por
   `analytics.safe_label` (só `A-Za-z0-9_./-`) e o texto copiado põe o JSON entre `<dados>…</dados>`, marcado como
   dados e não instruções (`backoffice-marketing.js?v=2`).
+- **Chave do Claude** (só leitura do marketing): Marketing → «Criar chave para o Claude» (`POST/DELETE
+  /api/admin/claude-key`, só admin) cria uma sessão `claude-leitura` com o papel `claude_read` (180 dias), que fica
+  fora do `ROLE_LEVEL` — falha em todos os `require_role` e só o `GET /api/admin/marketing` a aceita. A chave
+  descarrega-se para um ficheiro (`ouviescrevi-claude.key`), nunca aparece no ecrã. Criar outra ou revogar desliga a
+  anterior. O Claude guarda-a em `%USERPROFILE%\.ouviescrevi\claude.key` e lê com `py scripts/marketing_report.py
+  [dias]`. Teste: `test_claude_key_only_opens_marketing` (percorre todos os GET de `/api/admin/` com a chave).
+  `backoffice-marketing.js?v=3`.
 
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).
