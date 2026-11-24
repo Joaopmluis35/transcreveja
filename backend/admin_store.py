@@ -97,7 +97,7 @@ def log_audit_login(actor: str) -> None:
     """Evita dezenas de entradas «login» quando o browser dispara o formulário várias vezes."""
     conn = get_connection()
     try:
-        since = (datetime.now() - timedelta(seconds=90)).isoformat(timespec="seconds") + "Z"
+        since = (datetime.utcnow() - timedelta(seconds=90)).isoformat(timespec="seconds") + "Z"
         row = conn.execute(
             """
             SELECT id FROM audit_log

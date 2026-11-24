@@ -671,8 +671,12 @@ def admin_marketing(request: Request, days: int = 14):
     if not (session and session.get("role") == store.CLAUDE_READ_ROLE):
         store.require_role(session, "viewer")
     try:
+        from weekly_report import META_AMARELO, META_VERDE
+
         owner_uids = parse_owner_visitor_uids(store.get_config().get("owner_visitor_uids"))
-        return build_marketing_report(owner_uids, days=days)
+        report = build_marketing_report(owner_uids, days=days)
+        report["meta"] = {"verde": META_VERDE, "amarelo": META_AMARELO}  # um só sítio: weekly_report.py
+        return report
     except Exception as exc:
         logger.exception("marketing report falhou")
         raise HTTPException(status_code=500, detail="Não foi possível gerar o relatório de marketing.") from exc

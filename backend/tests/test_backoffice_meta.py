@@ -101,3 +101,10 @@ def test_usage_exposes_free_limits(client):
     body = client.get("/api/usage").json()
     assert body["free_limits"] == {"anonymous": 7, "registered": 25}
     store.set_config({"quota_anonymous_daily": "3", "quota_registered_daily": "20"})
+
+def test_marketing_report_sends_goal(client):
+    """O Painel lê a meta da API (um só sítio: weekly_report.py)."""
+    import weekly_report
+
+    body = client.get("/api/admin/marketing?days=7", headers=ADMIN).json()
+    assert body["meta"] == {"verde": weekly_report.META_VERDE, "amarelo": weekly_report.META_AMARELO}

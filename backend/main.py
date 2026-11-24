@@ -7,6 +7,13 @@ from datetime import datetime, date
 from dotenv import load_dotenv
 
 import os
+import time as _time
+
+# Os «dias» (visitas, limites diários, relatórios) contam na hora de Lisboa, não em UTC.
+# No Render (Linux) o tzset aplica-se a date.today()/datetime.now(); no Windows não existe e fica a hora do PC.
+os.environ.setdefault("TZ", "Europe/Lisbon")
+if hasattr(_time, "tzset"):
+    _time.tzset()
 import tempfile
 import uuid
 import subprocess

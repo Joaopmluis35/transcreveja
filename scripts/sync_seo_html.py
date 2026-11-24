@@ -5,7 +5,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent / "frontend"
 SEO_FILE = ROOT / "js" / "ouviescrevi-seo.js"
 SKIP = {
-    "backoffice.html", "admin.html", "index2.html",
+    "backoffice.html",
     "exemplo-interface-profissional.html", "exemplo-logo-profissional.html",
     "header.html", "footer.html",
 }

@@ -3,8 +3,6 @@
  * (entrou → carregou → terminou → voltou) e reconhecimento deste aparelho como da equipa.
  */
 (function (global) {
-  var META_VERDE = 10; // visitantes reais por dia até ao fim de fevereiro de 2027
-  var META_AMARELO = 3;
   var TEAM_KEY = "oe_team_device"; // token do aparelho; "nao" = o João desmarcou este aparelho
 
   function $(id) {
@@ -65,6 +63,9 @@
   }
 
   function render(r) {
+    // A meta vem da API (backend/weekly_report.py), para o email e o Painel nunca divergirem.
+    var META_VERDE = (r.meta && r.meta.verde) || 10;
+    var META_AMARELO = (r.meta && r.meta.amarelo) || 3;
     var dias = r.por_dia || [];
     var ult = dias.slice(-7);
     var ant = dias.slice(-14, -7);
@@ -87,6 +88,7 @@
     setText("metaSemanaSub", "Semana anterior: " + soma(ant, "visitantes"));
     setText("metaMedia", media.toFixed(1).replace(".", ","));
     setText("metaGoogle", String(google));
+    setText("metaMediaSub", "Meta: " + META_VERDE + " por dia");
     var p = r.percurso || {};
     setText(
       "metaPercurso",

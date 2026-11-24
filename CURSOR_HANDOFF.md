@@ -1,18 +1,17 @@
 # Passagem para o Cursor e o Claude Code — Ouviescrevi / TranscreveJá (26/10 a 21/11/2026)
 
-Há **dois projetos**: o Ouviescrevi (este repositório, `c:\Users\joao_\transcreveja`, **público**) e o simulador
-online (outra pasta e repositório **privado** — ver secção 4). Não os misturar e não escrever nada do simulador aqui.
+Este repositório (`c:\Users\joao_\transcreveja`) é **público**: não escrever aqui nada de outros projetos do dono.
 Está tudo publicado no `main` (GitHub Joaopmluis35/transcreveja). **Não refaças nada disto.**
 O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `git pull`, `git status` e
 `git log --oneline -5`; commit só dos ficheiros que alteraste.
 
 **Prompt para colar no Cursor:**
 
-> Estou a trabalhar no Ouviescrevi (`c:\Users\joao_\transcreveja`, repositório público). Faz `git pull` e lê o `CURSOR_HANDOFF.md` todo. O Claude Code também pode ter feito commits: vê `git log --oneline -5` e não refaças o que já lá está. Segue as regras da secção 3 (alterações pequenas e explicadas antes; publicar só com o meu pedido; subir o `?v=` em todas as páginas que usam um CSS/JS alterado). Testes: `cd backend; py -m pytest -q` e `py scripts/frontend_smoke_test.py`. Nada do simulador de apostas neste repositório. Diz-me o estado (`git status`, testes) antes de propor alterações.
+> Estou a trabalhar no Ouviescrevi (`c:\Users\joao_\transcreveja`, repositório público). Faz `git pull` e lê o `CURSOR_HANDOFF.md` todo. O Claude Code também pode ter feito commits: vê `git log --oneline -5` e não refaças o que já lá está. Segue as regras da secção 3 (alterações pequenas e explicadas antes; publicar só com o meu pedido; subir o `?v=` em todas as páginas que usam um CSS/JS alterado). Testes: `cd backend; py -m pytest -q` e `py scripts/frontend_smoke_test.py`. Nada de outros projetos neste repositório. Diz-me o estado (`git status`, testes) antes de propor alterações.
 
 **Prompt para colar no Claude Code:**
 
-> Trabalha no Ouviescrevi em `C:\Users\joao_\transcreveja` (repositório público; o simulador de apostas é outro projecto, privado — não o mencionar nem copiar nada dele para aqui). Faz `git pull`, lê o `CURSOR_HANDOFF.md` e vê `git log --oneline -5` (o Cursor também faz commits). Regras da secção 3; português de Portugal; testes `cd backend; py -m pytest -q` (Python do sistema) e `py scripts/frontend_smoke_test.py`; commit só dos teus ficheiros e só publicar (push) quando eu pedir. Diz-me o estado antes de propor alterações.
+> Trabalha no Ouviescrevi em `C:\Users\joao_\transcreveja` (repositório público — não mencionar nem copiar para aqui nada de outros projetos). Faz `git pull`, lê o `CURSOR_HANDOFF.md` e vê `git log --oneline -5` (o Cursor também faz commits). Regras da secção 3; português de Portugal; testes `cd backend; py -m pytest -q` (Python do sistema) e `py scripts/frontend_smoke_test.py`; commit só dos teus ficheiros e só publicar (push) quando eu pedir. Diz-me o estado antes de propor alterações.
 ---
 
 ## 1. Infraestrutura (confirmado em produção)
@@ -23,7 +22,7 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
 - **Domínio canónico:** https://www.ouviescrevi.pt (Cloudflare à frente da Vercel).
 - **API:** Render, plano free, https://api.ouviescrevi.pt, base de dados Turso. autoDeploy no push para `main`.
   **O servidor corre nos EUA (Ashburn, Virgínia, rede Amazon)**, não em Frankfurt como diz o `render.yaml`.
-- **Testes:** `cd backend; py -m pytest -q` → 194 testes (25/11) (usar o Python do sistema; o `backend/venv` antigo está partido;
+- **Testes:** `cd backend; py -m pytest -q` → 195 testes (25/11) (usar o Python do sistema; o `backend/venv` antigo está partido;
   `backend/.venv` tem uvicorn para correr a API em local). Frontend: `py scripts/frontend_smoke_test.py`.
 - **Cache:** CSS/JS com `?v=N` nos HTML. Ao mudar um ficheiro, sobe o `?v=` em **todas** as páginas que o usam.
   Versões atuais: `ouviescrevi.css?v=48` (importa `ouviescrevi-pro.css?v=8` e `theme-dark.css?v=5`),
@@ -439,9 +438,10 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   - Avisos de design que ficaram: a maioria dos «contraste baixo» do detetor estático são falsos (o tema `oe-pro`
     usa texto escuro nos botões); pontos a pulsar = ampulheta de carregamento (intencional); «cards dentro de cards»
     e linhas longas não mexidos.
-
-**Simulador (fase 0)**
-- `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).
+- **Limpeza (25/11)**: a meta do Painel vem da API (`report["meta"]` em `GET /api/admin/marketing`, definida só em
+  `weekly_report.py`; `backoffice-meta.js?v=2`). Apagados `index2.html` e `admin.html` (o `vercel.json` já os
+  redireciona para a página inicial). O servidor corre com `TZ=Europe/Lisbon` (início do `main.py`): os dias das
+  visitas, dos limites diários e dos relatórios mudam à meia-noite de Lisboa, não em UTC.
 
 ## 3. Regras a manter
 
@@ -454,14 +454,7 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   (não voltar a `btn.innerHTML = "A gerar..."` à mão). Nunca ler `event` depois de um `await`.
 - Alterações pequenas, explicadas antes; publicar só com pedido do dono.
 
-## 4. Simulador de apostas (projeto à parte, repositório PRIVADO)
-
-**Não está neste repositório** (que é **público**) e os detalhes dele **não se escrevem aqui**.
-O Ouviescrevi só partilha o domínio (subdomínio `simulador.`, Cloudflare).
-O contexto, as regras e os prompts para o Cursor e para o Claude Code estão no **`CONTEXTO_CURSOR.md` da pasta do
-simulador** (secções 2, 7 e 8). Abrir **essa pasta** no Cursor / Claude Code para trabalhar nele.
-
-## 5. Ideias pendentes (Ouviescrevi)
+## 4. Ideias pendentes (Ouviescrevi)
 
 1. Testar modelo de transcrição mais recente (`gpt-4o-transcribe` / mini) vs `whisper-1`.
 2. Render pago (sem adormecer) e monitorização de erros (Sentry).
