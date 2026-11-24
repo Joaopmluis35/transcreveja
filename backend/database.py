@@ -609,6 +609,18 @@ def criar_base() -> None:
             "ON async_jobs(status, updated_at)"
         )
 
+        # Passos do percurso de quem usa o site (carregou um ficheiro, terminou uma transcrição).
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS eventos (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                day TEXT NOT NULL,
+                visitor_uid TEXT,
+                nome TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            )
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_eventos_day ON eventos(day)")
+
         if not _column_exists(cur, "site_users", "marketing_opt_in"):
             cur.execute("ALTER TABLE site_users ADD COLUMN marketing_opt_in INTEGER DEFAULT 0")
 

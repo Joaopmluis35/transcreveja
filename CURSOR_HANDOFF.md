@@ -23,7 +23,7 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
 - **Domínio canónico:** https://www.ouviescrevi.pt (Cloudflare à frente da Vercel).
 - **API:** Render, plano free, https://api.ouviescrevi.pt, base de dados Turso. autoDeploy no push para `main`.
   **O servidor corre nos EUA (Ashburn, Virgínia, rede Amazon)**, não em Frankfurt como diz o `render.yaml`.
-- **Testes:** `cd backend; py -m pytest -q` → 141 testes (usar o Python do sistema; o `backend/venv` antigo está partido;
+- **Testes:** `cd backend; py -m pytest -q` → 193 testes (24/11) (usar o Python do sistema; o `backend/venv` antigo está partido;
   `backend/.venv` tem uvicorn para correr a API em local). Frontend: `py scripts/frontend_smoke_test.py`.
 - **Cache:** CSS/JS com `?v=N` nos HTML. Ao mudar um ficheiro, sobe o `?v=` em **todas** as páginas que o usam.
   Versões atuais: `ouviescrevi.css?v=48` (importa `ouviescrevi-pro.css?v=8` e `theme-dark.css?v=5`),
@@ -407,6 +407,23 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
 - **3 páginas SEO novas** (modelo de `audio-whatsapp-texto.html`): `transcrever-video-texto.html`,
   `audio-para-word.html` (exportação DOC grátis; não falar do Pro, que não está à venda), `resumir-audio.html`.
   No sitemap e ligadas a partir de `blog/index.html` e `blog/transcrever-audio-online.html`.
+- **Backoffice: meta e equipa (25/11)**
+  - *Aparelho da equipa em qualquer rede:* ao abrir o backoffice como admin, `POST /api/admin/team-device` marca o IP
+    atual e devolve um token guardado no browser (`localStorage.oe_team_device`; o servidor só guarda o hash em
+    `team_device_tokens`, máx. 10). O site envia-o em `/api/track-visit` (`team_device`, `ouviescrevi-ui.js?v=38` em
+    todas as páginas); com token válido, o IP dessa rede entra na lista da equipa (`owner_visitor_uids`).
+    «Desmarcar» no Painel grava `oe_team_device=nao` para não voltar a marcar sozinho.
+  - *Topo do Painel* (`backoffice-meta.js?v=1`): pessoas reais hoje, últimos 7 dias vs anteriores, média/dia com
+    semáforo da meta (🟢 ≥10/dia, 🟡 3–10, 🔴 <3 até ao fim de fevereiro de 2027), entradas do Google e o percurso.
+  - *Percurso:* tabela `eventos` (`carregou` ao aceitar um upload em `/transcribe` e `/video-subs`; `terminou` na
+    1.ª consulta de um trabalho concluído). `build_marketing_report` devolve `percurso` {entraram, carregaram,
+    terminaram, voltaram (vistos em ≥2 dias)}, sem a equipa.
+  - *Resumo por email ao domingo* (`weekly_report.py`): fio iniciado no arranque só com `APP_ENV=production`;
+    domingo a partir das 9h UTC, uma vez por semana (`weekly_report_week`; desligar com `weekly_report_enabled=0`).
+    Botão «Enviar resumo semanal agora» → `POST /api/admin/weekly-report/test`.
+  - *Menu:* Sugestões AI, Estudo AI, Emails e Planos Pro ficam dentro de «Mais» (`<details>`).
+    `backoffice.js?v=34`, `backoffice.css?v=29`. Testes: `tests/test_backoffice_meta.py`.
+  - Por fazer: dados do Google Search Console no backoffice (precisa de acesso do João à conta Google).
 
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).

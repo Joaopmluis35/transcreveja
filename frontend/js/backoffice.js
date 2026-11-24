@@ -673,6 +673,7 @@
           "success"
         );
       }
+      if (global.OuviescreviAdminMeta) await global.OuviescreviAdminMeta.markDevice(!unmark);
       await carregarDashboard();
     } catch (e) {
       if (global.OuviescreviUI && global.OuviescreviUI.toast) {
@@ -1204,6 +1205,7 @@
     }
     setTimeout(function () {
       carregarDashboard();
+      if (global.OuviescreviAdminMeta) global.OuviescreviAdminMeta.load();
     }, 0);
   }
 
@@ -1335,6 +1337,7 @@
 
     document.getElementById("btnRefresh").addEventListener("click", function () {
       carregarDashboard();
+      if (global.OuviescreviAdminMeta) global.OuviescreviAdminMeta.load();
       var active = document.querySelector(".oe-admin-nav button.is-active");
       if (active && active.dataset.tab === "transcricoes") carregarLogs();
       if (active && active.dataset.tab === "sistema" && global.OuviescreviAdminExt) {

@@ -154,6 +154,25 @@ def record_visit(
         conn.close()
 
 
+EVENTOS_PERCURSO = ("carregou", "terminou")
+
+
+def record_event(nome: str, client_ip: str) -> None:
+    """Regista um passo do percurso (ex.: «carregou», «terminou») ligado ao mesmo visitante das visitas."""
+    if nome not in EVENTOS_PERCURSO:
+        return
+    conn = get_connection()
+    try:
+        conn.execute(
+            "INSERT INTO eventos (day, visitor_uid, nome, created_at) VALUES (?, ?, ?, ?)",
+            (_day_str(), visitor_uid(client_ip), nome,
+             datetime.utcnow().isoformat(timespec="seconds") + "Z"),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
 def _count_visits(since_day: str | None = None) -> int:
     conn = get_connection()
     try:
@@ -859,6 +878,13 @@ def build_marketing_report(owner_uids: set[str] | None = None, days: int = 14) -
                 tuple(day_list),
             ).fetchall()
         ]
+        event_rows = [
+            row_to_dict(r)
+            for r in conn.execute(
+                f"SELECT DISTINCT visitor_uid, nome FROM eventos WHERE day IN ({placeholders})",
+                tuple(day_list),
+            ).fetchall()
+        ]
         trans_rows = [
             row_to_dict(r)
             for r in conn.execute(
@@ -925,6 +951,22 @@ def build_marketing_report(owner_uids: set[str] | None = None, days: int = 14) -
 
     for d in day_list:
         by_day[d]["visitantes"] = len(day_visitors[d])
+    # Percurso: das pessoas que entraram, quantas carregaram um ficheiro, terminaram e voltaram noutro dia.
+    by_step: dict[str, set[str]] = {n: set() for n in EVENTOS_PERCURSO}
+    for r in event_rows:
+        uid = r.get("visitor_uid") or ""
+        if uid and uid not in owner_uids and r.get("nome") in by_step:
+            by_step[str(r["nome"])].add(uid)
+    seen_days: dict[str, int] = {}
+    for d in day_list:
+        for vid in day_visitors[d]:
+            seen_days[vid] = seen_days.get(vid, 0) + 1
+    percurso = {
+        "entraram": len(all_visitors),
+        "carregaram": len(by_step["carregou"]),
+        "terminaram": len(by_step["terminou"]),
+        "voltaram": sum(1 for n in seen_days.values() if n >= 2),
+    }
     source_list = sorted(
         ({"origem": s["origem"], "entradas": s["entradas"], "visitantes": len(s["_v"])} for s in sources.values()),
         key=lambda s: -s["entradas"],
@@ -944,6 +986,7 @@ def build_marketing_report(owner_uids: set[str] | None = None, days: int = 14) -
             "transcricoes": sum(v["transcricoes"] for v in by_day.values()),
             "ignoradas": ignored,
         },
+        "percurso": percurso,
         "origens": source_list,
         "por_dia": [by_day[d] for d in day_list],
         "campanhas_utm": [{"source": k[0], "medium": k[1], "campaign": k[2], "entradas": c} for k, c in top(utm)],

@@ -42,6 +42,9 @@ DEFAULT_CONFIG: dict[str, str] = {
     "alert_visits_daily": "500",
     "owner_visitor_uids": "",
     "owner_ip_labels": "",
+    "team_device_tokens": "",  # hashes dos aparelhos da equipa (reconhecidos em qualquer rede)
+    "weekly_report_enabled": "1",
+    "weekly_report_week": "",  # última semana (ISO) em que o resumo de domingo foi enviado
     "quota_anonymous_daily": "3",
     "quota_registered_daily": "20",
     "billing_enabled": "0",
@@ -1190,6 +1193,30 @@ def remove_owner_visitor_uid(uid: str, actor: str = "admin") -> dict[str, str]:
         },
         actor,
     )
+
+
+TEAM_DEVICE_MAX = 10
+
+
+def _hash_team_token(token: str) -> str:
+    return hashlib.sha256(f"team|{token}".encode()).hexdigest()[:32]
+
+
+def create_team_device_token(actor: str = "admin") -> str:
+    """Token guardado no browser do aparelho da equipa; o servidor só guarda o hash."""
+    token = secrets.token_urlsafe(24)
+    hashes = [h for h in (get_config().get("team_device_tokens") or "").split(",") if h]
+    hashes = (hashes + [_hash_team_token(token)])[-TEAM_DEVICE_MAX:]
+    set_config({"team_device_tokens": ",".join(hashes)}, actor)
+    return token
+
+
+def is_team_device_token(token: str | None) -> bool:
+    token = (token or "").strip()
+    if not token or len(token) > 100:
+        return False
+    hashes = set((get_config().get("team_device_tokens") or "").split(","))
+    return _hash_team_token(token) in hashes
 
 
 def get_owner_ip_labels_list(cfg: dict[str, str] | None = None) -> list[str]:

@@ -1786,3 +1786,43 @@ body.oe-admin.oe-admin--dark .oe-admin-jobs-box__item {
     grid-template-columns: 1fr;
   }
 }
+
+/* Menu: separadores pouco usados agrupados em «Mais» */
+.oe-admin-nav-more > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  color: #c9dcf2;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  list-style: none;
+  border-left: 3px solid transparent;
+}
+.oe-admin-nav-more > summary::-webkit-details-marker { display: none; }
+.oe-admin-nav-more > summary:hover { background: var(--bo-sidebar-hover); color: #fff; }
+.oe-admin-nav-more[open] > summary { color: #fff; }
+.oe-admin-nav-more > button { padding-left: 28px; }
+
+/* Topo do Painel: meta de fevereiro e percurso */
+.oe-admin-meta {
+  background: var(--bo-card);
+  border: 1px solid var(--bo-border);
+  border-radius: 6px;
+  padding: 16px 18px;
+  margin-bottom: 20px;
+}
+.oe-admin-meta__head { margin: 0 0 12px; font-weight: 600; }
+.oe-admin-meta__sinal { font-size: 1.2rem; }
+.oe-admin-meta .oe-admin-cards { margin-bottom: 12px; }
+.oe-admin-meta__percurso { margin: 0 0 8px; overflow-wrap: anywhere; }
+.oe-admin-meta__note {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  color: var(--bo-muted);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}

@@ -403,6 +403,30 @@ def admin_mark_owner_visitor(request: Request):
     }
 
 
+@router.post("/team-device")
+def admin_team_device(request: Request):
+    """Reconhece este aparelho como da equipa em qualquer rede (o token fica no browser)."""
+    store.require_role(getattr(request.state, "admin_session", None), "admin")
+    ip = client_ip(request)
+    store.add_owner_visitor_uid(visitor_uid(ip), _actor(request), mask_ip_label(ip))
+    return {"ok": True, "token": store.create_team_device_token(_actor(request))}
+
+
+@router.post("/weekly-report/test")
+def admin_weekly_report_test(request: Request):
+    """Envia já o resumo semanal (para ver como fica)."""
+    store.require_role(getattr(request.state, "admin_session", None), "admin")
+    from email_notify import send_notification_email
+    from weekly_report import build_weekly_text
+
+    owners = parse_owner_visitor_uids(store.get_config().get("owner_visitor_uids"))
+    assunto, corpo = build_weekly_text(build_marketing_report(owners, days=14))
+    ok, err = send_notification_email(corpo, assunto, kind="weekly_report", actor=_actor(request))
+    if not ok:
+        raise HTTPException(status_code=502, detail=err or "Falha ao enviar.")
+    return {"ok": True}
+
+
 @router.post("/visitors/unmark-owner")
 def admin_unmark_owner_visitor(request: Request):
     store.require_role(getattr(request.state, "admin_session", None), "admin")

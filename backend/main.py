@@ -41,7 +41,14 @@ from security import (
     validate_public_http_url,
 )
 from cms import get_all_content, get_seo_overrides
-from analytics import record_visit, get_visit_stats
+from analytics import (
+    mask_ip_label,
+    parse_owner_visitor_uids,
+    record_event,
+    record_visit,
+    get_visit_stats,
+    visitor_uid,
+)
 import admin_store
 from admin_routes import router as admin_router
 import share_routes
@@ -239,6 +246,10 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 @app.on_event("startup")
 def _on_startup() -> None:
     threading.Thread(target=_run_startup_cleanup, daemon=True).start()
+    if APP_ENV == "production":
+        from weekly_report import start_weekly_loop
+
+        start_weekly_loop()
 
 
 @app.middleware("http")
@@ -2551,12 +2562,31 @@ def admin_login(req: AdminLoginRequest, request: Request):
     raise HTTPException(status_code=403, detail="Credenciais inválidas.")
 
 
+_EVENTOS_JOBS_VISTOS: set[str] = set()
+
+
+def _registar_evento(request: Request, nome: str, job_id: str | None = None) -> None:
+    """Passo do percurso (backoffice → Painel). Nunca pode partir o pedido do utilizador."""
+    try:
+        if job_id:
+            if job_id in _EVENTOS_JOBS_VISTOS:
+                return
+            if len(_EVENTOS_JOBS_VISTOS) > 5000:
+                _EVENTOS_JOBS_VISTOS.clear()
+            _EVENTOS_JOBS_VISTOS.add(job_id)
+        from security import client_ip as _cip
+        record_event(nome, _cip(request))
+    except Exception:
+        logger.exception("Falha ao registar evento %s", nome)
+
+
 class TrackVisitRequest(BaseModel):
     path: str = "/"
     referrer: str | None = None
     utm_source: str | None = None
     utm_medium: str | None = None
     utm_campaign: str | None = None
+    team_device: str | None = None  # token do aparelho da equipa (guardado ao abrir o backoffice)
 
 
 @app.post("/api/track-visit")
@@ -2565,6 +2595,14 @@ def track_visit(request: Request, body: TrackVisitRequest):
         raise HTTPException(status_code=403, detail="Origem não autorizada.")
     enforce_rate_limit(request, "track", RATE_LIMIT_TRACK, RATE_LIMIT_TRACK_WINDOW)
     path = (body.path or "/").strip()[:500] or "/"
+    if body.team_device and admin_store.is_team_device_token(body.team_device):
+        # Aparelho da equipa numa rede nova (ex.: dados móveis): a rede atual passa a contar como equipa.
+        # shortcut: em dados móveis o mesmo IP pode ser partilhado com outras pessoas; aceitável com poucas visitas.
+        ip = client_ip(request)
+        uid = visitor_uid(ip)
+        owners = parse_owner_visitor_uids(admin_store.get_config().get("owner_visitor_uids"))
+        if uid not in owners:
+            admin_store.add_owner_visitor_uid(uid, "aparelho-equipa", mask_ip_label(ip))
     record_visit(
         path,
         client_ip(request),
@@ -2898,6 +2936,7 @@ async def transcribe(
             detail="Já tens uma transcrição a decorrer que usa o resto do limite de hoje. Espera que termine.",
         )
 
+    _registar_evento(request, "carregou")
     job_id = str(uuid.uuid4())
     _transcribe_job_set(
         job_id,
@@ -2957,6 +2996,8 @@ def transcribe_job_status(job_id: str, request: Request):
                 "Volta a clicar em Transcrever com o mesmo ficheiro."
             ),
         )
+    if job.get("status") == "completed":
+        _registar_evento(request, "terminou", job_id)
     return job
 
 
@@ -3663,6 +3704,7 @@ async def video_subs(
     Upload de vídeo → resposta imediata com job_id → processamento em segundo plano.
     Consultar GET /video-subs/jobs/{job_id} até status=completed.
     """
+    _registar_evento(request, "carregou")
     rid = str(uuid.uuid4())
     t_start = time.monotonic()
 
@@ -3751,6 +3793,8 @@ def video_subs_job_status(job_id: str, request: Request):
                 "Volta a clicar em Legendar com o mesmo ficheiro."
             ),
         )
+    if job.get("status") == "completed":
+        _registar_evento(request, "terminou", "v:" + job_id)
     return {k: v for k, v in job.items() if k != "updated_at"}
 
 # ── IA payloads ───────────────────────────────────────────────────────────────

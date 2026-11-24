@@ -579,6 +579,15 @@
       return out;
     }
 
+    function readTeamDevice() {
+      try {
+        var t = localStorage.getItem("oe_team_device") || "";
+        return t && t !== "nao" ? t : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
     function sendTrack(base) {
       if (!base) return;
       var utm = readUtms();
@@ -593,6 +602,7 @@
           utm_source: utm.utm_source || null,
           utm_medium: utm.utm_medium || null,
           utm_campaign: utm.utm_campaign || null,
+          team_device: readTeamDevice(),
         }),
       })
         .then(function (res) {
