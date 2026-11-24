@@ -2452,7 +2452,10 @@ def site_me(request: Request):
 @app.get("/api/usage")
 def api_usage(request: Request):
     actor = resolve_site_actor(request)
-    return admin_store.transcribe_quota_status(request, actor)
+    status = dict(admin_store.transcribe_quota_status(request, actor))
+    # Limites grátis atuais, para as páginas mostrarem os números certos (mudam no backoffice).
+    status["free_limits"] = dict(zip(("anonymous", "registered"), admin_store._quota_limits()))
+    return status
 
 
 @app.get("/api/auth/history")

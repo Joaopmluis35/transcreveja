@@ -544,6 +544,31 @@
     });
   }
 
+  function fillQuotas(base) {
+    // Números grátis reais (o backoffice pode mudá-los) nos textos marcados com data-quota.
+    var spans = document.querySelectorAll("[data-quota]");
+    if (!spans.length || !base) return;
+    fetch(base + "/api/usage", { credentials: "omit" })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (data) {
+        var lim = data && data.free_limits;
+        if (!lim) return;
+        spans.forEach(function (el) {
+          var v = lim[el.getAttribute("data-quota")];
+          if (typeof v === "number" && v > 0) el.textContent = String(v);
+        });
+      })
+      .catch(function () {});
+  }
+
+  function fillQuotasWhenReady() {
+    if (!document.querySelector("[data-quota]") || !global.OuviescreviAPI) return;
+    var api = global.OuviescreviAPI;
+    (api.init ? api.init() : Promise.resolve())
+      .catch(function () {})
+      .then(function () { fillQuotas(api.getBase() || api.detectApiBase()); });
+  }
+
   function trackPageView() {
     var path;
     var key;
@@ -1133,6 +1158,7 @@
       }
     });
     trackPageView();
+    fillQuotasWhenReady();
     maybeShowAdminTrafficTools();
     if ("serviceWorker" in navigator && location.protocol.indexOf("http") === 0) {
       navigator.serviceWorker.register("/sw.js").catch(function () {});

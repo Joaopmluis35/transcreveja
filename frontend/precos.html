@@ -16,11 +16,11 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="canonical" href="https://www.ouviescrevi.pt/precos.html">
   <link rel="icon" href="/logos/ouviescrevi-icon-pro.png?v=2" type="image/png">
-  <link rel="stylesheet" href="css/ouviescrevi.css?v=70">
+  <link rel="stylesheet" href="css/ouviescrevi.css?v=71">
   <link rel="stylesheet" href="css/index-home.css?v=70">
   <script src="/js/ouviescrevi-seo.js?v=2" defer></script>
   <script src="js/pricing-visibility.js?v=25" defer></script>
-  <script src="js/ouviescrevi-ui.js?v=38" defer></script>
+  <script src="js/ouviescrevi-ui.js?v=39" defer></script>
   <script src="js/ouviescrevi-api.js?v=28" defer></script>
   <script src="js/auth-ui.js?v=27" defer></script>
   <style>
@@ -50,7 +50,7 @@
     }
     body.oe-page--pricing .oe-pricing-cta:hover { transform: translateY(-1px); }
     body.oe-page--pricing .oe-pricing-cta--primary {
-      background: var(--oe-btn, #fd8c32); color: #fff !important;
+      background: var(--oe-btn, #fd8c32); color: var(--oe-btn-texto, #0f2a4f) !important;
       box-shadow: 0 6px 20px rgba(253, 140, 50, 0.35);
     }
     body.oe-page--pricing .oe-pricing-cta--ghost {
@@ -128,7 +128,7 @@
 </main>
 <div id="footer"></div>
 <script>
-  (async function () {
+  document.addEventListener("DOMContentLoaded", async function () {
     await OuviescreviAPI.init();
     if (OuviescreviPricingVisibility) await OuviescreviPricingVisibility.whenReady();
     var params = new URLSearchParams(location.search);
@@ -189,7 +189,7 @@
         });
       }
     }
-  })();
+  });
 </script>
 </body>
 </html>

@@ -23,7 +23,7 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
 - **Domínio canónico:** https://www.ouviescrevi.pt (Cloudflare à frente da Vercel).
 - **API:** Render, plano free, https://api.ouviescrevi.pt, base de dados Turso. autoDeploy no push para `main`.
   **O servidor corre nos EUA (Ashburn, Virgínia, rede Amazon)**, não em Frankfurt como diz o `render.yaml`.
-- **Testes:** `cd backend; py -m pytest -q` → 193 testes (24/11) (usar o Python do sistema; o `backend/venv` antigo está partido;
+- **Testes:** `cd backend; py -m pytest -q` → 194 testes (25/11) (usar o Python do sistema; o `backend/venv` antigo está partido;
   `backend/.venv` tem uvicorn para correr a API em local). Frontend: `py scripts/frontend_smoke_test.py`.
 - **Cache:** CSS/JS com `?v=N` nos HTML. Ao mudar um ficheiro, sobe o `?v=` em **todas** as páginas que o usam.
   Versões atuais: `ouviescrevi.css?v=48` (importa `ouviescrevi-pro.css?v=8` e `theme-dark.css?v=5`),
@@ -424,6 +424,21 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   - *Menu:* Sugestões AI, Estudo AI, Emails e Planos Pro ficam dentro de «Mais» (`<details>`).
     `backoffice.js?v=34`, `backoffice.css?v=29`. Testes: `tests/test_backoffice_meta.py`.
   - Por fazer: dados do Google Search Console no backoffice (precisa de acesso do João à conta Google).
+- **Site: Google, primeira visita e design (25/11)**
+  - *3 páginas SEO novas* (modelo de `resumir-audio.html`): `transcrever-entrevista.html` (teses/jornalismo,
+    menciona «Identificar locutores»), `ata-de-reuniao.html` (botão «Gerar Minuta»), `legendas-automaticas-video.html`
+    (SRT e MP4 com legendas embutidas; o painel de estilo tem tamanho, cor, contorno e posição — sem tipo de letra).
+    No sitemap, no `blog/index.html` e com «Lê também» em `jornalistas.html`, `reunioes.html` e
+    `transcrever-video-texto.html`.
+  - *Limites grátis reais:* o texto dizia «3 por dia sem conta» mas a produção está com 10. `GET /api/usage` devolve
+    `free_limits` {anonymous, registered}; o `ouviescrevi-ui.js?v=39` preenche qualquer `<span data-quota="...">`
+    (usado na página inicial e nas FAQ das páginas SEO). Mudar a quota no backoffice muda o texto.
+  - *Preços (5 línguas):* o script inline corria antes dos scripts `defer` («OuviescreviAPI is not defined»); agora
+    corre no `DOMContentLoaded`. Botão principal com `var(--oe-btn-texto)` em vez de branco sobre laranja.
+  - *Faixa de novidades:* para ao passar o rato ou tocar (`ouviescrevi.css?v=71`).
+  - Avisos de design que ficaram: a maioria dos «contraste baixo» do detetor estático são falsos (o tema `oe-pro`
+    usa texto escuro nos botões); pontos a pulsar = ampulheta de carregamento (intencional); «cards dentro de cards»
+    e linhas longas não mexidos.
 
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).

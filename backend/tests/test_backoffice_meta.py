@@ -94,3 +94,10 @@ def test_weekly_report_text_and_once_per_week(client, monkeypatch):
     assert weekly_report.maybe_send_weekly(domingo) is True
     assert weekly_report.maybe_send_weekly(domingo + timedelta(hours=1)) is False  # já enviado
     assert len(enviados) == 1
+
+def test_usage_exposes_free_limits(client):
+    """As páginas mostram os limites grátis reais (mudam no backoffice), não um número fixo no HTML."""
+    store.set_config({"quota_anonymous_daily": "7", "quota_registered_daily": "25"})
+    body = client.get("/api/usage").json()
+    assert body["free_limits"] == {"anonymous": 7, "registered": 25}
+    store.set_config({"quota_anonymous_daily": "3", "quota_registered_daily": "20"})

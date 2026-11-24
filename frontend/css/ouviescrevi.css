@@ -623,6 +623,11 @@ pre#resultado,
   0%   { transform: translateX(0); }
   100% { transform: translateX(-50%); }
 }
+/* Quem quer ler pode parar a faixa (passar o rato ou tocar nela). */
+.oe-news-ticker:hover .oe-news-ticker__track,
+.oe-news-ticker:active .oe-news-ticker__track,
+.ticker:hover .ticker__inner,
+.ticker:active .ticker__inner { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) {
   .oe-news-ticker__track,
   .ticker__inner { animation: none; padding: 10px 16px; }
