@@ -1807,11 +1807,10 @@ body.oe-admin.oe-admin--dark .oe-admin-jobs-box__item {
 
 /* Topo do Painel: meta de fevereiro e percurso */
 .oe-admin-meta {
-  background: var(--bo-card);
-  border: 1px solid var(--bo-border);
-  border-radius: 6px;
-  padding: 16px 18px;
-  margin-bottom: 20px;
+  /* Sem moldura: os cartões já são caixas (evita caixas dentro de caixas). */
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--bo-border);
 }
 .oe-admin-meta__head { margin: 0 0 12px; font-weight: 600; }
 .oe-admin-meta__sinal { font-size: 1.2rem; }
