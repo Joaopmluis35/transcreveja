@@ -591,6 +591,32 @@ def admin_export_visit_report(request: Request, days: int = 2):
     )
 
 
+class TestimonialApproveRequest(BaseModel):
+    aprovado: bool
+
+
+@router.get("/testemunhos")
+def admin_testemunhos(request: Request):
+    store.require_role(getattr(request.state, "admin_session", None), "viewer")
+    return {"items": store.list_testimonials()}
+
+
+@router.post("/testemunhos/{testimonial_id}")
+def admin_testemunho_approve(request: Request, testimonial_id: int, body: TestimonialApproveRequest):
+    store.require_role(getattr(request.state, "admin_session", None), "editor")
+    store.set_testimonial_approved(testimonial_id, body.aprovado)
+    store.log_audit(_actor(request), "testimonial_approve" if body.aprovado else "testimonial_hide", str(testimonial_id))
+    return {"ok": True}
+
+
+@router.delete("/testemunhos/{testimonial_id}")
+def admin_testemunho_delete(request: Request, testimonial_id: int):
+    store.require_role(getattr(request.state, "admin_session", None), "editor")
+    store.delete_testimonial(testimonial_id)
+    store.log_audit(_actor(request), "testimonial_delete", str(testimonial_id))
+    return {"ok": True}
+
+
 # Chave do Claude: sessão com papel próprio (nível 0), que só abre o relatório de marketing.
 CLAUDE_KEY_USER = "claude-leitura"
 CLAUDE_KEY_DAYS = 180

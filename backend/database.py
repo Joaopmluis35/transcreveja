@@ -329,6 +329,19 @@ def criar_base() -> None:
             )
         """)
 
+        # Opiniões que o utilizador autorizou mostrar; só aparecem no site depois de aprovadas no backoffice.
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS testemunhos (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                nome TEXT,
+                texto TEXT NOT NULL,
+                rating INTEGER NOT NULL,
+                lang TEXT DEFAULT 'pt',
+                created_at TEXT NOT NULL,
+                aprovado INTEGER DEFAULT 0
+            )
+        """)
+
         cur.execute("""
             CREATE TABLE IF NOT EXISTS audit_log (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,

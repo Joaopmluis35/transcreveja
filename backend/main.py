@@ -2586,6 +2586,8 @@ class SuggestionRequest(BaseModel):
     source: str | None = None
     rating: int | None = None
     honeypot: str | None = None
+    publicar: bool = False  # «Podem mostrar a minha opinião no site»
+    nome_publico: str | None = None
 
 
 @app.post("/api/suggestions")
@@ -2616,6 +2618,10 @@ def public_suggestion(request: Request, body: SuggestionRequest):
         elif rating is None and not msg.startswith("[CSAT"):
             msg = f"[CSAT] {msg}"
     sid = admin_store.add_suggestion(nome, msg, lang)
+    comment = body.mensagem.strip()
+    if body.publicar and rating is not None and rating >= 4 and comment and comment != "Sem comentário.":
+        public_name = re.sub(r"\s+", " ", (body.nome_publico or "").strip())[:60] or None
+        admin_store.add_testimonial(public_name, comment[:500], rating, lang[:5])
     referer = request.headers.get("referer") or request.headers.get("Referer")
 
     def _notify() -> None:
@@ -2627,6 +2633,13 @@ def public_suggestion(request: Request, body: SuggestionRequest):
 
     _run_in_background(_notify)
     return {"ok": True, "id": sid, "source": source or "suggestion"}
+
+
+@app.get("/api/testimonials")
+def public_testimonials(lang: str = "pt"):
+    """Opiniões aprovadas no backoffice, para a página inicial (só nome, texto e estrelas)."""
+    items = admin_store.list_testimonials(approved_only=True, lang=(lang or "pt")[:5], limit=6)
+    return {"items": [{"nome": i.get("nome"), "texto": i["texto"], "rating": i["rating"]} for i in items]}
 
 
 

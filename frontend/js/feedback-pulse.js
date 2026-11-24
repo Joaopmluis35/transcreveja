@@ -96,6 +96,9 @@
       send: document.getElementById("oeCsatSend"),
       dismiss: document.getElementById("oeCsatDismiss"),
       stars: document.querySelectorAll("#oeCsatPulse .oe-csat__star"),
+      pub: document.getElementById("oeCsatPublic"),
+      publish: document.getElementById("oeCsatPublish"),
+      name: document.getElementById("oeCsatName"),
     };
   }
 
@@ -138,6 +141,9 @@
     e.stars.forEach(function (btn) {
       btn.classList.remove("is-active");
     });
+    if (e.pub) e.pub.hidden = true;
+    if (e.publish) e.publish.checked = false;
+    if (e.name) e.name.value = "";
     e.root.classList.remove("hidden");
     e.root.hidden = false;
   }
@@ -150,6 +156,11 @@
       btn.classList.toggle("is-active", n <= rating);
     });
     if (e.send) e.send.disabled = rating < 1;
+    // Com 4-5 estrelas, pedir autorização para mostrar o comentário no site (só existe na PT).
+    if (e.pub) e.pub.hidden = rating < 4;
+    if (e.comment && lang() === "pt") {
+      e.comment.placeholder = rating >= 4 ? "O que te ajudou mais?" : t("commentPh");
+    }
   }
 
   function submit() {
@@ -172,6 +183,8 @@
         lang: lang(),
         source: "csat",
         rating: selectedRating,
+        publicar: !!(e.publish && e.publish.checked && selectedRating >= 4 && comment),
+        nome_publico: ((e.name && e.name.value) || "").trim(),
       }),
     })
       .then(function (res) {
@@ -205,7 +218,48 @@
     }, SHOW_DELAY_MS);
   }
 
+  /** Mostra na página inicial as opiniões aprovadas no backoffice (texto via textContent). */
+  function loadTestimonials() {
+    var box = document.getElementById("oeUserTestimonials");
+    if (!box) return;
+    fetch(apiBase() + "/api/testimonials?lang=" + lang(), { credentials: "omit" })
+      .then(function (res) { return res.ok ? res.json() : { items: [] }; })
+      .then(function (data) {
+        var items = (data && data.items) || [];
+        if (!items.length) return;
+        var h = document.createElement("h2");
+        h.className = "oe-home-usecases__title";
+        h.textContent = "O que dizem os utilizadores";
+        var grid = document.createElement("div");
+        grid.className = "oe-home-usecases__grid";
+        items.forEach(function (it) {
+          var card = document.createElement("figure");
+          card.className = "oe-home-usecases__card";
+          card.style.margin = "0";
+          var stars = document.createElement("span");
+          stars.setAttribute("aria-label", it.rating + " de 5 estrelas");
+          stars.style.color = "#b45309";
+          stars.textContent = "★★★★★".slice(0, it.rating);
+          var q = document.createElement("blockquote");
+          q.style.margin = "6px 0";
+          q.textContent = "«" + it.texto + "»";
+          card.appendChild(stars);
+          card.appendChild(q);
+          if (it.nome) {
+            var who = document.createElement("figcaption");
+            who.textContent = "— " + it.nome;
+            card.appendChild(who);
+          }
+          grid.appendChild(card);
+        });
+        box.appendChild(h);
+        box.appendChild(grid);
+      })
+      .catch(function () {});
+  }
+
   function init() {
+    loadTestimonials();
     var e = els();
     if (!e.root) return;
     e.stars.forEach(function (btn) {

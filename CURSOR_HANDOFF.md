@@ -394,6 +394,16 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   anterior. O Claude guarda-a em `%USERPROFILE%\.ouviescrevi\claude.key` e lê com `py scripts/marketing_report.py
   [dias]`. Teste: `test_claude_key_only_opens_marketing` (percorre todos os GET de `/api/admin/` com a chave).
   `backoffice-marketing.js?v=3`.
+- **Opiniões dos utilizadores (testemunhos)**: no pedido de estrelas da PT (`feedback-pulse.js?v=2`), com 4–5
+  estrelas aparece «Podem mostrar este comentário no site» + nome/profissão opcional. `POST /api/suggestions` com
+  `publicar` + `nome_publico` grava também na tabela `testemunhos` (só com autorização, 4–5 estrelas e comentário
+  escrito), com `aprovado=0`. Backoffice → Marketing → «Opiniões dos utilizadores» (`GET/POST/DELETE
+  /api/admin/testemunhos[/{id}]`, aprovar = editor). A página inicial PT mostra as aprovadas em
+  `#oeUserTestimonials` via `GET /api/testimonials?lang=pt` (máx. 6, só nome/texto/estrelas, `textContent`; vazio
+  = escondido). `backoffice-marketing.js?v=4`. Testes: `tests/test_testimonials.py`.
+- **3 páginas SEO novas** (modelo de `audio-whatsapp-texto.html`): `transcrever-video-texto.html`,
+  `audio-para-word.html` (exportação DOC grátis; não falar do Pro, que não está à venda), `resumir-audio.html`.
+  No sitemap e ligadas a partir de `blog/index.html` e `blog/transcrever-audio-online.html`.
 
 **Simulador (fase 0)**
 - `d8c09dd` + `91c1e87` Endpoint temporário de teste, já removido (ver ponto 4).

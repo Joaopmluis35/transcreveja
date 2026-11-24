@@ -304,6 +304,12 @@
               </div>
               <label class="oe-csat__label" for="oeCsatComment">Comentário (opcional)</label>
               <textarea id="oeCsatComment" class="oe-csat__comment" rows="2" maxlength="500" placeholder="O que podemos melhorar?"></textarea>
+              <div id="oeCsatPublic" hidden style="margin-top:8px">
+                <label class="oe-csat__label" style="display:flex;gap:6px;align-items:flex-start;font-weight:500">
+                  <input type="checkbox" id="oeCsatPublish"> Podem mostrar este comentário no site
+                </label>
+                <input type="text" id="oeCsatName" class="oe-csat__comment" style="min-height:0" maxlength="60" placeholder="Nome ou profissão (opcional), ex.: Ana, estudante" aria-label="Nome ou profissão (opcional)">
+              </div>
               <div class="oe-csat__actions">
                 <button type="button" id="oeCsatSend" class="oe-csat__btn oe-csat__btn--primary" disabled>Enviar</button>
                 <button type="button" id="oeCsatDismiss" class="oe-csat__btn oe-csat__btn--ghost">Agora não</button>
@@ -384,6 +390,8 @@
     </section>
 
     <div id="cmsHomeTestimonials" class="oe-home-testimonials" data-cms-key="home_testimonials" data-cms-mode="html"></div>
+    <!-- Opiniões aprovadas no backoffice (feedback-pulse.js); vazio = escondido -->
+    <section id="oeUserTestimonials" class="oe-home-testimonials" aria-label="O que dizem os utilizadores"></section>
 
     <div id="uploadAlert" class="oe-upload-alert hidden" role="alert"></div>
     <p id="quotaBadge" class="oe-quota-badge hidden" aria-live="polite"></p>
@@ -617,7 +625,7 @@
 <script src="js/upsell-ui.js?v=28"></script>
 <script src="js/share-ui.js?v=30"></script>
 <script src="/js/suggestion-fab.js?v=25" defer></script>
-<script src="/js/feedback-pulse.js?v=1" defer></script>
+<script src="/js/feedback-pulse.js?v=2" defer></script>
   <script src="/js/media-trim-ui.js?v=50" defer></script>
 <script>
   const ADMIN_EMAIL = "admin@ouviescrevi.pt";

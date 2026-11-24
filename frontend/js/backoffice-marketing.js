@@ -209,10 +209,70 @@
     }
   }
 
+  async function testimonialsCall(path, opts) {
+    var res = await fetch(apiBase() + "/api/admin/testemunhos" + path, Object.assign({
+      headers: Object.assign({ "Content-Type": "application/json" }, global.OuviescreviAPI.adminAuthHeaders()),
+    }, opts || {}));
+    var data = await res.json();
+    if (!res.ok) throw new Error((data && data.detail) || "Erro nas opiniões.");
+    return data;
+  }
+
+  function button(label, primary, onClick) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "oe-admin-btn " + (primary ? "oe-admin-btn--primary" : "oe-admin-btn--secondary");
+    b.textContent = label;
+    b.addEventListener("click", onClick);
+    return b;
+  }
+
+  async function loadTestimonials() {
+    var box = $("mktTestemunhos");
+    if (!box) return;
+    try {
+      var items = (await testimonialsCall("")).items || [];
+      box.innerHTML = "";
+      if (!items.length) {
+        var p = document.createElement("p");
+        p.className = "oe-admin-empty";
+        p.textContent = "Ainda não há opiniões. Aparecem aqui quando alguém dá 4–5 estrelas e autoriza.";
+        box.appendChild(p);
+        return;
+      }
+      items.forEach(function (it) {
+        var row = document.createElement("div");
+        row.style.cssText = "border-bottom:1px solid rgba(127,127,127,.25);padding:8px 0;display:flex;gap:8px;flex-wrap:wrap;align-items:center";
+        var txt = document.createElement("div");
+        txt.style.flex = "1 1 320px";
+        txt.textContent = "★".repeat(it.rating) + " «" + it.texto + "» — " + (it.nome || "sem nome") +
+          " (" + String(it.created_at || "").slice(0, 10) + (it.aprovado ? ", no site" : "") + ")";
+        row.appendChild(txt);
+        row.appendChild(button(it.aprovado ? "Tirar do site" : "Mostrar no site", !it.aprovado, async function () {
+          try {
+            await testimonialsCall("/" + it.id, { method: "POST", body: JSON.stringify({ aprovado: !it.aprovado }) });
+            loadTestimonials();
+          } catch (err) { toast(err.message, "error"); }
+        }));
+        row.appendChild(button("Apagar", false, async function () {
+          if (!global.confirm("Apagar esta opinião?")) return;
+          try {
+            await testimonialsCall("/" + it.id, { method: "DELETE" });
+            loadTestimonials();
+          } catch (err) { toast(err.message, "error"); }
+        }));
+        box.appendChild(row);
+      });
+    } catch (err) {
+      toast(err.message || "Erro nas opiniões.", "error");
+    }
+  }
+
   function onTab(tab) {
     if (tab !== "marketing") return;
     renderLinks();
     load();
+    loadTestimonials();
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);

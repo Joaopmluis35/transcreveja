@@ -1588,6 +1588,56 @@ def delete_suggestion(suggestion_id: int) -> None:
         conn.close()
 
 
+def add_testimonial(nome: str | None, texto: str, rating: int, lang: str = "pt") -> int:
+    conn = get_connection()
+    try:
+        cur = conn.execute(
+            "INSERT INTO testemunhos (nome, texto, rating, lang, created_at) VALUES (?, ?, ?, ?, ?)",
+            (nome, texto, rating, lang, _now()),
+        )
+        conn.commit()
+        return int(cur.lastrowid)
+    finally:
+        conn.close()
+
+
+def list_testimonials(approved_only: bool = False, lang: str | None = None, limit: int = 100) -> list[dict]:
+    conn = get_connection()
+    try:
+        clauses, params = [], []
+        if approved_only:
+            clauses.append("aprovado = 1")
+        if lang:
+            clauses.append("COALESCE(lang, 'pt') = ?")
+            params.append(lang)
+        q = "SELECT * FROM testemunhos"
+        if clauses:
+            q += " WHERE " + " AND ".join(clauses)
+        q += " ORDER BY id DESC LIMIT ?"
+        params.append(max(1, min(limit, 200)))
+        return [row_to_dict(r) for r in conn.execute(q, params).fetchall()]
+    finally:
+        conn.close()
+
+
+def set_testimonial_approved(testimonial_id: int, approved: bool) -> None:
+    conn = get_connection()
+    try:
+        conn.execute("UPDATE testemunhos SET aprovado = ? WHERE id = ?", (1 if approved else 0, testimonial_id))
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def delete_testimonial(testimonial_id: int) -> None:
+    conn = get_connection()
+    try:
+        conn.execute("DELETE FROM testemunhos WHERE id = ?", (testimonial_id,))
+        conn.commit()
+    finally:
+        conn.close()
+
+
 def save_ai_insights(
     suggestions: list[dict],
     *,
