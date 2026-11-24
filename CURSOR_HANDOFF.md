@@ -103,6 +103,9 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
 - `.github/workflows/keep-api-awake.yml`: visita `api.ouviescrevi.pt/api/status` a cada 10 min para o Render grátis
   não adormecer (gasta ~744 h das 750 h grátis/mês do Render: só chega para **um** serviço grátis na conta).
   O GitHub desliga tarefas agendadas após 60 dias sem commits no repositório.
+  **24/11:** o GitHub só a corria de 4 em 4 a 8 em 8 horas (8 vezes em 3 dias), por isso a API adormecia na mesma.
+  O João criou um monitor no **UptimeRobot** (conta grátis «Ouviescrevi», HTTP(s) a `api.ouviescrevi.pt/api/status`
+  de 5 em 5 min, avisa por email se a API cair). O workflow do GitHub fica como reserva.
 - `backend/requirements.txt` com versões fixas (as testadas em local). Atualizar uma de cada vez e correr os testes.
 - `scripts/compare_transcribe_models.py áudio.mp3 [pt]`: compara `whisper-1`, `gpt-4o-transcribe` e
   `gpt-4o-mini-transcribe` (custa cêntimos). **Atenção:** o site usa os segmentos com tempos do `whisper-1`
