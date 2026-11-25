@@ -442,6 +442,12 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   `weekly_report.py`; `backoffice-meta.js?v=2`). Apagados `index2.html` e `admin.html` (o `vercel.json` já os
   redireciona para a página inicial). O servidor corre com `TZ=Europe/Lisbon` (início do `main.py`): os dias das
   visitas, dos limites diários e dos relatórios mudam à meia-noite de Lisboa, não em UTC.
+- **Página inicial PT: confiança e funções para citar (25/11)**: após um estudo de personas (jornalistas e
+  investigadores queriam saber o que acontece aos ficheiros e não viam as funções que já existem), a `index.html`
+  ganhou duas filas de cartões (reutilizam `.oe-home-usecases`, sem CSS novo): «Feito para entrevistas e citações»
+  (locutores com nomes, marcas [mm:ss], SRT) e «O que acontece aos teus ficheiros» (áudio apagado, a OpenAI não treina
+  com dados da API e guarda-os até 30 dias para abusos, texto sem conta sai do servidor em poucas horas). A
+  `privacidade.html` (secção 5) diz o mesmo sobre o treino. Falta fazer o mesmo nas páginas EN/ES/FR/DE.
 
 ## 3. Regras a manter
 
