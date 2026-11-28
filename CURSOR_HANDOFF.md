@@ -26,7 +26,7 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   `backend/.venv` tem uvicorn para correr a API em local). Frontend: `py scripts/frontend_smoke_test.py`.
 - **Cache:** CSS/JS com `?v=N` nos HTML. Ao mudar um ficheiro, sobe o `?v=` em **todas** as páginas que o usam.
   Versões atuais: `ouviescrevi.css?v=48` (importa `ouviescrevi-pro.css?v=8` e `theme-dark.css?v=5`),
-  `index-home.css?v=60`, `ouviescrevi-ui.js?v=31` (cabeçalho/rodapé `LAYOUT_V = "14"`), `theme-ui.js?v=2`, `news-ticker.js?v=4`, `quiz-game.js?v=6`, `quiz-game.css?v=4`,
+  `index-home.css?v=60`, `ouviescrevi-ui.js?v=40` (cabeçalho/rodapé `LAYOUT_V = "18"`), `help-assistant.js?v=1` (carregado pelo `ouviescrevi-ui.js`), `theme-ui.js?v=2`, `news-ticker.js?v=4`, `quiz-game.js?v=6`, `quiz-game.css?v=4`,
   `aula-pronta-ui.js?v=7`, `aula-pronta.css?v=6`, `share-ui.js?v=29` (na `index.html` e nas `en|es|fr|de/index.html`).
 - Na máquina do dono há outra app na porta **8000** (“AION”). Para testar a API em local usa outra porta (ex. 8010)
   e no browser força `OuviescreviAPI.getBase = () => "http://127.0.0.1:8010"`.
@@ -448,6 +448,8 @@ O Cursor e o Claude Code podem trabalhar neste repositório: antes de mexer, `gi
   (locutores com nomes, marcas [mm:ss], SRT) e «O que acontece aos teus ficheiros» (áudio apagado, a OpenAI não treina
   com dados da API e guarda-os até 30 dias para abusos, texto sem conta sai do servidor em poucas horas). A
   `privacidade.html` (secção 5) diz o mesmo sobre o treino. Falta fazer o mesmo nas páginas EN/ES/FR/DE.
+
+- **Assistente de ajuda (28/11, Claude)**: bolha «Ajuda» no canto de todas as páginas públicas (não no backoffice nem com `<body data-help="off">`), nas 5 línguas pela `<html lang>`. `js/help-assistant.js` é carregado pelo `ouviescrevi-ui.js` (`mountHelpAssistant`) e desenha-se num shadow DOM, por isso a regra geral `.oe-page button:not(...)` não lhe mexe (não precisa de entrar na lista `:not`). Sobe acima do aviso de cookies e do `#fabSugestao` da página inicial. API: `POST /help-chat` {question ≤500, history, token, lang} em `main.py`, limite `RATE_LIMIT_HELP` (20/h por IP), `max_tokens` 400; o texto do sistema está em `backend/help_assistant.py` com os limites grátis, o tamanho máximo e se há preços à venda lidos da configuração real (`admin_store._quota_limits`, `billing.pricing_hidden`) a cada pedido. Não lê transcrições. O chat sobre a transcrição (`/transcript-chat`) já existia. Testes em `tests/test_ai_endpoints.py` (198 no total).
 
 ## 3. Regras a manter
 

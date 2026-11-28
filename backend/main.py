@@ -4039,6 +4039,46 @@ async def transcript_chat(req: TranscriptChatRequest, request: Request):
         raise ai_http_error(e) from e
 
 
+class HelpChatRequest(BaseModel):
+    question: str
+    history: list[TranscriptChatMessage] = []
+    token: str = ""
+    lang: str = "pt"
+
+
+RATE_LIMIT_HELP = int(os.getenv("RATE_LIMIT_HELP", "20"))
+RATE_LIMIT_HELP_WINDOW = int(os.getenv("RATE_LIMIT_HELP_WINDOW", "3600"))
+
+
+@app.post("/help-chat")
+async def help_chat(req: HelpChatRequest, request: Request):
+    """Assistente de ajuda do site (bolha «Ajuda» em todas as páginas). Só responde sobre o Ouviescrevi (help_assistant.py)."""
+    import help_assistant
+    require_token(req.token)
+    enforce_rate_limit(request, "help", RATE_LIMIT_HELP, RATE_LIMIT_HELP_WINDOW)
+    question = (req.question or "").strip()
+    if not question:
+        raise HTTPException(status_code=400, detail="Escreve uma pergunta.")
+    if len(question) > 500:
+        raise HTTPException(status_code=400, detail="Pergunta demasiado longa (máximo 500 caracteres).")
+    anon, reg = admin_store._quota_limits()
+    system = help_assistant.system_prompt(max_mb=MAX_FILE_SIZE_MB, anon=anon, reg=reg,
+                                          pricing_hidden=__import__("billing").pricing_hidden(),
+                                          output_language=ai_output_language(req.lang))
+    messages: list[dict] = [{"role": "system", "content": system}]
+    for item in list(req.history or [])[-6:]:
+        role, content = (item.role or "").strip().lower(), (item.content or "").strip()
+        if role in ("user", "assistant") and content:
+            messages.append({"role": role, "content": content[:1000]})
+    messages.append({"role": "user", "content": question})
+    try:
+        resp = ai_chat.create(model=SUM_MODEL, messages=messages, temperature=0.3, max_tokens=400)
+        maybe_notify_activity(request, "Pergunta ao assistente de ajuda", "Assistente de ajuda no Ouviescrevi")
+        return {"answer": (resp.choices[0].message.content or "").strip()}
+    except Exception as e:
+        raise ai_http_error(e) from e
+
+
 @app.post("/translate")
 async def translate_text(request: Request):
     data = await request.json()

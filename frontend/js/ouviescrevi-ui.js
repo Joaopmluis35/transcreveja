@@ -1142,8 +1142,21 @@
     document.body.prepend(el);
   }
 
+  // 28/11: assistente de ajuda (bolha «Ajuda») em todas as páginas públicas; não no backoffice nem com data-help="off".
+  function mountHelpAssistant() {
+    if ((global.location.pathname || "").indexOf("backoffice") !== -1) return;
+    if (document.body && document.body.dataset.help === "off") return;
+    if (document.querySelector('script[data-oe-help="1"]')) return;
+    var s = document.createElement("script");
+    s.src = "/js/help-assistant.js?v=1";
+    s.defer = true;
+    s.dataset.oeHelp = "1";
+    document.head.appendChild(s);
+  }
+
   function bootLayout() {
     if (global.OuviescreviSEO) global.OuviescreviSEO.apply();
+    mountHelpAssistant();
     autoLoadLayout();
     ensureI18nScript().then(function () {
       maybeShowCookieBanner();
